@@ -33,7 +33,9 @@ Who-Spoke/
 │   ├── corpus.md             fiche des corpus (livrable exigé)
 │   ├── glossaire.md          concepts et vocabulaire
 │   ├── journal.md            journal de bord daté
-│   └── decisions/            une décision = un fichier (D16-slug.md, D17-…)
+│   ├── decisions/            une décision = un fichier (D16-slug.md, D17-…)
+│   ├── corpus-maison/        consentement, protocole d'enregistrement, conventions d'annotation (modèles seulement)
+│   └── recherche/            rapports de recherche documentaire (sources, état de l'art)
 ├── configs/                  configurations YAML réutilisables (pipelines, jeux de données)
 ├── data/                     non versionné, sauf README.md, manifests/ et splits/
 │   ├── README.md             comment reconstruire data/ à partir des scripts
@@ -199,4 +201,4 @@ Les documents écrits par le cockpit dans le dossier local sont commités par Cl
 
 ## 7. Données
 
-Chaque corpus est obtenu par un script `scripts/data/get_<corpus>.py` qui télécharge, vérifie les sommes de contrôle, normalise l'audio en 16 kHz mono et produit le RTTM de référence. Le manifeste `data/manifests/<corpus>.csv` est versionné. La fiche `docs/corpus.md` est mise à jour avant tout premier téléchargement d'un corpus : source, accès, licence, volume, composition, limites et jeux vus par chaque modèle pré-entraîné. Les consentements du corpus maison sont conservés hors du dépôt. `corpus.md` mentionne seulement leur existence et leur date.
+Chaque corpus est obtenu par un script `scripts/data/get_<corpus>.py` qui télécharge, vérifie les sommes de contrôle, normalise l'audio en 16 kHz mono et produit le RTTM de référence. Le manifeste `data/manifests/<corpus>.csv` est versionné. La fiche `docs/corpus.md` est mise à jour avant tout premier téléchargement d'un corpus : source, accès, licence, volume, composition, limites et jeux vus par chaque modèle pré-entraîné. Les consentements signés du corpus maison et la table de correspondance entre noms et codes sont conservés **hors du dossier du dépôt** (par exemple `~/Dev/Who-Spoke-confidentiel/`). `corpus.md` mentionne seulement leur existence et leur date. Les enregistrements maison ne sont traités qu'en local (voir `docs/corpus-maison/README.md`).

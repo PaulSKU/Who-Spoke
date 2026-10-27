@@ -1,7 +1,118 @@
 # Fiche des corpus
 
-Livrable exigé. Mise à jour avant tout premier téléchargement d'un corpus (`docs/methode.md` §7). Pour chaque corpus : source, accès, licence, volume, composition, limites, partitions utilisées, règles de construction des RTTM de référence, et jeux vus à l'entraînement par chaque modèle pré-entraîné (`docs/protocole-eval.md` §5).
+Livrable exigé. Version 0.1 du 27 octobre 2026 (fiche candidate, à discuter avec le tuteur). Elle est mise à jour avant tout premier téléchargement d'un corpus (`docs/methode.md` §7). Pour chaque corpus : source, accès, licence, volume, composition, limites, partitions utilisées, règles de construction des RTTM de référence, et jeux vus à l'entraînement par chaque modèle pré-entraîné (`docs/protocole-eval.md` §5).
 
 Les consentements du corpus maison sont conservés hors du dépôt ; cette fiche mentionne seulement leur existence et leur date.
 
-<!-- Aucun corpus renseigné à ce stade. -->
+La recherche complète qui fonde cette fiche est dans `docs/recherche/corpus-diarisation-reunions-francais.md`.
+
+**Légende de confiance.** **[certain]** : vérifié sur source primaire. **[probable]** : source secondaire ou non revérifiée. **[incertain]** : à vérifier.
+
+---
+
+## 0. Synthèse
+
+| Corpus | Rôle | Statut | Licence | Volume local visé |
+|---|---|---|---|---|
+| Corpus maison (M01–M03) | Test français principal (réel, inédit) | Retenu | Consentement des participants | < 0,1 Go |
+| SUMM-RE | Validation française ; test français élargi ; ajustement fin éventuel | Retenu | CC BY-SA 4.0 | ~1,4 Go (dev) + 2,8 Go (test) |
+| AMI, micro distant (SDM) | Vérification de reproduction ; robustesse au champ lointain | Retenu | CC BY 4.0 | ~2,2 Go (dev + test) |
+| Simsamu | Contrôle : français, téléphone, 2 locuteurs | Retenu | MIT | 0,06 Go |
+| VoxConverse | Variété (nombre de locuteurs, conditions) | Candidat | CC BY 4.0 (recherche) | ~2 à 6 Go selon le sous-ensemble |
+| NOTSOFAR-1 (monocanal) | Test en champ lointain non contaminé (anglais) | Candidat, question au tuteur | CC BY 4.0 | inconnu |
+| OpenSLR 28 + bruits MUSAN | Augmentation (si ajustement fin) | Candidat | Apache 2.0 ; CC BY 4.0 | ~1,9 Go |
+
+---
+
+## 1. Corpus maison
+
+Trois réunions en français enregistrées par la candidate (salle réverbérante, visio, bruit de fond), d'environ 30 minutes au total, de 2 à 6 locuteurs. Protocole, consentement et conventions d'annotation dans `docs/corpus-maison/`. Tout le corpus sert au test ; il est traité uniquement en local.
+
+| Champ | Valeur |
+|---|---|
+| Consentements | à recueillir (dates à consigner ici) |
+| Référence | annotation manuelle selon `docs/corpus-maison/conventions-annotation.md` ; bruit d'annotation mesuré par ré-annotation de 2 minutes |
+| Contamination | aucune (enregistrements inédits) |
+
+## 2. SUMM-RE
+
+| Champ | Valeur |
+|---|---|
+| Source | https://huggingface.co/datasets/linagora/SUMM-RE ; Hunter et al., TALN 2024 |
+| Licence, accès | CC BY-SA 4.0, sans restriction d'accès **[certain]** |
+| Composition | 283 conversations d'environ 20 min de type réunion, en français, 3 à 4 locuteurs (rarement 2), 207 participants ; 248 en présentiel, 35 en Zoom **[certain, d'après la fiche et l'article]** |
+| Partitions | train 210 conversations (~67 h, alignement automatique) ; dev 36 (~12 h, corrigé à la main) ; test 37 (~12 h ; statut de correction contradictoire entre l'article et la fiche **[incertain]**) |
+| Audio | **pistes individuelles de micros-casques uniquement** (48 kHz, 32 kHz pour Zoom) ; le micro d'ambiance décrit dans l'article n'est pas publié **[probable]** ; 93,8 Go en tout |
+| Référence | reconstruite à partir des alignements au mot, avec fusion des pauses de 200 ms ou moins (même convention que le corpus maison) |
+| Construction du signal | somme des pistes individuelles (proche d'un « mix de casques ») ; une condition réverbérée est simulée par augmentation |
+| Dérivé disponible | `ggfox00000/dia-summre-test` : les 37 réunions de test en 16 kHz avec RTTM (2,81 Go) ; sa variante dite « far-field » est une moyenne de micros-casques, pas un enregistrement de salle **[probable]** ; RTTM à vérifier avant usage |
+| Limites | pas de champ lointain réel ; recouvrement éventuel de locuteurs entre partitions non documenté, à vérifier |
+| Contamination | absent des listes d'entraînement publiées de pyannote segmentation-3.0 et de NeMo Sortformer v2 **[probable]** |
+
+## 3. AMI, micro distant (SDM)
+
+| Champ | Valeur |
+|---|---|
+| Source | https://groups.inf.ed.ac.uk/ami/corpus/ ; partition et références : dépôt GitHub `pyannote/AMI-diarization-setup` (même partition que BUT) |
+| Licence | CC BY 4.0 selon le site d'Édimbourg **[certain]** ; le miroir OpenSLR SLR16 affiche une licence CC BY-NC-SA 2.0 modifiée **[certain]** ; la licence de référence citée est celle d'Édimbourg |
+| Composition | réunions en anglais (locuteurs largement non natifs), en majorité scénarisées, 4 participants ; chevauchement d'environ 13,6 % **[probable]** |
+| Partitions | train 136, dev 18, test 16 réunions **[certain]** ; test : EN2002a–d, ES2004a–d, IS1009a–d, TS3003a–d ; dev : ES2011a–d, IB4001–4004, IB4010, IB4011, IS1008a–d, TS3004a–d |
+| Signal | `Array1-01.wav` (premier micro de la première antenne) ; dev ~1,11 Go, test ~1,04 Go **[certain, tailles mesurées]** |
+| Référence | RTTM `only_words` ; UEM commun `uems/{partition}/` (il n'existe pas d'UEM propre à `only_words`), qui couvre la réunion entière pour ES2004a |
+| Contamination | AMI figure dans l'entraînement de pyannote segmentation-3.0 et de NeMo Sortformer v2 **[certain, d'après les fiches des modèles]** : les résultats sur AMI mesurent la reproduction, pas la généralisation |
+| Valeur publiée | community-1 : DER 19,9 % sur AMI SDM, sans collar, chevauchements comptés **[certain, fiche du modèle]** |
+| Téléchargements effectués | ES2004a (signal SDM, RTTM, UEM) le 27/10/2026 pour la vérification V5 ; ce premier téléchargement a précédé la mise à jour de cette fiche, en dérogation à `methode.md` §7 |
+
+## 4. Simsamu
+
+| Champ | Valeur |
+|---|---|
+| Source | https://huggingface.co/datasets/medkit/simsamu |
+| Licence | MIT **[certain]** |
+| Composition | 61 appels simulés de régulation médicale (SAMU) en français, 3 h 15 en tout, ~3 min par appel, 2 rôles (appelant et médecin) ; voix de l'appelant transmise par le réseau téléphonique **[certain]** |
+| Audio | m4a, 8 kHz ; 56,8 Mo |
+| Référence | RTTM fourni ; étiquette `patient_1` dans le miroir `diarizers-community/simsamu` à vérifier |
+| Usage | contrôle de cohérence en bande étroite ; ce ne sont pas des réunions |
+
+## 5. VoxConverse (candidat)
+
+| Champ | Valeur |
+|---|---|
+| Source | https://github.com/joonson/voxconverse (références v0.3) |
+| Licence | CC BY 4.0 pour la recherche ; droits d'auteur des vidéos conservés par leurs propriétaires **[certain]** ; audio non redistribuable |
+| Composition | débats et journaux issus de YouTube ; dev 216 fichiers (~20 h, 1 à 20 locuteurs), test 232 fichiers (~43 h, 1 à 21 locuteurs) ; chevauchement de 3 à 4 % ; majoritairement en anglais **[probable]** |
+| Téléchargement | dev 1,99 Go, test 4,27 Go **[certain, mesuré]** ; un sous-ensemble à 6 locuteurs au plus suffira |
+| Contamination | vu à l'entraînement par pyannote segmentation-3.0 et NeMo Sortformer v2 **[certain]** |
+| Valeur publiée | community-1 : DER 11,2 %, sans collar **[certain, fiche du modèle]** |
+
+## 6. NOTSOFAR-1 (candidat)
+
+Réunions réelles en anglais d'environ 6 minutes, avec 4 à 8 participants, enregistrées par des appareils de salle commerciaux monocanaux. Licence CC BY 4.0. Les jeux d'évaluation sont publiés avec leur vérité terrain **[probable]**. C'est le seul corpus en champ lointain réel absent des listes d'entraînement des deux modèles. Il permettrait aussi de tester la limite de 4 locuteurs de Sortformer. La taille du sous-ensemble monocanal n'est pas publiée. Son usage dépend de l'accord du tuteur sur un test non francophone.
+
+## 7. Ressources d'augmentation (candidates)
+
+| Ressource | Licence | Taille | Usage |
+|---|---|---|---|
+| OpenSLR 28 (RIRS_NOISES) | Apache 2.0 **[probable]** | 1,3 Go | Réponses impulsionnelles de salles réelles et simulées |
+| MUSAN, sous-dossier `noise` | CC BY 4.0 **[certain]** | ~0,6 Go (11 Go pour MUSAN complet) | Bruits d'ambiance |
+| Simulation de codec (Opus, bande téléphonique) | — | — | Par ffmpeg, pré-calculée |
+
+## 8. Corpus écartés
+
+| Corpus | Motif |
+|---|---|
+| ETAPE, ALLIES, REPERE, ESTER (ELRA) | Payants (300 € à 2 500 € en tarif académique) ; délai de licence ; REPERE est vu par pyannote segmentation-3.0 |
+| CEFC-ORFEO, ESLO, TCOF, CLAPI, MPF, CFPP2000 | Transcriptions linguistiques aux frontières imprécises pour un DER ; licences non commerciales ; éventuellement un ou deux fichiers en contrôle hors domaine |
+| CHiME-6, DiPCo, AliMeeting, AISHELL-4, MSDWild, MISP | Archives lourdes, langue, contamination ou chevauchement non représentatif |
+| CALLHOME (Hugging Face) | Pas de partie française |
+| Common Voice FR, LibriMix | Volume (30,7 Go et plus de 400 Go) |
+| FREDSum, VoxPopuli, mTEDx | Pas de minutage multi-locuteur exploitable |
+| Vidéos de l'Assemblée nationale et du Sénat | Accord préalable requis pour la réutilisation |
+
+## 9. Contamination des modèles pré-entraînés
+
+| Modèle | Corpus vus à l'entraînement (d'après la fiche) | Conséquence |
+|---|---|---|
+| pyannote segmentation-3.0 (base de community-1) | AISHELL, AliMeeting, AMI, AVA-AVD, DIHARD, Ego4D, MSDWild, REPERE, VoxConverse **[certain]** | Résultats optimistes sur AMI et VoxConverse |
+| pyannote community-1 | Données d'entraînement non listées sur la fiche **[certain]** | Contamination au moins égale à celle de segmentation-3.0 **[probable]** |
+| NeMo Sortformer v2 | Fisher, AMI, VoxConverse v0.3, ICSI, AISHELL-4, DIHARD III dev, NIST SRE 2000, DiPCo, AliMeeting **[probable]** ; 4 locuteurs au plus | Résultats optimistes sur AMI et VoxConverse ; inadapté aux réunions de 5 à 6 personnes |
