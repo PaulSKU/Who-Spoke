@@ -61,3 +61,18 @@ Problèmes :
 - Avertissement en CPU seul : `UserWarning: std(): degrees of freedom is <= 0` (ReduceOps.cpp). Aucun avertissement capturé en MPS.
 - Aucune erreur liée à l'écart torch 2.14.1 / torchaudio 2.11.0.
 Suite : interprétation au cockpit ; choix du mode d'entrée audio de la chaîne (dict en mémoire, ou réparation de torchcodec).
+
+## 2026-10-27 — Interprétation de V5 (cockpit)
+
+Objectif : interpréter les résultats de V5 et décider du mode d'entrée audio.
+Réalisé : lecture du dépôt (commit 58f1b5d) et des résultats de V5 ; rédaction de la fiche D16.
+Résultats (interprétation) :
+- Temps de calcul : en MPS, RTF de 0,055, soit environ 18 fois plus rapide que le temps réel ; une réunion de 30 min se traite en moins de 2 min. En CPU seul, RTF de 0,87 : une réunion de 30 min prend environ 26 min. C'est utilisable hors ligne, mais limite pour une démonstration en direct sans GPU Apple. À signaler au tuteur, qui a demandé ce chiffre.
+- DER sans collar de 25,2 % sur une seule réunion, contre 19,9 % publié pour community-1 sur les 16 réunions de test. Les deux chiffres ne sont pas comparables : la difficulté varie fortement d'une réunion à l'autre. C'est l'expérience EXP-0001, sur la partition de test complète, qui vérifiera la reproduction. Ces chiffres restent une borne optimiste, puisque AMI figure dans l'entraînement de pyannote.
+- La parole manquée domine (16,4 points sur 25,2) : en champ lointain, il s'agit vraisemblablement de parole faible ou en chevauchement **[probable]**. La décomposition par zone de chevauchement (protocole §3.2, pas encore implémentée) permettra de le vérifier.
+- Le collar de 0,25 s retire 7,5 points de DER : une part importante des erreurs se situe à moins de 250 ms des frontières.
+- JER de 30,2 %, supérieur au DER : l'erreur semble concentrée sur au moins un locuteur, probablement un locuteur qui parle peu **[probable]**, à vérifier locuteur par locuteur.
+- Métriques identiques en MPS et en CPU : le choix du périphérique ne change pas les résultats.
+Décisions : D16 proposée (entrée audio en mémoire).
+Problèmes : aucun bloquant.
+Suite : après validation de D16, préparer EXP-0001 (pyannote community-1 sur AMI SDM, dev puis test), avec le script d'évaluation complet (protocole §3.2 et §3.4), `src/whospoke/audio.py` et `scripts/data/get_ami.py`.

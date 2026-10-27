@@ -101,13 +101,13 @@ Date : AAAA-MM-JJ
 | Fichier | Contenu | Produit par |
 |---|---|---|
 | `config.yaml` | Configuration complète et autonome : corpus, partition, pipeline, paramètres, graine aléatoire, expérience de référence, variable modifiée | Claude Code, avant exécution |
-| `results.json` | Métriques agrégées au schéma du §4.3 | Script d'évaluation |
-| `per_file.csv` | Métriques par fichier | Script d'évaluation |
+| `results_<corpus>_<partition>.json` | Métriques agrégées au schéma du §4.3, un fichier par jeu évalué (par exemple `results_ami_test.json`) | Script d'évaluation |
+| `per_file_<corpus>_<partition>.csv` | Métriques par fichier | Script d'évaluation |
 | `rttm/` | Hypothèses du système, un RTTM par fichier | Script d'exécution |
 | `run.log` | Journal d'exécution | Script d'exécution |
 | `notes.md` | Interprétation des résultats | Rédigé après analyse dans le cockpit |
 
-Une expérience exécutée n'est plus modifiée. Les seules exceptions sont `notes.md`, que l'on complète, et un bloc `invalidee` ajouté à `results.json` si un défaut est découvert. Une correction donne lieu à une nouvelle expérience.
+Une expérience exécutée n'est plus modifiée. Les seules exceptions sont `notes.md`, que l'on complète, et un bloc `invalidee` ajouté aux fichiers `results_*.json` si un défaut est découvert. Une correction donne lieu à une nouvelle expérience.
 
 ### 4.3 Schéma de `results.json`
 
@@ -132,7 +132,8 @@ Les taux sont exprimés en pourcentage, avec deux décimales.
     "der_zones_chevauchement": 0.0,
     "n_locuteurs": {"erreur_absolue_moyenne": 0.0, "taux_exact": 0.0}
   },
-  "temps": {"chargement_modeles_s": 0.0, "calcul_s": 0.0, "rtf": 0.0},
+  "temps": {"device": "mps", "chargement_modeles_s": 0.0, "calcul_s": 0.0, "rtf": 0.0},
+  "temps_cpu": {"sous_ensemble": "data/splits/ami/temps.txt", "duree_audio_s": 0.0, "calcul_s": 0.0, "rtf": 0.0},
   "invalidee": null
 }
 ```
@@ -141,7 +142,7 @@ Les définitions exactes de chaque champ figurent dans `docs/protocole-eval.md`.
 
 ### 4.4 `results/leaderboard.csv`
 
-Colonnes, dans cet ordre : `exp_id, date, slug, reference, variable_modifiee, corpus, partition, pipeline, mode_n_locuteurs, der_c0, manquee_c0, fausse_alarme_c0, confusion_c0, der_c025, jer_c0, mae_n_locuteurs, rtf, git_commit`. Une ligne correspond à une évaluation (expérience × corpus × partition). Le fichier n'est jamais édité à la main.
+Colonnes, dans cet ordre : `exp_id, date, slug, reference, variable_modifiee, corpus, partition, pipeline, mode_n_locuteurs, der_c0, manquee_c0, fausse_alarme_c0, confusion_c0, der_c025, jer_c0, mae_n_locuteurs, rtf, rtf_cpu, git_commit`. Une ligne correspond à une évaluation (expérience × corpus × partition). Le fichier n'est jamais édité à la main.
 
 ### 4.5 Entrée de journal — `docs/journal.md`
 
