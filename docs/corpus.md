@@ -61,7 +61,7 @@ Trois réunions en français enregistrées par la candidate (salle réverbérant
 | Référence | RTTM `only_words` ; UEM commun `uems/{partition}/` (il n'existe pas d'UEM propre à `only_words`), qui couvre la réunion entière pour ES2004a |
 | Contamination | AMI figure dans l'entraînement de pyannote segmentation-3.0 et de NeMo Sortformer v2 **[certain, d'après les fiches des modèles]** : les résultats sur AMI mesurent la reproduction, pas la généralisation |
 | Valeur publiée | community-1 : DER 19,9 % sur AMI SDM, sans collar, chevauchements comptés **[certain, fiche du modèle]** |
-| Téléchargements effectués | ES2004a (signal SDM, RTTM, UEM) le 27/10/2026 pour la vérification V5 ; ce premier téléchargement a précédé la mise à jour de cette fiche, en dérogation à `methode.md` §7 |
+| Téléchargements effectués | ES2004a (signal SDM, RTTM, UEM) le 27/10/2026 pour la vérification V5 ; ce premier téléchargement a précédé la mise à jour de cette fiche, en dérogation à `methode.md` §7. Partitions dev (18 réunions, 9,67 h) et test (16 réunions, 9,06 h) complètes le 27/10/2026 par `scripts/data/get_ami.py` : signal `Array1-01` (miroir d'Édimbourg), RTTM `only_words` et UEM du dépôt `pyannote/AMI-diarization-setup` au commit `67c2d539286e89f68952d5dcf83912bd9f01dfae`. Fichiers renommés `ami__<réunion>` (champ uri des RTTM et UEM réécrit) ; manifeste `data/manifests/ami.csv` (SHA-256 du signal brut) ; listes `data/splits/ami/{dev,test}.txt` ; UEM dans `data/splits/ami/uem/`. Contrôles : UEM égal au signal à 0,2 s près pour chaque réunion ; aucun segment de référence hors UEM ; 4 locuteurs par réunion, sauf EN2002c (3). Sous-ensemble de mesure du temps CPU (`temps.txt`) : ES2004a et TS3003a, 42,6 min, deux sites d'enregistrement différents |
 
 ## 4. Simsamu
 

@@ -11,4 +11,8 @@ Le contenu de `data/` n'est pas versionné, à l'exception de ce fichier, de `ma
 
 ## Reconstruction
 
-Chaque corpus est obtenu par un script `scripts/data/get_<corpus>.py`, qui télécharge, vérifie les sommes de contrôle du manifeste, normalise l'audio en 16 kHz mono via ffmpeg et produit le RTTM de référence. Aucun script de corpus n'existe encore ; les sources, licences et conditions d'accès sont décrites dans `docs/corpus.md`.
+Chaque corpus est obtenu par un script `scripts/data/get_<corpus>.py`, qui télécharge, vérifie les sommes de contrôle du manifeste, normalise l'audio en 16 kHz mono via ffmpeg et produit le RTTM de référence. Les sources, licences et conditions d'accès sont décrites dans `docs/corpus.md`.
+
+| Corpus | Commande | Volume |
+|---|---|---|
+| AMI SDM, dev et test | `uv run python scripts/data/get_ami.py` | ~2,2 Go bruts, ~2,2 Go normalisés |
