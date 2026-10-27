@@ -1,0 +1,30 @@
+# Secrets
+.env
+
+# Données non versionnées (D13)
+data/raw/
+data/processed/
+
+# Audio
+*.wav
+*.mp3
+*.m4a
+*.flac
+*.ogg
+*.opus
+
+# Caches de modèles
+.cache/
+hf_cache/
+pretrained_models/
+*.ckpt
+*.nemo
+
+# Python
+.venv/
+__pycache__/
+*.pyc
+.pytest_cache/
+
+# Système
+.DS_Store
