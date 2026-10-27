@@ -4,7 +4,7 @@ Système de diarisation de locuteurs : à partir d'un enregistrement, détermine
 
 ## Installation
 
-Prérequis : [uv](https://docs.astral.sh/uv/) et ffmpeg accessibles dans le `PATH`.
+Prérequis : [uv](https://docs.astral.sh/uv/) et l'exécutable `ffmpeg` accessibles dans le `PATH`. Seul l'exécutable est requis, et non les bibliothèques partagées de ffmpeg : l'audio est normalisé par ffmpeg en sous-processus, puis passé aux pipelines en mémoire (décision D16).
 
 ```bash
 uv sync

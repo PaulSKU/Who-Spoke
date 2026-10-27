@@ -6,10 +6,11 @@ leaderboard. Le résultat est consigné à la main dans docs/journal.md.
 Étapes :
 1. téléchargement de l'audio (miroir AMI), de la référence RTTM (only_words) et de
    l'UEM depuis pyannote/AMI-diarization-setup, dans data/raw/ami/ ;
-2. normalisation en WAV 16 kHz mono par ffmpeg, dans data/processed/ami/ ;
+2. normalisation en WAV 16 kHz mono (whospoke.audio, D16), dans data/processed/ami/ ;
 3. pour chaque périphérique (MPS puis CPU), un sous-processus distinct qui charge la
    pipeline, fait un préchauffage sur un extrait de 60 s, puis traite la réunion
-   entière en lui passant un dict {"waveform", "sample_rate"} lu sans torchcodec ;
+   entière en lui passant un dict {"waveform", "sample_rate"} lu par
+   whospoke.audio.load_waveform (sans torchcodec) ;
 4. essai séparé avec un chemin de fichier passé directement à la pipeline (extrait de
    60 s), dont l'échec éventuel est consigné sans faire échouer le script.
 
@@ -31,6 +32,8 @@ import urllib.request
 import warnings
 from pathlib import Path
 
+from whospoke.audio import load_waveform, normalize
+
 REPO_ROOT = Path(__file__).resolve().parent.parent
 RAW_DIR = REPO_ROOT / "data" / "raw" / "ami"
 PROCESSED_DIR = REPO_ROOT / "data" / "processed" / "ami"
@@ -50,7 +53,6 @@ SOURCES = {
     f"{MEETING}.uem": f"{SETUP_BASE}/uems/test/{MEETING}.uem",
 }
 
-SAMPLE_RATE = 16000
 WARMUP_SECONDS = 60.0
 
 NORMALIZED_WAV = PROCESSED_DIR / f"{URI}.wav"
@@ -74,36 +76,13 @@ def download() -> None:
         tmp.rename(target)
 
 
-def ffmpeg_normalize(source: Path, target: Path, duration: float | None = None) -> None:
-    """WAV PCM 16 bits, 16 kHz, mono (D15)."""
-    target.parent.mkdir(parents=True, exist_ok=True)
-    command = ["ffmpeg", "-nostdin", "-hide_banner", "-loglevel", "error", "-y", "-i", str(source)]
-    if duration is not None:
-        command += ["-t", str(duration)]
-    command += ["-ac", "1", "-ar", str(SAMPLE_RATE), "-c:a", "pcm_s16le", str(target)]
-    subprocess.run(command, check=True)
-
-
 def prepare() -> None:
     download()
     if not NORMALIZED_WAV.exists():
         print("[données] normalisation 16 kHz mono (ffmpeg)")
-        ffmpeg_normalize(RAW_DIR / f"{MEETING}.Array1-01.wav", NORMALIZED_WAV)
+        normalize(RAW_DIR / f"{MEETING}.Array1-01.wav", NORMALIZED_WAV)
     if not EXCERPT_WAV.exists():
-        ffmpeg_normalize(NORMALIZED_WAV, EXCERPT_WAV, duration=WARMUP_SECONDS)
-
-
-def read_wav(path: Path):
-    """Lit un WAV PCM 16 bits mono sans torchcodec ; renvoie (waveform (1, n), sample_rate)."""
-    import numpy as np
-    import torch
-    from scipy.io import wavfile
-
-    sample_rate, data = wavfile.read(path)
-    if data.dtype != np.int16 or data.ndim != 1:
-        raise ValueError(f"{path} : WAV PCM 16 bits mono attendu, reçu {data.dtype} {data.shape}")
-    waveform = torch.from_numpy(data.astype(np.float32) / 32768.0).unsqueeze(0)
-    return waveform, int(sample_rate)
+        normalize(NORMALIZED_WAV, EXCERPT_WAV, duration=WARMUP_SECONDS)
 
 
 def load_reference():
@@ -173,13 +152,13 @@ def run_device(device_name: str) -> dict:
 
         # Préchauffage (protocole §3.5) sur l'extrait de 60 s, non compté.
         t0 = time.perf_counter()
-        waveform, sample_rate = read_wav(EXCERPT_WAV)
+        waveform, sample_rate = load_waveform(EXCERPT_WAV)
         pipeline({"waveform": waveform, "sample_rate": sample_rate})
         warmup_s = time.perf_counter() - t0
 
         # Temps de calcul : lecture de l'audio normalisé + pipeline complète.
         t0 = time.perf_counter()
-        waveform, sample_rate = read_wav(NORMALIZED_WAV)
+        waveform, sample_rate = load_waveform(NORMALIZED_WAV)
         output = pipeline({"waveform": waveform, "sample_rate": sample_rate})
         if device.type == "mps":
             torch.mps.synchronize()
