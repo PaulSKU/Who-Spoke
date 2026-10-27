@@ -1,6 +1,6 @@
 # Protocole d'évaluation
 
-Version 1.0 du 27 octobre 2026, figée (décision D1). Toute modification passe par une fiche de décision et rend les résultats antérieurs non comparables. Ceux-ci doivent alors être recalculés ou signalés comme tels.
+Version 1.1 du 27 octobre 2026, figée (décision D1). Révision 1.1 : sémantique du collar vérifiée par test ; RTF en CPU seul rendu obligatoire. Toute modification passe par une fiche de décision et rend les résultats antérieurs non comparables. Ceux-ci doivent alors être recalculés ou signalés comme tels.
 
 **Légende de confiance.** **[certain]** : vérifié sur une source primaire. **[probable]** : source secondaire ou connaissance établie non revérifiée. **[incertain]** : à vérifier.
 
@@ -38,7 +38,7 @@ Le DER est calculé dans deux conditions, toujours avec les chevauchements compt
 | `collar_0` (principale) | Aucune | `DiarizationErrorRate(collar=0.0, skip_overlap=False)` | Comparaisons internes, ablation |
 | `collar_0_25` (secondaire) | 0,25 s de part et d'autre de chaque frontière de référence | `DiarizationErrorRate(collar=0.5, skip_overlap=False)` | Comparabilité avec la littérature |
 
-**Point de vigilance.** Dans `pyannote.metrics`, le paramètre `collar` désigne la largeur totale de la zone exclue, répartie pour moitié avant et pour moitié après la frontière **[probable]**. Une tolérance de 0,25 s de part et d'autre, convention usuelle des outils NIST, correspond donc à `collar=0.5`. Un test unitaire (§6) doit établir ce point avant toute première évaluation.
+**Point de vigilance.** Dans `pyannote.metrics`, le paramètre `collar` désigne la largeur totale de la zone exclue, répartie pour moitié avant et pour moitié après la frontière **[certain, vérifié par le test « collar » le 27/10 : pour un décalage de 0,2 s, le DER s'annule à partir de `collar=0.4`]**. Une tolérance de 0,25 s de part et d'autre, convention usuelle des outils NIST, correspond donc à `collar=0.5`.
 
 ### 3.2 Décomposition par zone
 
@@ -54,7 +54,7 @@ Pour chaque fichier, on compare le nombre de locuteurs distincts dans l'hypothè
 
 ### 3.5 Temps d'inférence
 
-Le RTF (*Real-Time Factor*) est le rapport entre le temps de calcul et la durée de l'audio. Le temps de calcul couvre le chargement de l'audio normalisé et l'exécution complète de la pipeline. Il exclut le chargement des modèles, mesuré et rapporté à part (`chargement_modeles_s`). La mesure est faite en temps réel écoulé (horloge murale), machine sur secteur, sans autre calcul lourd en parallèle. Le périphérique (`cpu`, `mps`, `cuda`) est consigné. Un premier fichier sert de préchauffage et n'est pas compté.
+Le RTF (*Real-Time Factor*) est le rapport entre le temps de calcul et la durée de l'audio. Le temps de calcul couvre le chargement de l'audio normalisé et l'exécution complète de la pipeline. Il exclut le chargement des modèles, mesuré et rapporté à part (`chargement_modeles_s`). La mesure est faite en temps réel écoulé (horloge murale), machine sur secteur, sans autre calcul lourd en parallèle. Le périphérique (`cpu`, `mps`, `cuda`) est consigné. Toute pipeline candidate au rendu est mesurée sur la machine locale deux fois, en MPS puis en CPU seul, sur un même sous-ensemble fixe de fichiers, et le temps de traitement d'une réunion de 30 minutes est rapporté explicitement (demande du tuteur). Un premier fichier sert de préchauffage et n'est pas compté.
 
 ---
 

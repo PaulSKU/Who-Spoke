@@ -1,10 +1,12 @@
 # Cadrage du projet « Who Spoke? »
 
-Document de travail, version 0.2 du 27 octobre 2026. Destination : `docs/cadrage.md` du dépôt, à l'initialisation.
+Document de travail, version 0.3 du 27 octobre 2026 (précisions du tuteur intégrées). Destination : `docs/cadrage.md` du dépôt, à l'initialisation.
 
 **Statut.** Décisions D1 à D15 actées le 27/10/2026. Restent ouverts : le choix de la seconde amélioration de D9 (fin S1), la confirmation de D12 au premier prototype, et D14 (S3).
 
 **Contraintes de la cible** (réponses du tuteur et de la candidate, 27/10). Les fichiers de test sont en français, en conditions variées, avec un nombre de locuteurs inconnu et variable. Ils sont remis au moment de la démonstration, en direct sur la machine de la candidate, avec accès réseau. Le tuteur peut aussi cloner le dépôt et tester lui-même. Le système doit estimer seul le nombre de locuteurs.
+
+**Précisions du tuteur** (27/10, après-midi). Le cas d'usage est la réunion : majoritairement en français, mono, 2 à 6 personnes, conditions variées (salle avec un seul micro et de l'écho, visio, un peu de bruit), de quelques minutes à une demi-heure. La démonstration doit tourner en local (souveraineté des données). La comparaison principale porte sur les solutions open source locales ; un service cloud payant (pyannoteAI, AssemblyAI…) est un bonus apprécié. Les GPU externes (Colab, Kaggle) sont autorisés pour l'entraînement et les expériences, mais les temps d'inférence doivent être donnés sur la machine de la candidate, idéalement aussi en CPU seul. Le tuteur recommande de partir des modèles pré-entraînés, d'utiliser AMI en micro de salle plutôt qu'en micro-casque, VoxConverse pour la variété, Simsamu, et surtout 2 ou 3 conversations françaises consenties annotées à la main (environ 30 min), ainsi que l'augmentation de données en cas d'ajustement fin.
 
 **Légende de confiance.** **[certain]** : vérifié sur une source primaire le 27/10/2026. **[probable]** : source secondaire, ou connaissance établie non revérifiée. **[incertain]** : à vérifier avant de s'appuyer dessus.
 
@@ -16,10 +18,10 @@ Document de travail, version 0.2 du 27 octobre 2026. Destination : `docs/cadrage
 |---|---|---|---|---|
 | D1 | Protocole d'évaluation | DER sans collar, chevauchements comptés (principal) ; collar 0,25 s (secondaire) ; JER ; RTF | J1 | — |
 | D2 | Corpus de référence anglophones | AMI (partition BUT, Mix-Headset) + VoxConverse | J1–J2 | — |
-| D3 | Corpus francophone (**jeu de validation prioritaire**) | SUMM-RE (sous-ensemble dev/test) + 2 à 3 enregistrements maison consentis | J2 | — |
+| D3 | Corpus francophone (**jeu de validation prioritaire**) | SUMM-RE (sous-ensemble dev/test) + 2 à 3 enregistrements maison consentis + Simsamu (contrôle téléphonique) | J2 | — |
 | D4 | Partition et prévention des fuites | Partitions officielles, réglages sur dev uniquement, test gelé, contamination des modèles documentée | J2 | D2 |
-| D5 | Condition acoustique AMI | Mix-Headset en principal, SDM en test de robustesse | J2 | D2 |
-| D6 | Pipeline existante | pyannote.audio 4 / community-1 obligatoire ; NeMo en essai borné | J2 | V5, V6 |
+| D5 | Condition acoustique AMI | **SDM (micro de salle) en principal** ; Mix-Headset seulement comme point de comparaison (révisé le 27/10) | J2 | D2 |
+| D6 | Pipeline existante | Comparaison principale entre solutions open source locales : pyannote.audio 4 / community-1 obligatoire, NeMo en essai borné ; cloud payant en bonus | J2 | V5, V6 |
 | D7 | Baseline classique | VAD par énergie + MFCC + fenêtres glissantes + clustering agglomératif | S1 | D1 |
 | D8 | Embeddings neuronaux | ECAPA-TDNN (SpeechBrain) à la place des MFCC, reste inchangé | S2 | D7 |
 | D9 | Axes d'ablation | Diagnostics « oracle » ; amélioration n° 1 imposée : estimation du nombre de locuteurs ; amélioration n° 2 choisie sur résultats | fin S1 | D7, D8 |
@@ -82,7 +84,7 @@ Le recouvrement de locuteurs entre partitions compte surtout si l'on entraîne o
 
 **Enjeu.** AMI propose notamment le « Mix-Headset » (somme des micros-casques, signal propre) et le SDM (*single distant microphone*, un micro de table, champ lointain avec réverbération). Dans le benchmark pyannote 2.1, le DER passe d'environ 19 % (Mix-Headset) à environ 27 % (SDM), surtout par hausse de la parole manquée **[certain]**. Une table ou un téléphone dans une salle correspond plutôt au SDM.
 
-**Recommandation.** Le Mix-Headset sert de condition principale, plus simple pour comprendre la chaîne. Le SDM sert de test de robustesse dans l'ablation.
+**Décision (révisée le 27/10, demande du tuteur).** Le SDM (Array1-01) est la condition principale, car il est le plus proche des réunions cibles. Le Mix-Headset ne sert que de point de comparaison, pour isoler l'effet du champ lointain.
 
 ### D6 — Pipeline existante
 
@@ -164,8 +166,8 @@ La pipeline accepte un nombre exact de locuteurs ou des bornes (`num_speakers`, 
 | Q2 | Démonstration | En direct sur la machine de la candidate, fichiers remis sur place, accès réseau probable ; le tuteur peut aussi cloner le dépôt | D15 |
 | Q3 | Nombre de locuteurs | Estimé par le système ; mode « nombre imposé » conservé en option | D9 |
 | Q4 | Notation | Le tuteur dispose de la vérité terrain ; protocole de calcul non communiqué | Double rapport collar 0 / 0,25 s (D1) |
-| Q5 | Services cloud payants | Reporté après une première version | — |
-| Q6 | Calcul | Pas de GPU du labo ; location cloud envisageable plus tard | Local sur M2 Pro |
+| Q5 | Services cloud payants | Bonus apprécié, non obligatoire ; comparaison principale avec l'open source local | D6 |
+| Q6 | Calcul | Pas de GPU du labo ; Colab ou Kaggle autorisés pour l'entraînement et les expériences ; inférence mesurée en local, en MPS et en CPU seul | Protocole §3.5 |
 | Q7 | Consentement | Pas de cadre du labo | Consentement écrit d'une demi-page (D3), exigé par le sujet |
 | Q8 | Évaluation du rendu | Qualité de l'outil comparée aux autres candidats, et surtout implication, curiosité, conduite de projet | Journal, décisions et ablation sont des pièces du rendu |
 | Q9 | Visibilité du dépôt | Public, privé sur demande | `.env` ignoré dès le premier commit ; aucun nom réel dans les RTTM |
