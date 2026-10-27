@@ -76,3 +76,31 @@ Résultats (interprétation) :
 Décisions : D16 proposée (entrée audio en mémoire).
 Problèmes : aucun bloquant.
 Suite : après validation de D16, préparer EXP-0001 (pyannote community-1 sur AMI SDM, dev puis test), avec le script d'évaluation complet (protocole §3.2 et §3.4), `src/whospoke/audio.py` et `scripts/data/get_ami.py`.
+
+## 2026-10-27 — Chaîne d'évaluation complète et EXP-0001 (Claude Code)
+
+Objectif : implémenter D16, les métriques complètes du protocole, la préparation d'AMI, l'enveloppe community-1, les scripts d'exécution et d'évaluation, puis exécuter EXP-0001.
+Réalisé :
+- Commit `docs:` des documents du cockpit (D16 actée, méthode §4.2–4.4, protocole §3.5) ; en-tête du leaderboard avec `rtf_cpu`.
+- `src/whospoke/audio.py` (D16) : `normalize` (ffmpeg en sous-processus, code de retour contrôlé, pas de fichier partiel) et `load_waveform` (contrôle de 16 kHz, du mono et du PCM 16 bits). Tests sur stéréo 44,1 kHz, m4a, fichier invalide. `scripts/v5_smoke_test.py` réécrit sur ce module.
+- `src/whospoke/evaluation/metrics.py` : décomposition par zone avec et sans chevauchement (§3.2), nombre de locuteurs (§3.4, compté dans l'UEM), lignes par fichier, intervalle de confiance par bootstrap sur les fichiers (1 000 tirages, graine 0, différence appariée possible) et décompte des fichiers gagnants (§4). 35 tests au total.
+- `scripts/data/get_ami.py` : 34 réunions (dev 18, 9,67 h ; test 16, 9,06 h), RTTM `only_words` et UEM du dépôt `pyannote/AMI-diarization-setup` au commit `67c2d539…` ; uri réécrit en `ami__<réunion>` ; manifeste, listes, UEM dans `data/splits/ami/uem/`. Sous-ensemble de mesure du temps : ES2004a et TS3003a (42,6 min).
+- `src/whospoke/pipelines/pyannote_community1.py`, `scripts/run_experiment.py`, `scripts/evaluate.py`.
+- EXP-0001 exécutée en MPS (dev et test), puis en CPU seul sur `temps.txt`, sous `caffeinate -i`, sur secteur.
+Résultats : EXP-0001 (sans collar, chevauchements comptés)
+
+| Jeu | DER | Manquée | Fausse alarme | Confusion | DER `collar_0_25` | JER | DER sans chev. | DER chev. | MAE K | K exact |
+|---|---|---|---|---|---|---|---|---|---|---|
+| dev | 18,64 % | 8,10 % | 4,86 % | 5,68 % | 11,15 % | 23,75 % | 13,55 % | 33,37 % | 0,11 | 88,89 % |
+| test | 19,92 % | 11,16 % | 3,81 % | 4,94 % | 13,21 % | 27,07 % | 13,76 % | 36,59 % | 0,38 | 75,00 % |
+
+- Temps : MPS, RTF 0,0500 (dev) et 0,0509 (test), chargement des modèles 6,05 s, soit environ 91 s pour 30 min. CPU seul (6 fils), sur 2 555 s d'audio : RTF 0,7978, soit environ 24 min pour 30 min.
+- Valeur publiée pour community-1 sur AMI SDM test : 19,9 %. ES2004a : 25,23 %, identique à V5.
+- Test, trois DER les plus élevés : TS3003a 26,10 % (K̂ = 2 pour K = 4), EN2002d 26,00 %, ES2004a 25,23 %, avec la parole manquée dominante dans les trois cas.
+- Erreurs sur le nombre de locuteurs : dev IS1008b +1, ES2011a −1 ; test IS1009b +1, ES2004b +2, ES2004c +1, TS3003a −2.
+Décisions : aucune.
+Problèmes :
+- Miroir AMI d'Édimbourg lent (environ 0,3 Mo/s par connexion), avec un 403 transitoire sous 8 connexions simultanées. Sept fichiers ont été tronqués sans erreur, par une connexion close prématurément. Le contrôle de cohérence UEM/signal les a détectés. Corrections : reprise par en-tête Range, nouvelles tentatives, contrôle de la taille annoncée. Les tailles des 34 fichiers ont été vérifiées contre le Content-Length du serveur.
+- `arbre_propre = false` dans les deux `results_ami_*.json`. Pendant la mesure CPU et l'évaluation, des documents du cockpit étaient modifiés ou non suivis dans `docs/` : D17, glossaire, méthode, conventions d'annotation. L'exécution MPS a eu lieu sur un arbre propre. Le code est resté inchangé (commit d9f177a pour les deux exécutions et l'évaluation).
+- En CPU seul : `UserWarning: std(): degrees of freedom is <= 0`, déjà observé en V5.
+Suite : interprétation au cockpit (`notes.md`) ; décision sur le statut `arbre_propre` d'EXP-0001.
