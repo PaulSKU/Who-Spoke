@@ -1,0 +1,41 @@
+# EXP-0001 — pyannote community-1 par défaut sur AMI SDM (Array1-01), dev et test.
+# Première expérience : aucune expérience de référence, aucune variable modifiée.
+exp_id: EXP-0001
+slug: pyannote-c1-ami-sdm
+reference: null
+variable_modifiee: null
+graine: 0                     # pipeline déterministe ; graine consignée par convention
+
+pipeline:
+  nom: pyannote-community-1   # pyannote/speaker-diarization-community-1, signal en mémoire (D16)
+  vad: integree               # segmentation de la pipeline, pas de VAD séparée
+  parametres:                 # nombre de locuteurs estimé : aucune contrainte
+    num_speakers: null
+    min_speakers: null
+    max_speakers: null
+
+device: mps
+prechauffage_s: 60            # extrait du premier fichier, non compté (protocole §3.5)
+
+jeux:
+  - corpus: ami
+    partition: dev
+    liste: data/splits/ami/dev.txt
+  - corpus: ami
+    partition: test
+    liste: data/splits/ami/test.txt
+
+# Mesure en CPU seul sur le sous-ensemble de mesure du temps (protocole §3.5).
+mesure_cpu:
+  corpus: ami
+  liste: data/splits/ami/temps.txt
+
+evaluation:
+  references: data/processed/ami/rttm   # RTTM only_words, uri réécrit en ami__<réunion>
+  uem: data/splits/ami/uem              # UEM du dépôt pyannote/AMI-diarization-setup
+  conditions: {collar_0: 0.0, collar_0_25: 0.5}
+  skip_overlap: false
+
+materiel:
+  machine: MacBook Pro M2 Pro
+  ram_go: 16

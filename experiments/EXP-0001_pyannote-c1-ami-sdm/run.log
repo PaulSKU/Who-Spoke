@@ -1,0 +1,49 @@
+2026-10-27T20:21:34+0100 INFO expérience EXP-0001, mode complet
+2026-10-27T20:21:34+0100 INFO commit d9f177a4f08d53ee538aa8e11c6a45da2c222040, arbre propre (hors dossier de l'expérience) : True
+2026-10-27T20:21:34+0100 INFO python 3.11.15, torch 2.14.1, plateforme macOS-14.1.2-arm64-arm-64bit, fils torch 6
+2026-10-27T20:21:40+0100 INFO pipeline pyannote-community-1 chargée sur mps en 6.05 s (paramètres : {'num_speakers': None, 'min_speakers': None, 'max_speakers': None})
+2026-10-27T20:21:44+0100 INFO préchauffage : 60 s de ami__IS1008a en 3.68 s (non compté)
+2026-10-27T20:22:29+0100 INFO [1/34] dev ami__IS1008a : 944.0 s d'audio, 45.41 s de calcul, RTF 0.0481, 4 locuteurs
+2026-10-27T20:23:58+0100 INFO [2/34] dev ami__IS1008b : 1768.5 s d'audio, 88.53 s de calcul, RTF 0.0501, 5 locuteurs
+2026-10-27T20:25:16+0100 INFO [3/34] dev ami__IS1008c : 1546.4 s d'audio, 77.80 s de calcul, RTF 0.0503, 4 locuteurs
+2026-10-27T20:26:28+0100 INFO [4/34] dev ami__IS1008d : 1480.9 s d'audio, 72.06 s de calcul, RTF 0.0487, 4 locuteurs
+2026-10-27T20:27:30+0100 INFO [5/34] dev ami__ES2011a : 1113.8 s d'audio, 61.94 s de calcul, RTF 0.0556, 3 locuteurs
+2026-10-27T20:28:49+0100 INFO [6/34] dev ami__ES2011b : 1581.3 s d'audio, 79.32 s de calcul, RTF 0.0502, 4 locuteurs
+2026-10-27T20:30:09+0100 INFO [7/34] dev ami__ES2011c : 1616.1 s d'audio, 79.77 s de calcul, RTF 0.0494, 4 locuteurs
+2026-10-27T20:31:47+0100 INFO [8/34] dev ami__ES2011d : 1982.3 s d'audio, 97.64 s de calcul, RTF 0.0493, 4 locuteurs
+2026-10-27T20:32:52+0100 INFO [9/34] dev ami__TS3004a : 1345.3 s d'audio, 65.41 s de calcul, RTF 0.0486, 4 locuteurs
+2026-10-27T20:34:43+0100 INFO [10/34] dev ami__TS3004b : 2246.1 s d'audio, 111.43 s de calcul, RTF 0.0496, 4 locuteurs
+2026-10-27T20:37:17+0100 INFO [11/34] dev ami__TS3004c : 2970.0 s d'audio, 153.43 s de calcul, RTF 0.0517, 4 locuteurs
+2026-10-27T20:39:32+0100 INFO [12/34] dev ami__TS3004d : 2750.8 s d'audio, 135.51 s de calcul, RTF 0.0493, 4 locuteurs
+2026-10-27T20:41:00+0100 INFO [13/34] dev ami__IB4001 : 1780.8 s d'audio, 87.71 s de calcul, RTF 0.0493, 4 locuteurs
+2026-10-27T20:42:35+0100 INFO [14/34] dev ami__IB4002 : 1882.4 s d'audio, 94.52 s de calcul, RTF 0.0502, 4 locuteurs
+2026-10-27T20:44:15+0100 INFO [15/34] dev ami__IB4003 : 2023.4 s d'audio, 100.69 s de calcul, RTF 0.0498, 4 locuteurs
+2026-10-27T20:46:17+0100 INFO [16/34] dev ami__IB4004 : 2393.0 s d'audio, 121.47 s de calcul, RTF 0.0508, 4 locuteurs
+2026-10-27T20:48:44+0100 INFO [17/34] dev ami__IB4010 : 2960.6 s d'audio, 147.05 s de calcul, RTF 0.0497, 4 locuteurs
+2026-10-27T20:50:43+0100 INFO [18/34] dev ami__IB4011 : 2417.1 s d'audio, 118.90 s de calcul, RTF 0.0492, 4 locuteurs
+2026-10-27T20:51:24+0100 INFO [19/34] test ami__IS1009a : 839.0 s d'audio, 41.16 s de calcul, RTF 0.0491, 4 locuteurs
+2026-10-27T20:53:05+0100 INFO [20/34] test ami__IS1009b : 2052.4 s d'audio, 100.73 s de calcul, RTF 0.0491, 5 locuteurs
+2026-10-27T20:54:34+0100 INFO [21/34] test ami__IS1009c : 1820.8 s d'audio, 89.76 s de calcul, RTF 0.0493, 4 locuteurs
+2026-10-27T20:56:11+0100 INFO [22/34] test ami__IS1009d : 1944.7 s d'audio, 96.72 s de calcul, RTF 0.0497, 4 locuteurs
+2026-10-27T20:57:03+0100 INFO [23/34] test ami__ES2004a : 1049.4 s d'audio, 51.42 s de calcul, RTF 0.0490, 4 locuteurs
+2026-10-27T20:58:58+0100 INFO [24/34] test ami__ES2004b : 2345.5 s d'audio, 115.74 s de calcul, RTF 0.0493, 6 locuteurs
+2026-10-27T21:00:53+0100 INFO [25/34] test ami__ES2004c : 2334.4 s d'audio, 114.30 s de calcul, RTF 0.0490, 5 locuteurs
+2026-10-27T21:02:54+0100 INFO [26/34] test ami__ES2004d : 2222.3 s d'audio, 121.09 s de calcul, RTF 0.0545, 4 locuteurs
+2026-10-27T21:04:17+0100 INFO [27/34] test ami__TS3003a : 1505.6 s d'audio, 83.05 s de calcul, RTF 0.0552, 2 locuteurs
+2026-10-27T21:06:09+0100 INFO [28/34] test ami__TS3003b : 2210.3 s d'audio, 112.22 s de calcul, RTF 0.0508, 4 locuteurs
+2026-10-27T21:08:20+0100 INFO [29/34] test ami__TS3003c : 2570.0 s d'audio, 131.46 s de calcul, RTF 0.0512, 4 locuteurs
+2026-10-27T21:10:35+0100 INFO [30/34] test ami__TS3003d : 2618.2 s d'audio, 134.30 s de calcul, RTF 0.0513, 4 locuteurs
+2026-10-27T21:12:22+0100 INFO [31/34] test ami__EN2002a : 2142.7 s d'audio, 107.43 s de calcul, RTF 0.0501, 4 locuteurs
+2026-10-27T21:13:54+0100 INFO [32/34] test ami__EN2002b : 1786.8 s d'audio, 92.14 s de calcul, RTF 0.0516, 4 locuteurs
+2026-10-27T21:16:26+0100 INFO [33/34] test ami__EN2002c : 2972.3 s d'audio, 151.41 s de calcul, RTF 0.0509, 3 locuteurs
+2026-10-27T21:18:24+0100 INFO [34/34] test ami__EN2002d : 2209.9 s d'audio, 118.75 s de calcul, RTF 0.0537, 4 locuteurs
+2026-10-27T21:18:24+0100 INFO total : 67427.1 s d'audio, 3400.3 s de calcul, RTF 0.0504 ; temps pour 30 min : 91 s
+2026-10-27T21:18:41+0100 INFO expérience EXP-0001, mode mesure CPU
+2026-10-27T21:18:41+0100 INFO commit d9f177a4f08d53ee538aa8e11c6a45da2c222040, arbre propre (hors dossier de l'expérience) : False
+2026-10-27T21:18:41+0100 WARNING arbre non propre : docs/glossaire.md, docs/decisions/D17-interface.md
+2026-10-27T21:18:41+0100 INFO python 3.11.15, torch 2.14.1, plateforme macOS-14.1.2-arm64-arm-64bit, fils torch 6
+2026-10-27T21:18:47+0100 INFO pipeline pyannote-community-1 chargée sur cpu en 6.26 s (paramètres : {'num_speakers': None, 'min_speakers': None, 'max_speakers': None})
+2026-10-27T21:19:26+0100 INFO préchauffage : 60 s de ami__ES2004a en 38.56 s (non compté)
+2026-10-27T21:33:38+0100 INFO [1/2] temps ami__ES2004a : 1049.4 s d'audio, 852.55 s de calcul, RTF 0.8125, 4 locuteurs
+2026-10-27T21:53:24+0100 INFO [2/2] temps ami__TS3003a : 1505.6 s d'audio, 1185.89 s de calcul, RTF 0.7876, 2 locuteurs
+2026-10-27T21:53:24+0100 INFO total : 2555.0 s d'audio, 2038.4 s de calcul, RTF 0.7978 ; temps pour 30 min : 1436 s

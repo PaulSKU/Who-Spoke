@@ -1,0 +1,49 @@
+{
+  "exp_id": "EXP-0001",
+  "mode": "mesure_cpu",
+  "sous_ensemble": "data/splits/ami/temps.txt",
+  "date_fin": "2026-10-27T21:53:24+01:00",
+  "git_commit": "d9f177a4f08d53ee538aa8e11c6a45da2c222040",
+  "arbre_propre": false,
+  "fichiers_non_commites": [
+    "docs/glossaire.md",
+    "docs/decisions/D17-interface.md"
+  ],
+  "config_sha256": "5e6f9436354d4e254165422d2073094cfe24bf30653bb7be49c84a43c4fe27d6",
+  "device": "cpu",
+  "torch_threads": 6,
+  "versions": {
+    "python": "3.11.15",
+    "torch": "2.14.1",
+    "pyannote.audio": "4.0.7"
+  },
+  "mode_n_locuteurs": "estime",
+  "chargement_modeles_s": 6.256,
+  "prechauffage": {
+    "uri": "ami__ES2004a",
+    "duree_s": 60.0
+  },
+  "duree_audio_s": 2554.998,
+  "calcul_s": 2038.443,
+  "rtf": 0.7978,
+  "fichiers": [
+    {
+      "uri": "ami__ES2004a",
+      "corpus": "ami",
+      "partition": "temps",
+      "duree_audio_s": 1049.355,
+      "calcul_s": 852.552,
+      "rtf": 0.8125,
+      "n_locuteurs_hypothese": 4
+    },
+    {
+      "uri": "ami__TS3003a",
+      "corpus": "ami",
+      "partition": "temps",
+      "duree_audio_s": 1505.643,
+      "calcul_s": 1185.891,
+      "rtf": 0.7876,
+      "n_locuteurs_hypothese": 2
+    }
+  ]
+}
