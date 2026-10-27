@@ -1,0 +1,13 @@
+# Glossaire
+
+Une entrée par terme, triée alphabétiquement, au format de `docs/methode.md` §4.6 :
+
+```markdown
+### <Terme français> (*<terme anglais>*)
+Définition : …
+Rôle dans la chaîne : …
+Effet sur les métriques : …
+Source : …
+```
+
+<!-- Aucune entrée à ce stade. -->
