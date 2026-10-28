@@ -3,7 +3,22 @@
   "slug": "pyannote-c1-k-oracle",
   "date": "2026-10-28T15:06:57+01:00",
   "git_commit": "3abe688",
-  "arbre_propre": false,
+  "arbre_propre": true,
+  "requalification": {
+    "date": "2026-10-28T15:59:10+01:00",
+    "regle": "D18",
+    "ancienne_valeur": false,
+    "nouvelle_valeur": true,
+    "sources": [
+      "execution_cpu.json",
+      "execution_mps.json"
+    ],
+    "commits": [
+      "e4701bad1aa68028254593998fe1c5966e47bf11",
+      "3abe688f93702e28d23b9740a7f9601b7bde8629"
+    ],
+    "diff_chemins_controles": "vide"
+  },
   "reference": "EXP-0001",
   "variable_modifiee": "mode_n_locuteurs",
   "donnees": {
