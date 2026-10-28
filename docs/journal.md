@@ -230,3 +230,21 @@ Résultats :
 Décisions : aucune. Remise en question de l'amélioration n° 1 de D9, à trancher avec la candidate.
 Problèmes : aucun.
 Suite : décider des améliorations (D9) ; empreintes neuronales (D8) sur la référence EXP-0006 ; préparation de SUMM-RE.
+
+## 2026-10-28 — Bloc evaluation, préparation de SUMM-RE (Claude Code)
+
+Objectif : clore le point en suspens de D18 ; préparer SUMM-RE dev et test selon D20.
+Réalisé :
+- Commit `docs:` des documents du cockpit (README, cadrage, methode §5, journal, D20, notes d'EXP-0003 à EXP-0006).
+- `scripts/evaluate.py` : chaque `results_*.json` reçoit un bloc `evaluation` (date, commit de l'évaluation, `arbre_propre` selon les chemins contrôlés de D18, `fichiers_non_commites`), placé avant `invalidee`. Résultats existants non modifiés. Test d'évaluation synthétique (arbre propre, arbre sale).
+- Dépendance ajoutée : `pyarrow` 26.0.0 (lecture des Parquet).
+- `scripts/data/get_summre.py` : révision `47cb4ec3` de `linagora/SUMM-RE` ; 57 Parquet (25,8 Go) traités un par un, SHA-256 contrôlé contre le dépôt et consigné, brut supprimé après extraction ; mélange moyen à 16 kHz ; référence à partir des mots (fusion à 200 ms) ; UEM ; listes dev, test, temps, zoom_dev, zoom_test ; contrôles de D20 §4 ; contrôle croisé avec `ggfox00000/dia-summre-test` (RTTM seuls). Relance vérifiée : rien n'est retéléchargé, le manifeste est identique. 15 tests sur données synthétiques ; suite : 107 tests réussis (1 test lent exclu).
+- `docs/corpus.md` §2 et `data/README.md` mis à jour avec les valeurs mesurées.
+Résultats : aucune expérience. Dev : 36 réunions, 130 pistes, 81 locuteurs, 11,89 h, chevauchement 14,5 % de la parole. Test : 37 réunions, 124 pistes, 91 locuteurs, 12,17 h, 17,2 %. Zoom : 5 réunions en dev (9,6 %), 3 en test (6,5 %). 18 locuteurs communs à dev et test. 0 mot sans horodatage. Aucun décalage mesurable supérieur à 50 ms (maximum 26,9 ms). Contrôle croisé : DER entre références de 0,00 % à 0,49 %. `temps.txt` : 007a_ECRH et 012c_EBPZ (39,5 min). Disque occupé à la fin : 2,6 Go dans `data/processed/summre/`.
+Décisions : aucune.
+Problèmes :
+- Les pistes d'une même réunion peuvent être réparties sur deux Parquet : les mélanges sont faits après extraction de toute la partition, à partir de pistes intermédiaires en flottant 32 bits.
+- La synchronisation mesurée contre le mélange complet serait toujours nulle (la piste y est incluse) : chaque piste est corrélée au mélange des autres. Sans diaphonie (8 réunions Zoom, et 101c_EDPH, codée H), le décalage n'est pas mesurable ; un critère de saillance du pic (≥ 10) l'établit.
+- Les jetons SPPAS `+`, `*` et `@` sont des « mots » horodatés ; ils sont gardés (lecture littérale de D20 §3), pour 2,73 % de la parole en dev et 1,11 % en test.
+- Aucune piste muette : les réunions à 3 participants n'ont que 3 pistes.
+Suite : arbitrer au cockpit les jetons non lexicaux, la règle de saillance et le choix de `temps.txt` ; EXP-0007 à EXP-0009 (D20 §6).
