@@ -1,0 +1,45 @@
+# EXP-0004 — baseline MFCC, détection de parole oracle, AMI SDM (dev et test)
+# Seule variable par rapport à EXP-0002 : les régions de parole de la référence (dans
+# l'UEM) remplacent la détection par énergie (D19 §4). θ fixé à la valeur retenue par
+# EXP-0002, sans nouveau balayage.
+exp_id: EXP-0004
+slug: baseline-vad-oracle
+reference: EXP-0002
+variable_modifiee: detection_oracle
+graine: 0                     # baseline déterministe ; graine consignée par convention
+
+pipeline:
+  nom: baseline               # src/whospoke/pipelines/baseline.py, valeurs de D19 §2 amendée
+  vad: oracle                 # régions de parole de la référence restreinte à l'UEM
+  parametres:
+    theta: 0.95               # θ retenu par le balayage d'EXP-0002 sur AMI dev
+
+mode_n_locuteurs: estime      # coupe de l'arbre au seuil θ
+detection_oracle: true
+
+device: cpu                   # baseline en CPU seul (D19)
+prechauffage_s: 60            # extrait du premier fichier, non compté (protocole §3.5)
+
+jeux:
+  - corpus: ami
+    partition: dev
+    liste: data/splits/ami/dev.txt
+  - corpus: ami
+    partition: test
+    liste: data/splits/ami/test.txt
+
+# Sous-ensemble de mesure du temps (protocole §3.5) : device étant cpu, temps_cpu est
+# tiré de l'exécution principale restreinte à ces fichiers.
+mesure_cpu:
+  corpus: ami
+  liste: data/splits/ami/temps.txt
+
+evaluation:
+  references: data/processed/ami/rttm   # RTTM only_words, uri réécrit en ami__<réunion>
+  uem: data/splits/ami/uem              # UEM du dépôt pyannote/AMI-diarization-setup
+  conditions: {collar_0: 0.0, collar_0_25: 0.5}
+  skip_overlap: false
+
+materiel:
+  machine: MacBook Pro M2 Pro
+  ram_go: 16
