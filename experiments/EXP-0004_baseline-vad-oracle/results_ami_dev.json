@@ -1,0 +1,60 @@
+{
+  "exp_id": "EXP-0004",
+  "slug": "baseline-vad-oracle",
+  "date": "2026-10-28T14:01:55+01:00",
+  "git_commit": "3abe688",
+  "arbre_propre": true,
+  "reference": "EXP-0002",
+  "variable_modifiee": "detection_oracle",
+  "donnees": {
+    "corpus": "ami",
+    "partition": "dev",
+    "n_fichiers": 18,
+    "duree_audio_s": 34802.8
+  },
+  "systeme": {
+    "pipeline": "baseline",
+    "mode_n_locuteurs": "estime",
+    "vad": "oracle",
+    "device": "cpu"
+  },
+  "materiel": {
+    "machine": "MacBook Pro M2 Pro",
+    "ram_go": 16
+  },
+  "metriques": {
+    "collar_0": {
+      "der": 54.23,
+      "manquee": 13.51,
+      "fausse_alarme": 0.17,
+      "confusion": 40.55,
+      "jer": 65.52
+    },
+    "collar_0_25": {
+      "der": 50.1,
+      "manquee": 8.24,
+      "fausse_alarme": 0.0,
+      "confusion": 41.86,
+      "jer": 63.0
+    },
+    "der_zones_sans_chevauchement": 48.64,
+    "der_zones_chevauchement": 68.8,
+    "n_locuteurs": {
+      "erreur_absolue_moyenne": 2.0,
+      "taux_exact": 11.11
+    }
+  },
+  "temps": {
+    "device": "cpu",
+    "chargement_modeles_s": 0.0,
+    "calcul_s": 53.67,
+    "rtf": 0.0015
+  },
+  "temps_cpu": {
+    "sous_ensemble": "data/splits/ami/temps.txt",
+    "duree_audio_s": 2555.0,
+    "calcul_s": 2.59,
+    "rtf": 0.001
+  },
+  "invalidee": null
+}

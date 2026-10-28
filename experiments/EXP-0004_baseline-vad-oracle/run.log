@@ -1,0 +1,41 @@
+2026-10-28T14:00:13+0100 INFO expérience EXP-0004, mode complet
+2026-10-28T14:00:13+0100 INFO commit 3abe688f93702e28d23b9740a7f9601b7bde8629, arbre propre (chemins contrôlés, D18) : True
+2026-10-28T14:00:13+0100 INFO fichiers non commités : results/leaderboard.csv, experiments/EXP-0003_baseline-k-oracle/execution_cpu.json, experiments/EXP-0003_baseline-k-oracle/per_file_ami_dev.csv, experiments/EXP-0003_baseline-k-oracle/per_file_ami_test.csv, experiments/EXP-0003_baseline-k-oracle/results_ami_dev.json, experiments/EXP-0003_baseline-k-oracle/results_ami_test.json, experiments/EXP-0003_baseline-k-oracle/rttm/ami__EN2002a.rttm, experiments/EXP-0003_baseline-k-oracle/rttm/ami__EN2002b.rttm, experiments/EXP-0003_baseline-k-oracle/rttm/ami__EN2002c.rttm, experiments/EXP-0003_baseline-k-oracle/rttm/ami__EN2002d.rttm, experiments/EXP-0003_baseline-k-oracle/rttm/ami__ES2004a.rttm, experiments/EXP-0003_baseline-k-oracle/rttm/ami__ES2004b.rttm, experiments/EXP-0003_baseline-k-oracle/rttm/ami__ES2004c.rttm, experiments/EXP-0003_baseline-k-oracle/rttm/ami__ES2004d.rttm, experiments/EXP-0003_baseline-k-oracle/rttm/ami__ES2011a.rttm, experiments/EXP-0003_baseline-k-oracle/rttm/ami__ES2011b.rttm, experiments/EXP-0003_baseline-k-oracle/rttm/ami__ES2011c.rttm, experiments/EXP-0003_baseline-k-oracle/rttm/ami__ES2011d.rttm, experiments/EXP-0003_baseline-k-oracle/rttm/ami__IB4001.rttm, experiments/EXP-0003_baseline-k-oracle/rttm/ami__IB4002.rttm, experiments/EXP-0003_baseline-k-oracle/rttm/ami__IB4003.rttm, experiments/EXP-0003_baseline-k-oracle/rttm/ami__IB4004.rttm, experiments/EXP-0003_baseline-k-oracle/rttm/ami__IB4010.rttm, experiments/EXP-0003_baseline-k-oracle/rttm/ami__IB4011.rttm, experiments/EXP-0003_baseline-k-oracle/rttm/ami__IS1008a.rttm, experiments/EXP-0003_baseline-k-oracle/rttm/ami__IS1008b.rttm, experiments/EXP-0003_baseline-k-oracle/rttm/ami__IS1008c.rttm, experiments/EXP-0003_baseline-k-oracle/rttm/ami__IS1008d.rttm, experiments/EXP-0003_baseline-k-oracle/rttm/ami__IS1009a.rttm, experiments/EXP-0003_baseline-k-oracle/rttm/ami__IS1009b.rttm, experiments/EXP-0003_baseline-k-oracle/rttm/ami__IS1009c.rttm, experiments/EXP-0003_baseline-k-oracle/rttm/ami__IS1009d.rttm, experiments/EXP-0003_baseline-k-oracle/rttm/ami__TS3003a.rttm, experiments/EXP-0003_baseline-k-oracle/rttm/ami__TS3003b.rttm, experiments/EXP-0003_baseline-k-oracle/rttm/ami__TS3003c.rttm, experiments/EXP-0003_baseline-k-oracle/rttm/ami__TS3003d.rttm, experiments/EXP-0003_baseline-k-oracle/rttm/ami__TS3004a.rttm, experiments/EXP-0003_baseline-k-oracle/rttm/ami__TS3004b.rttm, experiments/EXP-0003_baseline-k-oracle/rttm/ami__TS3004c.rttm, experiments/EXP-0003_baseline-k-oracle/rttm/ami__TS3004d.rttm, experiments/EXP-0003_baseline-k-oracle/run.log, experiments/EXP-0004_baseline-vad-oracle/run.log
+2026-10-28T14:00:13+0100 INFO python 3.11.15, torch 2.14.1, plateforme macOS-14.1.2-arm64-arm-64bit, fils torch 6
+2026-10-28T14:00:13+0100 INFO pipeline baseline chargée sur cpu en 0.00 s (paramètres : {'theta': 0.95}, nombre de locuteurs : estime, détection oracle : True, trace : True)
+2026-10-28T14:00:14+0100 INFO préchauffage : 60 s de ami__IS1008a en 1.45 s (non compté)
+2026-10-28T14:00:15+0100 INFO [1/34] dev ami__IS1008a : 944.0 s d'audio, 0.89 s de calcul, RTF 0.0009, 4 locuteurs
+2026-10-28T14:00:21+0100 INFO [2/34] dev ami__IS1008b : 1768.5 s d'audio, 6.23 s de calcul, RTF 0.0035, 4 locuteurs
+2026-10-28T14:00:23+0100 INFO [3/34] dev ami__IS1008c : 1546.4 s d'audio, 1.64 s de calcul, RTF 0.0011, 5 locuteurs
+2026-10-28T14:00:25+0100 INFO [4/34] dev ami__IS1008d : 1480.9 s d'audio, 1.44 s de calcul, RTF 0.0010, 5 locuteurs
+2026-10-28T14:00:26+0100 INFO [5/34] dev ami__ES2011a : 1113.8 s d'audio, 0.96 s de calcul, RTF 0.0009, 6 locuteurs
+2026-10-28T14:00:27+0100 INFO [6/34] dev ami__ES2011b : 1581.3 s d'audio, 1.62 s de calcul, RTF 0.0010, 6 locuteurs
+2026-10-28T14:00:29+0100 INFO [7/34] dev ami__ES2011c : 1616.1 s d'audio, 1.58 s de calcul, RTF 0.0010, 7 locuteurs
+2026-10-28T14:00:31+0100 INFO [8/34] dev ami__ES2011d : 1982.3 s d'audio, 2.32 s de calcul, RTF 0.0012, 5 locuteurs
+2026-10-28T14:00:33+0100 INFO [9/34] dev ami__TS3004a : 1345.3 s d'audio, 1.38 s de calcul, RTF 0.0010, 7 locuteurs
+2026-10-28T14:00:37+0100 INFO [10/34] dev ami__TS3004b : 2246.1 s d'audio, 4.23 s de calcul, RTF 0.0019, 7 locuteurs
+2026-10-28T14:00:42+0100 INFO [11/34] dev ami__TS3004c : 2970.0 s d'audio, 4.69 s de calcul, RTF 0.0016, 7 locuteurs
+2026-10-28T14:00:46+0100 INFO [12/34] dev ami__TS3004d : 2750.8 s d'audio, 4.25 s de calcul, RTF 0.0015, 7 locuteurs
+2026-10-28T14:00:48+0100 INFO [13/34] dev ami__IB4001 : 1780.8 s d'audio, 1.91 s de calcul, RTF 0.0011, 6 locuteurs
+2026-10-28T14:00:50+0100 INFO [14/34] dev ami__IB4002 : 1882.4 s d'audio, 1.87 s de calcul, RTF 0.0010, 5 locuteurs
+2026-10-28T14:00:53+0100 INFO [15/34] dev ami__IB4003 : 2023.4 s d'audio, 2.68 s de calcul, RTF 0.0013, 7 locuteurs
+2026-10-28T14:00:56+0100 INFO [16/34] dev ami__IB4004 : 2393.0 s d'audio, 3.48 s de calcul, RTF 0.0015, 7 locuteurs
+2026-10-28T14:01:01+0100 INFO [17/34] dev ami__IB4010 : 2960.6 s d'audio, 5.03 s de calcul, RTF 0.0017, 8 locuteurs
+2026-10-28T14:01:09+0100 INFO [18/34] dev ami__IB4011 : 2417.1 s d'audio, 7.47 s de calcul, RTF 0.0031, 5 locuteurs
+2026-10-28T14:01:10+0100 INFO [19/34] test ami__IS1009a : 839.0 s d'audio, 1.13 s de calcul, RTF 0.0013, 7 locuteurs
+2026-10-28T14:01:13+0100 INFO [20/34] test ami__IS1009b : 2052.4 s d'audio, 3.26 s de calcul, RTF 0.0016, 5 locuteurs
+2026-10-28T14:01:17+0100 INFO [21/34] test ami__IS1009c : 1820.8 s d'audio, 3.40 s de calcul, RTF 0.0019, 4 locuteurs
+2026-10-28T14:01:19+0100 INFO [22/34] test ami__IS1009d : 1944.7 s d'audio, 2.66 s de calcul, RTF 0.0014, 5 locuteurs
+2026-10-28T14:01:21+0100 INFO [23/34] test ami__ES2004a : 1049.4 s d'audio, 1.12 s de calcul, RTF 0.0011, 6 locuteurs
+2026-10-28T14:01:24+0100 INFO [24/34] test ami__ES2004b : 2345.5 s d'audio, 3.41 s de calcul, RTF 0.0015, 7 locuteurs
+2026-10-28T14:01:27+0100 INFO [25/34] test ami__ES2004c : 2334.4 s d'audio, 3.11 s de calcul, RTF 0.0013, 4 locuteurs
+2026-10-28T14:01:30+0100 INFO [26/34] test ami__ES2004d : 2222.3 s d'audio, 2.87 s de calcul, RTF 0.0013, 6 locuteurs
+2026-10-28T14:01:32+0100 INFO [27/34] test ami__TS3003a : 1505.6 s d'audio, 1.47 s de calcul, RTF 0.0010, 7 locuteurs
+2026-10-28T14:01:35+0100 INFO [28/34] test ami__TS3003b : 2210.3 s d'audio, 2.97 s de calcul, RTF 0.0013, 7 locuteurs
+2026-10-28T14:01:38+0100 INFO [29/34] test ami__TS3003c : 2570.0 s d'audio, 3.35 s de calcul, RTF 0.0013, 7 locuteurs
+2026-10-28T14:01:41+0100 INFO [30/34] test ami__TS3003d : 2618.2 s d'audio, 3.19 s de calcul, RTF 0.0012, 8 locuteurs
+2026-10-28T14:01:45+0100 INFO [31/34] test ami__EN2002a : 2142.7 s d'audio, 3.08 s de calcul, RTF 0.0014, 5 locuteurs
+2026-10-28T14:01:47+0100 INFO [32/34] test ami__EN2002b : 1786.8 s d'audio, 1.97 s de calcul, RTF 0.0011, 5 locuteurs
+2026-10-28T14:01:52+0100 INFO [33/34] test ami__EN2002c : 2972.3 s d'audio, 5.59 s de calcul, RTF 0.0019, 7 locuteurs
+2026-10-28T14:01:55+0100 INFO [34/34] test ami__EN2002d : 2209.9 s d'audio, 3.01 s de calcul, RTF 0.0014, 5 locuteurs
+2026-10-28T14:01:59+0100 INFO total : 67427.1 s d'audio, 99.3 s de calcul, RTF 0.0015 ; temps pour 30 min : 3 s
