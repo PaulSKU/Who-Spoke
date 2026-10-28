@@ -21,6 +21,11 @@ aux fichiers de `mesure_cpu.liste` ; sinon de `execution_cpu.json` (`--mesure-cp
 sans fichier non commité sous les chemins contrôlés de D18 (`whospoke.experiment.is_controlled`),
 d'après les listes `fichiers_non_commites` consignées par les exécutions.
 
+Bloc `evaluation` (point en suspens de D18) : chaque `results_*.json` consigne aussi le
+commit sur lequel l'évaluation elle-même a tourné, son état d'arbre selon la même règle
+des chemins contrôlés (`arbre_propre`) et la liste de ses `fichiers_non_commites`. Les
+résultats déjà écrits ne sont pas modifiés.
+
 Mode `--requalifier` (D18, methode.md §4.2) : pour une expérience déjà évaluée, recalcule
 `arbre_propre` à partir des `fichiers_non_commites` consignés dans ses `execution_*.json`,
 et ajoute à chaque `results_*.json` un bloc `requalification` (date, règle, ancienne et
@@ -142,6 +147,16 @@ def controlled_diff(commits: list[str], repo: Path = REPO_ROOT) -> list[str]:
     return sorted(changed)
 
 
+def evaluation_block(state: dict, date: str) -> dict:
+    """Bloc `evaluation` : commit et état de l'arbre du script d'évaluation lui-même (D18)."""
+    return {
+        "date": date,
+        "git_commit": state["commit"],
+        "arbre_propre": state["clean"],
+        "fichiers_non_commites": state["dirty"],
+    }
+
+
 def requalify(exp_dir: Path, repo: Path = REPO_ROOT) -> None:
     """Recalcule `arbre_propre` des results_*.json selon D18, sans toucher aux métriques."""
     executions = sorted(exp_dir.glob("execution_*.json"))
@@ -236,6 +251,7 @@ def main() -> None:
         path.name: json.loads(path.read_text()) for path in sorted(exp_dir.glob("execution_*.json"))
     })
     state = git_state()
+    evaluation = evaluation_block(state, datetime.now().astimezone().isoformat(timespec="seconds"))
     commits = {run["git_commit"] for run in runs}
     clean = runs_are_clean(runs) and commits == {state["commit"]} and state["clean"]
     if not clean:
@@ -315,6 +331,7 @@ def main() -> None:
             },
             "temps": timing_block(main_run, files),
             "temps_cpu": cpu_block(cpu_run, (config.get("mesure_cpu") or {}).get("liste")),
+            "evaluation": evaluation,
             "invalidee": None,
         }
         results_path.write_text(json.dumps(results, ensure_ascii=False, indent=2) + "\n")
