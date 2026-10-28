@@ -158,3 +158,12 @@ Problèmes :
 - Écarts entre la maquette de la page Pipeline et les valeurs lues : `embedding_exclude_overlap` vaut `True` (et non « Non ») ; `segmentation_batch_size` et `embedding_batch_size` valent 32 (et non 1).
 - `device: cpu` produit `execution_cpu.json`, le même nom qu'une mesure `--mesure-cpu`. Les deux ne peuvent donc pas coexister ; d'où `temps_cpu` tiré de l'exécution principale.
 Suite : interprétation au cockpit (`notes.md` d'EXP-0002) ; EXP-0003 à EXP-0005 de D19 §4.
+
+## 2026-10-28 — Interprétation d'EXP-0002 et amendements de D19 (cockpit)
+
+Objectif : interpréter la baseline et trancher les lectures de D19 soumises par Claude Code.
+Réalisé : `notes.md` d'EXP-0002 rédigées ; D19 amendée (5 points) ; valeurs effectives de pyannote reportées dans la maquette de la page Pipeline.
+Résultats : baseline à 64,4 % de DER sur le test AMI SDM, contre 19,9 % pour pyannote. Elle ne gagne que 9,4 points sur un système à un seul locuteur. La confusion plafonne à 27–30 points quel que soit θ, et la parole manquée est de 30 points. RTF de 0,0015 en CPU.
+Décisions : D19 amendée (n_mels = 40 ; fenêtres bornées à leur région ; temps CPU de l'exécution principale ; fusion de 200 ms conservée ; test de reproduction marqué lent).
+Problèmes : la maquette de la page Pipeline donnait trois valeurs fausses (embedding_exclude_overlap, tailles de lot), écrites d'après les défauts du code et non la configuration de community-1. C'est la raison d'être de la règle « la page lit la pipeline chargée » (D17).
+Suite : session B, oracles EXP-0003 à EXP-0005.

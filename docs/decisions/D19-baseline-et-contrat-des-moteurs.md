@@ -28,11 +28,11 @@ L'enveloppe pyannote est mise au contrat sans changement de comportement en mode
 
 | Étape | Traitement | Réglages et valeurs initiales | Joue sur |
 |---|---|---|---|
-| Analyse | Trames de 25 ms, pas de 10 ms ; énergie logarithmique ; 20 MFCC (librosa) | `n_mfcc` = 20 | — |
+| Analyse | Trames de 25 ms, pas de 10 ms ; énergie logarithmique ; 20 MFCC (librosa) sur 40 filtres mel | `n_mfcc` = 20 ; `n_mels` = 40 (amendement 1) | — |
 | Normalisation cepstrale | Soustraction de la moyenne des MFCC sur le fichier | activée | confusion (atténue l'effet du canal et de la salle) |
 | Détection de parole | Seuil sur l'énergie : plancher = 10e centile, niveau de parole = 90e centile, seuil = plancher + α × (niveau − plancher) ; lissage par filtre médian ; durées minimales | α = 0,3 ; médian sur 11 trames (110 ms) ; parole ≥ 0,3 s ; silence ≥ 0,2 s | parole manquée, fausse alarme |
-| Segmentation | Fenêtres fixes sur les régions de parole ; fenêtre gardée si elle contient au moins 50 % de parole ; une région plus courte qu'une fenêtre (mais ≥ 0,5 s) donne une fenêtre unique | 1,5 s, pas de 0,75 s | frontières, confusion |
-| Représentation | Moyenne et écart-type des MFCC sur la fenêtre (40 valeurs), centrés-réduits sur le fichier | — | confusion |
+| Segmentation | Fenêtres fixes sur les régions de parole, bornées à leur région ; fenêtre gardée si au moins 50 % de sa durée tombe dans la région ; une région plus courte qu'une fenêtre (mais ≥ 0,5 s) donne une fenêtre unique | 1,5 s, pas de 0,75 s | frontières, confusion |
+| Représentation | Moyenne et écart-type des MFCC sur les seules trames de parole de la fenêtre (40 valeurs), centrés-réduits sur le fichier | — | confusion |
 | Regroupement | Agglomératif hiérarchique, distance cosinus, lien moyen ; coupe par seuil θ, ou par le nombre de locuteurs s'il est donné | θ réglé sur dev (§4) | confusion, nombre de locuteurs |
 | Attribution | Chaque trame de parole reçoit l'étiquette de la fenêtre dont le centre est le plus proche ; fusion des tours d'un même locuteur séparés par 200 ms ou moins | — | frontières |
 | Sortie | Annotation sans chevauchement (par construction) | — | parole manquée en chevauchement |
@@ -63,6 +63,14 @@ Chaque réglage de la baseline correspond à un composant identifiable du DER, c
 ## Conséquences
 
 Fichiers concernés : `src/whospoke/pipelines/base.py`, `baseline.py` et `catalogue.yaml`, l'enveloppe pyannote mise au contrat, et `scripts/run_experiment.py` (mode oracle par fichier, balayage, `--trace`). Des tests sur des signaux synthétiques valident chaque étape. Le temps de calcul de la baseline est mesuré comme les autres (MPS non pertinent : CPU seul).
+
+## Amendements du 28/10/2026 (après EXP-0002)
+
+1. **Filtres mel.** 40 filtres (`n_mels` = 40). Avec des trames de 25 ms, la valeur par défaut de librosa (128) laisse des filtres vides ; 40 est une valeur usuelle en traitement de la parole **[probable]**.
+2. **Fenêtres bornées à leur région de parole**, et statistiques calculées sur les seules trames de parole. Sinon, les fenêtres de bord débordent sur le silence ou sur la région suivante et forment des groupes parasites (constaté sur signal synthétique).
+3. **Temps CPU d'un moteur exécuté en CPU.** `temps_cpu` est tiré de l'exécution principale, restreinte aux fichiers de `temps.txt`.
+4. **Fusion des pauses de 200 ms.** Elle est conservée, même si elle est presque toujours redondante avec la durée minimale de silence de la détection (0,2 s). Elle garantit la même règle de découpage que celle des références (`conventions-annotation.md` §2).
+5. **Test de reproduction d'EXP-0001** (RTTM d'ES2004a identique à l'octet près). Il est marqué comme test lent (`pytest -m lent`), exclu de la suite par défaut et lancé avant toute modification de l'enveloppe pyannote.
 
 ## Liens
 
