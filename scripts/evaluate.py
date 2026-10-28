@@ -25,6 +25,11 @@ Mode `--requalifier` (D18, methode.md §4.2) : pour une expérience déjà éval
 `arbre_propre` à partir des `fichiers_non_commites` consignés dans ses `execution_*.json`,
 et ajoute à chaque `results_*.json` un bloc `requalification` (date, règle, ancienne et
 nouvelle valeur). Les métriques, les per_file et le leaderboard ne sont pas modifiés.
+Si les exécutions portent sur des commits différents (amendement du 28/10/2026 de D18),
+la requalification n'est admise que si chaque exécution est propre, si `git diff` entre
+leurs commits est vide sur les chemins contrôlés et si leur `config_sha256` est le même ;
+le bloc consigne alors `commits` et `"diff_chemins_controles": "vide"`. Sinon, elle est
+refusée et rien n'est écrit (l'expérience est à refaire sous un nouveau numéro).
 """
 
 from __future__ import annotations
@@ -33,6 +38,7 @@ import argparse
 import csv
 import hashlib
 import json
+import subprocess
 import sys
 from datetime import datetime
 from pathlib import Path
@@ -45,6 +51,7 @@ from whospoke.experiment import (
     REPO_ROOT,
     dataset_uris,
     git_state,
+    is_controlled,
     tree_is_clean,
     load_rttm,
     load_uem,
@@ -123,13 +130,43 @@ def runs_are_clean(runs: list[dict]) -> bool:
     return len(commits) == 1 and all(tree_is_clean(run["fichiers_non_commites"]) for run in runs)
 
 
-def requalify(exp_dir: Path) -> None:
+def controlled_diff(commits: list[str], repo: Path = REPO_ROOT) -> list[str]:
+    """Fichiers des chemins contrôlés (D18) qui diffèrent entre le premier commit et les autres."""
+    changed: set[str] = set()
+    for commit in commits[1:]:
+        output = subprocess.run(
+            ["git", "diff", "--name-only", commits[0], commit],
+            cwd=repo, capture_output=True, text=True, check=True,
+        ).stdout
+        changed.update(path for path in output.splitlines() if is_controlled(path))
+    return sorted(changed)
+
+
+def requalify(exp_dir: Path, repo: Path = REPO_ROOT) -> None:
     """Recalcule `arbre_propre` des results_*.json selon D18, sans toucher aux métriques."""
     executions = sorted(exp_dir.glob("execution_*.json"))
     if not executions:
         sys.exit(f"Aucun execution_*.json dans {exp_dir}")
     runs = [json.loads(path.read_text()) for path in executions]
-    new_value = runs_are_clean(runs)
+    commits = list(dict.fromkeys(run["git_commit"] for run in runs))
+    extra: dict = {}
+    if len(commits) == 1:
+        new_value = runs_are_clean(runs)
+    else:
+        # Amendement du 28/10/2026 de D18 : trois conditions, sinon refus.
+        dirty = {p.name: [f for f in run["fichiers_non_commites"] if is_controlled(f)]
+                 for p, run in zip(executions, runs) if not tree_is_clean(run["fichiers_non_commites"])}
+        if dirty:
+            sys.exit(f"Requalification refusée : exécution non propre ({dirty})")
+        diff = controlled_diff(commits, repo)
+        if diff:
+            sys.exit(f"Requalification refusée : git diff non vide sur les chemins contrôlés "
+                     f"entre {commits} ({diff})")
+        hashes = {p.name: run.get("config_sha256") for p, run in zip(executions, runs)}
+        if len(set(hashes.values())) != 1:
+            sys.exit(f"Requalification refusée : config_sha256 différents ({hashes})")
+        new_value = True
+        extra = {"commits": commits, "diff_chemins_controles": "vide"}
     results_files = sorted(exp_dir.glob("results_*.json"))
     if not results_files:
         sys.exit(f"Aucun results_*.json dans {exp_dir} : rien à requalifier")
@@ -145,6 +182,7 @@ def requalify(exp_dir: Path) -> None:
             "ancienne_valeur": old_value,
             "nouvelle_valeur": new_value,
             "sources": [p.name for p in executions],
+            **extra,
         }
         # Le bloc est inséré juste après `arbre_propre` ; l'ordre des autres clés est conservé.
         updated = {}
@@ -171,8 +209,9 @@ def main() -> None:
     parser.add_argument(
         "--requalifier", action="store_true",
         help="recalcule arbre_propre d'une expérience déjà évaluée selon D18, à partir des "
-             "fichiers_non_commites de ses execution_*.json, et ajoute un bloc requalification "
-             "aux results_*.json ; métriques et leaderboard inchangés",
+             "fichiers_non_commites de ses execution_*.json (et, si les commits diffèrent, du "
+             "git diff sur les chemins contrôlés et des config_sha256), et ajoute un bloc "
+             "requalification aux results_*.json ; métriques et leaderboard inchangés",
     )
     args = parser.parse_args()
     leaderboard = args.leaderboard
