@@ -40,6 +40,18 @@ Ce que garantit l'arbre propre, c'est que le code, la configuration et les donn�
 
 Les modifications portent sur `methode.md` §4.2 et §6, ainsi que sur `protocole-eval.md` §3.2, §3.4 et §3.5. Elles touchent aussi `src/whospoke/experiment.py` (calcul de l'état de l'arbre), `scripts/evaluate.py` (recalcul, bloc `requalification`, option `--leaderboard` documentée) et un test d'intégration conditionnel. Le cockpit peut continuer à écrire dans `docs/` pendant une exécution.
 
+## Amendement du 28/10/2026 (après EXP-0005)
+
+**Exécutions d'une même expérience sur des commits différents.** C'est le cas d'EXP-0005 : exécution MPS au commit 3abe688, mesure CPU au commit e4701ba, des résultats d'autres expériences ayant été commités entre les deux. La requalification est admise si trois conditions sont réunies, et elle est alors consignée :
+
+1. chaque exécution est propre au sens de D18 ;
+2. `git diff` entre les commits des exécutions, restreint aux chemins contrôlés de D18, est vide ;
+3. l'empreinte `config_sha256` est la même pour toutes les exécutions.
+
+Le bloc `requalification` consigne alors, en plus des champs prévus, la liste des commits et le résultat de la vérification du `git diff` (`"diff_chemins_controles": "vide"`). Si l'une des conditions n'est pas remplie, l'expérience est refaite sous un nouveau numéro.
+
+Vérification faite par le cockpit le 28/10/2026 pour EXP-0005 : les deux exécutions sont propres, le `git diff --stat 3abe688 e4701ba` sur les chemins contrôlés est vide, et `config_sha256` est identique (0e3666c06f5d…).
+
 ## Liens
 
 EXP-0001 (`execution_mps.json`, `execution_cpu.json`) ; `docs/journal.md`, 27/10/2026.
