@@ -167,3 +167,42 @@ Résultats : baseline à 64,4 % de DER sur le test AMI SDM, contre 19,9 % pour p
 Décisions : D19 amendée (n_mels = 40 ; fenêtres bornées à leur région ; temps CPU de l'exécution principale ; fusion de 200 ms conservée ; test de reproduction marqué lent).
 Problèmes : la maquette de la page Pipeline donnait trois valeurs fausses (embedding_exclude_overlap, tailles de lot), écrites d'après les défauts du code et non la configuration de community-1. C'est la raison d'être de la règle « la page lit la pipeline chargée » (D17).
 Suite : session B, oracles EXP-0003 à EXP-0005.
+
+## 2026-10-28 — Oracles EXP-0003 à EXP-0006 (Claude Code)
+
+Objectif : appliquer l'amendement 5 de D19, puis exécuter les oracles de D19 §4 sur AMI SDM dev et test, une variable modifiée à la fois.
+Réalisé :
+- Commit `docs:` des documents du cockpit (amendements de D19, journal, `notes.md` d'EXP-0002).
+- Marqueur pytest `lent` déclaré dans `pyproject.toml` et exclu par défaut (`addopts = "-m 'not lent'"`) ; le test de reproduction d'EXP-0001 le porte. `uv run pytest -m lent` est documenté dans le README. Suite par défaut : 87 tests ; test lent : réussi (RTTM d'ES2004a identique).
+- Configurations d'EXP-0003 à EXP-0006 commitées une par une avant exécution. `notes.md` créées avec les deux sections vides.
+- Baselines (EXP-0003, EXP-0004, EXP-0006) en CPU avec `--trace`, sur 3abe688, arbre propre. EXP-0004 et EXP-0006 : θ = 0,95 fixé (valeur d'EXP-0002, sans balayage). EXP-0003 et EXP-0006 gardent θ = 0,95 dans la configuration, sans effet puisque la coupe se fait au nombre imposé.
+- EXP-0005 (pyannote, nombre oracle) en MPS sur 3abe688, puis mesure CPU sur `temps.txt`.
+- Catalogue : `n_mels` rattaché à l'amendement 1 de D19.
+Résultats (sans collar, chevauchements comptés ; RTF : périphérique de l'expérience, puis CPU sur `temps.txt`) :
+
+| Exp. | Jeu | DER | Manquée | FA | Confusion | DER sans chev. | DER chev. | JER | MAE K | K exact | RTF | RTF CPU |
+|---|---|---|---|---|---|---|---|---|---|---|---|---|
+| EXP-0003 | dev | 64,06 % | 30,19 | 4,64 | 29,23 | 62,00 % | 68,66 % | 72,40 % | 0,00 | 100 % | 0,0011 | 0,0008 |
+| EXP-0003 | test | 63,42 % | 32,28 | 4,99 | 26,15 | 61,02 % | 68,47 % | 72,78 % | 0,00 | 100 % | 0,0012 | 0,0008 |
+| EXP-0004 | dev | 54,23 % | 13,51 | 0,17 | 40,55 | 48,64 % | 68,80 % | 65,52 % | 2,00 | 11,11 % | 0,0015 | 0,0010 |
+| EXP-0004 | test | 49,09 % | 14,59 | 0,14 | 34,35 | 42,25 % | 66,31 % | 63,68 % | 2,00 | 12,50 % | 0,0014 | 0,0010 |
+| EXP-0005 | dev | 18,71 % | 8,10 | 4,86 | 5,75 | 13,58 % | 33,53 % | 23,60 % | 0,00 | 100 % | 0,053 | 0,9126 |
+| EXP-0005 | test | 20,40 % | 11,16 | 3,81 | 5,42 | 14,60 % | 35,99 % | 26,91 % | 0,00 | 100 % | 0,057 | 0,9126 |
+| EXP-0006 | dev | 51,72 % | 13,51 | 0,18 | 38,04 | 46,19 % | 66,69 % | 66,04 % | 0,00 | 100 % | 0,0014 | 0,0009 |
+| EXP-0006 | test | 48,92 % | 14,59 | 0,14 | 34,19 | 42,57 % | 65,02 % | 66,81 % | 0,00 | 100 % | 0,0013 | 0,0009 |
+
+Écart de DER sans collar à la référence, bootstrap apparié (1 000 tirages, graine 0), et fichiers améliorés :
+
+| Exp. | Référence | dev | test |
+|---|---|---|---|
+| EXP-0003 | EXP-0002 | −0,89 [−2,33 ; +0,87] ; 13/18 (3 moins bons, 2 égaux) | −0,96 [−2,44 ; +0,78] ; 12/16 (2 moins bons, 2 égaux) |
+| EXP-0004 | EXP-0002 | −10,71 [−14,42 ; −7,70] ; 18/18 | −15,29 [−17,79 ; −13,07] ; 16/16 |
+| EXP-0006 | EXP-0004 | −2,51 [−3,76 ; −1,37] ; 14/18 (2 moins bons, 2 égaux) | −0,16 [−2,80 ; +2,22] ; 10/16 (4 moins bons, 2 égaux) |
+| EXP-0005 | EXP-0001 | +0,07 [−0,16 ; +0,39] ; 1/18 (1 moins bon, 16 égaux) | +0,48 [−0,61 ; +2,50] ; 3/16 (1 moins bon, 12 égaux) |
+
+- EXP-0005 ne modifie que les fichiers où EXP-0001 se trompait sur K. Test : IS1009b 16,37 → 13,21 %, ES2004b 16,02 → 15,24 %, ES2004c 14,21 → 13,70 %, TS3003a 26,10 → 49,36 % (K̂ = 2 dans EXP-0001, K = 4 imposé). Dev : IS1008b 14,11 → 12,90 %, ES2011a 29,00 → 33,11 %.
+Décisions : aucune.
+Problèmes :
+- EXP-0005 a `arbre_propre: false`. L'exécution MPS a eu lieu sur 3abe688 et la mesure CPU sur e4701ba, parce que les résultats d'EXP-0003, 0004 et 0006 ont été commités entre les deux. Aucun chemin contrôlé de D18 ne diffère entre ces commits (seuls `experiments/` et `results/leaderboard.csv`). L'expérience n'a pas été modifiée. `--requalifier` ne couvre pas ce cas (il ne relit que les fichiers non commités).
+- EXP-0006 ne figure pas au tableau de D19 §4 ; il a été ajouté par le prompt de la session.
+Suite : interprétation au cockpit (`notes.md` d'EXP-0003 à EXP-0006) ; décision sur le statut d'EXP-0005.
