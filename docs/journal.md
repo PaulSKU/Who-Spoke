@@ -127,3 +127,34 @@ Résultats : EXP-0001 requalifiée, `arbre_propre` passe de false à true dans `
 Décisions : aucune.
 Problèmes : aucun bloquant. Le bloc `requalification` comporte un champ `sources` (liste des `execution_*.json` utilisés) en plus des quatre champs de D18.
 Suite : spécification de la baseline (D19) au cockpit.
+
+## 2026-10-28 — Contrat des moteurs, baseline et EXP-0002 (Claude Code)
+
+Objectif : appliquer D19 (contrat commun, enveloppe pyannote au contrat, baseline, oracles, trace, balayage, catalogue), puis exécuter EXP-0002.
+Réalisé :
+- Commit `docs:` de D19.
+- `scripts/evaluate.py` : refus d'évaluer si le `config_sha256` d'un `execution_*.json` diffère de l'empreinte de `config.yaml`. Quand `device` vaut `cpu`, `temps_cpu` est tiré de l'exécution principale, restreinte aux fichiers de `mesure_cpu.liste`.
+- `src/whospoke/pipelines/base.py` : `Engine`, `Resultat`, `Setting`, `run(waveform, sample_rate, uri, num_speakers, speech, progress)`, `describe()`.
+- Enveloppe pyannote au contrat : nombre de locuteurs par fichier à l'appel, `NotImplementedError` sur `speech`, progression par le hook de pyannote, `describe()` lu sur la pipeline chargée (sans le jeton). Le mode estimé redonne à l'identique le RTTM d'EXP-0001 sur ES2004a, en MPS (test).
+- `src/whospoke/pipelines/baseline.py` : étapes et valeurs de D19 §2, trace (§3), `prepare`/`finish` pour le balayage de θ. 14 tests sur signaux synthétiques.
+- `src/whospoke/pipelines/catalogue.yaml` : 23 réglages pyannote, 23 réglages baseline ; test de couverture de `describe()`.
+- `scripts/run_experiment.py` : clés `mode_n_locuteurs`, `detection_oracle` et `balayage`, option `--trace`. `methode.md` §4.2 : format du balayage et de la trace. `.gitignore` : `experiments/*/trace/`.
+- EXP-0002 exécutée en CPU avec `--trace`, sur le commit 540bb5e (arbre propre), puis évaluée.
+Résultats : EXP-0002 (sans collar, chevauchements comptés), θ retenu = 0,95 (DER dev minimal ; 6,06 locuteurs en moyenne contre 4).
+
+| Jeu | DER | Manquée | Fausse alarme | Confusion | DER `collar_0_25` | JER | DER sans chev. | DER chev. | MAE K | K exact |
+|---|---|---|---|---|---|---|---|---|---|---|
+| dev | 64,95 % | 30,20 % | 4,64 % | 30,11 % | 61,50 % | 70,53 % | 62,52 % | 70,54 % | 2,06 | 11,11 % |
+| test | 64,38 % | 32,28 % | 4,99 % | 27,11 % | 61,21 % | 70,55 % | 61,70 % | 70,06 % | 2,00 | 0,00 % |
+
+- Temps en CPU : RTF 0,0014 (dev) et 0,0015 (test) ; sur `temps.txt`, RTF 0,0011, soit environ 3 s pour 30 min. Balayage : 54 s de préparation des 18 fichiers, 937 s au total, l'évaluation des 29 valeurs dominant.
+- Par rapport à EXP-0001 sur les mêmes fichiers : la baseline fait moins bien sur 18/18 fichiers de dev et 16/16 de test. Différence de DER (baseline − pyannote), bootstrap apparié (1 000 tirages, graine 0) : +46,31 points [40,95 ; 51,48] sur dev, +44,46 points [40,73 ; 48,70] sur test.
+- Test, trois DER les plus élevés : TS3003a 79,77 % (K̂ = 8), TS3003d 79,07 % (K̂ = 8), IS1009a 75,70 % (K̂ = 8), pour K = 4.
+Décisions : aucune. Deux lectures de D19 sont à confirmer (voir Problèmes).
+Problèmes :
+- Fenêtres de la baseline : à la lettre, la dernière fenêtre d'une région dépasse sur le silence, voire sur la région suivante. Sur signal synthétique, ces fenêtres de bord forment des groupes à part. Choix appliqué, à confirmer : les fenêtres sont bornées à leur région et gardées si 50 % de leur durée nominale y tombe ; les statistiques ne portent que sur les trames de parole.
+- `n_mels` n'est pas fixé par D19 : 40 retenu, le défaut de librosa (128) laissant des filtres vides avec une FFT de 400 points. Il figure au catalogue comme « non couvert par D19 (à acter) ».
+- Le silence minimal (0,2 s) comble déjà toute pause de moins de 0,2 s, si bien que la fusion des tours séparés de 200 ms ou moins ne joue que sur les pauses d'exactement 20 trames.
+- Écarts entre la maquette de la page Pipeline et les valeurs lues : `embedding_exclude_overlap` vaut `True` (et non « Non ») ; `segmentation_batch_size` et `embedding_batch_size` valent 32 (et non 1).
+- `device: cpu` produit `execution_cpu.json`, le même nom qu'une mesure `--mesure-cpu`. Les deux ne peuvent donc pas coexister ; d'où `temps_cpu` tiré de l'exécution principale.
+Suite : interprétation au cockpit (`notes.md` d'EXP-0002) ; EXP-0003 à EXP-0005 de D19 §4.
