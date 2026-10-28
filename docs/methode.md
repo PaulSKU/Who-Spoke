@@ -105,9 +105,10 @@ Date : AAAA-MM-JJ
 | `per_file_<corpus>_<partition>.csv` | Métriques par fichier | Script d'évaluation |
 | `rttm/` | Hypothèses du système, un RTTM par fichier | Script d'exécution |
 | `run.log` | Journal d'exécution | Script d'exécution |
+| `execution_<device>.json` | Mesures d'une exécution : temps par fichier, chargement des modèles, commit, état de l'arbre (`arbre_propre`, `fichiers_non_commites`), versions, empreinte de `config.yaml` (D18) | Script d'exécution |
 | `notes.md` | Interprétation des résultats | Rédigé après analyse dans le cockpit |
 
-Une expérience exécutée n'est plus modifiée. Les seules exceptions sont `notes.md`, que l'on complète, et un bloc `invalidee` ajouté aux fichiers `results_*.json` si un défaut est découvert. Une correction donne lieu à une nouvelle expérience.
+Une expérience exécutée n'est plus modifiée. Les seules exceptions sont `notes.md`, que l'on complète ; un bloc `invalidee` ajouté aux fichiers `results_*.json` si un défaut est découvert ; et la requalification d'une métadonnée par le script d'évaluation, en application d'une fiche de décision, toujours tracée par un bloc `requalification` (date, règle, ancienne et nouvelle valeur) et sans toucher aux métriques (D18). Une correction donne lieu à une nouvelle expérience.
 
 ### 4.3 Schéma de `results.json`
 
@@ -195,11 +196,11 @@ Les documents écrits par le cockpit dans le dossier local sont commités par Cl
 | Branche | `main` uniquement ; une branche temporaire seulement pour un essai risqué |
 | Messages | En français, préfixés : `feat:`, `fix:`, `docs:`, `exp:`, `data:`, `test:`, `chore:` |
 | Expérience | Un commit `exp: EXP-NNNN <slug>` contenant le dossier de l'expérience et la ligne du leaderboard |
-| Arbre propre | Une expérience s'exécute sur un code commité ; le script d'évaluation enregistre `arbre_propre: false` sinon, et une telle expérience ne peut pas figurer dans le rendu |
+| Arbre propre | Une expérience s'exécute sur un code commité. Seuls les chemins contrôlés comptent (D18) : `src/`, `scripts/`, `configs/`, `tests/`, `data/splits/`, `data/manifests/`, `pyproject.toml` et `uv.lock`. Un fichier non commité sous l'un d'eux donne `arbre_propre: false`, et une telle expérience ne peut pas figurer dans le rendu. Les fichiers non commités ailleurs (`docs/`, `results/`, `notes.md`, `README.md`) sont listés dans `fichiers_non_commites` sans rendre l'arbre sale |
 | Exclusions | `.env`, `data/raw/`, `data/processed/`, tout fichier audio (`*.wav`, `*.mp3`, `*.m4a`, `*.flac`), caches de modèles |
 
 ---
 
 ## 7. Données
 
-Chaque corpus est obtenu par un script `scripts/data/get_<corpus>.py` qui télécharge, vérifie les sommes de contrôle, normalise l'audio en 16 kHz mono et produit le RTTM de référence. Le manifeste `data/manifests/<corpus>.csv` est versionné. La fiche `docs/corpus.md` est mise à jour avant tout premier téléchargement d'un corpus : source, accès, licence, volume, composition, limites et jeux vus par chaque modèle pré-entraîné. Les consentements signés du corpus maison et la table de correspondance entre noms et codes sont conservés **hors du dossier du dépôt** (par exemple `~/Dev/Who-Spoke-confidentiel/`). `corpus.md` mentionne seulement leur existence et leur date. Les enregistrements maison ne sont traités qu'en local (voir `docs/corpus-maison/README.md`).
+Chaque corpus est obtenu par un script `scripts/data/get_<corpus>.py` qui télécharge, vérifie les sommes de contrôle, normalise l'audio en 16 kHz mono et produit le RTTM de référence. Le manifeste `data/manifests/<corpus>.csv` est versionné ; son SHA-256 porte sur le fichier brut téléchargé, et non sur l'audio normalisé (D18). Toute option d'un script est documentée dans son `--help` ; il n'y a pas d'option cachée (D18). La fiche `docs/corpus.md` est mise à jour avant tout premier téléchargement d'un corpus : source, accès, licence, volume, composition, limites et jeux vus par chaque modèle pré-entraîné. Les consentements signés du corpus maison et la table de correspondance entre noms et codes sont conservés **hors du dossier du dépôt** (par exemple `~/Dev/Who-Spoke-confidentiel/`). `corpus.md` mentionne seulement leur existence et leur date. Les enregistrements maison ne sont traités qu'en local (voir `docs/corpus-maison/README.md`).

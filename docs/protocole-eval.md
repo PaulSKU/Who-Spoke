@@ -1,6 +1,6 @@
 # Protocole d'évaluation
 
-Version 1.1 du 27 octobre 2026, figée (décision D1). Révision 1.1 : sémantique du collar vérifiée par test ; RTF en CPU seul rendu obligatoire. Toute modification passe par une fiche de décision et rend les résultats antérieurs non comparables. Ceux-ci doivent alors être recalculés ou signalés comme tels.
+Version 1.1 du 27 octobre 2026, figée (décision D1). Révision 1.1 : sémantique du collar vérifiée par test ; RTF en CPU seul rendu obligatoire. Révision 1.2 (D18, 28/10) : précisions sur la zone sans chevauchement (§3.2), le comptage des locuteurs (§3.4) et le préchauffage (§3.5), qui entérinent ce qu'appliquait déjà EXP-0001 ; aucun résultat antérieur n'en est affecté. Toute modification passe par une fiche de décision et rend les résultats antérieurs non comparables. Ceux-ci doivent alors être recalculés ou signalés comme tels.
 
 **Légende de confiance.** **[certain]** : vérifié sur une source primaire. **[probable]** : source secondaire ou connaissance établie non revérifiée. **[incertain]** : à vérifier.
 
@@ -42,7 +42,7 @@ Le DER est calculé dans deux conditions, toujours avec les chevauchements compt
 
 ### 3.2 Décomposition par zone
 
-Le DER est recalculé séparément sur les zones sans chevauchement et sur les zones de chevauchement de la référence, en restreignant l'UEM à chacune d'elles, dans la condition `collar_0`. C'est cette décomposition qui permet de savoir si une erreur vient de la gestion du chevauchement.
+Le DER est recalculé séparément sur les zones sans chevauchement et sur les zones de chevauchement de la référence, en restreignant l'UEM à chacune d'elles, dans la condition `collar_0`. La zone de chevauchement est l'intersection de l'UEM et des instants où au moins deux locuteurs de référence parlent ; la zone sans chevauchement est tout le reste de l'UEM, silences compris, si bien que les fausses alarmes y sont comptées (D18). C'est cette décomposition qui permet de savoir si une erreur vient de la gestion du chevauchement.
 
 ### 3.3 JER (*Jaccard Error Rate*), métrique complémentaire
 
@@ -50,11 +50,11 @@ Le JER calcule pour chaque locuteur de référence une erreur de type Jaccard en
 
 ### 3.4 Nombre de locuteurs
 
-Pour chaque fichier, on compare le nombre de locuteurs distincts dans l'hypothèse (K̂) et dans la référence (K). L'erreur absolue moyenne est la moyenne de |K̂ − K|, et le taux exact est la proportion de fichiers où K̂ = K. Ces deux grandeurs mesurent directement l'amélioration n° 1 de l'ablation (D9).
+Pour chaque fichier, on compare le nombre de locuteurs distincts dans l'hypothèse (K̂) et dans la référence (K), comptés dans les deux cas sur les seuls locuteurs présents dans l'UEM (D18). L'erreur absolue moyenne est la moyenne de |K̂ − K|, et le taux exact est la proportion de fichiers où K̂ = K. Ces deux grandeurs mesurent directement l'amélioration n° 1 de l'ablation (D9).
 
 ### 3.5 Temps d'inférence
 
-Le RTF (*Real-Time Factor*) est le rapport entre le temps de calcul et la durée de l'audio. Le temps de calcul couvre le chargement de l'audio normalisé et l'exécution complète de la pipeline. Il exclut le chargement des modèles, mesuré et rapporté à part (`chargement_modeles_s`). La mesure est faite en temps réel écoulé (horloge murale), machine sur secteur, sans autre calcul lourd en parallèle. Le périphérique (`cpu`, `mps`, `cuda`) est consigné. Toute pipeline candidate au rendu est mesurée sur la machine locale deux fois, en MPS puis en CPU seul, sur un même sous-ensemble fixe de fichiers, et le temps de traitement d'une réunion de 30 minutes est rapporté explicitement (demande du tuteur). Pour éviter des heures de calcul sur CPU, la mesure en CPU seul se fait sur un **sous-ensemble de mesure du temps**, fixé une fois pour toutes par corpus dans `data/splits/<corpus>/temps.txt` (deux ou trois fichiers de la partition de test), et consignée dans le champ `temps_cpu` de `results.json`. La mesure principale (`temps`) porte sur l'exécution complète, sur le périphérique utilisé. Un premier fichier sert de préchauffage et n'est pas compté.
+Le RTF (*Real-Time Factor*) est le rapport entre le temps de calcul et la durée de l'audio. Le temps de calcul couvre le chargement de l'audio normalisé et l'exécution complète de la pipeline. Il exclut le chargement des modèles, mesuré et rapporté à part (`chargement_modeles_s`). La mesure est faite en temps réel écoulé (horloge murale), machine sur secteur, sans autre calcul lourd en parallèle. Le périphérique (`cpu`, `mps`, `cuda`) est consigné. Toute pipeline candidate au rendu est mesurée sur la machine locale deux fois, en MPS puis en CPU seul, sur un même sous-ensemble fixe de fichiers, et le temps de traitement d'une réunion de 30 minutes est rapporté explicitement (demande du tuteur). Pour éviter des heures de calcul sur CPU, la mesure en CPU seul se fait sur un **sous-ensemble de mesure du temps**, fixé une fois pour toutes par corpus dans `data/splits/<corpus>/temps.txt` (deux ou trois fichiers de la partition de test), et consignée dans le champ `temps_cpu` de `results.json`. La mesure principale (`temps`) porte sur l'exécution complète, sur le périphérique utilisé. Le préchauffage se fait sur les 60 premières secondes du premier fichier et n'est pas compté ; tous les fichiers sont ensuite comptés (D18).
 
 ---
 
