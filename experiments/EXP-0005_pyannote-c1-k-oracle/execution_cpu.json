@@ -1,0 +1,225 @@
+{
+  "exp_id": "EXP-0005",
+  "mode": "mesure_cpu",
+  "sous_ensemble": "data/splits/ami/temps.txt",
+  "date_fin": "2026-10-28T15:46:54+01:00",
+  "git_commit": "e4701bad1aa68028254593998fe1c5966e47bf11",
+  "arbre_propre": true,
+  "fichiers_non_commites": [
+    "experiments/EXP-0005_pyannote-c1-k-oracle/execution_mps.json",
+    "experiments/EXP-0005_pyannote-c1-k-oracle/rttm/ami__EN2002a.rttm",
+    "experiments/EXP-0005_pyannote-c1-k-oracle/rttm/ami__EN2002b.rttm",
+    "experiments/EXP-0005_pyannote-c1-k-oracle/rttm/ami__EN2002c.rttm",
+    "experiments/EXP-0005_pyannote-c1-k-oracle/rttm/ami__EN2002d.rttm",
+    "experiments/EXP-0005_pyannote-c1-k-oracle/rttm/ami__ES2004a.rttm",
+    "experiments/EXP-0005_pyannote-c1-k-oracle/rttm/ami__ES2004b.rttm",
+    "experiments/EXP-0005_pyannote-c1-k-oracle/rttm/ami__ES2004c.rttm",
+    "experiments/EXP-0005_pyannote-c1-k-oracle/rttm/ami__ES2004d.rttm",
+    "experiments/EXP-0005_pyannote-c1-k-oracle/rttm/ami__ES2011a.rttm",
+    "experiments/EXP-0005_pyannote-c1-k-oracle/rttm/ami__ES2011b.rttm",
+    "experiments/EXP-0005_pyannote-c1-k-oracle/rttm/ami__ES2011c.rttm",
+    "experiments/EXP-0005_pyannote-c1-k-oracle/rttm/ami__ES2011d.rttm",
+    "experiments/EXP-0005_pyannote-c1-k-oracle/rttm/ami__IB4001.rttm",
+    "experiments/EXP-0005_pyannote-c1-k-oracle/rttm/ami__IB4002.rttm",
+    "experiments/EXP-0005_pyannote-c1-k-oracle/rttm/ami__IB4003.rttm",
+    "experiments/EXP-0005_pyannote-c1-k-oracle/rttm/ami__IB4004.rttm",
+    "experiments/EXP-0005_pyannote-c1-k-oracle/rttm/ami__IB4010.rttm",
+    "experiments/EXP-0005_pyannote-c1-k-oracle/rttm/ami__IB4011.rttm",
+    "experiments/EXP-0005_pyannote-c1-k-oracle/rttm/ami__IS1008a.rttm",
+    "experiments/EXP-0005_pyannote-c1-k-oracle/rttm/ami__IS1008b.rttm",
+    "experiments/EXP-0005_pyannote-c1-k-oracle/rttm/ami__IS1008c.rttm",
+    "experiments/EXP-0005_pyannote-c1-k-oracle/rttm/ami__IS1008d.rttm",
+    "experiments/EXP-0005_pyannote-c1-k-oracle/rttm/ami__IS1009a.rttm",
+    "experiments/EXP-0005_pyannote-c1-k-oracle/rttm/ami__IS1009b.rttm",
+    "experiments/EXP-0005_pyannote-c1-k-oracle/rttm/ami__IS1009c.rttm",
+    "experiments/EXP-0005_pyannote-c1-k-oracle/rttm/ami__IS1009d.rttm",
+    "experiments/EXP-0005_pyannote-c1-k-oracle/rttm/ami__TS3003a.rttm",
+    "experiments/EXP-0005_pyannote-c1-k-oracle/rttm/ami__TS3003b.rttm",
+    "experiments/EXP-0005_pyannote-c1-k-oracle/rttm/ami__TS3003c.rttm",
+    "experiments/EXP-0005_pyannote-c1-k-oracle/rttm/ami__TS3003d.rttm",
+    "experiments/EXP-0005_pyannote-c1-k-oracle/rttm/ami__TS3004a.rttm",
+    "experiments/EXP-0005_pyannote-c1-k-oracle/rttm/ami__TS3004b.rttm",
+    "experiments/EXP-0005_pyannote-c1-k-oracle/rttm/ami__TS3004c.rttm",
+    "experiments/EXP-0005_pyannote-c1-k-oracle/rttm/ami__TS3004d.rttm",
+    "experiments/EXP-0005_pyannote-c1-k-oracle/run.log"
+  ],
+  "config_sha256": "0e3666c06f5d333129ae72dd093736aacb2d793121fda8bdac1635902211cb9d",
+  "device": "cpu",
+  "torch_threads": 6,
+  "versions": {
+    "python": "3.11.15",
+    "torch": "2.14.1",
+    "pyannote.audio": "4.0.7",
+    "librosa": "0.11.0"
+  },
+  "mode_n_locuteurs": "oracle",
+  "detection_oracle": false,
+  "trace": false,
+  "balayage": null,
+  "configuration_effective": {
+    "detection": [
+      {
+        "nom": "segmentation.modele",
+        "valeur": "pyannote/speaker-diarization-community-1/segmentation (PyanNet)",
+        "origine": "modele"
+      },
+      {
+        "nom": "segmentation.powerset",
+        "valeur": true,
+        "origine": "modele"
+      },
+      {
+        "nom": "segmentation.min_duration_off",
+        "valeur": 0.0,
+        "origine": "defaut"
+      }
+    ],
+    "segmentation": [
+      {
+        "nom": "segmentation.duree_fenetre_s",
+        "valeur": 10.0,
+        "origine": "modele"
+      },
+      {
+        "nom": "segmentation_step",
+        "valeur": 0.1,
+        "origine": "defaut"
+      },
+      {
+        "nom": "segmentation.locuteurs_par_fenetre",
+        "valeur": 3,
+        "origine": "modele"
+      },
+      {
+        "nom": "segmentation.locuteurs_simultanes",
+        "valeur": 2,
+        "origine": "modele"
+      },
+      {
+        "nom": "segmentation_batch_size",
+        "valeur": 32,
+        "origine": "defaut"
+      }
+    ],
+    "empreintes": [
+      {
+        "nom": "embedding.modele",
+        "valeur": "pyannote/speaker-diarization-community-1/embedding (WeSpeakerResNet34)",
+        "origine": "modele"
+      },
+      {
+        "nom": "embedding.dimension",
+        "valeur": 256,
+        "origine": "modele"
+      },
+      {
+        "nom": "embedding_exclude_overlap",
+        "valeur": true,
+        "origine": "defaut"
+      },
+      {
+        "nom": "embedding_batch_size",
+        "valeur": 32,
+        "origine": "defaut"
+      }
+    ],
+    "regroupement": [
+      {
+        "nom": "clustering.methode",
+        "valeur": "VBxClustering",
+        "origine": "defaut"
+      },
+      {
+        "nom": "clustering.metric",
+        "valeur": "cosine",
+        "origine": "defaut"
+      },
+      {
+        "nom": "clustering.threshold",
+        "valeur": 0.6,
+        "origine": "defaut"
+      },
+      {
+        "nom": "clustering.Fa",
+        "valeur": 0.07,
+        "origine": "defaut"
+      },
+      {
+        "nom": "clustering.Fb",
+        "valeur": 0.8,
+        "origine": "defaut"
+      },
+      {
+        "nom": "clustering.constrained_assignment",
+        "valeur": true,
+        "origine": "defaut"
+      },
+      {
+        "nom": "plda.modele",
+        "valeur": "pyannote/speaker-diarization-community-1/plda",
+        "origine": "modele"
+      },
+      {
+        "nom": "plda.lda_dimension",
+        "valeur": 128,
+        "origine": "modele"
+      },
+      {
+        "nom": "n_locuteurs",
+        "valeur": "imposé par fichier",
+        "origine": "experience"
+      }
+    ],
+    "sortie": [
+      {
+        "nom": "sortie.exclusive",
+        "valeur": false,
+        "origine": "code"
+      }
+    ]
+  },
+  "chargement_modeles_s": 6.674,
+  "prechauffage": {
+    "uri": "ami__ES2004a",
+    "duree_s": 60.0
+  },
+  "duree_audio_s": 2554.998,
+  "calcul_s": 2331.617,
+  "rtf": 0.9126,
+  "fichiers": [
+    {
+      "uri": "ami__ES2004a",
+      "corpus": "ami",
+      "partition": "temps",
+      "duree_audio_s": 1049.355,
+      "calcul_s": 982.537,
+      "rtf": 0.9363,
+      "n_locuteurs_hypothese": 4,
+      "n_locuteurs_impose": 4,
+      "etapes_s": {
+        "segmentation": 58.585,
+        "detection": 0.028,
+        "empreintes": 923.478,
+        "regroupement": 0.243,
+        "sortie": 0.157
+      }
+    },
+    {
+      "uri": "ami__TS3003a",
+      "corpus": "ami",
+      "partition": "temps",
+      "duree_audio_s": 1505.643,
+      "calcul_s": 1349.08,
+      "rtf": 0.896,
+      "n_locuteurs_hypothese": 4,
+      "n_locuteurs_impose": 4,
+      "etapes_s": {
+        "segmentation": 76.961,
+        "detection": 0.031,
+        "empreintes": 1271.329,
+        "regroupement": 0.471,
+        "sortie": 0.242
+      }
+    }
+  ]
+}

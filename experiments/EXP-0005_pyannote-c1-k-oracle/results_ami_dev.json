@@ -1,0 +1,60 @@
+{
+  "exp_id": "EXP-0005",
+  "slug": "pyannote-c1-k-oracle",
+  "date": "2026-10-28T15:06:57+01:00",
+  "git_commit": "3abe688",
+  "arbre_propre": false,
+  "reference": "EXP-0001",
+  "variable_modifiee": "mode_n_locuteurs",
+  "donnees": {
+    "corpus": "ami",
+    "partition": "dev",
+    "n_fichiers": 18,
+    "duree_audio_s": 34802.8
+  },
+  "systeme": {
+    "pipeline": "pyannote-community-1",
+    "mode_n_locuteurs": "oracle",
+    "vad": "integree",
+    "device": "mps"
+  },
+  "materiel": {
+    "machine": "MacBook Pro M2 Pro",
+    "ram_go": 16
+  },
+  "metriques": {
+    "collar_0": {
+      "der": 18.71,
+      "manquee": 8.1,
+      "fausse_alarme": 4.86,
+      "confusion": 5.75,
+      "jer": 23.6
+    },
+    "collar_0_25": {
+      "der": 11.23,
+      "manquee": 5.27,
+      "fausse_alarme": 2.32,
+      "confusion": 3.64,
+      "jer": 15.78
+    },
+    "der_zones_sans_chevauchement": 13.58,
+    "der_zones_chevauchement": 33.53,
+    "n_locuteurs": {
+      "erreur_absolue_moyenne": 0.0,
+      "taux_exact": 100.0
+    }
+  },
+  "temps": {
+    "device": "mps",
+    "chargement_modeles_s": 5.92,
+    "calcul_s": 1843.61,
+    "rtf": 0.053
+  },
+  "temps_cpu": {
+    "sous_ensemble": "data/splits/ami/temps.txt",
+    "duree_audio_s": 2555.0,
+    "calcul_s": 2331.62,
+    "rtf": 0.9126
+  },
+  "invalidee": null
+}

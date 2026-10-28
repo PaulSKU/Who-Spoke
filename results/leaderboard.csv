@@ -9,3 +9,5 @@ EXP-0004,2026-10-28T14:01:55+01:00,baseline-vad-oracle,EXP-0002,detection_oracle
 EXP-0004,2026-10-28T14:01:55+01:00,baseline-vad-oracle,EXP-0002,detection_oracle,ami,test,baseline,estime,49.09,14.59,0.14,34.35,45.1,63.68,2.0,0.0014,0.001,3abe688
 EXP-0006,2026-10-28T14:04:08+01:00,baseline-vad-k-oracle,EXP-0004,mode_n_locuteurs,ami,dev,baseline,oracle,51.72,13.51,0.18,38.04,47.74,66.04,0.0,0.0014,0.0009,3abe688
 EXP-0006,2026-10-28T14:04:08+01:00,baseline-vad-k-oracle,EXP-0004,mode_n_locuteurs,ami,test,baseline,oracle,48.92,14.59,0.14,34.19,45.07,66.81,0.0,0.0013,0.0009,3abe688
+EXP-0005,2026-10-28T15:06:57+01:00,pyannote-c1-k-oracle,EXP-0001,mode_n_locuteurs,ami,dev,pyannote-community-1,oracle,18.71,8.1,4.86,5.75,11.23,23.6,0.0,0.053,0.9126,3abe688
+EXP-0005,2026-10-28T15:06:57+01:00,pyannote-c1-k-oracle,EXP-0001,mode_n_locuteurs,ami,test,pyannote-community-1,oracle,20.4,11.16,3.81,5.42,13.93,26.91,0.0,0.057,0.9126,3abe688

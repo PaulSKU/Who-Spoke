@@ -1,0 +1,855 @@
+{
+  "exp_id": "EXP-0005",
+  "mode": "complet",
+  "sous_ensemble": null,
+  "date_fin": "2026-10-28T15:06:57+01:00",
+  "git_commit": "3abe688f93702e28d23b9740a7f9601b7bde8629",
+  "arbre_propre": true,
+  "fichiers_non_commites": [
+    "results/leaderboard.csv",
+    "experiments/EXP-0003_baseline-k-oracle/execution_cpu.json",
+    "experiments/EXP-0003_baseline-k-oracle/per_file_ami_dev.csv",
+    "experiments/EXP-0003_baseline-k-oracle/per_file_ami_test.csv",
+    "experiments/EXP-0003_baseline-k-oracle/results_ami_dev.json",
+    "experiments/EXP-0003_baseline-k-oracle/results_ami_test.json",
+    "experiments/EXP-0003_baseline-k-oracle/rttm/ami__EN2002a.rttm",
+    "experiments/EXP-0003_baseline-k-oracle/rttm/ami__EN2002b.rttm",
+    "experiments/EXP-0003_baseline-k-oracle/rttm/ami__EN2002c.rttm",
+    "experiments/EXP-0003_baseline-k-oracle/rttm/ami__EN2002d.rttm",
+    "experiments/EXP-0003_baseline-k-oracle/rttm/ami__ES2004a.rttm",
+    "experiments/EXP-0003_baseline-k-oracle/rttm/ami__ES2004b.rttm",
+    "experiments/EXP-0003_baseline-k-oracle/rttm/ami__ES2004c.rttm",
+    "experiments/EXP-0003_baseline-k-oracle/rttm/ami__ES2004d.rttm",
+    "experiments/EXP-0003_baseline-k-oracle/rttm/ami__ES2011a.rttm",
+    "experiments/EXP-0003_baseline-k-oracle/rttm/ami__ES2011b.rttm",
+    "experiments/EXP-0003_baseline-k-oracle/rttm/ami__ES2011c.rttm",
+    "experiments/EXP-0003_baseline-k-oracle/rttm/ami__ES2011d.rttm",
+    "experiments/EXP-0003_baseline-k-oracle/rttm/ami__IB4001.rttm",
+    "experiments/EXP-0003_baseline-k-oracle/rttm/ami__IB4002.rttm",
+    "experiments/EXP-0003_baseline-k-oracle/rttm/ami__IB4003.rttm",
+    "experiments/EXP-0003_baseline-k-oracle/rttm/ami__IB4004.rttm",
+    "experiments/EXP-0003_baseline-k-oracle/rttm/ami__IB4010.rttm",
+    "experiments/EXP-0003_baseline-k-oracle/rttm/ami__IB4011.rttm",
+    "experiments/EXP-0003_baseline-k-oracle/rttm/ami__IS1008a.rttm",
+    "experiments/EXP-0003_baseline-k-oracle/rttm/ami__IS1008b.rttm",
+    "experiments/EXP-0003_baseline-k-oracle/rttm/ami__IS1008c.rttm",
+    "experiments/EXP-0003_baseline-k-oracle/rttm/ami__IS1008d.rttm",
+    "experiments/EXP-0003_baseline-k-oracle/rttm/ami__IS1009a.rttm",
+    "experiments/EXP-0003_baseline-k-oracle/rttm/ami__IS1009b.rttm",
+    "experiments/EXP-0003_baseline-k-oracle/rttm/ami__IS1009c.rttm",
+    "experiments/EXP-0003_baseline-k-oracle/rttm/ami__IS1009d.rttm",
+    "experiments/EXP-0003_baseline-k-oracle/rttm/ami__TS3003a.rttm",
+    "experiments/EXP-0003_baseline-k-oracle/rttm/ami__TS3003b.rttm",
+    "experiments/EXP-0003_baseline-k-oracle/rttm/ami__TS3003c.rttm",
+    "experiments/EXP-0003_baseline-k-oracle/rttm/ami__TS3003d.rttm",
+    "experiments/EXP-0003_baseline-k-oracle/rttm/ami__TS3004a.rttm",
+    "experiments/EXP-0003_baseline-k-oracle/rttm/ami__TS3004b.rttm",
+    "experiments/EXP-0003_baseline-k-oracle/rttm/ami__TS3004c.rttm",
+    "experiments/EXP-0003_baseline-k-oracle/rttm/ami__TS3004d.rttm",
+    "experiments/EXP-0003_baseline-k-oracle/run.log",
+    "experiments/EXP-0004_baseline-vad-oracle/execution_cpu.json",
+    "experiments/EXP-0004_baseline-vad-oracle/per_file_ami_dev.csv",
+    "experiments/EXP-0004_baseline-vad-oracle/per_file_ami_test.csv",
+    "experiments/EXP-0004_baseline-vad-oracle/results_ami_dev.json",
+    "experiments/EXP-0004_baseline-vad-oracle/results_ami_test.json",
+    "experiments/EXP-0004_baseline-vad-oracle/rttm/ami__EN2002a.rttm",
+    "experiments/EXP-0004_baseline-vad-oracle/rttm/ami__EN2002b.rttm",
+    "experiments/EXP-0004_baseline-vad-oracle/rttm/ami__EN2002c.rttm",
+    "experiments/EXP-0004_baseline-vad-oracle/rttm/ami__EN2002d.rttm",
+    "experiments/EXP-0004_baseline-vad-oracle/rttm/ami__ES2004a.rttm",
+    "experiments/EXP-0004_baseline-vad-oracle/rttm/ami__ES2004b.rttm",
+    "experiments/EXP-0004_baseline-vad-oracle/rttm/ami__ES2004c.rttm",
+    "experiments/EXP-0004_baseline-vad-oracle/rttm/ami__ES2004d.rttm",
+    "experiments/EXP-0004_baseline-vad-oracle/rttm/ami__ES2011a.rttm",
+    "experiments/EXP-0004_baseline-vad-oracle/rttm/ami__ES2011b.rttm",
+    "experiments/EXP-0004_baseline-vad-oracle/rttm/ami__ES2011c.rttm",
+    "experiments/EXP-0004_baseline-vad-oracle/rttm/ami__ES2011d.rttm",
+    "experiments/EXP-0004_baseline-vad-oracle/rttm/ami__IB4001.rttm",
+    "experiments/EXP-0004_baseline-vad-oracle/rttm/ami__IB4002.rttm",
+    "experiments/EXP-0004_baseline-vad-oracle/rttm/ami__IB4003.rttm",
+    "experiments/EXP-0004_baseline-vad-oracle/rttm/ami__IB4004.rttm",
+    "experiments/EXP-0004_baseline-vad-oracle/rttm/ami__IB4010.rttm",
+    "experiments/EXP-0004_baseline-vad-oracle/rttm/ami__IB4011.rttm",
+    "experiments/EXP-0004_baseline-vad-oracle/rttm/ami__IS1008a.rttm",
+    "experiments/EXP-0004_baseline-vad-oracle/rttm/ami__IS1008b.rttm",
+    "experiments/EXP-0004_baseline-vad-oracle/rttm/ami__IS1008c.rttm",
+    "experiments/EXP-0004_baseline-vad-oracle/rttm/ami__IS1008d.rttm",
+    "experiments/EXP-0004_baseline-vad-oracle/rttm/ami__IS1009a.rttm",
+    "experiments/EXP-0004_baseline-vad-oracle/rttm/ami__IS1009b.rttm",
+    "experiments/EXP-0004_baseline-vad-oracle/rttm/ami__IS1009c.rttm",
+    "experiments/EXP-0004_baseline-vad-oracle/rttm/ami__IS1009d.rttm",
+    "experiments/EXP-0004_baseline-vad-oracle/rttm/ami__TS3003a.rttm",
+    "experiments/EXP-0004_baseline-vad-oracle/rttm/ami__TS3003b.rttm",
+    "experiments/EXP-0004_baseline-vad-oracle/rttm/ami__TS3003c.rttm",
+    "experiments/EXP-0004_baseline-vad-oracle/rttm/ami__TS3003d.rttm",
+    "experiments/EXP-0004_baseline-vad-oracle/rttm/ami__TS3004a.rttm",
+    "experiments/EXP-0004_baseline-vad-oracle/rttm/ami__TS3004b.rttm",
+    "experiments/EXP-0004_baseline-vad-oracle/rttm/ami__TS3004c.rttm",
+    "experiments/EXP-0004_baseline-vad-oracle/rttm/ami__TS3004d.rttm",
+    "experiments/EXP-0004_baseline-vad-oracle/run.log",
+    "experiments/EXP-0005_pyannote-c1-k-oracle/run.log",
+    "experiments/EXP-0006_baseline-vad-k-oracle/execution_cpu.json",
+    "experiments/EXP-0006_baseline-vad-k-oracle/per_file_ami_dev.csv",
+    "experiments/EXP-0006_baseline-vad-k-oracle/per_file_ami_test.csv",
+    "experiments/EXP-0006_baseline-vad-k-oracle/results_ami_dev.json",
+    "experiments/EXP-0006_baseline-vad-k-oracle/results_ami_test.json",
+    "experiments/EXP-0006_baseline-vad-k-oracle/rttm/ami__EN2002a.rttm",
+    "experiments/EXP-0006_baseline-vad-k-oracle/rttm/ami__EN2002b.rttm",
+    "experiments/EXP-0006_baseline-vad-k-oracle/rttm/ami__EN2002c.rttm",
+    "experiments/EXP-0006_baseline-vad-k-oracle/rttm/ami__EN2002d.rttm",
+    "experiments/EXP-0006_baseline-vad-k-oracle/rttm/ami__ES2004a.rttm",
+    "experiments/EXP-0006_baseline-vad-k-oracle/rttm/ami__ES2004b.rttm",
+    "experiments/EXP-0006_baseline-vad-k-oracle/rttm/ami__ES2004c.rttm",
+    "experiments/EXP-0006_baseline-vad-k-oracle/rttm/ami__ES2004d.rttm",
+    "experiments/EXP-0006_baseline-vad-k-oracle/rttm/ami__ES2011a.rttm",
+    "experiments/EXP-0006_baseline-vad-k-oracle/rttm/ami__ES2011b.rttm",
+    "experiments/EXP-0006_baseline-vad-k-oracle/rttm/ami__ES2011c.rttm",
+    "experiments/EXP-0006_baseline-vad-k-oracle/rttm/ami__ES2011d.rttm",
+    "experiments/EXP-0006_baseline-vad-k-oracle/rttm/ami__IB4001.rttm",
+    "experiments/EXP-0006_baseline-vad-k-oracle/rttm/ami__IB4002.rttm",
+    "experiments/EXP-0006_baseline-vad-k-oracle/rttm/ami__IB4003.rttm",
+    "experiments/EXP-0006_baseline-vad-k-oracle/rttm/ami__IB4004.rttm",
+    "experiments/EXP-0006_baseline-vad-k-oracle/rttm/ami__IB4010.rttm",
+    "experiments/EXP-0006_baseline-vad-k-oracle/rttm/ami__IB4011.rttm",
+    "experiments/EXP-0006_baseline-vad-k-oracle/rttm/ami__IS1008a.rttm",
+    "experiments/EXP-0006_baseline-vad-k-oracle/rttm/ami__IS1008b.rttm",
+    "experiments/EXP-0006_baseline-vad-k-oracle/rttm/ami__IS1008c.rttm",
+    "experiments/EXP-0006_baseline-vad-k-oracle/rttm/ami__IS1008d.rttm",
+    "experiments/EXP-0006_baseline-vad-k-oracle/rttm/ami__IS1009a.rttm",
+    "experiments/EXP-0006_baseline-vad-k-oracle/rttm/ami__IS1009b.rttm",
+    "experiments/EXP-0006_baseline-vad-k-oracle/rttm/ami__IS1009c.rttm",
+    "experiments/EXP-0006_baseline-vad-k-oracle/rttm/ami__IS1009d.rttm",
+    "experiments/EXP-0006_baseline-vad-k-oracle/rttm/ami__TS3003a.rttm",
+    "experiments/EXP-0006_baseline-vad-k-oracle/rttm/ami__TS3003b.rttm",
+    "experiments/EXP-0006_baseline-vad-k-oracle/rttm/ami__TS3003c.rttm",
+    "experiments/EXP-0006_baseline-vad-k-oracle/rttm/ami__TS3003d.rttm",
+    "experiments/EXP-0006_baseline-vad-k-oracle/rttm/ami__TS3004a.rttm",
+    "experiments/EXP-0006_baseline-vad-k-oracle/rttm/ami__TS3004b.rttm",
+    "experiments/EXP-0006_baseline-vad-k-oracle/rttm/ami__TS3004c.rttm",
+    "experiments/EXP-0006_baseline-vad-k-oracle/rttm/ami__TS3004d.rttm",
+    "experiments/EXP-0006_baseline-vad-k-oracle/run.log"
+  ],
+  "config_sha256": "0e3666c06f5d333129ae72dd093736aacb2d793121fda8bdac1635902211cb9d",
+  "device": "mps",
+  "torch_threads": 6,
+  "versions": {
+    "python": "3.11.15",
+    "torch": "2.14.1",
+    "pyannote.audio": "4.0.7",
+    "librosa": "0.11.0"
+  },
+  "mode_n_locuteurs": "oracle",
+  "detection_oracle": false,
+  "trace": false,
+  "balayage": null,
+  "configuration_effective": {
+    "detection": [
+      {
+        "nom": "segmentation.modele",
+        "valeur": "pyannote/speaker-diarization-community-1/segmentation (PyanNet)",
+        "origine": "modele"
+      },
+      {
+        "nom": "segmentation.powerset",
+        "valeur": true,
+        "origine": "modele"
+      },
+      {
+        "nom": "segmentation.min_duration_off",
+        "valeur": 0.0,
+        "origine": "defaut"
+      }
+    ],
+    "segmentation": [
+      {
+        "nom": "segmentation.duree_fenetre_s",
+        "valeur": 10.0,
+        "origine": "modele"
+      },
+      {
+        "nom": "segmentation_step",
+        "valeur": 0.1,
+        "origine": "defaut"
+      },
+      {
+        "nom": "segmentation.locuteurs_par_fenetre",
+        "valeur": 3,
+        "origine": "modele"
+      },
+      {
+        "nom": "segmentation.locuteurs_simultanes",
+        "valeur": 2,
+        "origine": "modele"
+      },
+      {
+        "nom": "segmentation_batch_size",
+        "valeur": 32,
+        "origine": "defaut"
+      }
+    ],
+    "empreintes": [
+      {
+        "nom": "embedding.modele",
+        "valeur": "pyannote/speaker-diarization-community-1/embedding (WeSpeakerResNet34)",
+        "origine": "modele"
+      },
+      {
+        "nom": "embedding.dimension",
+        "valeur": 256,
+        "origine": "modele"
+      },
+      {
+        "nom": "embedding_exclude_overlap",
+        "valeur": true,
+        "origine": "defaut"
+      },
+      {
+        "nom": "embedding_batch_size",
+        "valeur": 32,
+        "origine": "defaut"
+      }
+    ],
+    "regroupement": [
+      {
+        "nom": "clustering.methode",
+        "valeur": "VBxClustering",
+        "origine": "defaut"
+      },
+      {
+        "nom": "clustering.metric",
+        "valeur": "cosine",
+        "origine": "defaut"
+      },
+      {
+        "nom": "clustering.threshold",
+        "valeur": 0.6,
+        "origine": "defaut"
+      },
+      {
+        "nom": "clustering.Fa",
+        "valeur": 0.07,
+        "origine": "defaut"
+      },
+      {
+        "nom": "clustering.Fb",
+        "valeur": 0.8,
+        "origine": "defaut"
+      },
+      {
+        "nom": "clustering.constrained_assignment",
+        "valeur": true,
+        "origine": "defaut"
+      },
+      {
+        "nom": "plda.modele",
+        "valeur": "pyannote/speaker-diarization-community-1/plda",
+        "origine": "modele"
+      },
+      {
+        "nom": "plda.lda_dimension",
+        "valeur": 128,
+        "origine": "modele"
+      },
+      {
+        "nom": "n_locuteurs",
+        "valeur": "imposé par fichier",
+        "origine": "experience"
+      }
+    ],
+    "sortie": [
+      {
+        "nom": "sortie.exclusive",
+        "valeur": false,
+        "origine": "code"
+      }
+    ]
+  },
+  "chargement_modeles_s": 5.923,
+  "prechauffage": {
+    "uri": "ami__IS1008a",
+    "duree_s": 60.0
+  },
+  "duree_audio_s": 67427.088,
+  "calcul_s": 3704.619,
+  "rtf": 0.0549,
+  "fichiers": [
+    {
+      "uri": "ami__IS1008a",
+      "corpus": "ami",
+      "partition": "dev",
+      "duree_audio_s": 943.957,
+      "calcul_s": 62.801,
+      "rtf": 0.0665,
+      "n_locuteurs_hypothese": 4,
+      "n_locuteurs_impose": 4,
+      "etapes_s": {
+        "segmentation": 7.18,
+        "detection": 0.03,
+        "empreintes": 54.945,
+        "regroupement": 0.201,
+        "sortie": 0.183
+      }
+    },
+    {
+      "uri": "ami__IS1008b",
+      "corpus": "ami",
+      "partition": "dev",
+      "duree_audio_s": 1768.533,
+      "calcul_s": 100.307,
+      "rtf": 0.0567,
+      "n_locuteurs_hypothese": 4,
+      "n_locuteurs_impose": 4,
+      "etapes_s": {
+        "segmentation": 8.062,
+        "detection": 0.041,
+        "empreintes": 91.278,
+        "regroupement": 0.427,
+        "sortie": 0.317
+      }
+    },
+    {
+      "uri": "ami__IS1008c",
+      "corpus": "ami",
+      "partition": "dev",
+      "duree_audio_s": 1546.411,
+      "calcul_s": 83.208,
+      "rtf": 0.0538,
+      "n_locuteurs_hypothese": 4,
+      "n_locuteurs_impose": 4,
+      "etapes_s": {
+        "segmentation": 6.028,
+        "detection": 0.031,
+        "empreintes": 76.333,
+        "regroupement": 0.414,
+        "sortie": 0.334
+      }
+    },
+    {
+      "uri": "ami__IS1008d",
+      "corpus": "ami",
+      "partition": "dev",
+      "duree_audio_s": 1480.875,
+      "calcul_s": 75.704,
+      "rtf": 0.0511,
+      "n_locuteurs_hypothese": 4,
+      "n_locuteurs_impose": 4,
+      "etapes_s": {
+        "segmentation": 5.784,
+        "detection": 0.029,
+        "empreintes": 69.273,
+        "regroupement": 0.313,
+        "sortie": 0.229
+      }
+    },
+    {
+      "uri": "ami__ES2011a",
+      "corpus": "ami",
+      "partition": "dev",
+      "duree_audio_s": 1113.845,
+      "calcul_s": 57.473,
+      "rtf": 0.0516,
+      "n_locuteurs_hypothese": 4,
+      "n_locuteurs_impose": 4,
+      "etapes_s": {
+        "segmentation": 4.379,
+        "detection": 0.022,
+        "empreintes": 52.578,
+        "regroupement": 0.268,
+        "sortie": 0.178
+      }
+    },
+    {
+      "uri": "ami__ES2011b",
+      "corpus": "ami",
+      "partition": "dev",
+      "duree_audio_s": 1581.269,
+      "calcul_s": 82.425,
+      "rtf": 0.0521,
+      "n_locuteurs_hypothese": 4,
+      "n_locuteurs_impose": 4,
+      "etapes_s": {
+        "segmentation": 6.225,
+        "detection": 0.037,
+        "empreintes": 75.507,
+        "regroupement": 0.33,
+        "sortie": 0.254
+      }
+    },
+    {
+      "uri": "ami__ES2011c",
+      "corpus": "ami",
+      "partition": "dev",
+      "duree_audio_s": 1616.064,
+      "calcul_s": 85.388,
+      "rtf": 0.0528,
+      "n_locuteurs_hypothese": 4,
+      "n_locuteurs_impose": 4,
+      "etapes_s": {
+        "segmentation": 6.41,
+        "detection": 0.033,
+        "empreintes": 78.138,
+        "regroupement": 0.47,
+        "sortie": 0.25
+      }
+    },
+    {
+      "uri": "ami__ES2011d",
+      "corpus": "ami",
+      "partition": "dev",
+      "duree_audio_s": 1982.325,
+      "calcul_s": 103.547,
+      "rtf": 0.0522,
+      "n_locuteurs_hypothese": 4,
+      "n_locuteurs_impose": 4,
+      "etapes_s": {
+        "segmentation": 8.027,
+        "detection": 0.039,
+        "empreintes": 94.408,
+        "regroupement": 0.68,
+        "sortie": 0.31
+      }
+    },
+    {
+      "uri": "ami__TS3004a",
+      "corpus": "ami",
+      "partition": "dev",
+      "duree_audio_s": 1345.323,
+      "calcul_s": 73.239,
+      "rtf": 0.0544,
+      "n_locuteurs_hypothese": 4,
+      "n_locuteurs_impose": 4,
+      "etapes_s": {
+        "segmentation": 5.748,
+        "detection": 0.029,
+        "empreintes": 66.814,
+        "regroupement": 0.375,
+        "sortie": 0.21
+      }
+    },
+    {
+      "uri": "ami__TS3004b",
+      "corpus": "ami",
+      "partition": "dev",
+      "duree_audio_s": 2246.059,
+      "calcul_s": 120.058,
+      "rtf": 0.0535,
+      "n_locuteurs_hypothese": 4,
+      "n_locuteurs_impose": 4,
+      "etapes_s": {
+        "segmentation": 8.791,
+        "detection": 0.042,
+        "empreintes": 109.956,
+        "regroupement": 0.805,
+        "sortie": 0.352
+      }
+    },
+    {
+      "uri": "ami__TS3004c",
+      "corpus": "ami",
+      "partition": "dev",
+      "duree_audio_s": 2970.0,
+      "calcul_s": 154.568,
+      "rtf": 0.052,
+      "n_locuteurs_hypothese": 4,
+      "n_locuteurs_impose": 4,
+      "etapes_s": {
+        "segmentation": 12.05,
+        "detection": 0.058,
+        "empreintes": 140.8,
+        "regroupement": 1.051,
+        "sortie": 0.445
+      }
+    },
+    {
+      "uri": "ami__TS3004d",
+      "corpus": "ami",
+      "partition": "dev",
+      "duree_audio_s": 2750.8,
+      "calcul_s": 145.527,
+      "rtf": 0.0529,
+      "n_locuteurs_hypothese": 4,
+      "n_locuteurs_impose": 4,
+      "etapes_s": {
+        "segmentation": 11.479,
+        "detection": 0.053,
+        "empreintes": 132.057,
+        "regroupement": 1.268,
+        "sortie": 0.43
+      }
+    },
+    {
+      "uri": "ami__IB4001",
+      "corpus": "ami",
+      "partition": "dev",
+      "duree_audio_s": 1780.821,
+      "calcul_s": 91.985,
+      "rtf": 0.0517,
+      "n_locuteurs_hypothese": 4,
+      "n_locuteurs_impose": 4,
+      "etapes_s": {
+        "segmentation": 7.7,
+        "detection": 0.036,
+        "empreintes": 83.458,
+        "regroupement": 0.439,
+        "sortie": 0.27
+      }
+    },
+    {
+      "uri": "ami__IB4002",
+      "corpus": "ami",
+      "partition": "dev",
+      "duree_audio_s": 1882.368,
+      "calcul_s": 98.32,
+      "rtf": 0.0522,
+      "n_locuteurs_hypothese": 4,
+      "n_locuteurs_impose": 4,
+      "etapes_s": {
+        "segmentation": 7.287,
+        "detection": 0.04,
+        "empreintes": 90.145,
+        "regroupement": 0.478,
+        "sortie": 0.288
+      }
+    },
+    {
+      "uri": "ami__IB4003",
+      "corpus": "ami",
+      "partition": "dev",
+      "duree_audio_s": 2023.424,
+      "calcul_s": 104.942,
+      "rtf": 0.0519,
+      "n_locuteurs_hypothese": 4,
+      "n_locuteurs_impose": 4,
+      "etapes_s": {
+        "segmentation": 7.932,
+        "detection": 0.04,
+        "empreintes": 96.052,
+        "regroupement": 0.528,
+        "sortie": 0.308
+      }
+    },
+    {
+      "uri": "ami__IB4004",
+      "corpus": "ami",
+      "partition": "dev",
+      "duree_audio_s": 2393.003,
+      "calcul_s": 123.124,
+      "rtf": 0.0515,
+      "n_locuteurs_hypothese": 4,
+      "n_locuteurs_impose": 4,
+      "etapes_s": {
+        "segmentation": 9.309,
+        "detection": 0.047,
+        "empreintes": 112.393,
+        "regroupement": 0.896,
+        "sortie": 0.37
+      }
+    },
+    {
+      "uri": "ami__IB4010",
+      "corpus": "ami",
+      "partition": "dev",
+      "duree_audio_s": 2960.64,
+      "calcul_s": 154.561,
+      "rtf": 0.0522,
+      "n_locuteurs_hypothese": 4,
+      "n_locuteurs_impose": 4,
+      "etapes_s": {
+        "segmentation": 11.834,
+        "detection": 0.061,
+        "empreintes": 140.928,
+        "regroupement": 1.015,
+        "sortie": 0.456
+      }
+    },
+    {
+      "uri": "ami__IB4011",
+      "corpus": "ami",
+      "partition": "dev",
+      "duree_audio_s": 2417.067,
+      "calcul_s": 126.436,
+      "rtf": 0.0523,
+      "n_locuteurs_hypothese": 4,
+      "n_locuteurs_impose": 4,
+      "etapes_s": {
+        "segmentation": 10.113,
+        "detection": 0.046,
+        "empreintes": 115.057,
+        "regroupement": 0.741,
+        "sortie": 0.374
+      }
+    },
+    {
+      "uri": "ami__IS1009a",
+      "corpus": "ami",
+      "partition": "test",
+      "duree_audio_s": 838.997,
+      "calcul_s": 43.157,
+      "rtf": 0.0514,
+      "n_locuteurs_hypothese": 4,
+      "n_locuteurs_impose": 4,
+      "etapes_s": {
+        "segmentation": 3.646,
+        "detection": 0.016,
+        "empreintes": 39.17,
+        "regroupement": 0.145,
+        "sortie": 0.14
+      }
+    },
+    {
+      "uri": "ami__IS1009b",
+      "corpus": "ami",
+      "partition": "test",
+      "duree_audio_s": 2052.437,
+      "calcul_s": 105.367,
+      "rtf": 0.0513,
+      "n_locuteurs_hypothese": 4,
+      "n_locuteurs_impose": 4,
+      "etapes_s": {
+        "segmentation": 7.94,
+        "detection": 0.04,
+        "empreintes": 96.454,
+        "regroupement": 0.535,
+        "sortie": 0.302
+      }
+    },
+    {
+      "uri": "ami__IS1009c",
+      "corpus": "ami",
+      "partition": "test",
+      "duree_audio_s": 1820.843,
+      "calcul_s": 101.034,
+      "rtf": 0.0555,
+      "n_locuteurs_hypothese": 4,
+      "n_locuteurs_impose": 4,
+      "etapes_s": {
+        "segmentation": 6.817,
+        "detection": 0.035,
+        "empreintes": 93.387,
+        "regroupement": 0.437,
+        "sortie": 0.275
+      }
+    },
+    {
+      "uri": "ami__IS1009d",
+      "corpus": "ami",
+      "partition": "test",
+      "duree_audio_s": 1944.661,
+      "calcul_s": 104.036,
+      "rtf": 0.0535,
+      "n_locuteurs_hypothese": 4,
+      "n_locuteurs_impose": 4,
+      "etapes_s": {
+        "segmentation": 7.796,
+        "detection": 0.039,
+        "empreintes": 95.28,
+        "regroupement": 0.526,
+        "sortie": 0.31
+      }
+    },
+    {
+      "uri": "ami__ES2004a",
+      "corpus": "ami",
+      "partition": "test",
+      "duree_audio_s": 1049.355,
+      "calcul_s": 59.686,
+      "rtf": 0.0569,
+      "n_locuteurs_hypothese": 4,
+      "n_locuteurs_impose": 4,
+      "etapes_s": {
+        "segmentation": 4.637,
+        "detection": 0.023,
+        "empreintes": 54.575,
+        "regroupement": 0.243,
+        "sortie": 0.156
+      }
+    },
+    {
+      "uri": "ami__ES2004b",
+      "corpus": "ami",
+      "partition": "test",
+      "duree_audio_s": 2345.493,
+      "calcul_s": 120.093,
+      "rtf": 0.0512,
+      "n_locuteurs_hypothese": 4,
+      "n_locuteurs_impose": 4,
+      "etapes_s": {
+        "segmentation": 8.761,
+        "detection": 0.05,
+        "empreintes": 109.961,
+        "regroupement": 0.857,
+        "sortie": 0.357
+      }
+    },
+    {
+      "uri": "ami__ES2004c",
+      "corpus": "ami",
+      "partition": "test",
+      "duree_audio_s": 2334.368,
+      "calcul_s": 118.851,
+      "rtf": 0.0509,
+      "n_locuteurs_hypothese": 4,
+      "n_locuteurs_impose": 4,
+      "etapes_s": {
+        "segmentation": 8.891,
+        "detection": 0.05,
+        "empreintes": 108.814,
+        "regroupement": 0.635,
+        "sortie": 0.357
+      }
+    },
+    {
+      "uri": "ami__ES2004d",
+      "corpus": "ami",
+      "partition": "test",
+      "duree_audio_s": 2222.291,
+      "calcul_s": 121.484,
+      "rtf": 0.0547,
+      "n_locuteurs_hypothese": 4,
+      "n_locuteurs_impose": 4,
+      "etapes_s": {
+        "segmentation": 8.984,
+        "detection": 0.041,
+        "empreintes": 110.985,
+        "regroupement": 0.902,
+        "sortie": 0.476
+      }
+    },
+    {
+      "uri": "ami__TS3003a",
+      "corpus": "ami",
+      "partition": "test",
+      "duree_audio_s": 1505.643,
+      "calcul_s": 82.295,
+      "rtf": 0.0547,
+      "n_locuteurs_hypothese": 4,
+      "n_locuteurs_impose": 4,
+      "etapes_s": {
+        "segmentation": 5.823,
+        "detection": 0.04,
+        "empreintes": 75.573,
+        "regroupement": 0.451,
+        "sortie": 0.318
+      }
+    },
+    {
+      "uri": "ami__TS3003b",
+      "corpus": "ami",
+      "partition": "test",
+      "duree_audio_s": 2210.304,
+      "calcul_s": 128.211,
+      "rtf": 0.058,
+      "n_locuteurs_hypothese": 4,
+      "n_locuteurs_impose": 4,
+      "etapes_s": {
+        "segmentation": 9.435,
+        "detection": 0.073,
+        "empreintes": 117.156,
+        "regroupement": 0.811,
+        "sortie": 0.592
+      }
+    },
+    {
+      "uri": "ami__TS3003c",
+      "corpus": "ami",
+      "partition": "test",
+      "duree_audio_s": 2570.0,
+      "calcul_s": 150.316,
+      "rtf": 0.0585,
+      "n_locuteurs_hypothese": 4,
+      "n_locuteurs_impose": 4,
+      "etapes_s": {
+        "segmentation": 11.119,
+        "detection": 0.074,
+        "empreintes": 136.66,
+        "regroupement": 0.899,
+        "sortie": 0.649
+      }
+    },
+    {
+      "uri": "ami__TS3003d",
+      "corpus": "ami",
+      "partition": "test",
+      "duree_audio_s": 2618.2,
+      "calcul_s": 156.078,
+      "rtf": 0.0596,
+      "n_locuteurs_hypothese": 4,
+      "n_locuteurs_impose": 4,
+      "etapes_s": {
+        "segmentation": 11.975,
+        "detection": 0.072,
+        "empreintes": 141.766,
+        "regroupement": 1.286,
+        "sortie": 0.607
+      }
+    },
+    {
+      "uri": "ami__EN2002a",
+      "corpus": "ami",
+      "partition": "test",
+      "duree_audio_s": 2142.709,
+      "calcul_s": 136.191,
+      "rtf": 0.0636,
+      "n_locuteurs_hypothese": 4,
+      "n_locuteurs_impose": 4,
+      "etapes_s": {
+        "segmentation": 9.472,
+        "detection": 0.06,
+        "empreintes": 124.712,
+        "regroupement": 1.141,
+        "sortie": 0.481
+      }
+    },
+    {
+      "uri": "ami__EN2002b",
+      "corpus": "ami",
+      "partition": "test",
+      "duree_audio_s": 1786.848,
+      "calcul_s": 129.309,
+      "rtf": 0.0724,
+      "n_locuteurs_hypothese": 4,
+      "n_locuteurs_impose": 4,
+      "etapes_s": {
+        "segmentation": 9.423,
+        "detection": 0.049,
+        "empreintes": 118.016,
+        "regroupement": 0.982,
+        "sortie": 0.427
+      }
+    },
+    {
+      "uri": "ami__EN2002c",
+      "corpus": "ami",
+      "partition": "test",
+      "duree_audio_s": 2972.256,
+      "calcul_s": 180.171,
+      "rtf": 0.0606,
+      "n_locuteurs_hypothese": 3,
+      "n_locuteurs_impose": 3,
+      "etapes_s": {
+        "segmentation": 14.911,
+        "detection": 0.081,
+        "empreintes": 162.355,
+        "regroupement": 1.889,
+        "sortie": 0.629
+      }
+    },
+    {
+      "uri": "ami__EN2002d",
+      "corpus": "ami",
+      "partition": "test",
+      "duree_audio_s": 2209.899,
+      "calcul_s": 124.727,
+      "rtf": 0.0564,
+      "n_locuteurs_hypothese": 4,
+      "n_locuteurs_impose": 4,
+      "etapes_s": {
+        "segmentation": 9.719,
+        "detection": 0.059,
+        "empreintes": 112.708,
+        "regroupement": 1.432,
+        "sortie": 0.513
+      }
+    }
+  ]
+}
