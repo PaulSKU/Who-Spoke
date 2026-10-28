@@ -105,8 +105,12 @@ Date : AAAA-MM-JJ
 | `per_file_<corpus>_<partition>.csv` | Métriques par fichier | Script d'évaluation |
 | `rttm/` | Hypothèses du système, un RTTM par fichier | Script d'exécution |
 | `run.log` | Journal d'exécution | Script d'exécution |
-| `execution_<device>.json` | Mesures d'une exécution : temps par fichier, chargement des modèles, commit, état de l'arbre (`arbre_propre`, `fichiers_non_commites`), versions, empreinte de `config.yaml` (D18) | Script d'exécution |
+| `execution_<device>.json` | Mesures d'une exécution : temps par fichier et par étape, chargement des modèles, commit, état de l'arbre (`arbre_propre`, `fichiers_non_commites`), versions, empreinte de `config.yaml` (D18), configuration effective du moteur (`describe()`), valeur retenue par un balayage (D19) | Script d'exécution |
+| `balayage_<corpus>_<partition>.csv` | Balayage d'un réglage sur dev (D19 §4), format ci-dessous | Script d'exécution |
+| `trace/<uri>/` | Trace du moteur par fichier (`trace.npz`, `trace.json`), avec l'option `--trace` ; non versionnée (D19 §3) | Script d'exécution |
 | `notes.md` | Interprétation des résultats | Rédigé après analyse dans le cockpit |
+
+**Balayage d'un réglage (D19 §4).** Il est décrit dans `config.yaml` par un bloc `balayage` : `parametre` (par exemple `theta`), `debut`, `fin`, `pas` et `partition` (jamais `test`). Le fichier `balayage_<corpus>_<partition>.csv` compte une ligne par valeur, dans l'ordre croissant, avec les colonnes `valeur, retenue, der_c0, manquee_c0, fausse_alarme_c0, confusion_c0, jer_c0, der_c025, manquee_c025, fausse_alarme_c025, confusion_c025, jer_c025, der_zones_sans_chevauchement, der_zones_chevauchement, mae_n_locuteurs, taux_exact_n_locuteurs, n_locuteurs_moyen_hypothese, n_locuteurs_moyen_reference`. Les taux sont en pourcentage à deux décimales, calculés comme dans `results.json` (protocole §3 et §4) ; les nombres moyens de locuteurs donnent un poids égal à chaque fichier. La valeur retenue (`retenue` à `true`) est celle de plus faible `der_c0`, la plus petite en cas d'égalité ; elle est consignée dans le bloc `balayage` de `execution_<device>.json`, et c'est avec elle seule que tous les jeux, dont le test, sont ensuite exécutés et évalués. Le temps du balayage n'entre pas dans le RTF.
 
 Une expérience exécutée n'est plus modifiée. Les seules exceptions sont `notes.md`, que l'on complète ; un bloc `invalidee` ajouté aux fichiers `results_*.json` si un défaut est découvert ; et la requalification d'une métadonnée par le script d'évaluation, en application d'une fiche de décision, toujours tracée par un bloc `requalification` (date, règle, ancienne et nouvelle valeur) et sans toucher aux métriques (D18). Une correction donne lieu à une nouvelle expérience.
 
