@@ -26,3 +26,10 @@ build-backend = "uv_build"
 dev = [
     "pytest>=9.1.1",
 ]
+
+[tool.pytest.ini_options]
+# Tests lents exclus par défaut (D19, amendement 5) ; les lancer avec `uv run pytest -m lent`.
+markers = [
+    "lent: test lent (modèle complet sur un fichier réel), exclu par défaut",
+]
+addopts = "-m 'not lent'"

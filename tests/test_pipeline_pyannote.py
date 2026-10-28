@@ -107,10 +107,15 @@ def test_describe_parametres_effectifs(pipeline):
 EXP_0001_RTTM = REPO_ROOT / "experiments" / "EXP-0001_pyannote-c1-ami-sdm" / "rttm" / "ami__ES2004a.rttm"
 
 
+@pytest.mark.lent
 @pytest.mark.skipif(not processed_wav("ami", "ami__ES2004a").exists(), reason="audio AMI absent")
 @pytest.mark.skipif(not torch.backends.mps.is_available(), reason="MPS indisponible (EXP-0001 : mps)")
 def test_mode_estime_reproduit_exp_0001():
-    """Mise au contrat sans changement de comportement : même RTTM qu'EXP-0001 sur ES2004a."""
+    """Mise au contrat sans changement de comportement : même RTTM qu'EXP-0001 sur ES2004a.
+
+    Test lent (D19, amendement 5) : exclu par défaut, lancé par `uv run pytest -m lent`
+    avant toute modification de l'enveloppe pyannote.
+    """
     from whospoke.pipelines.pyannote_community1 import PyannoteCommunity1
 
     engine = PyannoteCommunity1(device="mps")

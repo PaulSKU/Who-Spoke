@@ -13,6 +13,12 @@ uv run python scripts/check_env.py
 uv run pytest
 ```
 
+La suite par défaut exclut les tests lents. Le test de reproduction d'EXP-0001 (RTTM d'ES2004a identique à l'octet près, environ 1 min en MPS, `HF_TOKEN` et audio AMI requis) se lance à part, avant toute modification de l'enveloppe pyannote (D19, amendement 5) :
+
+```bash
+uv run pytest -m lent
+```
+
 Le périphérique de calcul est choisi automatiquement (CUDA, puis MPS, puis CPU) et peut être forcé.
 
 ## Documentation
