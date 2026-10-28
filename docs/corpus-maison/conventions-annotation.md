@@ -10,15 +10,15 @@ Version 1.0 du 27 octobre 2026. Ces conventions s'appliquent aussi aux référen
 
 Pour chaque locuteur, les intervalles de temps pendant lesquels il parle. On n'annote ni ce qui est dit ni qui est la personne (un code `S1`, `S2`… suffit).
 
-| Phénomène | Convention |
-|---|---|
-| Parole, y compris les mots inachevés et les hésitations (« euh ») | Parole |
-| Acquiescements verbaux brefs (« oui », « mm », « d'accord ») | Parole, même pendant que quelqu'un d'autre parle |
-| Rires, toux, respirations, raclements de gorge | **Non-parole** (non annotés) |
-| Rire mêlé à des mots | Parole |
-| Chevauchement | Chaque locuteur est annoté indépendamment ; les intervalles se recouvrent |
-| Voix extérieure (passant, télévision, personne hors réunion) | Non annotée ; noter l'intervalle dans la fiche de session et l'exclure de l'UEM s'il est long |
-| Claquements de mains et annonces de début et de fin | Hors UEM |
+| Phénomène                                                         | Convention                                                                                    |
+| ----------------------------------------------------------------- | --------------------------------------------------------------------------------------------- |
+| Parole, y compris les mots inachevés et les hésitations (« euh ») | Parole                                                                                        |
+| Acquiescements verbaux brefs (« oui », « mm », « d'accord »)      | Parole, même pendant que quelqu'un d'autre parle                                              |
+| Rires, toux, respirations, raclements de gorge                    | **Non-parole** (non annotés)                                                                  |
+| Rire mêlé à des mots                                              | Parole                                                                                        |
+| Chevauchement                                                     | Chaque locuteur est annoté indépendamment ; les intervalles se recouvrent                     |
+| Voix extérieure (passant, télévision, personne hors réunion)      | Non annotée ; noter l'intervalle dans la fiche de session et l'exclure de l'UEM s'il est long |
+| Claquements de mains et annonces de début et de fin               | Hors UEM                                                                                      |
 
 Le traitement des rires et des bruits respiratoires varie d'un corpus à l'autre. Nos conventions sont proches de VoxConverse, qui n'attribue pas les rires **[probable, d'après les notes de recherche]**. Elles diffèrent de DIHARD III, qui inclut davantage de phénomènes **[probable]**. Ce choix est consigné dans `docs/corpus.md`.
 

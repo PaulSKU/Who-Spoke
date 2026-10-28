@@ -104,3 +104,12 @@ Problèmes :
 - `arbre_propre = false` dans les deux `results_ami_*.json`. Pendant la mesure CPU et l'évaluation, des documents du cockpit étaient modifiés ou non suivis dans `docs/` : D17, glossaire, méthode, conventions d'annotation. L'exécution MPS a eu lieu sur un arbre propre. Le code est resté inchangé (commit d9f177a pour les deux exécutions et l'évaluation).
 - En CPU seul : `UserWarning: std(): degrees of freedom is <= 0`, déjà observé en V5.
 Suite : interprétation au cockpit (`notes.md`) ; décision sur le statut `arbre_propre` d'EXP-0001.
+
+## 2026-10-28 — Interprétation d'EXP-0001 (cockpit)
+
+Objectif : interpréter EXP-0001 et trancher les points soulevés par la session Claude Code.
+Réalisé : lecture des résultats et des fichiers par réunion ; rédaction de `notes.md` d'EXP-0001 (observations et interprétation) ; fiche D18 proposée.
+Résultats : EXP-0001 reproduit la valeur publiée (19,92 % contre 19,9 % sur le test AMI SDM, sans collar). Le chevauchement, qui représente 27 % de la parole de référence, concentre la moitié de l'erreur. Le nombre de locuteurs est faux dans 4 réunions de test sur 16. RTF de 0,05 en MPS et de 0,80 en CPU seul.
+Décisions : D18 actée (arbre propre défini sur le code, la configuration et les données ; requalification d'EXP-0001 ; précisions du protocole).
+Problèmes : `arbre_propre: false` sur EXP-0001, causé par l'écriture de documents du cockpit pendant la mesure CPU. Le défaut venait de la règle, pas du résultat. Le préchauffage de 60 s, demandé dans le prompt du cockpit, contredisait le protocole §3.5 : c'est le protocole qui est aligné (D18).
+Suite : après validation de D18, faire appliquer D18 par Claude Code, puis spécifier la baseline (D19).

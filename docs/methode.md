@@ -161,7 +161,7 @@ Suite : …
 
 ### 4.6 Entrée de glossaire — `docs/glossaire.md`
 
-Une entrée par terme, triée alphabétiquement.
+Une entrée par terme, dans un ordre de lecture : des notions les plus simples aux plus élaborées, chaque terme défini avant d'être employé ailleurs, regroupées en parties (la tâche, mesurer les erreurs, les étapes de la chaîne, conditions et interprétation).
 
 ```markdown
 ### <Terme français> (*<terme anglais>*)
