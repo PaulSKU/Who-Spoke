@@ -3,7 +3,15 @@
 import pytest
 from pyannote.core import Segment
 
-from whospoke.experiment import REPO_ROOT, dataset_uris, git_state, load_rttm, load_uem
+from whospoke.experiment import (
+    REPO_ROOT,
+    dataset_uris,
+    git_state,
+    is_controlled,
+    load_rttm,
+    load_uem,
+    tree_is_clean,
+)
 
 
 def test_load_rttm_et_uem(tmp_path):
@@ -42,16 +50,52 @@ def test_liste_sans_doublon(tmp_path):
         dataset_uris(liste)
 
 
-def test_git_state_exclut_le_dossier_d_experience():
+# --- Règle de l'arbre propre (D18) -------------------------------------------------
+
+
+def test_fichier_sale_sous_docs_arbre_propre():
+    assert tree_is_clean(["docs/glossaire.md", "docs/decisions/D17-interface.md"])
+    assert tree_is_clean(["README.md", "results/leaderboard.csv", "experiments/EXP-0001_x/notes.md"])
+    assert tree_is_clean([])
+
+
+def test_fichier_sale_sous_src_arbre_sale():
+    assert not tree_is_clean(["docs/glossaire.md", "src/whospoke/audio.py"])
+
+
+def test_uv_lock_arbre_sale():
+    assert not tree_is_clean(["uv.lock"])
+    assert not tree_is_clean(["pyproject.toml"])
+
+
+@pytest.mark.parametrize(
+    "path",
+    ["src/a.py", "scripts/run_experiment.py", "configs/x.yaml", "tests/test_x.py",
+     "data/splits/ami/dev.txt", "data/manifests/ami.csv", "uv.lock", "pyproject.toml"],
+)
+def test_chemins_controles(path):
+    assert is_controlled(path)
+
+
+@pytest.mark.parametrize(
+    "path",
+    ["docs/methode.md", "README.md", "results/leaderboard.csv", "experiments/EXP-0001_x/notes.md",
+     "data/README.md", "srcx/a.py", "docs/src/a.md"],
+)
+def test_chemins_non_controles(path):
+    assert not is_controlled(path)
+
+
+def test_git_state_liste_tous_les_fichiers_non_commites():
+    """Un fichier non suivi sous experiments/ est listé mais ne salit pas l'arbre."""
     exp_dir = REPO_ROOT / "experiments" / "EXP-9999_test-git-state"
     exp_dir.mkdir(parents=True)
     try:
         (exp_dir / "run.log").write_text("essai\n")
-        before = git_state()
-        assert "experiments/EXP-9999_test-git-state/run.log" in before["dirty"]
-        after = git_state(exclude=exp_dir)
-        assert "experiments/EXP-9999_test-git-state/run.log" not in after["dirty"]
-        assert len(after["commit"]) == 40
+        state = git_state()
+        assert "experiments/EXP-9999_test-git-state/run.log" in state["dirty"]
+        assert state["clean"] == tree_is_clean(state["dirty"])
+        assert len(state["commit"]) == 40
     finally:
         (exp_dir / "run.log").unlink()
         exp_dir.rmdir()

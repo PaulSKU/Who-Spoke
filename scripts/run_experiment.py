@@ -16,8 +16,9 @@ Mesure du temps : le chargement des modèles est mesuré à part ; un préchauff
 calcul de chaque fichier couvre la lecture du WAV normalisé et la pipeline complète, à
 l'horloge murale, après synchronisation du périphérique.
 
-Le code doit être commité avant l'exécution : l'état de l'arbre (hors dossier de
-l'expérience) est consigné et repris par scripts/evaluate.py (`arbre_propre`).
+Le code doit être commité avant l'exécution : l'état de l'arbre (chemins contrôlés de
+D18) et la liste de tous les fichiers non commités sont consignés, puis repris par
+scripts/evaluate.py (`arbre_propre`).
 """
 
 from __future__ import annotations
@@ -59,8 +60,8 @@ def setup_logging(exp_dir: Path) -> logging.Logger:
 
 def main() -> None:
     parser = argparse.ArgumentParser(description=__doc__.splitlines()[0])
-    parser.add_argument("--config", required=True, type=Path)
-    parser.add_argument("--mesure-cpu", action="store_true", help="mesure en CPU seul sur temps.txt")
+    parser.add_argument("--config", required=True, type=Path, help="config.yaml de l'expérience (dans son dossier experiments/EXP-…)")
+    parser.add_argument("--mesure-cpu", action="store_true", help="mesure en CPU seul sur le sous-ensemble mesure_cpu.liste (temps.txt), sans RTTM")
     args = parser.parse_args()
 
     config_path = args.config.resolve()
@@ -93,11 +94,12 @@ def main() -> None:
         rttm_dir.mkdir(parents=True, exist_ok=True)
 
     logger = setup_logging(exp_dir)
-    state = git_state(exclude=exp_dir)
+    state = git_state()
     logger.info("expérience %s, mode %s", config["exp_id"], "mesure CPU" if args.mesure_cpu else "complet")
-    logger.info("commit %s, arbre propre (hors dossier de l'expérience) : %s", state["commit"], state["clean"])
-    if not state["clean"]:
-        logger.warning("arbre non propre : %s", ", ".join(state["dirty"]))
+    logger.info("commit %s, arbre propre (chemins contrôlés, D18) : %s", state["commit"], state["clean"])
+    if state["dirty"]:
+        level = logging.INFO if state["clean"] else logging.WARNING
+        logger.log(level, "fichiers non commités : %s", ", ".join(state["dirty"]))
     logger.info(
         "python %s, torch %s, plateforme %s, fils torch %d",
         platform.python_version(), torch.__version__, platform.platform(), torch.get_num_threads(),

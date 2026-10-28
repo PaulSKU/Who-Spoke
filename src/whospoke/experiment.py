@@ -58,12 +58,28 @@ def load_uem(path: Path, uri: str) -> Timeline:
     return timeline
 
 
-def git_state(exclude: Path | None = None) -> dict:
-    """Commit courant et propreté de l'arbre.
+# Chemins contrôlés par la règle de l'arbre propre (D18) : ceux qui peuvent changer un
+# résultat (code, configuration, données de partition, dépendances).
+CONTROLLED_PREFIXES = ("src/", "scripts/", "configs/", "tests/", "data/splits/", "data/manifests/")
+CONTROLLED_FILES = ("pyproject.toml", "uv.lock")
 
-    Les chemins sous `exclude` (le dossier de l'expérience en cours, produit par
-    l'exécution elle-même) et `results/leaderboard.csv` (alimenté par l'évaluation) ne
-    comptent pas : l'arbre est propre si rien d'autre n'est modifié ni non suivi.
+
+def is_controlled(path: str) -> bool:
+    """Vrai si `path` (relatif à la racine du dépôt) relève de la règle de l'arbre propre."""
+    path = path.strip().strip('"').removeprefix("./")
+    return path in CONTROLLED_FILES or path.startswith(CONTROLLED_PREFIXES)
+
+
+def tree_is_clean(uncommitted: list[str]) -> bool:
+    """Arbre propre (D18) : aucun fichier non commité sous un chemin contrôlé."""
+    return not any(is_controlled(path) for path in uncommitted)
+
+
+def git_state() -> dict:
+    """Commit courant, fichiers non commités et propreté de l'arbre (D18).
+
+    `dirty` liste tous les fichiers modifiés ou non suivis, où qu'ils soient ; `clean`
+    ne dépend que de ceux situés sous les chemins contrôlés (`is_controlled`).
     """
     def git(*args: str) -> str:
         return subprocess.run(
@@ -71,14 +87,6 @@ def git_state(exclude: Path | None = None) -> dict:
         ).stdout
 
     commit = git("rev-parse", "HEAD").strip()
-    ignored = {"results/leaderboard.csv"}
-    prefix = None
-    if exclude is not None and exclude.resolve().is_relative_to(REPO_ROOT):
-        prefix = exclude.resolve().relative_to(REPO_ROOT).as_posix().rstrip("/") + "/"
-    dirty = []
-    for line in git("status", "--porcelain", "--untracked-files=all").splitlines():
-        path = line[3:].strip().strip('"')
-        if path in ignored or (prefix and (path + "/").startswith(prefix)):
-            continue
-        dirty.append(path)
-    return {"commit": commit, "clean": not dirty, "dirty": dirty}
+    output = git("status", "--porcelain", "--untracked-files=all")
+    dirty = [line[3:].strip().strip('"') for line in output.splitlines()]
+    return {"commit": commit, "clean": tree_is_clean(dirty), "dirty": dirty}
