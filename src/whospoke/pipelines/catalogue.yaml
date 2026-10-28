@@ -178,7 +178,7 @@ moteurs:
       etape: analyse
       effet: "Banc de filtres d'où sont tirés les MFCC ; 40 filtres pour une analyse sur 25 ms à 16 kHz (le défaut de librosa, 128, laisse des filtres vides)."
       composantes: [confusion]
-      decision: "non couvert par D19 (à acter)"
+      decision: D19 (amendement 1)
     cmn:
       libelle: Normalisation cepstrale
       etape: normalisation_cepstrale
