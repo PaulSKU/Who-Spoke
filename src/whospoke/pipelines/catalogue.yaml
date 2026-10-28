@@ -1,0 +1,289 @@
+# Catalogue des réglages des moteurs (D17, D19 §1).
+#
+# Une entrée par réglage renvoyé par describe() : libellé, étape, effet, composantes du
+# DER concernées et décision qui le fixe. Les valeurs et leur origine ne figurent pas
+# ici : elles sont lues sur le moteur chargé (describe()). Les formulations de pyannote
+# reprennent la maquette de la page Pipeline (D17).
+#
+# Composantes : parole manquée, fausse alarme, confusion, frontières, nb de locuteurs,
+# temps, aucun effet sur le DER.
+
+etapes:
+  analyse: {libelle: Analyse, role: "Découper le signal en trames et en extraire l'énergie et les MFCC."}
+  normalisation_cepstrale: {libelle: Normalisation cepstrale, role: "Retirer des MFCC ce qui est constant sur le fichier (canal, salle)."}
+  detection: {libelle: Détection de parole, role: "Décider, trame par trame, s'il y a de la voix. Une trame sans aucun locuteur actif est un silence."}
+  segmentation: {libelle: Segmentation locale, role: "Découper la parole en courtes fenêtres, dont chacune sera attribuée à un locuteur."}
+  representation: {libelle: Représentation, role: "Résumer chaque fenêtre en un vecteur ; deux fenêtres d'une même voix doivent donner des vecteurs proches."}
+  empreintes: {libelle: Empreintes vocales, role: "Résumer chaque tour local en un vecteur ; deux tours d'une même voix doivent donner des vecteurs proches."}
+  regroupement: {libelle: Regroupement, role: "Rassembler les vecteurs proches en groupes : chaque groupe devient un locuteur, et leur nombre est le nombre de personnes estimé."}
+  attribution: {libelle: Attribution, role: "Donner à chaque trame de parole l'étiquette d'un groupe et former les tours de parole."}
+  sortie: {libelle: Sortie, role: "Écrire les tours de parole attribués, un par ligne, avec leur début, leur durée et leur locuteur."}
+
+moteurs:
+  pyannote-community-1:
+    segmentation.modele:
+      libelle: Modèle de segmentation
+      etape: detection
+      effet: "Un même réseau détecte la parole et repère les locuteurs locaux ; dans pyannote, la détection et la segmentation locale ne sont pas séparables."
+      composantes: [parole manquée, fausse alarme]
+      decision: D6
+    segmentation.powerset:
+      libelle: Mode de sortie (powerset)
+      etape: detection
+      effet: "Le réseau choisit directement une classe par trame (personne, A, B, A et B…) : aucun seuil de détection n'est réglable."
+      composantes: [parole manquée, fausse alarme]
+      decision: D6
+    segmentation.min_duration_off:
+      libelle: segmentation.min_duration_off
+      etape: detection
+      effet: "Un silence plus court que cette durée est comblé : deux tours séparés par une micro-pause n'en font plus qu'un."
+      composantes: [fausse alarme, frontières]
+      decision: D6
+    segmentation.duree_fenetre_s:
+      libelle: Durée de fenêtre
+      etape: segmentation
+      effet: "Le réseau ne voit que cette durée à la fois ; les identités sont ensuite reliées entre fenêtres par le regroupement."
+      composantes: [parole manquée, confusion]
+      decision: D6
+    segmentation_step:
+      libelle: segmentation_step
+      etape: segmentation
+      effet: "Pas de la fenêtre glissante, en fraction de sa durée : plus petit, chaque instant est vu plus souvent, mais le calcul est plus long."
+      composantes: [frontières, temps]
+      decision: D6
+    segmentation.locuteurs_par_fenetre:
+      libelle: Locuteurs par fenêtre
+      etape: segmentation
+      effet: "Nombre maximal de locuteurs distincts que le réseau peut repérer dans une même fenêtre."
+      composantes: [parole manquée, confusion]
+      decision: D6
+    segmentation.locuteurs_simultanes:
+      libelle: Locuteurs simultanés
+      etape: segmentation
+      effet: "Au-delà de deux voix simultanées, le chevauchement ne peut pas être représenté entièrement."
+      composantes: [parole manquée]
+      decision: D6
+    segmentation_batch_size:
+      libelle: segmentation_batch_size
+      etape: segmentation
+      effet: "Nombre de fenêtres traitées ensemble : n'agit que sur la vitesse et la mémoire."
+      composantes: [temps]
+      decision: D6
+    embedding.modele:
+      libelle: Modèle
+      etape: empreintes
+      effet: "Qualité de la représentation des voix : c'est elle qui sépare ou mélange deux personnes."
+      composantes: [confusion]
+      decision: D6
+    embedding.dimension:
+      libelle: Dimension des empreintes
+      etape: empreintes
+      effet: "Taille du vecteur produit pour chaque tour local ; fixée par le modèle."
+      composantes: [confusion]
+      decision: D6
+    embedding_exclude_overlap:
+      libelle: embedding_exclude_overlap
+      etape: empreintes
+      effet: "Si activé, les zones de chevauchement sont exclues du calcul : vecteurs plus purs, mais moins de matière sur les tours courts."
+      composantes: [confusion]
+      decision: D6
+    embedding_batch_size:
+      libelle: embedding_batch_size
+      etape: empreintes
+      effet: "N'agit que sur la vitesse et la mémoire."
+      composantes: [temps]
+      decision: D6
+    clustering.methode:
+      libelle: Méthode
+      etape: regroupement
+      effet: "Regroupe d'abord par similarité, puis affine les groupes avec un modèle probabiliste des voix."
+      composantes: [confusion, nb de locuteurs]
+      decision: D6
+    clustering.metric:
+      libelle: Distance
+      etape: regroupement
+      effet: "Mesure de proximité entre empreintes utilisée pour affecter les tours aux groupes."
+      composantes: [confusion]
+      decision: D6
+    clustering.threshold:
+      libelle: clustering.threshold
+      etape: regroupement
+      effet: "Seuil du regroupement initial : plus haut, on fusionne davantage et on trouve moins de locuteurs ; plus bas, on scinde."
+      composantes: [nb de locuteurs, confusion]
+      decision: D6
+    clustering.Fa:
+      libelle: clustering.Fa
+      etape: regroupement
+      effet: "Paramètre de VBx : poids donné aux indices acoustiques face au modèle a priori (interprétation à vérifier)."
+      composantes: [confusion]
+      decision: D6
+    clustering.Fb:
+      libelle: clustering.Fb
+      etape: regroupement
+      effet: "Paramètre de VBx : régularisation du nombre de locuteurs ; plus élevé, moins de locuteurs (interprétation à vérifier)."
+      composantes: [nb de locuteurs]
+      decision: D6
+    clustering.constrained_assignment:
+      libelle: Affectation contrainte
+      etape: regroupement
+      effet: "Interdit d'attribuer deux locuteurs locaux d'une même fenêtre au même groupe."
+      composantes: [confusion]
+      decision: D6
+    plda.modele:
+      libelle: PLDA
+      etape: regroupement
+      effet: "Modèle probabiliste des voix utilisé par VBx pour affiner les groupes."
+      composantes: [confusion, nb de locuteurs]
+      decision: D6
+    plda.lda_dimension:
+      libelle: Dimension de la PLDA
+      etape: regroupement
+      effet: "Dimension de l'espace dans lequel VBx compare les empreintes ; fixée par le modèle."
+      composantes: [confusion, nb de locuteurs]
+      decision: D6
+    n_locuteurs:
+      libelle: Nombre de locuteurs
+      etape: regroupement
+      effet: "Peut être imposé ou borné ; l'écart avec le mode imposé mesure le coût de l'estimation."
+      composantes: [nb de locuteurs]
+      decision: D9, D19
+    sortie.exclusive:
+      libelle: Sortie exclusive
+      etape: sortie
+      effet: "Version sans chevauchement (un seul locuteur à la fois) ; l'utiliser ferait perdre la parole superposée."
+      composantes: [parole manquée]
+      decision: D1
+
+  baseline:
+    frame_s:
+      libelle: Durée de trame
+      etape: analyse
+      effet: "Durée du signal résumée par chaque trame d'énergie et de MFCC."
+      composantes: [frontières]
+      decision: D19
+    hop_s:
+      libelle: Pas des trames
+      etape: analyse
+      effet: "Résolution temporelle de toute la chaîne : les frontières sont placées à ce pas près."
+      composantes: [frontières]
+      decision: D19
+    n_mfcc:
+      libelle: Nombre de MFCC
+      etape: analyse
+      effet: "Finesse de la description de l'enveloppe spectrale de la voix."
+      composantes: [confusion]
+      decision: D19
+    n_mels:
+      libelle: Nombre de filtres mel
+      etape: analyse
+      effet: "Banc de filtres d'où sont tirés les MFCC ; 40 filtres pour une analyse sur 25 ms à 16 kHz (le défaut de librosa, 128, laisse des filtres vides)."
+      composantes: [confusion]
+      decision: "non couvert par D19 (à acter)"
+    cmn:
+      libelle: Normalisation cepstrale
+      etape: normalisation_cepstrale
+      effet: "Soustraction de la moyenne des MFCC sur le fichier : atténue l'effet du canal et de la salle."
+      composantes: [confusion]
+      decision: D19
+    alpha:
+      libelle: Position du seuil (α)
+      etape: detection
+      effet: "Seuil = plancher + α × (niveau − plancher) : plus haut, on manque la voix faible ; plus bas, on prend le bruit pour de la parole."
+      composantes: [parole manquée, fausse alarme]
+      decision: D19
+    floor_percentile:
+      libelle: Plancher de bruit (centile)
+      etape: detection
+      effet: "Centile de l'énergie pris comme niveau du bruit de fond."
+      composantes: [parole manquée, fausse alarme]
+      decision: D19
+    level_percentile:
+      libelle: Niveau de parole (centile)
+      etape: detection
+      effet: "Centile de l'énergie pris comme niveau typique de la parole."
+      composantes: [parole manquée, fausse alarme]
+      decision: D19
+    median_frames:
+      libelle: Lissage médian
+      etape: detection
+      effet: "Supprime les décisions isolées sur moins d'une demi-fenêtre de lissage."
+      composantes: [fausse alarme, frontières]
+      decision: D19
+    min_speech_s:
+      libelle: Durée minimale de parole
+      etape: detection
+      effet: "Une parole plus courte est rejetée comme bruit (claquement, toux)."
+      composantes: [parole manquée, fausse alarme]
+      decision: D19
+    min_silence_s:
+      libelle: Durée minimale de silence
+      etape: detection
+      effet: "Un silence plus court entre deux paroles est comblé : les micro-pauses ne coupent pas un tour."
+      composantes: [fausse alarme, frontières]
+      decision: D19
+    window_s:
+      libelle: Durée de fenêtre
+      etape: segmentation
+      effet: "Plus longue, la représentation est plus stable mais risque de couvrir deux locuteurs ; plus courte, elle est plus bruitée."
+      composantes: [frontières, confusion]
+      decision: D19
+    window_step_s:
+      libelle: Pas des fenêtres
+      etape: segmentation
+      effet: "Écart entre deux fenêtres successives : plus petit, plus de fenêtres et des frontières plus fines, au prix du calcul."
+      composantes: [frontières, temps]
+      decision: D19
+    min_window_speech:
+      libelle: Part minimale de parole par fenêtre
+      etape: segmentation
+      effet: "Une fenêtre qui dépasse la fin de sa région n'est gardée que si cette part de sa durée nominale y tombe."
+      composantes: [confusion]
+      decision: D19
+    min_region_s:
+      libelle: Durée minimale d'une région à fenêtre unique
+      etape: segmentation
+      effet: "Une région plus courte qu'une fenêtre mais au moins aussi longue que cette durée donne une fenêtre ; plus courte, elle prend l'étiquette de la fenêtre la plus proche."
+      composantes: [confusion]
+      decision: D19
+    representation:
+      libelle: Vecteur de fenêtre
+      etape: representation
+      effet: "Moyenne et écart-type des MFCC (40 valeurs), centrés-réduits sur le fichier : décrit le timbre moyen et sa variabilité."
+      composantes: [confusion]
+      decision: D19
+    metric:
+      libelle: Distance
+      etape: regroupement
+      effet: "Distance cosinus entre vecteurs de fenêtres, de 0 (identiques) à 2 (opposés)."
+      composantes: [confusion]
+      decision: D19
+    linkage:
+      libelle: Lien
+      etape: regroupement
+      effet: "Lien moyen : la distance entre deux groupes est la moyenne des distances entre leurs fenêtres."
+      composantes: [confusion, nb de locuteurs]
+      decision: D19
+    theta:
+      libelle: Seuil de coupe (θ)
+      etape: regroupement
+      effet: "Distance au-delà de laquelle deux groupes ne sont plus fusionnés : plus haut, moins de locuteurs ; plus bas, on scinde une même voix."
+      composantes: [nb de locuteurs, confusion]
+      decision: D19 §4 (balayage sur dev)
+    n_locuteurs:
+      libelle: Nombre de locuteurs
+      etape: regroupement
+      effet: "Estimé par la coupe à θ, ou imposé : l'arbre est alors coupé en ce nombre de groupes."
+      composantes: [nb de locuteurs]
+      decision: D9, D19
+    merge_gap_s:
+      libelle: Fusion des pauses
+      etape: attribution
+      effet: "Deux tours d'un même locuteur séparés d'une pause au plus aussi longue sont fusionnés."
+      composantes: [frontières]
+      decision: D19
+    sortie.chevauchement:
+      libelle: Chevauchements en sortie
+      etape: sortie
+      effet: "Un seul locuteur à la fois, par construction : le second locuteur de chaque chevauchement est manqué."
+      composantes: [parole manquée]
+      decision: D19
