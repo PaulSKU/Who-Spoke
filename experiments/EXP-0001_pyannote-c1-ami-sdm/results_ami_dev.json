@@ -3,7 +3,17 @@
   "slug": "pyannote-c1-ami-sdm",
   "date": "2026-10-27T21:18:24+01:00",
   "git_commit": "d9f177a",
-  "arbre_propre": false,
+  "arbre_propre": true,
+  "requalification": {
+    "date": "2026-10-28T10:53:28+01:00",
+    "regle": "D18",
+    "ancienne_valeur": false,
+    "nouvelle_valeur": true,
+    "sources": [
+      "execution_cpu.json",
+      "execution_mps.json"
+    ]
+  },
   "reference": null,
   "variable_modifiee": null,
   "donnees": {
