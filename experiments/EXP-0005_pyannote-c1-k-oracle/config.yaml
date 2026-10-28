@@ -1,0 +1,46 @@
+# EXP-0005 — pyannote community-1, nombre de locuteurs oracle par fichier, AMI SDM (dev et test)
+# Seule variable par rapport à EXP-0001 : le nombre de locuteurs, lu dans la référence de
+# chaque fichier (locuteurs présents dans l'UEM) et passé à la pipeline (`num_speakers`)
+# à l'appel (D19 §4).
+exp_id: EXP-0005
+slug: pyannote-c1-k-oracle
+reference: EXP-0001
+variable_modifiee: mode_n_locuteurs
+graine: 0                     # pipeline déterministe ; graine consignée par convention
+
+pipeline:
+  nom: pyannote-community-1   # pyannote/speaker-diarization-community-1, signal en mémoire (D16)
+  vad: integree               # segmentation de la pipeline, pas de VAD séparée
+  parametres:                 # aucune contrainte globale : nombre imposé fichier par fichier
+    num_speakers: null
+    min_speakers: null
+    max_speakers: null
+
+mode_n_locuteurs: oracle      # nombre de locuteurs de la référence, passé à l'appel
+detection_oracle: false
+
+device: mps
+prechauffage_s: 60            # extrait du premier fichier, non compté (protocole §3.5)
+
+jeux:
+  - corpus: ami
+    partition: dev
+    liste: data/splits/ami/dev.txt
+  - corpus: ami
+    partition: test
+    liste: data/splits/ami/test.txt
+
+# Mesure en CPU seul sur le sous-ensemble de mesure du temps (protocole §3.5).
+mesure_cpu:
+  corpus: ami
+  liste: data/splits/ami/temps.txt
+
+evaluation:
+  references: data/processed/ami/rttm   # RTTM only_words, uri réécrit en ami__<réunion>
+  uem: data/splits/ami/uem              # UEM du dépôt pyannote/AMI-diarization-setup
+  conditions: {collar_0: 0.0, collar_0_25: 0.5}
+  skip_overlap: false
+
+materiel:
+  machine: MacBook Pro M2 Pro
+  ram_go: 16
