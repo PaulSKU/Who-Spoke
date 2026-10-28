@@ -113,3 +113,17 @@ Résultats : EXP-0001 reproduit la valeur publiée (19,92 % contre 19,9 % sur le
 Décisions : D18 actée (arbre propre défini sur le code, la configuration et les données ; requalification d'EXP-0001 ; précisions du protocole).
 Problèmes : `arbre_propre: false` sur EXP-0001, causé par l'écriture de documents du cockpit pendant la mesure CPU. Le défaut venait de la règle, pas du résultat. Le préchauffage de 60 s, demandé dans le prompt du cockpit, contredisait le protocole §3.5 : c'est le protocole qui est aligné (D18).
 Suite : après validation de D18, faire appliquer D18 par Claude Code, puis spécifier la baseline (D19).
+
+## 2026-10-28 — Application de D18 (Claude Code)
+
+Objectif : appliquer D18 (arbre propre sur les chemins contrôlés, requalification d'EXP-0001, précisions du protocole).
+Réalisé :
+- Commit `docs:` des documents du cockpit : D17, D18, glossaire réordonné, méthode §4.6, journal du 28/10, `notes.md` d'EXP-0001, réalignement des tableaux des conventions d'annotation.
+- Documentation : `methode.md` §4.2 (`execution_<device>.json`, troisième exception à l'immuabilité), §6 (chemins contrôlés), §7 (SHA-256 du fichier brut, options documentées) ; `protocole-eval.md` révision 1.2, §3.2, §3.4 et §3.5.
+- `src/whospoke/experiment.py` : `is_controlled`, `tree_is_clean` ; `git_state` liste tous les fichiers non commités, sans exclusion, et calcule `clean` sur les seuls chemins contrôlés.
+- `scripts/evaluate.py` : option `--requalifier` ; `arbre_propre` recalculé selon D18 à partir des `fichiers_non_commites` consignés par les exécutions, avec en plus le même commit pour toutes les exécutions ; option `--leaderboard` documentée. Options `--config` (`run_experiment.py`) et `--child` (`v5_smoke_test.py`) documentées dans `--help`.
+- Tests : règle de l'arbre propre, requalification, et intégration de l'enveloppe community-1 sur un signal synthétique de 12 s, ignorée sans `HF_TOKEN`.
+Résultats : EXP-0001 requalifiée, `arbre_propre` passe de false à true dans `results_ami_dev.json` et `results_ami_test.json`. Le diff ne touche que les clés `arbre_propre` et `requalification`. Leaderboard inchangé. `uv run pytest` : 59 tests réussis, dont les 3 d'intégration exécutés ; 3 ignorés lorsque `HF_TOKEN` est vide.
+Décisions : aucune.
+Problèmes : aucun bloquant. Le bloc `requalification` comporte un champ `sources` (liste des `execution_*.json` utilisés) en plus des quatre champs de D18.
+Suite : spécification de la baseline (D19) au cockpit.
