@@ -191,6 +191,8 @@ Source : …
 
 Les documents écrits par le cockpit dans le dossier local sont commités par Claude Code au début de sa session suivante, avec un commit `docs:` distinct.
 
+Le cockpit met à jour la section « État d'avancement » du `README.md` à chaque nouvelle expérience de référence et à chaque fin de journée de travail, en même temps que l'entrée de journal.
+
 ---
 
 ## 6. Conventions git

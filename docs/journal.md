@@ -219,3 +219,14 @@ Résultats : aucune nouvelle expérience ; métriques d'EXP-0005 inchangées.
 Décisions : aucune.
 Problèmes : aucun. Le commit de l'évaluation (e4701ba) n'est pas contrôlé séparément ; il coïncide ici avec celui de la mesure CPU.
 Suite : interprétation au cockpit des oracles EXP-0003 à EXP-0006.
+
+## 2026-10-28 — Interprétation des oracles EXP-0003 à EXP-0006 (cockpit)
+
+Objectif : répartir l'erreur entre les étapes.
+Réalisé : `notes.md` d'EXP-0003 à EXP-0006 rédigées.
+Résultats :
+- Baseline : la détection par énergie coûte 11 à 15 points (EXP-0004) ; le nombre de locuteurs oracle ne fait rien gagner (EXP-0003, EXP-0006) ; avec détection et nombre de locuteurs parfaits, il reste 14,6 points de chevauchement (plancher structurel) et 34 points de confusion dus à la représentation MFCC (EXP-0006, test).
+- pyannote : le nombre de locuteurs oracle ne fait rien gagner en moyenne (+0,48 point sur le test, non significatif). Il améliore les trois surestimations, mais double le DER de TS3003a.
+Décisions : aucune. Remise en question de l'amélioration n° 1 de D9, à trancher avec la candidate.
+Problèmes : aucun.
+Suite : décider des améliorations (D9) ; empreintes neuronales (D8) sur la référence EXP-0006 ; préparation de SUMM-RE.

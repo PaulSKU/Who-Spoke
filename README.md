@@ -25,14 +25,40 @@ Le périphérique de calcul est choisi automatiquement (CUDA, puis MPS, puis CPU
 
 | Document | Contenu |
 |---|---|
-| `docs/cadrage.md` | Décisions initiales D1 à D15 |
+| `docs/cadrage.md` | Décisions initiales D1 à D15, contraintes de la cible |
+| `docs/decisions/` | Décisions suivantes (D16 et au-delà) |
 | `docs/methode.md` | Conventions, arborescence, formats |
 | `docs/protocole-eval.md` | Protocole d'évaluation figé |
 | `docs/corpus.md` | Fiche des corpus |
+| `docs/corpus-maison/` | Consentement, protocole d'enregistrement et conventions d'annotation du corpus maison |
+| `docs/glossaire.md` | Concepts et vocabulaire, dans l'ordre de lecture |
+| `docs/recherche/` | Recherche documentaire sur les corpus |
 | `docs/journal.md` | Journal de bord |
+| `results/leaderboard.csv` | Une ligne par expérience et par jeu évalué |
 
 ## État d'avancement
 
-- Dépôt initialisé : arborescence, environnement uv (Python 3.11), choix du périphérique.
-- Métriques d'évaluation (DER et JER, conditions `collar_0` et `collar_0_25`) et tests obligatoires du protocole.
-- Aucune pipeline de diarisation ni aucune donnée à ce stade.
+Au 28 octobre 2026 (fin du deuxième jour).
+
+| Chantier | État |
+|---|---|
+| Cadrage, méthode, protocole d'évaluation | Fait (D1 à D19) |
+| Chaîne d'évaluation (DER, JER, chevauchement, nombre de locuteurs, bootstrap) | Faite, testée |
+| Corpus AMI, micro de salle (dev et test) | Préparé |
+| pyannote community-1 | Intégré ; résultat publié reproduit sur AMI (EXP-0001) |
+| Baseline classique (énergie, MFCC, regroupement) | Faite (EXP-0002) |
+| Diagnostics oracles (détection, nombre de locuteurs) | Faits (EXP-0003 à EXP-0006) |
+| Empreintes neuronales (D8) | À faire |
+| NeMo | À faire (essai borné) |
+| SUMM-RE (validation en français) | À préparer |
+| Corpus maison (3 réunions en français) | Documents prêts ; enregistrements à faire |
+| Interface de démonstration et page Pipeline (D17) | Spécifiée ; à construire |
+
+Résultats sur le test AMI en micro de salle (16 réunions), sans collar, chevauchements comptés :
+
+| Expérience | DER | JER | Nombre de locuteurs exact | Temps pour 30 min d'audio |
+|---|---|---|---|---|
+| EXP-0001 — pyannote community-1 | 19,9 % | 27,1 % | 12/16 | ≈ 1 min 30 s (MPS) ; ≈ 24 min (CPU) |
+| EXP-0002 — baseline MFCC | 64,4 % | 70,6 % | 0/16 | ≈ 3 s (CPU) |
+
+Ces chiffres sont optimistes pour pyannote, qui a vu AMI à l'entraînement (`docs/corpus.md` §9). Ils ne disent encore rien des réunions en français. Les expériences et leur interprétation sont dans `experiments/` et `results/leaderboard.csv`.
