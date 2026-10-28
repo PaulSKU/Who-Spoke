@@ -10,6 +10,10 @@ Pour chaque jeu de `config.yaml` (corpus × partition) : lecture des référence
 de `per_file_<corpus>_<partition>.csv` ; ajout d'une ligne par jeu à
 results/leaderboard.csv. C'est le seul code qui écrit dans le leaderboard.
 
+Contrôle de configuration : l'empreinte `config_sha256` consignée dans chaque
+`execution_*.json` doit correspondre au `config.yaml` de l'expérience ; sinon
+l'évaluation est refusée (la configuration a changé depuis l'exécution).
+
 `arbre_propre` vaut true si les exécutions et l'évaluation ont eu lieu sur le même commit,
 sans fichier non commité sous les chemins contrôlés de D18 (`whospoke.experiment.is_controlled`),
 d'après les listes `fichiers_non_commites` consignées par les exécutions.
@@ -24,6 +28,7 @@ from __future__ import annotations
 
 import argparse
 import csv
+import hashlib
 import json
 import sys
 from datetime import datetime
@@ -85,6 +90,16 @@ def cpu_block(execution: dict | None) -> dict | None:
         "calcul_s": round(execution["calcul_s"], 2),
         "rtf": round(execution["rtf"], 4),
     }
+
+
+def check_config(exp_dir: Path, runs: dict[str, dict]) -> None:
+    """Refuse l'évaluation si une exécution ne porte pas l'empreinte du config.yaml actuel."""
+    expected = hashlib.sha256((exp_dir / "config.yaml").read_bytes()).hexdigest()
+    for name, run in runs.items():
+        recorded = run.get("config_sha256")
+        if recorded != expected:
+            sys.exit(f"{name} : config_sha256 {recorded} différent de l'empreinte de "
+                     f"config.yaml ({expected}) ; évaluation refusée")
 
 
 def runs_are_clean(runs: list[dict]) -> bool:
@@ -163,6 +178,9 @@ def main() -> None:
         cpu_run = main_run
 
     runs = [main_run] + ([cpu_run] if cpu_run is not None and cpu_run is not main_run else [])
+    check_config(exp_dir, {
+        path.name: json.loads(path.read_text()) for path in sorted(exp_dir.glob("execution_*.json"))
+    })
     state = git_state()
     commits = {run["git_commit"] for run in runs}
     clean = runs_are_clean(runs) and commits == {state["commit"]} and state["clean"]
