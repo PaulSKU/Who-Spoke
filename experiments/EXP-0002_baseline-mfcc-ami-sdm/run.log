@@ -1,0 +1,73 @@
+2026-10-28T11:59:52+0100 INFO expérience EXP-0002, mode complet
+2026-10-28T11:59:52+0100 INFO commit 540bb5e25f484ea45ef39ce2228cd69b146fd5e1, arbre propre (chemins contrôlés, D18) : True
+2026-10-28T11:59:52+0100 INFO fichiers non commités : experiments/EXP-0002_baseline-mfcc-ami-sdm/run.log
+2026-10-28T11:59:52+0100 INFO python 3.11.15, torch 2.14.1, plateforme macOS-14.1.2-arm64-arm-64bit, fils torch 6
+2026-10-28T11:59:52+0100 INFO pipeline baseline chargée sur cpu en 0.00 s (paramètres : {}, nombre de locuteurs : estime, détection oracle : False, trace : True)
+2026-10-28T11:59:52+0100 INFO balayage de theta sur ami/dev : 29 valeurs de 0.1 à 1.5
+2026-10-28T12:00:45+0100 INFO balayage : préparation de 18 fichiers en 53.7 s
+2026-10-28T12:01:31+0100 INFO balayage theta = 0.1 : DER c0 104.11 %, 1413.44 locuteurs en moyenne
+2026-10-28T12:02:19+0100 INFO balayage theta = 0.15 : DER c0 103.87 %, 1324.56 locuteurs en moyenne
+2026-10-28T12:03:04+0100 INFO balayage theta = 0.2 : DER c0 103.54 %, 1203.83 locuteurs en moyenne
+2026-10-28T12:03:46+0100 INFO balayage theta = 0.25 : DER c0 103.12 %, 1063.83 locuteurs en moyenne
+2026-10-28T12:04:26+0100 INFO balayage theta = 0.3 : DER c0 102.43 %, 918.17 locuteurs en moyenne
+2026-10-28T12:05:02+0100 INFO balayage theta = 0.35 : DER c0 101.51 %, 765.39 locuteurs en moyenne
+2026-10-28T12:05:37+0100 INFO balayage theta = 0.4 : DER c0 100.32 %, 619.67 locuteurs en moyenne
+2026-10-28T12:06:13+0100 INFO balayage theta = 0.45 : DER c0 98.78 %, 482.61 locuteurs en moyenne
+2026-10-28T12:06:47+0100 INFO balayage theta = 0.5 : DER c0 96.76 %, 367.44 locuteurs en moyenne
+2026-10-28T12:07:22+0100 INFO balayage theta = 0.55 : DER c0 94.54 %, 272.06 locuteurs en moyenne
+2026-10-28T12:07:54+0100 INFO balayage theta = 0.6 : DER c0 91.92 %, 194.50 locuteurs en moyenne
+2026-10-28T12:08:30+0100 INFO balayage theta = 0.65 : DER c0 88.68 %, 134.06 locuteurs en moyenne
+2026-10-28T12:08:58+0100 INFO balayage theta = 0.7 : DER c0 84.81 %, 89.56 locuteurs en moyenne
+2026-10-28T12:09:29+0100 INFO balayage theta = 0.75 : DER c0 81.21 %, 57.78 locuteurs en moyenne
+2026-10-28T12:09:58+0100 INFO balayage theta = 0.8 : DER c0 76.31 %, 35.44 locuteurs en moyenne
+2026-10-28T12:10:25+0100 INFO balayage theta = 0.85 : DER c0 72.80 %, 19.78 locuteurs en moyenne
+2026-10-28T12:10:55+0100 INFO balayage theta = 0.9 : DER c0 69.76 %, 11.50 locuteurs en moyenne
+2026-10-28T12:11:21+0100 INFO balayage theta = 0.95 : DER c0 64.95 %, 6.06 locuteurs en moyenne
+2026-10-28T12:11:49+0100 INFO balayage theta = 1.0 : DER c0 65.06 %, 2.89 locuteurs en moyenne
+2026-10-28T12:12:13+0100 INFO balayage theta = 1.05 : DER c0 68.63 %, 2.06 locuteurs en moyenne
+2026-10-28T12:12:36+0100 INFO balayage theta = 1.1 : DER c0 70.27 %, 1.83 locuteurs en moyenne
+2026-10-28T12:12:58+0100 INFO balayage theta = 1.15 : DER c0 74.41 %, 1.17 locuteurs en moyenne
+2026-10-28T12:13:20+0100 INFO balayage theta = 1.2 : DER c0 74.35 %, 1.06 locuteurs en moyenne
+2026-10-28T12:13:41+0100 INFO balayage theta = 1.25 : DER c0 74.34 %, 1.00 locuteurs en moyenne
+2026-10-28T12:14:03+0100 INFO balayage theta = 1.3 : DER c0 74.34 %, 1.00 locuteurs en moyenne
+2026-10-28T12:14:24+0100 INFO balayage theta = 1.35 : DER c0 74.34 %, 1.00 locuteurs en moyenne
+2026-10-28T12:14:46+0100 INFO balayage theta = 1.4 : DER c0 74.34 %, 1.00 locuteurs en moyenne
+2026-10-28T12:15:07+0100 INFO balayage theta = 1.45 : DER c0 74.34 %, 1.00 locuteurs en moyenne
+2026-10-28T12:15:28+0100 INFO balayage theta = 1.5 : DER c0 74.34 %, 1.00 locuteurs en moyenne
+2026-10-28T12:15:28+0100 INFO balayage : theta retenu = 0.95 (DER c0 64.95 %), 936.5 s au total
+2026-10-28T12:15:28+0100 INFO préchauffage : 60 s de ami__IS1008a en 0.06 s (non compté)
+2026-10-28T12:15:29+0100 INFO [1/34] dev ami__IS1008a : 944.0 s d'audio, 0.98 s de calcul, RTF 0.0010, 5 locuteurs
+2026-10-28T12:15:32+0100 INFO [2/34] dev ami__IS1008b : 1768.5 s d'audio, 2.32 s de calcul, RTF 0.0013, 5 locuteurs
+2026-10-28T12:15:34+0100 INFO [3/34] dev ami__IS1008c : 1546.4 s d'audio, 1.94 s de calcul, RTF 0.0013, 4 locuteurs
+2026-10-28T12:15:36+0100 INFO [4/34] dev ami__IS1008d : 1480.9 s d'audio, 1.83 s de calcul, RTF 0.0012, 5 locuteurs
+2026-10-28T12:15:37+0100 INFO [5/34] dev ami__ES2011a : 1113.8 s d'audio, 1.22 s de calcul, RTF 0.0011, 4 locuteurs
+2026-10-28T12:15:39+0100 INFO [6/34] dev ami__ES2011b : 1581.3 s d'audio, 2.03 s de calcul, RTF 0.0013, 8 locuteurs
+2026-10-28T12:15:41+0100 INFO [7/34] dev ami__ES2011c : 1616.1 s d'audio, 2.27 s de calcul, RTF 0.0014, 7 locuteurs
+2026-10-28T12:15:44+0100 INFO [8/34] dev ami__ES2011d : 1982.3 s d'audio, 2.81 s de calcul, RTF 0.0014, 7 locuteurs
+2026-10-28T12:15:45+0100 INFO [9/34] dev ami__TS3004a : 1345.3 s d'audio, 1.36 s de calcul, RTF 0.0010, 6 locuteurs
+2026-10-28T12:15:49+0100 INFO [10/34] dev ami__TS3004b : 2246.1 s d'audio, 3.52 s de calcul, RTF 0.0016, 7 locuteurs
+2026-10-28T12:15:54+0100 INFO [11/34] dev ami__TS3004c : 2970.0 s d'audio, 4.75 s de calcul, RTF 0.0016, 7 locuteurs
+2026-10-28T12:15:58+0100 INFO [12/34] dev ami__TS3004d : 2750.8 s d'audio, 3.96 s de calcul, RTF 0.0014, 6 locuteurs
+2026-10-28T12:16:00+0100 INFO [13/34] dev ami__IB4001 : 1780.8 s d'audio, 2.11 s de calcul, RTF 0.0012, 5 locuteurs
+2026-10-28T12:16:02+0100 INFO [14/34] dev ami__IB4002 : 1882.4 s d'audio, 2.22 s de calcul, RTF 0.0012, 5 locuteurs
+2026-10-28T12:16:06+0100 INFO [15/34] dev ami__IB4003 : 2023.4 s d'audio, 3.09 s de calcul, RTF 0.0015, 5 locuteurs
+2026-10-28T12:16:10+0100 INFO [16/34] dev ami__IB4004 : 2393.0 s d'audio, 4.27 s de calcul, RTF 0.0018, 9 locuteurs
+2026-10-28T12:16:15+0100 INFO [17/34] dev ami__IB4010 : 2960.6 s d'audio, 5.48 s de calcul, RTF 0.0019, 6 locuteurs
+2026-10-28T12:16:19+0100 INFO [18/34] dev ami__IB4011 : 2417.1 s d'audio, 3.96 s de calcul, RTF 0.0016, 8 locuteurs
+2026-10-28T12:16:20+0100 INFO [19/34] test ami__IS1009a : 839.0 s d'audio, 0.73 s de calcul, RTF 0.0009, 8 locuteurs
+2026-10-28T12:16:23+0100 INFO [20/34] test ami__IS1009b : 2052.4 s d'audio, 3.13 s de calcul, RTF 0.0015, 7 locuteurs
+2026-10-28T12:16:26+0100 INFO [21/34] test ami__IS1009c : 1820.8 s d'audio, 2.85 s de calcul, RTF 0.0016, 5 locuteurs
+2026-10-28T12:16:29+0100 INFO [22/34] test ami__IS1009d : 1944.7 s d'audio, 2.68 s de calcul, RTF 0.0014, 5 locuteurs
+2026-10-28T12:16:30+0100 INFO [23/34] test ami__ES2004a : 1049.4 s d'audio, 1.12 s de calcul, RTF 0.0011, 5 locuteurs
+2026-10-28T12:16:34+0100 INFO [24/34] test ami__ES2004b : 2345.5 s d'audio, 3.86 s de calcul, RTF 0.0016, 6 locuteurs
+2026-10-28T12:16:38+0100 INFO [25/34] test ami__ES2004c : 2334.4 s d'audio, 4.11 s de calcul, RTF 0.0018, 5 locuteurs
+2026-10-28T12:16:42+0100 INFO [26/34] test ami__ES2004d : 2222.3 s d'audio, 3.43 s de calcul, RTF 0.0015, 5 locuteurs
+2026-10-28T12:16:43+0100 INFO [27/34] test ami__TS3003a : 1505.6 s d'audio, 1.61 s de calcul, RTF 0.0011, 8 locuteurs
+2026-10-28T12:16:46+0100 INFO [28/34] test ami__TS3003b : 2210.3 s d'audio, 2.92 s de calcul, RTF 0.0013, 5 locuteurs
+2026-10-28T12:16:51+0100 INFO [29/34] test ami__TS3003c : 2570.0 s d'audio, 4.14 s de calcul, RTF 0.0016, 6 locuteurs
+2026-10-28T12:16:55+0100 INFO [30/34] test ami__TS3003d : 2618.2 s d'audio, 3.80 s de calcul, RTF 0.0015, 8 locuteurs
+2026-10-28T12:16:58+0100 INFO [31/34] test ami__EN2002a : 2142.7 s d'audio, 3.12 s de calcul, RTF 0.0015, 7 locuteurs
+2026-10-28T12:17:00+0100 INFO [32/34] test ami__EN2002b : 1786.8 s d'audio, 2.39 s de calcul, RTF 0.0013, 5 locuteurs
+2026-10-28T12:17:06+0100 INFO [33/34] test ami__EN2002c : 2972.3 s d'audio, 6.03 s de calcul, RTF 0.0020, 4 locuteurs
+2026-10-28T12:17:10+0100 INFO [34/34] test ami__EN2002d : 2209.9 s d'audio, 3.36 s de calcul, RTF 0.0015, 6 locuteurs
+2026-10-28T12:17:14+0100 INFO total : 67427.1 s d'audio, 99.4 s de calcul, RTF 0.0015 ; temps pour 30 min : 3 s
