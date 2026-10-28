@@ -7,3 +7,5 @@ EXP-0003,2026-10-28T13:59:28+01:00,baseline-k-oracle,EXP-0002,mode_n_locuteurs,a
 EXP-0003,2026-10-28T13:59:28+01:00,baseline-k-oracle,EXP-0002,mode_n_locuteurs,ami,test,baseline,oracle,63.42,32.28,4.99,26.15,60.41,72.78,0.0,0.0012,0.0008,3abe688
 EXP-0004,2026-10-28T14:01:55+01:00,baseline-vad-oracle,EXP-0002,detection_oracle,ami,dev,baseline,estime,54.23,13.51,0.17,40.55,50.1,65.52,2.0,0.0015,0.001,3abe688
 EXP-0004,2026-10-28T14:01:55+01:00,baseline-vad-oracle,EXP-0002,detection_oracle,ami,test,baseline,estime,49.09,14.59,0.14,34.35,45.1,63.68,2.0,0.0014,0.001,3abe688
+EXP-0006,2026-10-28T14:04:08+01:00,baseline-vad-k-oracle,EXP-0004,mode_n_locuteurs,ami,dev,baseline,oracle,51.72,13.51,0.18,38.04,47.74,66.04,0.0,0.0014,0.0009,3abe688
+EXP-0006,2026-10-28T14:04:08+01:00,baseline-vad-k-oracle,EXP-0004,mode_n_locuteurs,ami,test,baseline,oracle,48.92,14.59,0.14,34.19,45.07,66.81,0.0,0.0013,0.0009,3abe688
