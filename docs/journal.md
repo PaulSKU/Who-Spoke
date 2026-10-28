@@ -206,3 +206,16 @@ Problèmes :
 - EXP-0005 a `arbre_propre: false`. L'exécution MPS a eu lieu sur 3abe688 et la mesure CPU sur e4701ba, parce que les résultats d'EXP-0003, 0004 et 0006 ont été commités entre les deux. Aucun chemin contrôlé de D18 ne diffère entre ces commits (seuls `experiments/` et `results/leaderboard.csv`). L'expérience n'a pas été modifiée. `--requalifier` ne couvre pas ce cas (il ne relit que les fichiers non commités).
 - EXP-0006 ne figure pas au tableau de D19 §4 ; il a été ajouté par le prompt de la session.
 Suite : interprétation au cockpit (`notes.md` d'EXP-0003 à EXP-0006) ; décision sur le statut d'EXP-0005.
+
+## 2026-10-28 — Requalification d'EXP-0005 (Claude Code)
+
+Objectif : appliquer l'amendement du 28/10 de D18 (exécutions d'une même expérience sur des commits différents).
+Réalisé :
+- Commit `docs:` de l'amendement de D18.
+- `scripts/evaluate.py --requalifier` : si les `execution_*.json` portent sur des commits différents, trois conditions sont vérifiées (chaque exécution propre, `git diff --name-only` vide entre les commits sur les chemins contrôlés de D18, même `config_sha256`). Si l'une manque, refus sans rien écrire. Sinon, `arbre_propre` passe à true et le bloc `requalification` consigne en plus `commits` et `"diff_chemins_controles": "vide"`. Le cas d'un commit unique est inchangé.
+- Tests (dépôt git temporaire à deux commits) : sans diff contrôlé → requalifiée ; diff sous `src/` → refus ; `config_sha256` différent → refus ; exécution sale → refus. Suite : 90 tests réussis (1 test lent exclu).
+- EXP-0005 requalifiée : `arbre_propre` false → true dans `results_ami_dev.json` et `results_ami_test.json`, commits 3abe688 et e4701ba. Diff vérifié clé par clé : seules `arbre_propre` et `requalification` changent ; leaderboard inchangé.
+Résultats : aucune nouvelle expérience ; métriques d'EXP-0005 inchangées.
+Décisions : aucune.
+Problèmes : aucun. Le commit de l'évaluation (e4701ba) n'est pas contrôlé séparément ; il coïncide ici avec celui de la mesure CPU.
+Suite : interprétation au cockpit des oracles EXP-0003 à EXP-0006.
