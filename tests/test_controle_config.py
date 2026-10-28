@@ -1,4 +1,4 @@
-"""Contrôle de l'empreinte de config.yaml avant évaluation (scripts/evaluate.py)."""
+"""Contrôles de scripts/evaluate.py : empreinte de config.yaml, bloc temps_cpu."""
 
 import hashlib
 import importlib.util
@@ -47,3 +47,14 @@ def test_exp_0001_conforme():
     exp_dir = REPO_ROOT / "experiments" / "EXP-0001_pyannote-c1-ami-sdm"
     runs = {p.name: json.loads(p.read_text()) for p in exp_dir.glob("execution_*.json")}
     evaluate.check_config(exp_dir, runs)
+
+
+def test_temps_cpu_tire_de_l_execution_principale():
+    run = {"mode": "complet", "fichiers": [
+        {"uri": "ami__ES2004a", "duree_audio_s": 100.0, "calcul_s": 2.0},
+        {"uri": "ami__TS3003a", "duree_audio_s": 300.0, "calcul_s": 4.0},
+        {"uri": "ami__IS1009a", "duree_audio_s": 1000.0, "calcul_s": 50.0},
+    ]}
+    block = evaluate.cpu_block(run, "data/splits/ami/temps.txt")
+    assert block == {"sous_ensemble": "data/splits/ami/temps.txt", "duree_audio_s": 400.0,
+                     "calcul_s": 6.0, "rtf": 0.015}

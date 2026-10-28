@@ -28,3 +28,6 @@ __pycache__/
 
 # Système
 .DS_Store
+
+# Traces des moteurs (D19 §3)
+experiments/*/trace/

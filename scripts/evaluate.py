@@ -14,6 +14,9 @@ Contrôle de configuration : l'empreinte `config_sha256` consignée dans chaque
 `execution_*.json` doit correspondre au `config.yaml` de l'expérience ; sinon
 l'évaluation est refusée (la configuration a changé depuis l'exécution).
 
+`temps_cpu` : si `device` vaut `cpu`, il est tiré de l'exécution principale, restreinte
+aux fichiers de `mesure_cpu.liste` ; sinon de `execution_cpu.json` (`--mesure-cpu`).
+
 `arbre_propre` vaut true si les exécutions et l'évaluation ont eu lieu sur le même commit,
 sans fichier non commité sous les chemins contrôlés de D18 (`whospoke.experiment.is_controlled`),
 d'après les listes `fichiers_non_commites` consignées par les exécutions.
@@ -81,14 +84,26 @@ def timing_block(execution: dict, files: list[str]) -> dict:
     }
 
 
-def cpu_block(execution: dict | None) -> dict | None:
+def cpu_block(execution: dict | None, subset: str | None = None) -> dict | None:
+    """Bloc `temps_cpu` : mesure CPU dédiée, ou exécution principale en CPU restreinte à `subset`."""
     if execution is None:
         return None
+    if execution["mode"] == "mesure_cpu":
+        return {
+            "sous_ensemble": execution["sous_ensemble"],
+            "duree_audio_s": round(execution["duree_audio_s"], 2),
+            "calcul_s": round(execution["calcul_s"], 2),
+            "rtf": round(execution["rtf"], 4),
+        }
+    by_uri = {row["uri"]: row for row in execution["fichiers"]}
+    rows = execution["fichiers"] if subset is None else [by_uri[uri] for uri in dataset_uris(subset)]
+    audio = sum(row["duree_audio_s"] for row in rows)
+    compute = sum(row["calcul_s"] for row in rows)
     return {
-        "sous_ensemble": execution["sous_ensemble"],
-        "duree_audio_s": round(execution["duree_audio_s"], 2),
-        "calcul_s": round(execution["calcul_s"], 2),
-        "rtf": round(execution["rtf"], 4),
+        "sous_ensemble": subset,
+        "duree_audio_s": round(audio, 2),
+        "calcul_s": round(compute, 2),
+        "rtf": round(compute / audio, 4),
     }
 
 
@@ -260,7 +275,7 @@ def main() -> None:
                 "n_locuteurs": round_rates(report["n_locuteurs"]),
             },
             "temps": timing_block(main_run, files),
-            "temps_cpu": cpu_block(cpu_run),
+            "temps_cpu": cpu_block(cpu_run, (config.get("mesure_cpu") or {}).get("liste")),
             "invalidee": None,
         }
         results_path.write_text(json.dumps(results, ensure_ascii=False, indent=2) + "\n")
