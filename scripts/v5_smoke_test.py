@@ -249,7 +249,11 @@ def run_child(mode: str, timeout: float | None = None) -> dict:
 
 def main() -> None:
     parser = argparse.ArgumentParser(description=__doc__.splitlines()[0])
-    parser.add_argument("--child", help=argparse.SUPPRESS)
+    parser.add_argument(
+        "--child",
+        help="usage interne : exécute une seule mesure (mps, cpu ou file_path) dans un sous-processus "
+        "et imprime son résultat ; lancé par le script lui-même",
+    )
     parser.add_argument(
         "--devices", default="mps,cpu", help="périphériques à mesurer, dans l'ordre (défaut : mps,cpu)"
     )

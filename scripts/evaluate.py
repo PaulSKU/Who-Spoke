@@ -1,6 +1,8 @@
 """Évaluation d'une expérience exécutée (protocole d'évaluation, methode.md §4.2 à §4.4).
 
-Usage : uv run python scripts/evaluate.py --exp experiments/EXP-…
+Usage :
+    uv run python scripts/evaluate.py --exp experiments/EXP-…
+    uv run python scripts/evaluate.py --exp experiments/EXP-… --requalifier
 
 Pour chaque jeu de `config.yaml` (corpus × partition) : lecture des références
 (data/processed/<corpus>/rttm/), des UEM (data/splits/<corpus>/uem/) et des hypothèses
@@ -8,8 +10,14 @@ Pour chaque jeu de `config.yaml` (corpus × partition) : lecture des référence
 de `per_file_<corpus>_<partition>.csv` ; ajout d'une ligne par jeu à
 results/leaderboard.csv. C'est le seul code qui écrit dans le leaderboard.
 
-`arbre_propre` vaut true si l'exécution et l'évaluation ont eu lieu sur le même commit,
-sans fichier modifié ni non suivi hors du dossier de l'expérience.
+`arbre_propre` vaut true si les exécutions et l'évaluation ont eu lieu sur le même commit,
+sans fichier non commité sous les chemins contrôlés de D18 (`whospoke.experiment.is_controlled`),
+d'après les listes `fichiers_non_commites` consignées par les exécutions.
+
+Mode `--requalifier` (D18, methode.md §4.2) : pour une expérience déjà évaluée, recalcule
+`arbre_propre` à partir des `fichiers_non_commites` consignés dans ses `execution_*.json`,
+et ajoute à chaque `results_*.json` un bloc `requalification` (date, règle, ancienne et
+nouvelle valeur). Les métriques, les per_file et le leaderboard ne sont pas modifiés.
 """
 
 from __future__ import annotations
@@ -18,6 +26,7 @@ import argparse
 import csv
 import json
 import sys
+from datetime import datetime
 from pathlib import Path
 
 import yaml
@@ -28,6 +37,7 @@ from whospoke.experiment import (
     REPO_ROOT,
     dataset_uris,
     git_state,
+    tree_is_clean,
     load_rttm,
     load_uem,
     processed_wav,
@@ -36,6 +46,7 @@ from whospoke.experiment import (
 )
 
 LEADERBOARD = REPO_ROOT / "results" / "leaderboard.csv"
+REQUALIFICATION_RULE = "D18"
 LEADERBOARD_COLUMNS = [
     "exp_id", "date", "slug", "reference", "variable_modifiee", "corpus", "partition",
     "pipeline", "mode_n_locuteurs", "der_c0", "manquee_c0", "fausse_alarme_c0",
@@ -76,14 +87,70 @@ def cpu_block(execution: dict | None) -> dict | None:
     }
 
 
+def runs_are_clean(runs: list[dict]) -> bool:
+    """Règle D18 appliquée aux exécutions : même commit, aucun chemin contrôlé non commité."""
+    commits = {run["git_commit"] for run in runs}
+    return len(commits) == 1 and all(tree_is_clean(run["fichiers_non_commites"]) for run in runs)
+
+
+def requalify(exp_dir: Path) -> None:
+    """Recalcule `arbre_propre` des results_*.json selon D18, sans toucher aux métriques."""
+    executions = sorted(exp_dir.glob("execution_*.json"))
+    if not executions:
+        sys.exit(f"Aucun execution_*.json dans {exp_dir}")
+    runs = [json.loads(path.read_text()) for path in executions]
+    new_value = runs_are_clean(runs)
+    results_files = sorted(exp_dir.glob("results_*.json"))
+    if not results_files:
+        sys.exit(f"Aucun results_*.json dans {exp_dir} : rien à requalifier")
+    date = datetime.now().astimezone().isoformat(timespec="seconds")
+    for path in results_files:
+        results = json.loads(path.read_text())
+        if results.get("requalification") is not None:
+            sys.exit(f"{path.name} a déjà été requalifié")
+        old_value = results["arbre_propre"]
+        block = {
+            "date": date,
+            "regle": REQUALIFICATION_RULE,
+            "ancienne_valeur": old_value,
+            "nouvelle_valeur": new_value,
+            "sources": [p.name for p in executions],
+        }
+        # Le bloc est inséré juste après `arbre_propre` ; l'ordre des autres clés est conservé.
+        updated = {}
+        for key, value in results.items():
+            updated[key] = new_value if key == "arbre_propre" else value
+            if key == "arbre_propre":
+                updated["requalification"] = block
+        path.write_text(json.dumps(updated, ensure_ascii=False, indent=2) + "\n")
+        print(f"[requalification] {path.name} : arbre_propre {old_value} -> {new_value}")
+
+
 def main() -> None:
-    parser = argparse.ArgumentParser(description=__doc__.splitlines()[0])
+    parser = argparse.ArgumentParser(
+        description=__doc__.splitlines()[0],
+        formatter_class=argparse.RawDescriptionHelpFormatter,
+        epilog="Voir l'en-tête du script et docs/decisions/D18-arbre-propre-et-precisions-protocole.md.",
+    )
     parser.add_argument("--exp", required=True, type=Path, help="dossier de l'expérience")
-    parser.add_argument("--leaderboard", type=Path, default=LEADERBOARD, help=argparse.SUPPRESS)
+    parser.add_argument(
+        "--leaderboard", type=Path, default=LEADERBOARD,
+        help="leaderboard à alimenter (défaut : results/leaderboard.csv) ; un autre chemin sert "
+             "aux essais à blanc, sans toucher au leaderboard du dépôt",
+    )
+    parser.add_argument(
+        "--requalifier", action="store_true",
+        help="recalcule arbre_propre d'une expérience déjà évaluée selon D18, à partir des "
+             "fichiers_non_commites de ses execution_*.json, et ajoute un bloc requalification "
+             "aux results_*.json ; métriques et leaderboard inchangés",
+    )
     args = parser.parse_args()
     leaderboard = args.leaderboard
 
     exp_dir = args.exp.resolve()
+    if args.requalifier:
+        requalify(exp_dir)
+        return
     config = yaml.safe_load((exp_dir / "config.yaml").read_text())
     main_run = json.loads((exp_dir / f"execution_{config['device']}.json").read_text())
     cpu_path = exp_dir / "execution_cpu.json"
@@ -96,9 +163,9 @@ def main() -> None:
         cpu_run = main_run
 
     runs = [main_run] + ([cpu_run] if cpu_run is not None and cpu_run is not main_run else [])
-    state = git_state(exclude=exp_dir)
+    state = git_state()
     commits = {run["git_commit"] for run in runs}
-    clean = all(run["arbre_propre"] for run in runs) and commits == {state["commit"]} and state["clean"]
+    clean = runs_are_clean(runs) and commits == {state["commit"]} and state["clean"]
     if not clean:
         print(f"[évaluation] arbre_propre = false (commits {commits}, HEAD {state['commit']}, "
               f"non commités : {state['dirty']})", file=sys.stderr)
