@@ -1,0 +1,42 @@
+# EXP-0008 — pyannote community-1, nombre de locuteurs oracle par fichier, SUMM-RE dev et test (D20 §6).
+# Seule variable par rapport à EXP-0007 : le nombre de locuteurs, lu dans la référence de
+# chaque fichier (locuteurs présents dans l'UEM) et passé à la pipeline (`num_speakers`)
+# à l'appel (D19 §4). Diagnostic (condition de D9), pas une pipeline candidate au rendu :
+# pas de mesure en CPU seul (protocole §3.5).
+exp_id: EXP-0008
+slug: pyannote-c1-summre-k-oracle
+reference: EXP-0007
+variable_modifiee: mode_n_locuteurs
+graine: 0                     # pipeline déterministe ; graine consignée par convention
+
+pipeline:
+  nom: pyannote-community-1   # pyannote/speaker-diarization-community-1, signal en mémoire (D16)
+  vad: integree               # segmentation de la pipeline, pas de VAD séparée
+  parametres:                 # aucune contrainte globale : nombre imposé fichier par fichier
+    num_speakers: null
+    min_speakers: null
+    max_speakers: null
+
+mode_n_locuteurs: oracle      # nombre de locuteurs de la référence, passé à l'appel
+detection_oracle: false
+
+device: mps
+prechauffage_s: 60            # extrait du premier fichier, non compté (protocole §3.5)
+
+jeux:
+  - corpus: summre
+    partition: dev
+    liste: data/splits/summre/dev.txt
+  - corpus: summre
+    partition: test
+    liste: data/splits/summre/test.txt
+
+evaluation:
+  references: data/processed/summre/rttm   # mots alignés, fusion à 200 ms, sans jetons non lexicaux (D20 §3, amendement 1)
+  uem: data/splits/summre/uem              # premier mot − 1 s, dernier mot + 1 s (D20 §3)
+  conditions: {collar_0: 0.0, collar_0_25: 0.5}
+  skip_overlap: false
+
+materiel:
+  machine: MacBook Pro M2 Pro
+  ram_go: 16
