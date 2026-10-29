@@ -1,0 +1,1741 @@
+{
+  "exp_id": "EXP-0009",
+  "mode": "complet",
+  "sous_ensemble": null,
+  "date_fin": "2026-10-29T16:39:40+01:00",
+  "git_commit": "568efbb7730f4d6bf78cfe9efe432647317c3e9c",
+  "arbre_propre": true,
+  "fichiers_non_commites": [
+    "experiments/EXP-0007_pyannote-c1-summre/execution_cpu.json",
+    "experiments/EXP-0007_pyannote-c1-summre/execution_mps.json",
+    "experiments/EXP-0007_pyannote-c1-summre/rttm/summre__004c_PAPH.rttm",
+    "experiments/EXP-0007_pyannote-c1-summre/rttm/summre__006b_EADH.rttm",
+    "experiments/EXP-0007_pyannote-c1-summre/rttm/summre__007a_ECRH.rttm",
+    "experiments/EXP-0007_pyannote-c1-summre/rttm/summre__008a_EARH.rttm",
+    "experiments/EXP-0007_pyannote-c1-summre/rttm/summre__011c_ECPL.rttm",
+    "experiments/EXP-0007_pyannote-c1-summre/rttm/summre__012c_EBPZ.rttm",
+    "experiments/EXP-0007_pyannote-c1-summre/rttm/summre__013c_EAPD.rttm",
+    "experiments/EXP-0007_pyannote-c1-summre/rttm/summre__014c_EAPD.rttm",
+    "experiments/EXP-0007_pyannote-c1-summre/rttm/summre__015b_EBDD.rttm",
+    "experiments/EXP-0007_pyannote-c1-summre/rttm/summre__016c_EBPZ.rttm",
+    "experiments/EXP-0007_pyannote-c1-summre/rttm/summre__017a_EBRZ.rttm",
+    "experiments/EXP-0007_pyannote-c1-summre/rttm/summre__018a_EARZ.rttm",
+    "experiments/EXP-0007_pyannote-c1-summre/rttm/summre__018b_EADZ.rttm",
+    "experiments/EXP-0007_pyannote-c1-summre/rttm/summre__019a_EARD.rttm",
+    "experiments/EXP-0007_pyannote-c1-summre/rttm/summre__019c_EAPD.rttm",
+    "experiments/EXP-0007_pyannote-c1-summre/rttm/summre__020b_EBDZ.rttm",
+    "experiments/EXP-0007_pyannote-c1-summre/rttm/summre__020c_EBPZ.rttm",
+    "experiments/EXP-0007_pyannote-c1-summre/rttm/summre__021a_EARD.rttm",
+    "experiments/EXP-0007_pyannote-c1-summre/rttm/summre__021b_EADD.rttm",
+    "experiments/EXP-0007_pyannote-c1-summre/rttm/summre__024c_EBPH.rttm",
+    "experiments/EXP-0007_pyannote-c1-summre/rttm/summre__025b_EBDH.rttm",
+    "experiments/EXP-0007_pyannote-c1-summre/rttm/summre__027a_EBRH.rttm",
+    "experiments/EXP-0007_pyannote-c1-summre/rttm/summre__032a_EARH.rttm",
+    "experiments/EXP-0007_pyannote-c1-summre/rttm/summre__032b_EADH.rttm",
+    "experiments/EXP-0007_pyannote-c1-summre/rttm/summre__033a_EBRH.rttm",
+    "experiments/EXP-0007_pyannote-c1-summre/rttm/summre__033c_EBPH.rttm",
+    "experiments/EXP-0007_pyannote-c1-summre/rttm/summre__034a_EBRH.rttm",
+    "experiments/EXP-0007_pyannote-c1-summre/rttm/summre__035b_EADH.rttm",
+    "experiments/EXP-0007_pyannote-c1-summre/rttm/summre__036b_EADH.rttm",
+    "experiments/EXP-0007_pyannote-c1-summre/rttm/summre__036c_EAPH.rttm",
+    "experiments/EXP-0007_pyannote-c1-summre/rttm/summre__037a_EARH.rttm",
+    "experiments/EXP-0007_pyannote-c1-summre/rttm/summre__039b_EDDH.rttm",
+    "experiments/EXP-0007_pyannote-c1-summre/rttm/summre__040a_EERH.rttm",
+    "experiments/EXP-0007_pyannote-c1-summre/rttm/summre__043a_EDRH.rttm",
+    "experiments/EXP-0007_pyannote-c1-summre/rttm/summre__044c_EBPH.rttm",
+    "experiments/EXP-0007_pyannote-c1-summre/rttm/summre__045a_EARH.rttm",
+    "experiments/EXP-0007_pyannote-c1-summre/rttm/summre__045b_EADH.rttm",
+    "experiments/EXP-0007_pyannote-c1-summre/rttm/summre__046c_EBPH.rttm",
+    "experiments/EXP-0007_pyannote-c1-summre/rttm/summre__047a_EDRH.rttm",
+    "experiments/EXP-0007_pyannote-c1-summre/rttm/summre__047c_EDPH.rttm",
+    "experiments/EXP-0007_pyannote-c1-summre/rttm/summre__049b_EBDH.rttm",
+    "experiments/EXP-0007_pyannote-c1-summre/rttm/summre__050c_EEPH.rttm",
+    "experiments/EXP-0007_pyannote-c1-summre/rttm/summre__051a_EARH.rttm",
+    "experiments/EXP-0007_pyannote-c1-summre/rttm/summre__053b_EDDH.rttm",
+    "experiments/EXP-0007_pyannote-c1-summre/rttm/summre__054a_EARH.rttm",
+    "experiments/EXP-0007_pyannote-c1-summre/rttm/summre__054c_EAPH.rttm",
+    "experiments/EXP-0007_pyannote-c1-summre/rttm/summre__059b_EBDH.rttm",
+    "experiments/EXP-0007_pyannote-c1-summre/rttm/summre__060a_EDRH.rttm",
+    "experiments/EXP-0007_pyannote-c1-summre/rttm/summre__066a_EARH.rttm",
+    "experiments/EXP-0007_pyannote-c1-summre/rttm/summre__069b_EEDL.rttm",
+    "experiments/EXP-0007_pyannote-c1-summre/rttm/summre__069c_EEPL.rttm",
+    "experiments/EXP-0007_pyannote-c1-summre/rttm/summre__070a_EBRL.rttm",
+    "experiments/EXP-0007_pyannote-c1-summre/rttm/summre__070b_EBDL.rttm",
+    "experiments/EXP-0007_pyannote-c1-summre/rttm/summre__072b_EEDH.rttm",
+    "experiments/EXP-0007_pyannote-c1-summre/rttm/summre__072c_EEPH.rttm",
+    "experiments/EXP-0007_pyannote-c1-summre/rttm/summre__074c_EAPH.rttm",
+    "experiments/EXP-0007_pyannote-c1-summre/rttm/summre__075b_EBDH.rttm",
+    "experiments/EXP-0007_pyannote-c1-summre/rttm/summre__076b_EEDH.rttm",
+    "experiments/EXP-0007_pyannote-c1-summre/rttm/summre__077c_EBPH.rttm",
+    "experiments/EXP-0007_pyannote-c1-summre/rttm/summre__080b_EBDH.rttm",
+    "experiments/EXP-0007_pyannote-c1-summre/rttm/summre__081a_EBRH.rttm",
+    "experiments/EXP-0007_pyannote-c1-summre/rttm/summre__081c_EBPH.rttm",
+    "experiments/EXP-0007_pyannote-c1-summre/rttm/summre__084c_EBPH.rttm",
+    "experiments/EXP-0007_pyannote-c1-summre/rttm/summre__088b_EADH.rttm",
+    "experiments/EXP-0007_pyannote-c1-summre/rttm/summre__091b_EBDH.rttm",
+    "experiments/EXP-0007_pyannote-c1-summre/rttm/summre__093c_EBPZ.rttm",
+    "experiments/EXP-0007_pyannote-c1-summre/rttm/summre__097b_EBDH.rttm",
+    "experiments/EXP-0007_pyannote-c1-summre/rttm/summre__097c_EBPH.rttm",
+    "experiments/EXP-0007_pyannote-c1-summre/rttm/summre__100b_EADH.rttm",
+    "experiments/EXP-0007_pyannote-c1-summre/rttm/summre__101c_EDPH.rttm",
+    "experiments/EXP-0007_pyannote-c1-summre/rttm/summre__102a_EBRH.rttm",
+    "experiments/EXP-0007_pyannote-c1-summre/rttm/summre__102c_EBPH.rttm",
+    "experiments/EXP-0007_pyannote-c1-summre/rttm/summre__104b_EADH.rttm",
+    "experiments/EXP-0007_pyannote-c1-summre/run.log",
+    "experiments/EXP-0008_pyannote-c1-summre-k-oracle/execution_mps.json",
+    "experiments/EXP-0008_pyannote-c1-summre-k-oracle/rttm/summre__004c_PAPH.rttm",
+    "experiments/EXP-0008_pyannote-c1-summre-k-oracle/rttm/summre__006b_EADH.rttm",
+    "experiments/EXP-0008_pyannote-c1-summre-k-oracle/rttm/summre__007a_ECRH.rttm",
+    "experiments/EXP-0008_pyannote-c1-summre-k-oracle/rttm/summre__008a_EARH.rttm",
+    "experiments/EXP-0008_pyannote-c1-summre-k-oracle/rttm/summre__011c_ECPL.rttm",
+    "experiments/EXP-0008_pyannote-c1-summre-k-oracle/rttm/summre__012c_EBPZ.rttm",
+    "experiments/EXP-0008_pyannote-c1-summre-k-oracle/rttm/summre__013c_EAPD.rttm",
+    "experiments/EXP-0008_pyannote-c1-summre-k-oracle/rttm/summre__014c_EAPD.rttm",
+    "experiments/EXP-0008_pyannote-c1-summre-k-oracle/rttm/summre__015b_EBDD.rttm",
+    "experiments/EXP-0008_pyannote-c1-summre-k-oracle/rttm/summre__016c_EBPZ.rttm",
+    "experiments/EXP-0008_pyannote-c1-summre-k-oracle/rttm/summre__017a_EBRZ.rttm",
+    "experiments/EXP-0008_pyannote-c1-summre-k-oracle/rttm/summre__018a_EARZ.rttm",
+    "experiments/EXP-0008_pyannote-c1-summre-k-oracle/rttm/summre__018b_EADZ.rttm",
+    "experiments/EXP-0008_pyannote-c1-summre-k-oracle/rttm/summre__019a_EARD.rttm",
+    "experiments/EXP-0008_pyannote-c1-summre-k-oracle/rttm/summre__019c_EAPD.rttm",
+    "experiments/EXP-0008_pyannote-c1-summre-k-oracle/rttm/summre__020b_EBDZ.rttm",
+    "experiments/EXP-0008_pyannote-c1-summre-k-oracle/rttm/summre__020c_EBPZ.rttm",
+    "experiments/EXP-0008_pyannote-c1-summre-k-oracle/rttm/summre__021a_EARD.rttm",
+    "experiments/EXP-0008_pyannote-c1-summre-k-oracle/rttm/summre__021b_EADD.rttm",
+    "experiments/EXP-0008_pyannote-c1-summre-k-oracle/rttm/summre__024c_EBPH.rttm",
+    "experiments/EXP-0008_pyannote-c1-summre-k-oracle/rttm/summre__025b_EBDH.rttm",
+    "experiments/EXP-0008_pyannote-c1-summre-k-oracle/rttm/summre__027a_EBRH.rttm",
+    "experiments/EXP-0008_pyannote-c1-summre-k-oracle/rttm/summre__032a_EARH.rttm",
+    "experiments/EXP-0008_pyannote-c1-summre-k-oracle/rttm/summre__032b_EADH.rttm",
+    "experiments/EXP-0008_pyannote-c1-summre-k-oracle/rttm/summre__033a_EBRH.rttm",
+    "experiments/EXP-0008_pyannote-c1-summre-k-oracle/rttm/summre__033c_EBPH.rttm",
+    "experiments/EXP-0008_pyannote-c1-summre-k-oracle/rttm/summre__034a_EBRH.rttm",
+    "experiments/EXP-0008_pyannote-c1-summre-k-oracle/rttm/summre__035b_EADH.rttm",
+    "experiments/EXP-0008_pyannote-c1-summre-k-oracle/rttm/summre__036b_EADH.rttm",
+    "experiments/EXP-0008_pyannote-c1-summre-k-oracle/rttm/summre__036c_EAPH.rttm",
+    "experiments/EXP-0008_pyannote-c1-summre-k-oracle/rttm/summre__037a_EARH.rttm",
+    "experiments/EXP-0008_pyannote-c1-summre-k-oracle/rttm/summre__039b_EDDH.rttm",
+    "experiments/EXP-0008_pyannote-c1-summre-k-oracle/rttm/summre__040a_EERH.rttm",
+    "experiments/EXP-0008_pyannote-c1-summre-k-oracle/rttm/summre__043a_EDRH.rttm",
+    "experiments/EXP-0008_pyannote-c1-summre-k-oracle/rttm/summre__044c_EBPH.rttm",
+    "experiments/EXP-0008_pyannote-c1-summre-k-oracle/rttm/summre__045a_EARH.rttm",
+    "experiments/EXP-0008_pyannote-c1-summre-k-oracle/rttm/summre__045b_EADH.rttm",
+    "experiments/EXP-0008_pyannote-c1-summre-k-oracle/rttm/summre__046c_EBPH.rttm",
+    "experiments/EXP-0008_pyannote-c1-summre-k-oracle/rttm/summre__047a_EDRH.rttm",
+    "experiments/EXP-0008_pyannote-c1-summre-k-oracle/rttm/summre__047c_EDPH.rttm",
+    "experiments/EXP-0008_pyannote-c1-summre-k-oracle/rttm/summre__049b_EBDH.rttm",
+    "experiments/EXP-0008_pyannote-c1-summre-k-oracle/rttm/summre__050c_EEPH.rttm",
+    "experiments/EXP-0008_pyannote-c1-summre-k-oracle/rttm/summre__051a_EARH.rttm",
+    "experiments/EXP-0008_pyannote-c1-summre-k-oracle/rttm/summre__053b_EDDH.rttm",
+    "experiments/EXP-0008_pyannote-c1-summre-k-oracle/rttm/summre__054a_EARH.rttm",
+    "experiments/EXP-0008_pyannote-c1-summre-k-oracle/rttm/summre__054c_EAPH.rttm",
+    "experiments/EXP-0008_pyannote-c1-summre-k-oracle/rttm/summre__059b_EBDH.rttm",
+    "experiments/EXP-0008_pyannote-c1-summre-k-oracle/rttm/summre__060a_EDRH.rttm",
+    "experiments/EXP-0008_pyannote-c1-summre-k-oracle/rttm/summre__066a_EARH.rttm",
+    "experiments/EXP-0008_pyannote-c1-summre-k-oracle/rttm/summre__069b_EEDL.rttm",
+    "experiments/EXP-0008_pyannote-c1-summre-k-oracle/rttm/summre__069c_EEPL.rttm",
+    "experiments/EXP-0008_pyannote-c1-summre-k-oracle/rttm/summre__070a_EBRL.rttm",
+    "experiments/EXP-0008_pyannote-c1-summre-k-oracle/rttm/summre__070b_EBDL.rttm",
+    "experiments/EXP-0008_pyannote-c1-summre-k-oracle/rttm/summre__072b_EEDH.rttm",
+    "experiments/EXP-0008_pyannote-c1-summre-k-oracle/rttm/summre__072c_EEPH.rttm",
+    "experiments/EXP-0008_pyannote-c1-summre-k-oracle/rttm/summre__074c_EAPH.rttm",
+    "experiments/EXP-0008_pyannote-c1-summre-k-oracle/rttm/summre__075b_EBDH.rttm",
+    "experiments/EXP-0008_pyannote-c1-summre-k-oracle/rttm/summre__076b_EEDH.rttm",
+    "experiments/EXP-0008_pyannote-c1-summre-k-oracle/rttm/summre__077c_EBPH.rttm",
+    "experiments/EXP-0008_pyannote-c1-summre-k-oracle/rttm/summre__080b_EBDH.rttm",
+    "experiments/EXP-0008_pyannote-c1-summre-k-oracle/rttm/summre__081a_EBRH.rttm",
+    "experiments/EXP-0008_pyannote-c1-summre-k-oracle/rttm/summre__081c_EBPH.rttm",
+    "experiments/EXP-0008_pyannote-c1-summre-k-oracle/rttm/summre__084c_EBPH.rttm",
+    "experiments/EXP-0008_pyannote-c1-summre-k-oracle/rttm/summre__088b_EADH.rttm",
+    "experiments/EXP-0008_pyannote-c1-summre-k-oracle/rttm/summre__091b_EBDH.rttm",
+    "experiments/EXP-0008_pyannote-c1-summre-k-oracle/rttm/summre__093c_EBPZ.rttm",
+    "experiments/EXP-0008_pyannote-c1-summre-k-oracle/rttm/summre__097b_EBDH.rttm",
+    "experiments/EXP-0008_pyannote-c1-summre-k-oracle/rttm/summre__097c_EBPH.rttm",
+    "experiments/EXP-0008_pyannote-c1-summre-k-oracle/rttm/summre__100b_EADH.rttm",
+    "experiments/EXP-0008_pyannote-c1-summre-k-oracle/rttm/summre__101c_EDPH.rttm",
+    "experiments/EXP-0008_pyannote-c1-summre-k-oracle/rttm/summre__102a_EBRH.rttm",
+    "experiments/EXP-0008_pyannote-c1-summre-k-oracle/rttm/summre__102c_EBPH.rttm",
+    "experiments/EXP-0008_pyannote-c1-summre-k-oracle/rttm/summre__104b_EADH.rttm",
+    "experiments/EXP-0008_pyannote-c1-summre-k-oracle/run.log",
+    "experiments/EXP-0009_baseline-mfcc-summre/run.log"
+  ],
+  "config_sha256": "cd17be94dfbbee7014ac502f0e727a84f5222ba765b96bcb72e4602f0f2d4bb0",
+  "device": "cpu",
+  "torch_threads": 6,
+  "versions": {
+    "python": "3.11.15",
+    "torch": "2.14.1",
+    "pyannote.audio": "4.0.7",
+    "librosa": "0.11.0"
+  },
+  "mode_n_locuteurs": "estime",
+  "detection_oracle": false,
+  "trace": true,
+  "balayage": {
+    "parametre": "theta",
+    "corpus": "summre",
+    "partition": "dev",
+    "valeurs": [
+      0.1,
+      0.15,
+      0.2,
+      0.25,
+      0.3,
+      0.35,
+      0.4,
+      0.45,
+      0.5,
+      0.55,
+      0.6,
+      0.65,
+      0.7,
+      0.75,
+      0.8,
+      0.85,
+      0.9,
+      0.95,
+      1.0,
+      1.05,
+      1.1,
+      1.15,
+      1.2,
+      1.25,
+      1.3,
+      1.35,
+      1.4,
+      1.45,
+      1.5
+    ],
+    "critere": "der collar_0 minimal",
+    "valeur_retenue": 1.0,
+    "der_c0_retenu": 46.54,
+    "fichier": "balayage_summre_dev.csv",
+    "preparation_s": 35.379,
+    "calcul_s": 785.996
+  },
+  "configuration_effective": {
+    "analyse": [
+      {
+        "nom": "frame_s",
+        "valeur": 0.025,
+        "origine": "defaut"
+      },
+      {
+        "nom": "hop_s",
+        "valeur": 0.01,
+        "origine": "defaut"
+      },
+      {
+        "nom": "n_mfcc",
+        "valeur": 20,
+        "origine": "defaut"
+      },
+      {
+        "nom": "n_mels",
+        "valeur": 40,
+        "origine": "defaut"
+      }
+    ],
+    "normalisation_cepstrale": [
+      {
+        "nom": "cmn",
+        "valeur": true,
+        "origine": "defaut"
+      }
+    ],
+    "detection": [
+      {
+        "nom": "alpha",
+        "valeur": 0.3,
+        "origine": "defaut"
+      },
+      {
+        "nom": "floor_percentile",
+        "valeur": 10.0,
+        "origine": "defaut"
+      },
+      {
+        "nom": "level_percentile",
+        "valeur": 90.0,
+        "origine": "defaut"
+      },
+      {
+        "nom": "median_frames",
+        "valeur": 11,
+        "origine": "defaut"
+      },
+      {
+        "nom": "min_speech_s",
+        "valeur": 0.3,
+        "origine": "defaut"
+      },
+      {
+        "nom": "min_silence_s",
+        "valeur": 0.2,
+        "origine": "defaut"
+      }
+    ],
+    "segmentation": [
+      {
+        "nom": "window_s",
+        "valeur": 1.5,
+        "origine": "defaut"
+      },
+      {
+        "nom": "window_step_s",
+        "valeur": 0.75,
+        "origine": "defaut"
+      },
+      {
+        "nom": "min_window_speech",
+        "valeur": 0.5,
+        "origine": "defaut"
+      },
+      {
+        "nom": "min_region_s",
+        "valeur": 0.5,
+        "origine": "defaut"
+      }
+    ],
+    "representation": [
+      {
+        "nom": "representation",
+        "valeur": "moyenne et écart-type des MFCC des trames de parole, centrés-réduits",
+        "origine": "code"
+      }
+    ],
+    "regroupement": [
+      {
+        "nom": "metric",
+        "valeur": "cosine",
+        "origine": "defaut"
+      },
+      {
+        "nom": "linkage",
+        "valeur": "average",
+        "origine": "defaut"
+      },
+      {
+        "nom": "theta",
+        "valeur": 1.0,
+        "origine": "experience"
+      },
+      {
+        "nom": "n_locuteurs",
+        "valeur": "estimé (coupe à θ)",
+        "origine": "experience"
+      }
+    ],
+    "attribution": [
+      {
+        "nom": "merge_gap_s",
+        "valeur": 0.2,
+        "origine": "defaut"
+      }
+    ],
+    "sortie": [
+      {
+        "nom": "sortie.chevauchement",
+        "valeur": false,
+        "origine": "code"
+      }
+    ]
+  },
+  "chargement_modeles_s": 0.0,
+  "prechauffage": {
+    "uri": "summre__004c_PAPH",
+    "duree_s": 60.0
+  },
+  "duree_audio_s": 86622.454,
+  "calcul_s": 78.035,
+  "rtf": 0.0009,
+  "fichiers": [
+    {
+      "uri": "summre__004c_PAPH",
+      "corpus": "summre",
+      "partition": "dev",
+      "duree_audio_s": 1263.667,
+      "calcul_s": 1.252,
+      "rtf": 0.001,
+      "n_locuteurs_hypothese": 3,
+      "n_locuteurs_impose": null,
+      "etapes_s": {
+        "analyse": 0.684,
+        "normalisation_cepstrale": 0.002,
+        "detection": 0.004,
+        "segmentation": 0.001,
+        "representation": 0.455,
+        "regroupement": 0.033,
+        "attribution": 0.01
+      }
+    },
+    {
+      "uri": "summre__006b_EADH",
+      "corpus": "summre",
+      "partition": "dev",
+      "duree_audio_s": 1281.376,
+      "calcul_s": 1.247,
+      "rtf": 0.001,
+      "n_locuteurs_hypothese": 2,
+      "n_locuteurs_impose": null,
+      "etapes_s": {
+        "analyse": 0.599,
+        "normalisation_cepstrale": 0.002,
+        "detection": 0.005,
+        "segmentation": 0.001,
+        "representation": 0.521,
+        "regroupement": 0.034,
+        "attribution": 0.009
+      }
+    },
+    {
+      "uri": "summre__011c_ECPL",
+      "corpus": "summre",
+      "partition": "dev",
+      "duree_audio_s": 1016.72,
+      "calcul_s": 0.795,
+      "rtf": 0.0008,
+      "n_locuteurs_hypothese": 3,
+      "n_locuteurs_impose": null,
+      "etapes_s": {
+        "analyse": 0.436,
+        "normalisation_cepstrale": 0.003,
+        "detection": 0.004,
+        "segmentation": 0.0,
+        "representation": 0.287,
+        "regroupement": 0.015,
+        "attribution": 0.007
+      }
+    },
+    {
+      "uri": "summre__015b_EBDD",
+      "corpus": "summre",
+      "partition": "dev",
+      "duree_audio_s": 1295.453,
+      "calcul_s": 1.215,
+      "rtf": 0.0009,
+      "n_locuteurs_hypothese": 2,
+      "n_locuteurs_impose": null,
+      "etapes_s": {
+        "analyse": 0.592,
+        "normalisation_cepstrale": 0.003,
+        "detection": 0.005,
+        "segmentation": 0.001,
+        "representation": 0.524,
+        "regroupement": 0.033,
+        "attribution": 0.009
+      }
+    },
+    {
+      "uri": "summre__017a_EBRZ",
+      "corpus": "summre",
+      "partition": "dev",
+      "duree_audio_s": 748.877,
+      "calcul_s": 0.559,
+      "rtf": 0.0007,
+      "n_locuteurs_hypothese": 3,
+      "n_locuteurs_impose": null,
+      "etapes_s": {
+        "analyse": 0.292,
+        "normalisation_cepstrale": 0.002,
+        "detection": 0.003,
+        "segmentation": 0.0,
+        "representation": 0.212,
+        "regroupement": 0.009,
+        "attribution": 0.009
+      }
+    },
+    {
+      "uri": "summre__018a_EARZ",
+      "corpus": "summre",
+      "partition": "dev",
+      "duree_audio_s": 1317.716,
+      "calcul_s": 1.317,
+      "rtf": 0.001,
+      "n_locuteurs_hypothese": 3,
+      "n_locuteurs_impose": null,
+      "etapes_s": {
+        "analyse": 0.622,
+        "normalisation_cepstrale": 0.004,
+        "detection": 0.005,
+        "segmentation": 0.001,
+        "representation": 0.556,
+        "regroupement": 0.039,
+        "attribution": 0.009
+      }
+    },
+    {
+      "uri": "summre__018b_EADZ",
+      "corpus": "summre",
+      "partition": "dev",
+      "duree_audio_s": 1163.016,
+      "calcul_s": 1.035,
+      "rtf": 0.0009,
+      "n_locuteurs_hypothese": 2,
+      "n_locuteurs_impose": null,
+      "etapes_s": {
+        "analyse": 0.523,
+        "normalisation_cepstrale": 0.003,
+        "detection": 0.003,
+        "segmentation": 0.001,
+        "representation": 0.426,
+        "regroupement": 0.028,
+        "attribution": 0.008
+      }
+    },
+    {
+      "uri": "summre__020b_EBDZ",
+      "corpus": "summre",
+      "partition": "dev",
+      "duree_audio_s": 1101.147,
+      "calcul_s": 0.94,
+      "rtf": 0.0009,
+      "n_locuteurs_hypothese": 3,
+      "n_locuteurs_impose": null,
+      "etapes_s": {
+        "analyse": 0.541,
+        "normalisation_cepstrale": 0.001,
+        "detection": 0.004,
+        "segmentation": 0.001,
+        "representation": 0.326,
+        "regroupement": 0.019,
+        "attribution": 0.007
+      }
+    },
+    {
+      "uri": "summre__020c_EBPZ",
+      "corpus": "summre",
+      "partition": "dev",
+      "duree_audio_s": 1094.332,
+      "calcul_s": 0.865,
+      "rtf": 0.0008,
+      "n_locuteurs_hypothese": 2,
+      "n_locuteurs_impose": null,
+      "etapes_s": {
+        "analyse": 0.448,
+        "normalisation_cepstrale": 0.001,
+        "detection": 0.004,
+        "segmentation": 0.001,
+        "representation": 0.349,
+        "regroupement": 0.018,
+        "attribution": 0.007
+      }
+    },
+    {
+      "uri": "summre__021a_EARD",
+      "corpus": "summre",
+      "partition": "dev",
+      "duree_audio_s": 1126.383,
+      "calcul_s": 0.957,
+      "rtf": 0.0008,
+      "n_locuteurs_hypothese": 2,
+      "n_locuteurs_impose": null,
+      "etapes_s": {
+        "analyse": 0.514,
+        "normalisation_cepstrale": 0.001,
+        "detection": 0.004,
+        "segmentation": 0.001,
+        "representation": 0.367,
+        "regroupement": 0.023,
+        "attribution": 0.007
+      }
+    },
+    {
+      "uri": "summre__021b_EADD",
+      "corpus": "summre",
+      "partition": "dev",
+      "duree_audio_s": 1111.525,
+      "calcul_s": 0.958,
+      "rtf": 0.0009,
+      "n_locuteurs_hypothese": 3,
+      "n_locuteurs_impose": null,
+      "etapes_s": {
+        "analyse": 0.461,
+        "normalisation_cepstrale": 0.002,
+        "detection": 0.004,
+        "segmentation": 0.001,
+        "representation": 0.418,
+        "regroupement": 0.028,
+        "attribution": 0.009
+      }
+    },
+    {
+      "uri": "summre__027a_EBRH",
+      "corpus": "summre",
+      "partition": "dev",
+      "duree_audio_s": 1327.065,
+      "calcul_s": 1.244,
+      "rtf": 0.0009,
+      "n_locuteurs_hypothese": 3,
+      "n_locuteurs_impose": null,
+      "etapes_s": {
+        "analyse": 0.62,
+        "normalisation_cepstrale": 0.004,
+        "detection": 0.01,
+        "segmentation": 0.001,
+        "representation": 0.516,
+        "regroupement": 0.034,
+        "attribution": 0.009
+      }
+    },
+    {
+      "uri": "summre__032a_EARH",
+      "corpus": "summre",
+      "partition": "dev",
+      "duree_audio_s": 1180.746,
+      "calcul_s": 0.961,
+      "rtf": 0.0008,
+      "n_locuteurs_hypothese": 2,
+      "n_locuteurs_impose": null,
+      "etapes_s": {
+        "analyse": 0.498,
+        "normalisation_cepstrale": 0.002,
+        "detection": 0.005,
+        "segmentation": 0.001,
+        "representation": 0.377,
+        "regroupement": 0.023,
+        "attribution": 0.008
+      }
+    },
+    {
+      "uri": "summre__032b_EADH",
+      "corpus": "summre",
+      "partition": "dev",
+      "duree_audio_s": 1226.158,
+      "calcul_s": 0.986,
+      "rtf": 0.0008,
+      "n_locuteurs_hypothese": 3,
+      "n_locuteurs_impose": null,
+      "etapes_s": {
+        "analyse": 0.527,
+        "normalisation_cepstrale": 0.002,
+        "detection": 0.005,
+        "segmentation": 0.001,
+        "representation": 0.38,
+        "regroupement": 0.021,
+        "attribution": 0.008
+      }
+    },
+    {
+      "uri": "summre__033a_EBRH",
+      "corpus": "summre",
+      "partition": "dev",
+      "duree_audio_s": 1267.428,
+      "calcul_s": 1.508,
+      "rtf": 0.0012,
+      "n_locuteurs_hypothese": 3,
+      "n_locuteurs_impose": null,
+      "etapes_s": {
+        "analyse": 0.877,
+        "normalisation_cepstrale": 0.007,
+        "detection": 0.007,
+        "segmentation": 0.001,
+        "representation": 0.518,
+        "regroupement": 0.037,
+        "attribution": 0.01
+      }
+    },
+    {
+      "uri": "summre__033c_EBPH",
+      "corpus": "summre",
+      "partition": "dev",
+      "duree_audio_s": 1242.259,
+      "calcul_s": 1.183,
+      "rtf": 0.001,
+      "n_locuteurs_hypothese": 3,
+      "n_locuteurs_impose": null,
+      "etapes_s": {
+        "analyse": 0.579,
+        "normalisation_cepstrale": 0.003,
+        "detection": 0.005,
+        "segmentation": 0.001,
+        "representation": 0.503,
+        "regroupement": 0.036,
+        "attribution": 0.009
+      }
+    },
+    {
+      "uri": "summre__034a_EBRH",
+      "corpus": "summre",
+      "partition": "dev",
+      "duree_audio_s": 1256.3,
+      "calcul_s": 1.14,
+      "rtf": 0.0009,
+      "n_locuteurs_hypothese": 3,
+      "n_locuteurs_impose": null,
+      "etapes_s": {
+        "analyse": 0.581,
+        "normalisation_cepstrale": 0.007,
+        "detection": 0.006,
+        "segmentation": 0.001,
+        "representation": 0.456,
+        "regroupement": 0.028,
+        "attribution": 0.009
+      }
+    },
+    {
+      "uri": "summre__035b_EADH",
+      "corpus": "summre",
+      "partition": "dev",
+      "duree_audio_s": 1188.292,
+      "calcul_s": 1.098,
+      "rtf": 0.0009,
+      "n_locuteurs_hypothese": 3,
+      "n_locuteurs_impose": null,
+      "etapes_s": {
+        "analyse": 0.519,
+        "normalisation_cepstrale": 0.002,
+        "detection": 0.005,
+        "segmentation": 0.001,
+        "representation": 0.494,
+        "regroupement": 0.025,
+        "attribution": 0.009
+      }
+    },
+    {
+      "uri": "summre__036b_EADH",
+      "corpus": "summre",
+      "partition": "dev",
+      "duree_audio_s": 1142.487,
+      "calcul_s": 1.035,
+      "rtf": 0.0009,
+      "n_locuteurs_hypothese": 2,
+      "n_locuteurs_impose": null,
+      "etapes_s": {
+        "analyse": 0.543,
+        "normalisation_cepstrale": 0.002,
+        "detection": 0.005,
+        "segmentation": 0.001,
+        "representation": 0.387,
+        "regroupement": 0.023,
+        "attribution": 0.009
+      }
+    },
+    {
+      "uri": "summre__036c_EAPH",
+      "corpus": "summre",
+      "partition": "dev",
+      "duree_audio_s": 1607.75,
+      "calcul_s": 2.053,
+      "rtf": 0.0013,
+      "n_locuteurs_hypothese": 3,
+      "n_locuteurs_impose": null,
+      "etapes_s": {
+        "analyse": 1.185,
+        "normalisation_cepstrale": 0.007,
+        "detection": 0.008,
+        "segmentation": 0.001,
+        "representation": 0.724,
+        "regroupement": 0.047,
+        "attribution": 0.012
+      }
+    },
+    {
+      "uri": "summre__037a_EARH",
+      "corpus": "summre",
+      "partition": "dev",
+      "duree_audio_s": 1207.941,
+      "calcul_s": 1.112,
+      "rtf": 0.0009,
+      "n_locuteurs_hypothese": 2,
+      "n_locuteurs_impose": null,
+      "etapes_s": {
+        "analyse": 0.571,
+        "normalisation_cepstrale": 0.003,
+        "detection": 0.005,
+        "segmentation": 0.001,
+        "representation": 0.445,
+        "regroupement": 0.03,
+        "attribution": 0.008
+      }
+    },
+    {
+      "uri": "summre__040a_EERH",
+      "corpus": "summre",
+      "partition": "dev",
+      "duree_audio_s": 1393.163,
+      "calcul_s": 1.412,
+      "rtf": 0.001,
+      "n_locuteurs_hypothese": 4,
+      "n_locuteurs_impose": null,
+      "etapes_s": {
+        "analyse": 0.623,
+        "normalisation_cepstrale": 0.002,
+        "detection": 0.118,
+        "segmentation": 0.001,
+        "representation": 0.563,
+        "regroupement": 0.033,
+        "attribution": 0.01
+      }
+    },
+    {
+      "uri": "summre__043a_EDRH",
+      "corpus": "summre",
+      "partition": "dev",
+      "duree_audio_s": 987.018,
+      "calcul_s": 0.781,
+      "rtf": 0.0008,
+      "n_locuteurs_hypothese": 3,
+      "n_locuteurs_impose": null,
+      "etapes_s": {
+        "analyse": 0.435,
+        "normalisation_cepstrale": 0.002,
+        "detection": 0.004,
+        "segmentation": 0.0,
+        "representation": 0.277,
+        "regroupement": 0.016,
+        "attribution": 0.007
+      }
+    },
+    {
+      "uri": "summre__044c_EBPH",
+      "corpus": "summre",
+      "partition": "dev",
+      "duree_audio_s": 1106.662,
+      "calcul_s": 0.922,
+      "rtf": 0.0008,
+      "n_locuteurs_hypothese": 3,
+      "n_locuteurs_impose": null,
+      "etapes_s": {
+        "analyse": 0.483,
+        "normalisation_cepstrale": 0.001,
+        "detection": 0.004,
+        "segmentation": 0.001,
+        "representation": 0.362,
+        "regroupement": 0.022,
+        "attribution": 0.008
+      }
+    },
+    {
+      "uri": "summre__066a_EARH",
+      "corpus": "summre",
+      "partition": "dev",
+      "duree_audio_s": 1031.779,
+      "calcul_s": 0.889,
+      "rtf": 0.0009,
+      "n_locuteurs_hypothese": 3,
+      "n_locuteurs_impose": null,
+      "etapes_s": {
+        "analyse": 0.483,
+        "normalisation_cepstrale": 0.002,
+        "detection": 0.004,
+        "segmentation": 0.001,
+        "representation": 0.324,
+        "regroupement": 0.032,
+        "attribution": 0.008
+      }
+    },
+    {
+      "uri": "summre__069b_EEDL",
+      "corpus": "summre",
+      "partition": "dev",
+      "duree_audio_s": 1157.635,
+      "calcul_s": 1.092,
+      "rtf": 0.0009,
+      "n_locuteurs_hypothese": 3,
+      "n_locuteurs_impose": null,
+      "etapes_s": {
+        "analyse": 0.514,
+        "normalisation_cepstrale": 0.003,
+        "detection": 0.004,
+        "segmentation": 0.001,
+        "representation": 0.486,
+        "regroupement": 0.031,
+        "attribution": 0.008
+      }
+    },
+    {
+      "uri": "summre__069c_EEPL",
+      "corpus": "summre",
+      "partition": "dev",
+      "duree_audio_s": 1261.308,
+      "calcul_s": 1.299,
+      "rtf": 0.001,
+      "n_locuteurs_hypothese": 4,
+      "n_locuteurs_impose": null,
+      "etapes_s": {
+        "analyse": 0.711,
+        "normalisation_cepstrale": 0.002,
+        "detection": 0.005,
+        "segmentation": 0.001,
+        "representation": 0.491,
+        "regroupement": 0.033,
+        "attribution": 0.009
+      }
+    },
+    {
+      "uri": "summre__075b_EBDH",
+      "corpus": "summre",
+      "partition": "dev",
+      "duree_audio_s": 1018.842,
+      "calcul_s": 0.765,
+      "rtf": 0.0008,
+      "n_locuteurs_hypothese": 3,
+      "n_locuteurs_impose": null,
+      "etapes_s": {
+        "analyse": 0.411,
+        "normalisation_cepstrale": 0.001,
+        "detection": 0.004,
+        "segmentation": 0.001,
+        "representation": 0.283,
+        "regroupement": 0.018,
+        "attribution": 0.007
+      }
+    },
+    {
+      "uri": "summre__081a_EBRH",
+      "corpus": "summre",
+      "partition": "dev",
+      "duree_audio_s": 1208.174,
+      "calcul_s": 1.044,
+      "rtf": 0.0009,
+      "n_locuteurs_hypothese": 3,
+      "n_locuteurs_impose": null,
+      "etapes_s": {
+        "analyse": 0.529,
+        "normalisation_cepstrale": 0.002,
+        "detection": 0.005,
+        "segmentation": 0.001,
+        "representation": 0.432,
+        "regroupement": 0.027,
+        "attribution": 0.009
+      }
+    },
+    {
+      "uri": "summre__081c_EBPH",
+      "corpus": "summre",
+      "partition": "dev",
+      "duree_audio_s": 1235.307,
+      "calcul_s": 1.072,
+      "rtf": 0.0009,
+      "n_locuteurs_hypothese": 3,
+      "n_locuteurs_impose": null,
+      "etapes_s": {
+        "analyse": 0.564,
+        "normalisation_cepstrale": 0.002,
+        "detection": 0.005,
+        "segmentation": 0.001,
+        "representation": 0.418,
+        "regroupement": 0.025,
+        "attribution": 0.009
+      }
+    },
+    {
+      "uri": "summre__084c_EBPH",
+      "corpus": "summre",
+      "partition": "dev",
+      "duree_audio_s": 1203.192,
+      "calcul_s": 1.014,
+      "rtf": 0.0008,
+      "n_locuteurs_hypothese": 4,
+      "n_locuteurs_impose": null,
+      "etapes_s": {
+        "analyse": 0.563,
+        "normalisation_cepstrale": 0.001,
+        "detection": 0.007,
+        "segmentation": 0.001,
+        "representation": 0.372,
+        "regroupement": 0.021,
+        "attribution": 0.008
+      }
+    },
+    {
+      "uri": "summre__091b_EBDH",
+      "corpus": "summre",
+      "partition": "dev",
+      "duree_audio_s": 1154.856,
+      "calcul_s": 1.281,
+      "rtf": 0.0011,
+      "n_locuteurs_hypothese": 2,
+      "n_locuteurs_impose": null,
+      "etapes_s": {
+        "analyse": 0.847,
+        "normalisation_cepstrale": 0.003,
+        "detection": 0.006,
+        "segmentation": 0.001,
+        "representation": 0.344,
+        "regroupement": 0.02,
+        "attribution": 0.008
+      }
+    },
+    {
+      "uri": "summre__097b_EBDH",
+      "corpus": "summre",
+      "partition": "dev",
+      "duree_audio_s": 1263.361,
+      "calcul_s": 1.159,
+      "rtf": 0.0009,
+      "n_locuteurs_hypothese": 4,
+      "n_locuteurs_impose": null,
+      "etapes_s": {
+        "analyse": 0.584,
+        "normalisation_cepstrale": 0.002,
+        "detection": 0.006,
+        "segmentation": 0.001,
+        "representation": 0.48,
+        "regroupement": 0.027,
+        "attribution": 0.009
+      }
+    },
+    {
+      "uri": "summre__097c_EBPH",
+      "corpus": "summre",
+      "partition": "dev",
+      "duree_audio_s": 1265.472,
+      "calcul_s": 1.14,
+      "rtf": 0.0009,
+      "n_locuteurs_hypothese": 3,
+      "n_locuteurs_impose": null,
+      "etapes_s": {
+        "analyse": 0.583,
+        "normalisation_cepstrale": 0.002,
+        "detection": 0.005,
+        "segmentation": 0.001,
+        "representation": 0.456,
+        "regroupement": 0.029,
+        "attribution": 0.01
+      }
+    },
+    {
+      "uri": "summre__101c_EDPH",
+      "corpus": "summre",
+      "partition": "dev",
+      "duree_audio_s": 1139.458,
+      "calcul_s": 0.902,
+      "rtf": 0.0008,
+      "n_locuteurs_hypothese": 2,
+      "n_locuteurs_impose": null,
+      "etapes_s": {
+        "analyse": 0.52,
+        "normalisation_cepstrale": 0.003,
+        "detection": 0.004,
+        "segmentation": 0.002,
+        "representation": 0.31,
+        "regroupement": 0.013,
+        "attribution": 0.006
+      }
+    },
+    {
+      "uri": "summre__104b_EADH",
+      "corpus": "summre",
+      "partition": "dev",
+      "duree_audio_s": 1223.778,
+      "calcul_s": 1.127,
+      "rtf": 0.0009,
+      "n_locuteurs_hypothese": 3,
+      "n_locuteurs_impose": null,
+      "etapes_s": {
+        "analyse": 0.59,
+        "normalisation_cepstrale": 0.011,
+        "detection": 0.008,
+        "segmentation": 0.001,
+        "representation": 0.437,
+        "regroupement": 0.023,
+        "attribution": 0.009
+      }
+    },
+    {
+      "uri": "summre__007a_ECRH",
+      "corpus": "summre",
+      "partition": "test",
+      "duree_audio_s": 1210.595,
+      "calcul_s": 1.109,
+      "rtf": 0.0009,
+      "n_locuteurs_hypothese": 2,
+      "n_locuteurs_impose": null,
+      "etapes_s": {
+        "analyse": 0.564,
+        "normalisation_cepstrale": 0.001,
+        "detection": 0.005,
+        "segmentation": 0.001,
+        "representation": 0.443,
+        "regroupement": 0.03,
+        "attribution": 0.008
+      }
+    },
+    {
+      "uri": "summre__008a_EARH",
+      "corpus": "summre",
+      "partition": "test",
+      "duree_audio_s": 1565.566,
+      "calcul_s": 1.64,
+      "rtf": 0.001,
+      "n_locuteurs_hypothese": 3,
+      "n_locuteurs_impose": null,
+      "etapes_s": {
+        "analyse": 0.728,
+        "normalisation_cepstrale": 0.005,
+        "detection": 0.008,
+        "segmentation": 0.001,
+        "representation": 0.772,
+        "regroupement": 0.054,
+        "attribution": 0.013
+      }
+    },
+    {
+      "uri": "summre__012c_EBPZ",
+      "corpus": "summre",
+      "partition": "test",
+      "duree_audio_s": 1159.431,
+      "calcul_s": 0.957,
+      "rtf": 0.0008,
+      "n_locuteurs_hypothese": 3,
+      "n_locuteurs_impose": null,
+      "etapes_s": {
+        "analyse": 0.52,
+        "normalisation_cepstrale": 0.003,
+        "detection": 0.004,
+        "segmentation": 0.001,
+        "representation": 0.35,
+        "regroupement": 0.023,
+        "attribution": 0.009
+      }
+    },
+    {
+      "uri": "summre__013c_EAPD",
+      "corpus": "summre",
+      "partition": "test",
+      "duree_audio_s": 1226.22,
+      "calcul_s": 1.052,
+      "rtf": 0.0009,
+      "n_locuteurs_hypothese": 3,
+      "n_locuteurs_impose": null,
+      "etapes_s": {
+        "analyse": 0.517,
+        "normalisation_cepstrale": 0.001,
+        "detection": 0.005,
+        "segmentation": 0.001,
+        "representation": 0.455,
+        "regroupement": 0.025,
+        "attribution": 0.009
+      }
+    },
+    {
+      "uri": "summre__014c_EAPD",
+      "corpus": "summre",
+      "partition": "test",
+      "duree_audio_s": 1222.102,
+      "calcul_s": 1.173,
+      "rtf": 0.001,
+      "n_locuteurs_hypothese": 3,
+      "n_locuteurs_impose": null,
+      "etapes_s": {
+        "analyse": 0.554,
+        "normalisation_cepstrale": 0.001,
+        "detection": 0.005,
+        "segmentation": 0.001,
+        "representation": 0.515,
+        "regroupement": 0.036,
+        "attribution": 0.009
+      }
+    },
+    {
+      "uri": "summre__016c_EBPZ",
+      "corpus": "summre",
+      "partition": "test",
+      "duree_audio_s": 1217.826,
+      "calcul_s": 1.008,
+      "rtf": 0.0008,
+      "n_locuteurs_hypothese": 3,
+      "n_locuteurs_impose": null,
+      "etapes_s": {
+        "analyse": 0.547,
+        "normalisation_cepstrale": 0.003,
+        "detection": 0.004,
+        "segmentation": 0.001,
+        "representation": 0.379,
+        "regroupement": 0.021,
+        "attribution": 0.008
+      }
+    },
+    {
+      "uri": "summre__019a_EARD",
+      "corpus": "summre",
+      "partition": "test",
+      "duree_audio_s": 1195.192,
+      "calcul_s": 1.043,
+      "rtf": 0.0009,
+      "n_locuteurs_hypothese": 3,
+      "n_locuteurs_impose": null,
+      "etapes_s": {
+        "analyse": 0.529,
+        "normalisation_cepstrale": 0.001,
+        "detection": 0.005,
+        "segmentation": 0.001,
+        "representation": 0.428,
+        "regroupement": 0.029,
+        "attribution": 0.009
+      }
+    },
+    {
+      "uri": "summre__019c_EAPD",
+      "corpus": "summre",
+      "partition": "test",
+      "duree_audio_s": 1211.023,
+      "calcul_s": 1.024,
+      "rtf": 0.0008,
+      "n_locuteurs_hypothese": 2,
+      "n_locuteurs_impose": null,
+      "etapes_s": {
+        "analyse": 0.53,
+        "normalisation_cepstrale": 0.001,
+        "detection": 0.007,
+        "segmentation": 0.001,
+        "representation": 0.412,
+        "regroupement": 0.023,
+        "attribution": 0.008
+      }
+    },
+    {
+      "uri": "summre__024c_EBPH",
+      "corpus": "summre",
+      "partition": "test",
+      "duree_audio_s": 1236.215,
+      "calcul_s": 1.067,
+      "rtf": 0.0009,
+      "n_locuteurs_hypothese": 3,
+      "n_locuteurs_impose": null,
+      "etapes_s": {
+        "analyse": 0.521,
+        "normalisation_cepstrale": 0.002,
+        "detection": 0.004,
+        "segmentation": 0.001,
+        "representation": 0.437,
+        "regroupement": 0.027,
+        "attribution": 0.03
+      }
+    },
+    {
+      "uri": "summre__025b_EBDH",
+      "corpus": "summre",
+      "partition": "test",
+      "duree_audio_s": 1317.369,
+      "calcul_s": 1.324,
+      "rtf": 0.001,
+      "n_locuteurs_hypothese": 3,
+      "n_locuteurs_impose": null,
+      "etapes_s": {
+        "analyse": 0.721,
+        "normalisation_cepstrale": 0.002,
+        "detection": 0.006,
+        "segmentation": 0.001,
+        "representation": 0.506,
+        "regroupement": 0.031,
+        "attribution": 0.01
+      }
+    },
+    {
+      "uri": "summre__039b_EDDH",
+      "corpus": "summre",
+      "partition": "test",
+      "duree_audio_s": 1407.377,
+      "calcul_s": 1.571,
+      "rtf": 0.0011,
+      "n_locuteurs_hypothese": 3,
+      "n_locuteurs_impose": null,
+      "etapes_s": {
+        "analyse": 0.861,
+        "normalisation_cepstrale": 0.003,
+        "detection": 0.006,
+        "segmentation": 0.001,
+        "representation": 0.585,
+        "regroupement": 0.036,
+        "attribution": 0.01
+      }
+    },
+    {
+      "uri": "summre__045a_EARH",
+      "corpus": "summre",
+      "partition": "test",
+      "duree_audio_s": 1169.736,
+      "calcul_s": 1.154,
+      "rtf": 0.001,
+      "n_locuteurs_hypothese": 3,
+      "n_locuteurs_impose": null,
+      "etapes_s": {
+        "analyse": 0.608,
+        "normalisation_cepstrale": 0.004,
+        "detection": 0.006,
+        "segmentation": 0.001,
+        "representation": 0.445,
+        "regroupement": 0.029,
+        "attribution": 0.008
+      }
+    },
+    {
+      "uri": "summre__045b_EADH",
+      "corpus": "summre",
+      "partition": "test",
+      "duree_audio_s": 1170.761,
+      "calcul_s": 1.067,
+      "rtf": 0.0009,
+      "n_locuteurs_hypothese": 2,
+      "n_locuteurs_impose": null,
+      "etapes_s": {
+        "analyse": 0.525,
+        "normalisation_cepstrale": 0.001,
+        "detection": 0.004,
+        "segmentation": 0.001,
+        "representation": 0.457,
+        "regroupement": 0.027,
+        "attribution": 0.008
+      }
+    },
+    {
+      "uri": "summre__046c_EBPH",
+      "corpus": "summre",
+      "partition": "test",
+      "duree_audio_s": 1189.116,
+      "calcul_s": 1.038,
+      "rtf": 0.0009,
+      "n_locuteurs_hypothese": 3,
+      "n_locuteurs_impose": null,
+      "etapes_s": {
+        "analyse": 0.515,
+        "normalisation_cepstrale": 0.001,
+        "detection": 0.004,
+        "segmentation": 0.001,
+        "representation": 0.438,
+        "regroupement": 0.029,
+        "attribution": 0.009
+      }
+    },
+    {
+      "uri": "summre__047a_EDRH",
+      "corpus": "summre",
+      "partition": "test",
+      "duree_audio_s": 1095.354,
+      "calcul_s": 0.922,
+      "rtf": 0.0008,
+      "n_locuteurs_hypothese": 3,
+      "n_locuteurs_impose": null,
+      "etapes_s": {
+        "analyse": 0.465,
+        "normalisation_cepstrale": 0.001,
+        "detection": 0.004,
+        "segmentation": 0.001,
+        "representation": 0.379,
+        "regroupement": 0.024,
+        "attribution": 0.008
+      }
+    },
+    {
+      "uri": "summre__047c_EDPH",
+      "corpus": "summre",
+      "partition": "test",
+      "duree_audio_s": 1385.831,
+      "calcul_s": 1.282,
+      "rtf": 0.0009,
+      "n_locuteurs_hypothese": 3,
+      "n_locuteurs_impose": null,
+      "etapes_s": {
+        "analyse": 0.61,
+        "normalisation_cepstrale": 0.002,
+        "detection": 0.006,
+        "segmentation": 0.001,
+        "representation": 0.57,
+        "regroupement": 0.036,
+        "attribution": 0.01
+      }
+    },
+    {
+      "uri": "summre__049b_EBDH",
+      "corpus": "summre",
+      "partition": "test",
+      "duree_audio_s": 1193.076,
+      "calcul_s": 1.11,
+      "rtf": 0.0009,
+      "n_locuteurs_hypothese": 3,
+      "n_locuteurs_impose": null,
+      "etapes_s": {
+        "analyse": 0.597,
+        "normalisation_cepstrale": 0.003,
+        "detection": 0.005,
+        "segmentation": 0.001,
+        "representation": 0.429,
+        "regroupement": 0.023,
+        "attribution": 0.008
+      }
+    },
+    {
+      "uri": "summre__050c_EEPH",
+      "corpus": "summre",
+      "partition": "test",
+      "duree_audio_s": 1058.321,
+      "calcul_s": 0.794,
+      "rtf": 0.0008,
+      "n_locuteurs_hypothese": 3,
+      "n_locuteurs_impose": null,
+      "etapes_s": {
+        "analyse": 0.455,
+        "normalisation_cepstrale": 0.001,
+        "detection": 0.004,
+        "segmentation": 0.0,
+        "representation": 0.271,
+        "regroupement": 0.014,
+        "attribution": 0.007
+      }
+    },
+    {
+      "uri": "summre__051a_EARH",
+      "corpus": "summre",
+      "partition": "test",
+      "duree_audio_s": 983.784,
+      "calcul_s": 0.727,
+      "rtf": 0.0007,
+      "n_locuteurs_hypothese": 3,
+      "n_locuteurs_impose": null,
+      "etapes_s": {
+        "analyse": 0.405,
+        "normalisation_cepstrale": 0.002,
+        "detection": 0.004,
+        "segmentation": 0.001,
+        "representation": 0.257,
+        "regroupement": 0.014,
+        "attribution": 0.007
+      }
+    },
+    {
+      "uri": "summre__053b_EDDH",
+      "corpus": "summre",
+      "partition": "test",
+      "duree_audio_s": 1012.02,
+      "calcul_s": 0.842,
+      "rtf": 0.0008,
+      "n_locuteurs_hypothese": 3,
+      "n_locuteurs_impose": null,
+      "etapes_s": {
+        "analyse": 0.519,
+        "normalisation_cepstrale": 0.002,
+        "detection": 0.005,
+        "segmentation": 0.0,
+        "representation": 0.246,
+        "regroupement": 0.014,
+        "attribution": 0.006
+      }
+    },
+    {
+      "uri": "summre__054a_EARH",
+      "corpus": "summre",
+      "partition": "test",
+      "duree_audio_s": 1202.419,
+      "calcul_s": 1.052,
+      "rtf": 0.0009,
+      "n_locuteurs_hypothese": 3,
+      "n_locuteurs_impose": null,
+      "etapes_s": {
+        "analyse": 0.538,
+        "normalisation_cepstrale": 0.003,
+        "detection": 0.005,
+        "segmentation": 0.001,
+        "representation": 0.425,
+        "regroupement": 0.026,
+        "attribution": 0.008
+      }
+    },
+    {
+      "uri": "summre__054c_EAPH",
+      "corpus": "summre",
+      "partition": "test",
+      "duree_audio_s": 1188.025,
+      "calcul_s": 0.96,
+      "rtf": 0.0008,
+      "n_locuteurs_hypothese": 2,
+      "n_locuteurs_impose": null,
+      "etapes_s": {
+        "analyse": 0.494,
+        "normalisation_cepstrale": 0.001,
+        "detection": 0.005,
+        "segmentation": 0.001,
+        "representation": 0.384,
+        "regroupement": 0.023,
+        "attribution": 0.009
+      }
+    },
+    {
+      "uri": "summre__059b_EBDH",
+      "corpus": "summre",
+      "partition": "test",
+      "duree_audio_s": 1415.136,
+      "calcul_s": 1.661,
+      "rtf": 0.0012,
+      "n_locuteurs_hypothese": 4,
+      "n_locuteurs_impose": null,
+      "etapes_s": {
+        "analyse": 0.92,
+        "normalisation_cepstrale": 0.005,
+        "detection": 0.006,
+        "segmentation": 0.001,
+        "representation": 0.623,
+        "regroupement": 0.042,
+        "attribution": 0.011
+      }
+    },
+    {
+      "uri": "summre__060a_EDRH",
+      "corpus": "summre",
+      "partition": "test",
+      "duree_audio_s": 1513.625,
+      "calcul_s": 1.603,
+      "rtf": 0.0011,
+      "n_locuteurs_hypothese": 4,
+      "n_locuteurs_impose": null,
+      "etapes_s": {
+        "analyse": 0.753,
+        "normalisation_cepstrale": 0.003,
+        "detection": 0.007,
+        "segmentation": 0.001,
+        "representation": 0.715,
+        "regroupement": 0.048,
+        "attribution": 0.012
+      }
+    },
+    {
+      "uri": "summre__070a_EBRL",
+      "corpus": "summre",
+      "partition": "test",
+      "duree_audio_s": 867.135,
+      "calcul_s": 0.586,
+      "rtf": 0.0007,
+      "n_locuteurs_hypothese": 3,
+      "n_locuteurs_impose": null,
+      "etapes_s": {
+        "analyse": 0.322,
+        "normalisation_cepstrale": 0.001,
+        "detection": 0.004,
+        "segmentation": 0.0,
+        "representation": 0.206,
+        "regroupement": 0.012,
+        "attribution": 0.006
+      }
+    },
+    {
+      "uri": "summre__070b_EBDL",
+      "corpus": "summre",
+      "partition": "test",
+      "duree_audio_s": 1149.023,
+      "calcul_s": 0.934,
+      "rtf": 0.0008,
+      "n_locuteurs_hypothese": 3,
+      "n_locuteurs_impose": null,
+      "etapes_s": {
+        "analyse": 0.502,
+        "normalisation_cepstrale": 0.001,
+        "detection": 0.005,
+        "segmentation": 0.001,
+        "representation": 0.352,
+        "regroupement": 0.02,
+        "attribution": 0.008
+      }
+    },
+    {
+      "uri": "summre__072b_EEDH",
+      "corpus": "summre",
+      "partition": "test",
+      "duree_audio_s": 1200.774,
+      "calcul_s": 0.938,
+      "rtf": 0.0008,
+      "n_locuteurs_hypothese": 2,
+      "n_locuteurs_impose": null,
+      "etapes_s": {
+        "analyse": 0.488,
+        "normalisation_cepstrale": 0.001,
+        "detection": 0.005,
+        "segmentation": 0.001,
+        "representation": 0.373,
+        "regroupement": 0.022,
+        "attribution": 0.008
+      }
+    },
+    {
+      "uri": "summre__072c_EEPH",
+      "corpus": "summre",
+      "partition": "test",
+      "duree_audio_s": 1052.478,
+      "calcul_s": 0.776,
+      "rtf": 0.0007,
+      "n_locuteurs_hypothese": 2,
+      "n_locuteurs_impose": null,
+      "etapes_s": {
+        "analyse": 0.416,
+        "normalisation_cepstrale": 0.002,
+        "detection": 0.005,
+        "segmentation": 0.001,
+        "representation": 0.294,
+        "regroupement": 0.018,
+        "attribution": 0.007
+      }
+    },
+    {
+      "uri": "summre__074c_EAPH",
+      "corpus": "summre",
+      "partition": "test",
+      "duree_audio_s": 1044.699,
+      "calcul_s": 0.786,
+      "rtf": 0.0008,
+      "n_locuteurs_hypothese": 2,
+      "n_locuteurs_impose": null,
+      "etapes_s": {
+        "analyse": 0.385,
+        "normalisation_cepstrale": 0.002,
+        "detection": 0.004,
+        "segmentation": 0.001,
+        "representation": 0.33,
+        "regroupement": 0.021,
+        "attribution": 0.007
+      }
+    },
+    {
+      "uri": "summre__076b_EEDH",
+      "corpus": "summre",
+      "partition": "test",
+      "duree_audio_s": 489.298,
+      "calcul_s": 0.285,
+      "rtf": 0.0006,
+      "n_locuteurs_hypothese": 3,
+      "n_locuteurs_impose": null,
+      "etapes_s": {
+        "analyse": 0.177,
+        "normalisation_cepstrale": 0.001,
+        "detection": 0.003,
+        "segmentation": 0.0,
+        "representation": 0.075,
+        "regroupement": 0.005,
+        "attribution": 0.004
+      }
+    },
+    {
+      "uri": "summre__077c_EBPH",
+      "corpus": "summre",
+      "partition": "test",
+      "duree_audio_s": 1211.419,
+      "calcul_s": 0.951,
+      "rtf": 0.0008,
+      "n_locuteurs_hypothese": 4,
+      "n_locuteurs_impose": null,
+      "etapes_s": {
+        "analyse": 0.509,
+        "normalisation_cepstrale": 0.001,
+        "detection": 0.005,
+        "segmentation": 0.001,
+        "representation": 0.365,
+        "regroupement": 0.021,
+        "attribution": 0.009
+      }
+    },
+    {
+      "uri": "summre__080b_EBDH",
+      "corpus": "summre",
+      "partition": "test",
+      "duree_audio_s": 1316.261,
+      "calcul_s": 1.288,
+      "rtf": 0.001,
+      "n_locuteurs_hypothese": 3,
+      "n_locuteurs_impose": null,
+      "etapes_s": {
+        "analyse": 0.69,
+        "normalisation_cepstrale": 0.003,
+        "detection": 0.005,
+        "segmentation": 0.001,
+        "representation": 0.503,
+        "regroupement": 0.03,
+        "attribution": 0.01
+      }
+    },
+    {
+      "uri": "summre__088b_EADH",
+      "corpus": "summre",
+      "partition": "test",
+      "duree_audio_s": 1226.451,
+      "calcul_s": 1.176,
+      "rtf": 0.001,
+      "n_locuteurs_hypothese": 3,
+      "n_locuteurs_impose": null,
+      "etapes_s": {
+        "analyse": 0.554,
+        "normalisation_cepstrale": 0.003,
+        "detection": 0.005,
+        "segmentation": 0.001,
+        "representation": 0.455,
+        "regroupement": 0.03,
+        "attribution": 0.011
+      }
+    },
+    {
+      "uri": "summre__093c_EBPZ",
+      "corpus": "summre",
+      "partition": "test",
+      "duree_audio_s": 1125.567,
+      "calcul_s": 0.906,
+      "rtf": 0.0008,
+      "n_locuteurs_hypothese": 3,
+      "n_locuteurs_impose": null,
+      "etapes_s": {
+        "analyse": 0.493,
+        "normalisation_cepstrale": 0.002,
+        "detection": 0.004,
+        "segmentation": 0.001,
+        "representation": 0.34,
+        "regroupement": 0.02,
+        "attribution": 0.007
+      }
+    },
+    {
+      "uri": "summre__100b_EADH",
+      "corpus": "summre",
+      "partition": "test",
+      "duree_audio_s": 1071.882,
+      "calcul_s": 0.719,
+      "rtf": 0.0007,
+      "n_locuteurs_hypothese": 2,
+      "n_locuteurs_impose": null,
+      "etapes_s": {
+        "analyse": 0.432,
+        "normalisation_cepstrale": 0.001,
+        "detection": 0.004,
+        "segmentation": 0.0,
+        "representation": 0.221,
+        "regroupement": 0.011,
+        "attribution": 0.006
+      }
+    },
+    {
+      "uri": "summre__102a_EBRH",
+      "corpus": "summre",
+      "partition": "test",
+      "duree_audio_s": 1211.783,
+      "calcul_s": 1.006,
+      "rtf": 0.0008,
+      "n_locuteurs_hypothese": 2,
+      "n_locuteurs_impose": null,
+      "etapes_s": {
+        "analyse": 0.526,
+        "normalisation_cepstrale": 0.001,
+        "detection": 0.005,
+        "segmentation": 0.001,
+        "representation": 0.396,
+        "regroupement": 0.023,
+        "attribution": 0.009
+      }
+    },
+    {
+      "uri": "summre__102c_EBPH",
+      "corpus": "summre",
+      "partition": "test",
+      "duree_audio_s": 1292.921,
+      "calcul_s": 1.145,
+      "rtf": 0.0009,
+      "n_locuteurs_hypothese": 3,
+      "n_locuteurs_impose": null,
+      "etapes_s": {
+        "analyse": 0.581,
+        "normalisation_cepstrale": 0.002,
+        "detection": 0.005,
+        "segmentation": 0.001,
+        "representation": 0.475,
+        "regroupement": 0.025,
+        "attribution": 0.009
+      }
+    }
+  ]
+}

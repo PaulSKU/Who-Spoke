@@ -15,3 +15,5 @@ EXP-0007,2026-10-29T14:11:49+01:00,pyannote-c1-summre,,,summre,dev,pyannote-comm
 EXP-0007,2026-10-29T14:11:49+01:00,pyannote-c1-summre,,,summre,test,pyannote-community-1,estime,26.3,7.15,11.28,7.87,14.82,28.73,0.16,0.0504,0.783,568efbb
 EXP-0008,2026-10-29T16:02:58+01:00,pyannote-c1-summre-k-oracle,EXP-0007,mode_n_locuteurs,summre,dev,pyannote-community-1,oracle,26.5,5.13,14.24,7.13,11.28,29.42,0.0,0.0521,,568efbb
 EXP-0008,2026-10-29T16:02:58+01:00,pyannote-c1-summre-k-oracle,EXP-0007,mode_n_locuteurs,summre,test,pyannote-community-1,oracle,25.58,7.15,11.28,7.15,14.04,28.27,0.0,0.0574,,568efbb
+EXP-0009,2026-10-29T16:39:40+01:00,baseline-mfcc-summre,,,summre,dev,baseline,estime,46.54,17.74,4.31,24.48,37.04,60.41,0.89,0.0009,0.0009,568efbb
+EXP-0009,2026-10-29T16:39:40+01:00,baseline-mfcc-summre,,,summre,test,baseline,estime,49.36,21.87,3.08,24.42,42.66,61.17,0.62,0.0009,0.0009,568efbb
