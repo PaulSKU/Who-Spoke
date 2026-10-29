@@ -248,3 +248,23 @@ Problèmes :
 - Les jetons SPPAS `+`, `*` et `@` sont des « mots » horodatés ; ils sont gardés (lecture littérale de D20 §3), pour 2,73 % de la parole en dev et 1,11 % en test.
 - Aucune piste muette : les réunions à 3 participants n'ont que 3 pistes.
 Suite : arbitrer au cockpit les jetons non lexicaux, la règle de saillance et le choix de `temps.txt` ; EXP-0007 à EXP-0009 (D20 §6).
+
+## 2026-10-29 — Amendement 1 de D20, EXP-0007 à EXP-0009 sur SUMM-RE (Claude Code)
+
+Objectif : appliquer l'amendement du 28/10 de D20 (jetons non lexicaux) ; exécuter les premières expériences sur SUMM-RE (D20 §6).
+Réalisé :
+- Commit `docs:` de l'amendement de D20 et du bloc `evaluation` de methode §4.3.
+- `scripts/data/get_summre.py` : tout jeton composé uniquement de `+`, `*` ou `@` est retiré avant la construction des intervalles ; inventaire par réunion dans le manifeste (`jetons_retires`, `parole_avec_jetons_non_lexicaux_s`, qui remplace `parole_sans_jetons_non_lexicaux_s`). Option `--references` : les pistes et les mots ayant été supprimés après la préparation, les colonnes `meeting_id`, `speaker_id`, `audio_id` et `segments` des Parquet sont relues à distance (lectures partielles par `HfFileSystem`, à la révision figée, sans l'audio), après contrôle du SHA-256 LFS de chaque Parquet contre le manifeste. 8 tests synthétiques ajoutés ; suite : 122 tests réussis (1 test lent exclu).
+- Références, UEM (9 modifiées) et manifeste regénérés ; contrôle croisé refait ; `docs/corpus.md` §2 et `data/README.md` mis à jour.
+- EXP-0007 (pyannote community-1, MPS, puis CPU sur `temps.txt`), EXP-0008 (nombre de locuteurs oracle, MPS), EXP-0009 (baseline, balayage de θ sur dev, CPU, `--trace`) : configurations commitées avant exécution, toutes les exécutions sur le commit 568efbb, `arbre_propre` vrai pour les trois.
+Résultats :
+- Jetons retirés : dev `+` 2 285, `@` 1 089, `*` 404 ; test `@` 1 091, `*` 598, aucun `+` ; aucune forme composée. Parole : 9,33 h (dev) et 9,91 h (test), soit −2,73 % et −1,11 % ; chevauchement 12,6 % et 15,7 % de la parole (14,5 % et 17,2 % avant). Aucun locuteur perdu.
+- Contrôle croisé avec `ggfox00000/dia-summre-test` : DER sans collar de 0,32 % à 9,82 % (102a_EBRH), médiane 1,90 %. Le dérivé garde les jetons : le DER entre nos références avant et après retrait reproduit ce contrôle à 0,49 point près.
+- EXP-0007 : DER sans collar 26,00 % (dev) et 26,30 % (test) ; collar 0,25 s 10,76 % et 14,82 % ; JER 29,28 % et 28,73 % ; nombre de locuteurs exact 91,7 % et 83,8 % ; RTF MPS 0,051, RTF CPU 0,783 sur `temps.txt`.
+- EXP-0008 : DER sans collar 26,50 % (dev) et 25,58 % (test) ; écart à EXP-0007 +0,49 [+0,00 ; +1,18] en dev (0 fichier amélioré, 3 dégradés) et −0,72 [−3,22 ; +0,89] en test (3 améliorés, 3 dégradés), bootstrap apparié, 1 000 tirages, graine 0.
+- EXP-0009 : θ retenu 1,00 (0,95 sur AMI, EXP-0002) ; DER sans collar 46,54 % (dev) et 49,36 % (test) ; RTF CPU 0,0009.
+Décisions : aucune.
+Problèmes :
+- Machine sur batterie au début de la session : les exécutions ont attendu le secteur (démarrage à 12:58). Le Mac a été débranché de 15:14 à 16:25 : environ la moitié d'EXP-0008 (essentiellement le test, RTF MPS 0,057 contre 0,052 en dev) a tourné sur batterie, contrairement au protocole §3.5. Les métriques de diarisation n'en dépendent pas ; EXP-0008 n'a pas de mesure CPU (diagnostic). EXP-0009 a attendu le secteur.
+- Le balayage d'EXP-0009 a pris 786 s (préparation comprise), hors RTF.
+Suite : interprétation au cockpit (`notes.md` d'EXP-0007 à EXP-0009, analyse des échecs §7, sous-ensemble Zoom).
