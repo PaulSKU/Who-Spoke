@@ -76,6 +76,13 @@ Les mots alignés manuellement donnent des frontières plus fines que les segmen
 
 Il faudra peut-être une dépendance pour lire le Parquet (`pyarrow`), si elle n'est pas déjà présente ; elle est à signaler. Une fois les références construites, `docs/corpus.md` §2 doit être mis à jour avec les statistiques. Sans champ lointain réel, SUMM-RE ne mesure que la langue et le style d'interaction, pas l'acoustique de la cible.
 
+## Amendement du 28/10/2026 (après la préparation)
+
+1. **Jetons non lexicaux exclus de la référence.** Les transcriptions contiennent des jetons non lexicaux au format SPPAS (`+` pause courte, `*` bruit, `@` rire). Les conventions d'annotation du projet (`conventions-annotation.md` §1) classent les rires, toux et bruits comme non-parole, et une pause n'est jamais de la parole. Tout jeton composé uniquement de ces symboles est donc retiré avant la construction des intervalles ; un mot qui contient un rire mêlé à du texte reste de la parole. Cela retire 2,73 % du temps de parole en dev et 1,11 % en test (mesure de la préparation). Les références, les UEM et le contrôle croisé sont regénérés. L'inventaire des jetons retirés est consigné dans `docs/corpus.md` §2.
+2. **Contrôle de synchronisation.** Chaque piste est corrélée au mélange des autres pistes, et un décalage n'est retenu que si la saillance du pic est d'au moins 10. Ce seuil est heuristique : il ne sert qu'au contrôle et n'affecte pas les données.
+3. **`temps.txt`.** Une réunion en présentiel et une réunion Zoom de test (007a_ECRH, 012c_EBPZ ; 39,5 min). Ce choix couvre les deux conditions de captation.
+4. **Locuteurs communs à dev et test** (18 locuteurs). Pour le réglage d'un seuil unique (θ de la baseline), la fuite est négligeable **[probable]**. Elle ne l'est plus pour un ajustement fin : avant tout ajustement fin sur SUMM-RE, un test sans les locuteurs vus à l'entraînement devra être défini. Limite consignée dans `docs/corpus.md` §2.
+
 ## Liens
 
 D3, D9 (amendement du 28/10), D13, D19 ; `docs/corpus.md` §2 ; `docs/recherche/corpus-diarisation-reunions-francais.md`.

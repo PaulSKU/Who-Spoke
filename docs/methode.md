@@ -139,6 +139,7 @@ Les taux sont exprimés en pourcentage, avec deux décimales.
   },
   "temps": {"device": "mps", "chargement_modeles_s": 0.0, "calcul_s": 0.0, "rtf": 0.0},
   "temps_cpu": {"sous_ensemble": "data/splits/ami/temps.txt", "duree_audio_s": 0.0, "calcul_s": 0.0, "rtf": 0.0},
+  "evaluation": {"date": "2026-10-28T19:00:00+01:00", "git_commit": "abc1234", "arbre_propre": true, "fichiers_non_commites": []},
   "invalidee": null
 }
 ```
