@@ -43,34 +43,36 @@ Trois réunions en français enregistrées par la candidate (salle réverbérant
 | Composition | 283 conversations d'environ 20 min de type réunion, en français, 3 à 4 locuteurs (rarement 2), 207 participants ; 248 en présentiel, 35 en Zoom **[certain, d'après la fiche et l'article]** |
 | Partitions | train 210 conversations (~67 h, alignement automatique) ; dev 36 (~12 h) ; test 37 (~12 h) ; dev et test transcrits et alignés à la main d'après la fiche **[certain]** (l'article reste contradictoire pour test) |
 | Audio | **pistes individuelles de micros-casques uniquement** (48 kHz, 32 kHz pour Zoom) ; le micro d'ambiance décrit dans l'article n'est pas publié **[probable]** ; 93,8 Go en tout |
-| Référence | reconstruite à partir des alignements au mot, avec fusion des pauses de 200 ms ou moins (même convention que le corpus maison) ; UEM du premier mot − 1 s au dernier mot + 1 s (D20 §3) |
+| Référence | reconstruite à partir des alignements au mot, avec fusion des pauses de 200 ms ou moins (même convention que le corpus maison), après retrait des jetons non lexicaux SPPAS (amendement 1 de D20) ; UEM du premier mot − 1 s au dernier mot + 1 s (D20 §3) |
 | Construction du signal | moyenne des pistes individuelles rééchantillonnées à 16 kHz (D20 §2, proche d'un « mix de casques ») ; une condition réverbérée sera simulée par augmentation (décision distincte) |
-| Dérivé disponible | `ggfox00000/dia-summre-test` : les 37 réunions de test en 16 kHz avec RTTM (2,81 Go) ; sa variante dite « far-field » est une moyenne de micros-casques, pas un enregistrement de salle **[probable]** ; RTTM concordants avec les nôtres (contrôle croisé ci-dessous) ; jamais utilisé pour noter |
-| Limites | pas de champ lointain réel ; 18 locuteurs communs à dev et test (mesuré, voir ci-dessous) |
+| Dérivé disponible | `ggfox00000/dia-summre-test` : les 37 réunions de test en 16 kHz avec RTTM (2,81 Go) ; sa variante dite « far-field » est une moyenne de micros-casques, pas un enregistrement de salle **[probable]** ; ses RTTM gardent les jetons non lexicaux, et ne diffèrent des nôtres que par eux (contrôle croisé ci-dessous) ; jamais utilisé pour noter |
+| Limites | pas de champ lointain réel ; 18 locuteurs communs à dev et test (mesuré, voir ci-dessous) : fuite négligeable pour le réglage d'un seuil unique comme θ **[probable]**, mais pas pour un ajustement fin, avant lequel un test sans les locuteurs vus à l'entraînement devra être défini (amendement 4 de D20) |
 | Contamination | absent des listes d'entraînement publiées de pyannote segmentation-3.0 et de NeMo Sortformer v2 **[probable]** |
 | Téléchargements effectués | Dev et test le 28/10/2026 par `scripts/data/get_summre.py` (D20), dépôt `linagora/SUMM-RE` à la révision `47cb4ec3437ef5497b6092b8c6d1e0b5b1d86dc0` : 57 fichiers Parquet (29 dev, 28 test), 25,8 Go téléchargés, SHA-256 contrôlé contre celui du dépôt puis consigné ; brut supprimé après extraction. Conservés : mélanges 16 kHz et RTTM dans `data/processed/summre/` (2,6 Go), manifeste `data/manifests/summre.csv`, listes `data/splits/summre/{dev,test,temps,zoom_dev,zoom_test}.txt`, UEM dans `data/splits/summre/uem/` |
 
-**Statistiques mesurées (28/10/2026, `get_summre.py`).** La parole et le chevauchement sont mesurés dans l'UEM, à partir des références construites selon D20 §3. La part de chevauchement est le temps où au moins deux locuteurs parlent, rapporté au temps où au moins un locuteur parle.
+**Statistiques mesurées (29/10/2026, `get_summre.py --references`, après retrait des jetons non lexicaux).** La parole et le chevauchement sont mesurés dans l'UEM, à partir des références construites selon D20 §3 et l'amendement 1 du 28/10. La part de chevauchement est le temps où au moins deux locuteurs parlent, rapporté au temps où au moins un locuteur parle.
 
 | Jeu | Réunions | Pistes | Locuteurs distincts | Locuteurs par réunion (2 / 3 / 4) | Signal | Parole | Chevauchement |
 |---|---|---|---|---|---|---|---|
-| dev | 36 | 130 | 81 | 2 / 10 / 24 | 11,89 h | 9,59 h | 14,5 % |
-| test | 37 | 124 | 91 | 2 / 20 / 15 | 12,17 h | 10,02 h | 17,2 % |
-| dev, Zoom | 5 | 19 | 8 | 0 / 1 / 4 | 1,51 h | 1,06 h | 9,6 % |
-| test, Zoom | 3 | 9 | 9 | 0 / 3 / 0 | 0,97 h | 0,66 h | 6,5 % |
+| dev | 36 | 130 | 81 | 2 / 10 / 24 | 11,89 h | 9,33 h | 12,6 % |
+| test | 37 | 124 | 91 | 2 / 20 / 15 | 12,17 h | 9,91 h | 15,7 % |
+| dev, Zoom | 5 | 19 | 8 | 0 / 1 / 4 | 1,51 h | 1,03 h | 8,5 % |
+| test, Zoom | 3 | 9 | 9 | 0 / 3 / 0 | 0,97 h | 0,65 h | 5,9 % |
+
+Avant le retrait des jetons non lexicaux (préparation du 28/10), la parole valait 9,59 h en dev et 10,02 h en test, et le chevauchement 14,5 % et 17,2 % de la parole.
 
 | Contrôle | Résultat |
 |---|---|
 | Réunions et pistes | 36 / 130 (dev) et 37 / 124 (test), conformes à la fiche |
 | Participants sans parole | aucun : chaque piste contient des mots, et les réunions à 3 participants n'ont que 3 pistes (le cas de la quatrième piste muette ne se présente pas dans dev et test) |
-| Temps de parole par locuteur et par réunion | médiane 5,2 min (dev) et 5,4 min (test) ; de 0,2 à 11,8 min (dev), de 0,6 à 25,9 min (test) |
-| Locuteurs communs à dev et test | 18 `speaker_id` : 019, 025, 047, 053, 097, 100, 104, 105, 106, 107, 109, 110, 137, 139, 140, 174, 175, 176. Dev et test ne sont donc pas disjoints en locuteurs ; c'est sans effet tant que rien n'est appris sur dev, mais un réglage sur dev voit une partie des voix du test |
+| Temps de parole par locuteur et par réunion | médiane 5,0 min (dev) et 5,2 min (test) ; de 0,2 à 11,5 min (dev), de 0,6 à 25,9 min (test) |
+| Locuteurs communs à dev et test | 18 `speaker_id` : 019, 025, 047, 053, 097, 100, 104, 105, 106, 107, 109, 110, 137, 139, 140, 174, 175, 176. Dev et test ne sont donc pas disjoints en locuteurs. Pour le réglage d'un seuil unique (θ de la baseline), la fuite est négligeable **[probable]** ; pour un ajustement fin, elle ne l'est plus : un test sans les locuteurs vus à l'entraînement devra être défini avant tout ajustement fin sur SUMM-RE (amendement 4 de D20) |
 | Mots sans horodatage | 0 |
-| Jetons non lexicaux SPPAS (`+` pause courte, `*` bruit, `@` rire) | gardés dans la référence (D20 §3) ; 3 778 sur 152 249 jetons en dev, 1 689 sur 153 099 en test ; les exclure retirerait 2,73 % du temps de parole en dev et 1,11 % en test |
+| Jetons non lexicaux SPPAS (`+` pause courte, `*` bruit, `@` rire) | retirés de la référence (amendement 1 de D20) : tout jeton composé uniquement de ces symboles. Inventaire des jetons retirés, par forme exacte : dev `+` 2 285, `@` 1 089, `*` 404 (3 778 sur 152 249 jetons) ; test `@` 1 091, `*` 598, aucun `+` (1 689 sur 153 099). Aucune forme composée (`@@`, `*+`…) ne se présente. Le retrait ôte 2,73 % du temps de parole en dev et 1,11 % en test ; aucun locuteur ne disparaît ; l'UEM change pour 9 réunions (013c, 014c, 017a, 039b, 043a, 072c, 074c, 091b, 093c). Détail par réunion dans le manifeste (`jetons_retires`) |
 | Fréquences d'origine | 48 kHz ou 32 kHz (Zoom), et 22,05 kHz pour au moins une piste de 10 réunions (018a, 020b, 027a, 032b, 033a, 033c, 034a, 035b, 036c, 069c), conformément à la liste d'exceptions de la fiche |
 | Crête des mélanges | 0,998 au plus : aucun écrêtage |
 | Synchronisation (diaphonie, D20 §2) | aucun décalage mesurable supérieur à 50 ms ; plus grand décalage par réunion : médiane 5,2 ms, maximum 26,9 ms. Non mesurable (pas de diaphonie entre micros) pour les 8 réunions Zoom et pour 101c_EDPH, codée en présentiel mais enregistrée à 32 kHz comme les réunions `101*` de la fiche ; 38 pistes sur 254 au total |
-| Contrôle croisé avec `ggfox00000/dia-summre-test` (révision `d6f8f2f2`) | DER sans collar entre nos références du test et les siennes, dans nos UEM : 0,00 % (arrondi) pour 26 réunions sur 37, au plus 0,49 % (008a_EARH) ; RTTM identiques dans ses variantes A et B. Seuls les RTTM ont été téléchargés, puis supprimés après le contrôle |
+| Contrôle croisé avec `ggfox00000/dia-summre-test` (révision `d6f8f2f2`) | DER sans collar entre nos références du test et les siennes, dans nos UEM : de 0,32 % à 9,82 % (102a_EBRH), médiane 1,90 % (29/10, après retrait des jetons). Le dérivé garde les jetons non lexicaux : avec nos références du 28/10, qui les gardaient aussi, le DER était de 0,00 % (arrondi) pour 26 réunions sur 37 et de 0,49 % au plus (008a_EARH) ; le DER entre nos références avant et après retrait reproduit le contrôle croisé à 0,49 point près. RTTM identiques dans ses variantes A et B. Seuls les RTTM ont été téléchargés, puis supprimés après le contrôle |
 | Sous-ensemble de mesure du temps (`temps.txt`) | 007a_ECRH (présentiel) et 012c_EBPZ (Zoom), 39,5 min |
 
 ## 3. AMI, micro distant (SDM)
