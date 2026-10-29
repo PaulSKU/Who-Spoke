@@ -1,0 +1,52 @@
+# EXP-0009 — baseline MFCC de D19 sur SUMM-RE (mélange des micros-casques) : balayage de θ
+# sur dev, puis dev et test avec le θ retenu (D19 §4, D20 §6). Nouveau corpus : aucune
+# expérience de référence ; configuration identique à EXP-0002 hors des jeux évalués.
+exp_id: EXP-0009
+slug: baseline-mfcc-summre
+reference: null
+variable_modifiee: null
+graine: 0                     # baseline déterministe ; graine consignée par convention
+
+pipeline:
+  nom: baseline               # src/whospoke/pipelines/baseline.py, valeurs initiales de D19 §2
+  vad: energie                # seuil sur l'énergie logarithmique (α = 0,3)
+  parametres: {}              # toutes les valeurs par défaut de D19 ; θ fixé par le balayage
+
+mode_n_locuteurs: estime      # coupe de l'arbre au seuil θ
+detection_oracle: false
+
+# Balayage de θ (distance cosinus, lien moyen) sur SUMM-RE dev ; valeur de plus faible DER
+# sans collar retenue, puis seule utilisée pour l'exécution de dev et de test.
+balayage:
+  parametre: theta
+  debut: 0.10
+  fin: 1.50
+  pas: 0.05
+  partition: dev
+
+device: cpu                   # baseline en CPU seul (D19)
+prechauffage_s: 60            # extrait du premier fichier, non compté (protocole §3.5)
+
+jeux:
+  - corpus: summre
+    partition: dev
+    liste: data/splits/summre/dev.txt
+  - corpus: summre
+    partition: test
+    liste: data/splits/summre/test.txt
+
+# Sous-ensemble de mesure du temps (protocole §3.5) : device étant cpu, temps_cpu est
+# tiré de l'exécution principale restreinte à ces fichiers.
+mesure_cpu:
+  corpus: summre
+  liste: data/splits/summre/temps.txt
+
+evaluation:
+  references: data/processed/summre/rttm   # mots alignés, fusion à 200 ms, sans jetons non lexicaux (D20 §3, amendement 1)
+  uem: data/splits/summre/uem              # premier mot − 1 s, dernier mot + 1 s (D20 §3)
+  conditions: {collar_0: 0.0, collar_0_25: 0.5}
+  skip_overlap: false
+
+materiel:
+  machine: MacBook Pro M2 Pro
+  ram_go: 16
