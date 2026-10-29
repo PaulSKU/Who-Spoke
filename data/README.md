@@ -17,3 +17,4 @@ Chaque corpus est obtenu par un script `scripts/data/get_<corpus>.py`, qui tél�
 |---|---|---|
 | AMI SDM, dev et test | `uv run python scripts/data/get_ami.py` | ~2,2 Go bruts, ~2,2 Go normalisés |
 | SUMM-RE, dev et test | `uv run python scripts/data/get_summre.py` | 25,8 Go téléchargés (Parquet supprimés après extraction), 2,6 Go conservés |
+| SUMM-RE, références seules | `uv run python scripts/data/get_summre.py --references` | colonnes de mots des Parquet lues à distance, sans l'audio ; reconstruit RTTM et UEM d'une préparation complète |
