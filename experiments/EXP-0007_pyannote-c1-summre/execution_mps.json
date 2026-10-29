@@ -1,0 +1,1397 @@
+{
+  "exp_id": "EXP-0007",
+  "mode": "complet",
+  "sous_ensemble": null,
+  "date_fin": "2026-10-29T14:11:49+01:00",
+  "git_commit": "568efbb7730f4d6bf78cfe9efe432647317c3e9c",
+  "arbre_propre": true,
+  "fichiers_non_commites": [
+    "experiments/EXP-0007_pyannote-c1-summre/run.log"
+  ],
+  "config_sha256": "eedd27c25947af16689bc2d06e9be8085a26453f3a108c71969be91f9aea9709",
+  "device": "mps",
+  "torch_threads": 6,
+  "versions": {
+    "python": "3.11.15",
+    "torch": "2.14.1",
+    "pyannote.audio": "4.0.7",
+    "librosa": "0.11.0"
+  },
+  "mode_n_locuteurs": "estime",
+  "detection_oracle": false,
+  "trace": false,
+  "balayage": null,
+  "configuration_effective": {
+    "detection": [
+      {
+        "nom": "segmentation.modele",
+        "valeur": "pyannote/speaker-diarization-community-1/segmentation (PyanNet)",
+        "origine": "modele"
+      },
+      {
+        "nom": "segmentation.powerset",
+        "valeur": true,
+        "origine": "modele"
+      },
+      {
+        "nom": "segmentation.min_duration_off",
+        "valeur": 0.0,
+        "origine": "defaut"
+      }
+    ],
+    "segmentation": [
+      {
+        "nom": "segmentation.duree_fenetre_s",
+        "valeur": 10.0,
+        "origine": "modele"
+      },
+      {
+        "nom": "segmentation_step",
+        "valeur": 0.1,
+        "origine": "defaut"
+      },
+      {
+        "nom": "segmentation.locuteurs_par_fenetre",
+        "valeur": 3,
+        "origine": "modele"
+      },
+      {
+        "nom": "segmentation.locuteurs_simultanes",
+        "valeur": 2,
+        "origine": "modele"
+      },
+      {
+        "nom": "segmentation_batch_size",
+        "valeur": 32,
+        "origine": "defaut"
+      }
+    ],
+    "empreintes": [
+      {
+        "nom": "embedding.modele",
+        "valeur": "pyannote/speaker-diarization-community-1/embedding (WeSpeakerResNet34)",
+        "origine": "modele"
+      },
+      {
+        "nom": "embedding.dimension",
+        "valeur": 256,
+        "origine": "modele"
+      },
+      {
+        "nom": "embedding_exclude_overlap",
+        "valeur": true,
+        "origine": "defaut"
+      },
+      {
+        "nom": "embedding_batch_size",
+        "valeur": 32,
+        "origine": "defaut"
+      }
+    ],
+    "regroupement": [
+      {
+        "nom": "clustering.methode",
+        "valeur": "VBxClustering",
+        "origine": "defaut"
+      },
+      {
+        "nom": "clustering.metric",
+        "valeur": "cosine",
+        "origine": "defaut"
+      },
+      {
+        "nom": "clustering.threshold",
+        "valeur": 0.6,
+        "origine": "defaut"
+      },
+      {
+        "nom": "clustering.Fa",
+        "valeur": 0.07,
+        "origine": "defaut"
+      },
+      {
+        "nom": "clustering.Fb",
+        "valeur": 0.8,
+        "origine": "defaut"
+      },
+      {
+        "nom": "clustering.constrained_assignment",
+        "valeur": true,
+        "origine": "defaut"
+      },
+      {
+        "nom": "plda.modele",
+        "valeur": "pyannote/speaker-diarization-community-1/plda",
+        "origine": "modele"
+      },
+      {
+        "nom": "plda.lda_dimension",
+        "valeur": 128,
+        "origine": "modele"
+      },
+      {
+        "nom": "n_locuteurs",
+        "valeur": "estimé",
+        "origine": "experience"
+      }
+    ],
+    "sortie": [
+      {
+        "nom": "sortie.exclusive",
+        "valeur": false,
+        "origine": "code"
+      }
+    ]
+  },
+  "chargement_modeles_s": 5.16,
+  "prechauffage": {
+    "uri": "summre__004c_PAPH",
+    "duree_s": 60.0
+  },
+  "duree_audio_s": 86622.454,
+  "calcul_s": 4398.056,
+  "rtf": 0.0508,
+  "fichiers": [
+    {
+      "uri": "summre__004c_PAPH",
+      "corpus": "summre",
+      "partition": "dev",
+      "duree_audio_s": 1263.667,
+      "calcul_s": 64.518,
+      "rtf": 0.0511,
+      "n_locuteurs_hypothese": 4,
+      "n_locuteurs_impose": null,
+      "etapes_s": {
+        "segmentation": 4.832,
+        "detection": 0.024,
+        "empreintes": 59.169,
+        "regroupement": 0.273,
+        "sortie": 0.191
+      }
+    },
+    {
+      "uri": "summre__006b_EADH",
+      "corpus": "summre",
+      "partition": "dev",
+      "duree_audio_s": 1281.376,
+      "calcul_s": 72.45,
+      "rtf": 0.0565,
+      "n_locuteurs_hypothese": 4,
+      "n_locuteurs_impose": null,
+      "etapes_s": {
+        "segmentation": 4.81,
+        "detection": 0.025,
+        "empreintes": 66.783,
+        "regroupement": 0.545,
+        "sortie": 0.223
+      }
+    },
+    {
+      "uri": "summre__011c_ECPL",
+      "corpus": "summre",
+      "partition": "dev",
+      "duree_audio_s": 1016.72,
+      "calcul_s": 52.078,
+      "rtf": 0.0512,
+      "n_locuteurs_hypothese": 4,
+      "n_locuteurs_impose": null,
+      "etapes_s": {
+        "segmentation": 4.039,
+        "detection": 0.02,
+        "empreintes": 47.598,
+        "regroupement": 0.214,
+        "sortie": 0.16
+      }
+    },
+    {
+      "uri": "summre__015b_EBDD",
+      "corpus": "summre",
+      "partition": "dev",
+      "duree_audio_s": 1295.453,
+      "calcul_s": 66.136,
+      "rtf": 0.0511,
+      "n_locuteurs_hypothese": 4,
+      "n_locuteurs_impose": null,
+      "etapes_s": {
+        "segmentation": 5.09,
+        "detection": 0.033,
+        "empreintes": 60.396,
+        "regroupement": 0.347,
+        "sortie": 0.215
+      }
+    },
+    {
+      "uri": "summre__017a_EBRZ",
+      "corpus": "summre",
+      "partition": "dev",
+      "duree_audio_s": 748.877,
+      "calcul_s": 39.945,
+      "rtf": 0.0533,
+      "n_locuteurs_hypothese": 3,
+      "n_locuteurs_impose": null,
+      "etapes_s": {
+        "segmentation": 3.644,
+        "detection": 0.015,
+        "empreintes": 36.006,
+        "regroupement": 0.125,
+        "sortie": 0.11
+      }
+    },
+    {
+      "uri": "summre__018a_EARZ",
+      "corpus": "summre",
+      "partition": "dev",
+      "duree_audio_s": 1317.716,
+      "calcul_s": 68.873,
+      "rtf": 0.0523,
+      "n_locuteurs_hypothese": 4,
+      "n_locuteurs_impose": null,
+      "etapes_s": {
+        "segmentation": 4.854,
+        "detection": 0.025,
+        "empreintes": 62.405,
+        "regroupement": 0.264,
+        "sortie": 1.267
+      }
+    },
+    {
+      "uri": "summre__018b_EADZ",
+      "corpus": "summre",
+      "partition": "dev",
+      "duree_audio_s": 1163.016,
+      "calcul_s": 62.809,
+      "rtf": 0.054,
+      "n_locuteurs_hypothese": 4,
+      "n_locuteurs_impose": null,
+      "etapes_s": {
+        "segmentation": 5.827,
+        "detection": 0.03,
+        "empreintes": 56.373,
+        "regroupement": 0.255,
+        "sortie": 0.212
+      }
+    },
+    {
+      "uri": "summre__020b_EBDZ",
+      "corpus": "summre",
+      "partition": "dev",
+      "duree_audio_s": 1101.147,
+      "calcul_s": 57.007,
+      "rtf": 0.0518,
+      "n_locuteurs_hypothese": 3,
+      "n_locuteurs_impose": null,
+      "etapes_s": {
+        "segmentation": 4.466,
+        "detection": 0.022,
+        "empreintes": 51.94,
+        "regroupement": 0.304,
+        "sortie": 0.215
+      }
+    },
+    {
+      "uri": "summre__020c_EBPZ",
+      "corpus": "summre",
+      "partition": "dev",
+      "duree_audio_s": 1094.332,
+      "calcul_s": 56.992,
+      "rtf": 0.0521,
+      "n_locuteurs_hypothese": 3,
+      "n_locuteurs_impose": null,
+      "etapes_s": {
+        "segmentation": 4.252,
+        "detection": 0.025,
+        "empreintes": 52.293,
+        "regroupement": 0.21,
+        "sortie": 0.159
+      }
+    },
+    {
+      "uri": "summre__021a_EARD",
+      "corpus": "summre",
+      "partition": "dev",
+      "duree_audio_s": 1126.383,
+      "calcul_s": 57.734,
+      "rtf": 0.0513,
+      "n_locuteurs_hypothese": 4,
+      "n_locuteurs_impose": null,
+      "etapes_s": {
+        "segmentation": 4.208,
+        "detection": 0.026,
+        "empreintes": 53.046,
+        "regroupement": 0.228,
+        "sortie": 0.175
+      }
+    },
+    {
+      "uri": "summre__021b_EADD",
+      "corpus": "summre",
+      "partition": "dev",
+      "duree_audio_s": 1111.525,
+      "calcul_s": 55.96,
+      "rtf": 0.0503,
+      "n_locuteurs_hypothese": 4,
+      "n_locuteurs_impose": null,
+      "etapes_s": {
+        "segmentation": 4.438,
+        "detection": 0.022,
+        "empreintes": 51.032,
+        "regroupement": 0.235,
+        "sortie": 0.175
+      }
+    },
+    {
+      "uri": "summre__027a_EBRH",
+      "corpus": "summre",
+      "partition": "dev",
+      "duree_audio_s": 1327.065,
+      "calcul_s": 66.353,
+      "rtf": 0.05,
+      "n_locuteurs_hypothese": 3,
+      "n_locuteurs_impose": null,
+      "etapes_s": {
+        "segmentation": 4.919,
+        "detection": 0.031,
+        "empreintes": 60.92,
+        "regroupement": 0.239,
+        "sortie": 0.183
+      }
+    },
+    {
+      "uri": "summre__032a_EARH",
+      "corpus": "summre",
+      "partition": "dev",
+      "duree_audio_s": 1180.746,
+      "calcul_s": 60.368,
+      "rtf": 0.0511,
+      "n_locuteurs_hypothese": 4,
+      "n_locuteurs_impose": null,
+      "etapes_s": {
+        "segmentation": 4.417,
+        "detection": 0.038,
+        "empreintes": 55.469,
+        "regroupement": 0.219,
+        "sortie": 0.177
+      }
+    },
+    {
+      "uri": "summre__032b_EADH",
+      "corpus": "summre",
+      "partition": "dev",
+      "duree_audio_s": 1226.158,
+      "calcul_s": 61.963,
+      "rtf": 0.0505,
+      "n_locuteurs_hypothese": 4,
+      "n_locuteurs_impose": null,
+      "etapes_s": {
+        "segmentation": 4.632,
+        "detection": 0.03,
+        "empreintes": 56.766,
+        "regroupement": 0.296,
+        "sortie": 0.188
+      }
+    },
+    {
+      "uri": "summre__033a_EBRH",
+      "corpus": "summre",
+      "partition": "dev",
+      "duree_audio_s": 1267.428,
+      "calcul_s": 64.124,
+      "rtf": 0.0506,
+      "n_locuteurs_hypothese": 4,
+      "n_locuteurs_impose": null,
+      "etapes_s": {
+        "segmentation": 5.006,
+        "detection": 0.026,
+        "empreintes": 58.599,
+        "regroupement": 0.249,
+        "sortie": 0.19
+      }
+    },
+    {
+      "uri": "summre__033c_EBPH",
+      "corpus": "summre",
+      "partition": "dev",
+      "duree_audio_s": 1242.259,
+      "calcul_s": 63.049,
+      "rtf": 0.0508,
+      "n_locuteurs_hypothese": 4,
+      "n_locuteurs_impose": null,
+      "etapes_s": {
+        "segmentation": 4.765,
+        "detection": 0.032,
+        "empreintes": 57.317,
+        "regroupement": 0.672,
+        "sortie": 0.2
+      }
+    },
+    {
+      "uri": "summre__034a_EBRH",
+      "corpus": "summre",
+      "partition": "dev",
+      "duree_audio_s": 1256.3,
+      "calcul_s": 65.074,
+      "rtf": 0.0518,
+      "n_locuteurs_hypothese": 4,
+      "n_locuteurs_impose": null,
+      "etapes_s": {
+        "segmentation": 4.936,
+        "detection": 0.043,
+        "empreintes": 59.575,
+        "regroupement": 0.257,
+        "sortie": 0.201
+      }
+    },
+    {
+      "uri": "summre__035b_EADH",
+      "corpus": "summre",
+      "partition": "dev",
+      "duree_audio_s": 1188.292,
+      "calcul_s": 60.599,
+      "rtf": 0.051,
+      "n_locuteurs_hypothese": 4,
+      "n_locuteurs_impose": null,
+      "etapes_s": {
+        "segmentation": 4.666,
+        "detection": 0.024,
+        "empreintes": 55.396,
+        "regroupement": 0.267,
+        "sortie": 0.182
+      }
+    },
+    {
+      "uri": "summre__036b_EADH",
+      "corpus": "summre",
+      "partition": "dev",
+      "duree_audio_s": 1142.487,
+      "calcul_s": 58.251,
+      "rtf": 0.051,
+      "n_locuteurs_hypothese": 4,
+      "n_locuteurs_impose": null,
+      "etapes_s": {
+        "segmentation": 4.742,
+        "detection": 0.025,
+        "empreintes": 53.001,
+        "regroupement": 0.255,
+        "sortie": 0.177
+      }
+    },
+    {
+      "uri": "summre__036c_EAPH",
+      "corpus": "summre",
+      "partition": "dev",
+      "duree_audio_s": 1607.75,
+      "calcul_s": 81.6,
+      "rtf": 0.0508,
+      "n_locuteurs_hypothese": 4,
+      "n_locuteurs_impose": null,
+      "etapes_s": {
+        "segmentation": 6.217,
+        "detection": 0.032,
+        "empreintes": 74.473,
+        "regroupement": 0.506,
+        "sortie": 0.249
+      }
+    },
+    {
+      "uri": "summre__037a_EARH",
+      "corpus": "summre",
+      "partition": "dev",
+      "duree_audio_s": 1207.941,
+      "calcul_s": 61.354,
+      "rtf": 0.0508,
+      "n_locuteurs_hypothese": 3,
+      "n_locuteurs_impose": null,
+      "etapes_s": {
+        "segmentation": 5.169,
+        "detection": 0.028,
+        "empreintes": 55.717,
+        "regroupement": 0.203,
+        "sortie": 0.164
+      }
+    },
+    {
+      "uri": "summre__040a_EERH",
+      "corpus": "summre",
+      "partition": "dev",
+      "duree_audio_s": 1393.163,
+      "calcul_s": 70.379,
+      "rtf": 0.0505,
+      "n_locuteurs_hypothese": 4,
+      "n_locuteurs_impose": null,
+      "etapes_s": {
+        "segmentation": 5.439,
+        "detection": 0.028,
+        "empreintes": 64.36,
+        "regroupement": 0.28,
+        "sortie": 0.213
+      }
+    },
+    {
+      "uri": "summre__043a_EDRH",
+      "corpus": "summre",
+      "partition": "dev",
+      "duree_audio_s": 987.018,
+      "calcul_s": 50.965,
+      "rtf": 0.0516,
+      "n_locuteurs_hypothese": 3,
+      "n_locuteurs_impose": null,
+      "etapes_s": {
+        "segmentation": 3.901,
+        "detection": 0.02,
+        "empreintes": 46.67,
+        "regroupement": 0.174,
+        "sortie": 0.149
+      }
+    },
+    {
+      "uri": "summre__044c_EBPH",
+      "corpus": "summre",
+      "partition": "dev",
+      "duree_audio_s": 1106.662,
+      "calcul_s": 56.089,
+      "rtf": 0.0507,
+      "n_locuteurs_hypothese": 3,
+      "n_locuteurs_impose": null,
+      "etapes_s": {
+        "segmentation": 4.506,
+        "detection": 0.022,
+        "empreintes": 51.147,
+        "regroupement": 0.215,
+        "sortie": 0.154
+      }
+    },
+    {
+      "uri": "summre__066a_EARH",
+      "corpus": "summre",
+      "partition": "dev",
+      "duree_audio_s": 1031.779,
+      "calcul_s": 51.058,
+      "rtf": 0.0495,
+      "n_locuteurs_hypothese": 3,
+      "n_locuteurs_impose": null,
+      "etapes_s": {
+        "segmentation": 3.798,
+        "detection": 0.022,
+        "empreintes": 46.879,
+        "regroupement": 0.166,
+        "sortie": 0.143
+      }
+    },
+    {
+      "uri": "summre__069b_EEDL",
+      "corpus": "summre",
+      "partition": "dev",
+      "duree_audio_s": 1157.635,
+      "calcul_s": 58.191,
+      "rtf": 0.0503,
+      "n_locuteurs_hypothese": 4,
+      "n_locuteurs_impose": null,
+      "etapes_s": {
+        "segmentation": 4.709,
+        "detection": 0.024,
+        "empreintes": 53.039,
+        "regroupement": 0.201,
+        "sortie": 0.169
+      }
+    },
+    {
+      "uri": "summre__069c_EEPL",
+      "corpus": "summre",
+      "partition": "dev",
+      "duree_audio_s": 1261.308,
+      "calcul_s": 63.791,
+      "rtf": 0.0506,
+      "n_locuteurs_hypothese": 4,
+      "n_locuteurs_impose": null,
+      "etapes_s": {
+        "segmentation": 4.784,
+        "detection": 0.025,
+        "empreintes": 58.498,
+        "regroupement": 0.245,
+        "sortie": 0.189
+      }
+    },
+    {
+      "uri": "summre__075b_EBDH",
+      "corpus": "summre",
+      "partition": "dev",
+      "duree_audio_s": 1018.842,
+      "calcul_s": 51.735,
+      "rtf": 0.0508,
+      "n_locuteurs_hypothese": 3,
+      "n_locuteurs_impose": null,
+      "etapes_s": {
+        "segmentation": 3.895,
+        "detection": 0.021,
+        "empreintes": 47.453,
+        "regroupement": 0.173,
+        "sortie": 0.141
+      }
+    },
+    {
+      "uri": "summre__081a_EBRH",
+      "corpus": "summre",
+      "partition": "dev",
+      "duree_audio_s": 1208.174,
+      "calcul_s": 61.662,
+      "rtf": 0.051,
+      "n_locuteurs_hypothese": 3,
+      "n_locuteurs_impose": null,
+      "etapes_s": {
+        "segmentation": 4.624,
+        "detection": 0.026,
+        "empreintes": 56.579,
+        "regroupement": 0.212,
+        "sortie": 0.167
+      }
+    },
+    {
+      "uri": "summre__081c_EBPH",
+      "corpus": "summre",
+      "partition": "dev",
+      "duree_audio_s": 1235.307,
+      "calcul_s": 65.656,
+      "rtf": 0.0531,
+      "n_locuteurs_hypothese": 3,
+      "n_locuteurs_impose": null,
+      "etapes_s": {
+        "segmentation": 4.619,
+        "detection": 0.025,
+        "empreintes": 60.499,
+        "regroupement": 0.265,
+        "sortie": 0.178
+      }
+    },
+    {
+      "uri": "summre__084c_EBPH",
+      "corpus": "summre",
+      "partition": "dev",
+      "duree_audio_s": 1203.192,
+      "calcul_s": 60.156,
+      "rtf": 0.05,
+      "n_locuteurs_hypothese": 2,
+      "n_locuteurs_impose": null,
+      "etapes_s": {
+        "segmentation": 4.614,
+        "detection": 0.028,
+        "empreintes": 55.096,
+        "regroupement": 0.212,
+        "sortie": 0.157
+      }
+    },
+    {
+      "uri": "summre__091b_EBDH",
+      "corpus": "summre",
+      "partition": "dev",
+      "duree_audio_s": 1154.856,
+      "calcul_s": 59.261,
+      "rtf": 0.0513,
+      "n_locuteurs_hypothese": 3,
+      "n_locuteurs_impose": null,
+      "etapes_s": {
+        "segmentation": 4.403,
+        "detection": 0.023,
+        "empreintes": 54.396,
+        "regroupement": 0.227,
+        "sortie": 0.16
+      }
+    },
+    {
+      "uri": "summre__097b_EBDH",
+      "corpus": "summre",
+      "partition": "dev",
+      "duree_audio_s": 1263.361,
+      "calcul_s": 63.02,
+      "rtf": 0.0499,
+      "n_locuteurs_hypothese": 4,
+      "n_locuteurs_impose": null,
+      "etapes_s": {
+        "segmentation": 4.706,
+        "detection": 0.026,
+        "empreintes": 57.691,
+        "regroupement": 0.332,
+        "sortie": 0.206
+      }
+    },
+    {
+      "uri": "summre__097c_EBPH",
+      "corpus": "summre",
+      "partition": "dev",
+      "duree_audio_s": 1265.472,
+      "calcul_s": 62.788,
+      "rtf": 0.0496,
+      "n_locuteurs_hypothese": 3,
+      "n_locuteurs_impose": null,
+      "etapes_s": {
+        "segmentation": 4.716,
+        "detection": 0.025,
+        "empreintes": 57.463,
+        "regroupement": 0.324,
+        "sortie": 0.197
+      }
+    },
+    {
+      "uri": "summre__101c_EDPH",
+      "corpus": "summre",
+      "partition": "dev",
+      "duree_audio_s": 1139.458,
+      "calcul_s": 56.668,
+      "rtf": 0.0497,
+      "n_locuteurs_hypothese": 2,
+      "n_locuteurs_impose": null,
+      "etapes_s": {
+        "segmentation": 4.833,
+        "detection": 0.026,
+        "empreintes": 51.353,
+        "regroupement": 0.258,
+        "sortie": 0.147
+      }
+    },
+    {
+      "uri": "summre__104b_EADH",
+      "corpus": "summre",
+      "partition": "dev",
+      "duree_audio_s": 1223.778,
+      "calcul_s": 61.735,
+      "rtf": 0.0504,
+      "n_locuteurs_hypothese": 4,
+      "n_locuteurs_impose": null,
+      "etapes_s": {
+        "segmentation": 4.559,
+        "detection": 0.025,
+        "empreintes": 56.468,
+        "regroupement": 0.442,
+        "sortie": 0.19
+      }
+    },
+    {
+      "uri": "summre__007a_ECRH",
+      "corpus": "summre",
+      "partition": "test",
+      "duree_audio_s": 1210.595,
+      "calcul_s": 60.439,
+      "rtf": 0.0499,
+      "n_locuteurs_hypothese": 4,
+      "n_locuteurs_impose": null,
+      "etapes_s": {
+        "segmentation": 4.664,
+        "detection": 0.025,
+        "empreintes": 55.238,
+        "regroupement": 0.26,
+        "sortie": 0.187
+      }
+    },
+    {
+      "uri": "summre__008a_EARH",
+      "corpus": "summre",
+      "partition": "test",
+      "duree_audio_s": 1565.566,
+      "calcul_s": 78.448,
+      "rtf": 0.0501,
+      "n_locuteurs_hypothese": 4,
+      "n_locuteurs_impose": null,
+      "etapes_s": {
+        "segmentation": 5.899,
+        "detection": 0.029,
+        "empreintes": 71.922,
+        "regroupement": 0.299,
+        "sortie": 0.231
+      }
+    },
+    {
+      "uri": "summre__012c_EBPZ",
+      "corpus": "summre",
+      "partition": "test",
+      "duree_audio_s": 1159.431,
+      "calcul_s": 57.592,
+      "rtf": 0.0497,
+      "n_locuteurs_hypothese": 3,
+      "n_locuteurs_impose": null,
+      "etapes_s": {
+        "segmentation": 4.335,
+        "detection": 0.023,
+        "empreintes": 52.735,
+        "regroupement": 0.252,
+        "sortie": 0.173
+      }
+    },
+    {
+      "uri": "summre__013c_EAPD",
+      "corpus": "summre",
+      "partition": "test",
+      "duree_audio_s": 1226.22,
+      "calcul_s": 62.288,
+      "rtf": 0.0508,
+      "n_locuteurs_hypothese": 4,
+      "n_locuteurs_impose": null,
+      "etapes_s": {
+        "segmentation": 4.554,
+        "detection": 0.023,
+        "empreintes": 57.206,
+        "regroupement": 0.251,
+        "sortie": 0.187
+      }
+    },
+    {
+      "uri": "summre__014c_EAPD",
+      "corpus": "summre",
+      "partition": "test",
+      "duree_audio_s": 1222.102,
+      "calcul_s": 60.949,
+      "rtf": 0.0499,
+      "n_locuteurs_hypothese": 4,
+      "n_locuteurs_impose": null,
+      "etapes_s": {
+        "segmentation": 4.563,
+        "detection": 0.024,
+        "empreintes": 55.862,
+        "regroupement": 0.249,
+        "sortie": 0.192
+      }
+    },
+    {
+      "uri": "summre__016c_EBPZ",
+      "corpus": "summre",
+      "partition": "test",
+      "duree_audio_s": 1217.826,
+      "calcul_s": 60.336,
+      "rtf": 0.0495,
+      "n_locuteurs_hypothese": 2,
+      "n_locuteurs_impose": null,
+      "etapes_s": {
+        "segmentation": 4.519,
+        "detection": 0.025,
+        "empreintes": 55.384,
+        "regroupement": 0.203,
+        "sortie": 0.155
+      }
+    },
+    {
+      "uri": "summre__019a_EARD",
+      "corpus": "summre",
+      "partition": "test",
+      "duree_audio_s": 1195.192,
+      "calcul_s": 58.772,
+      "rtf": 0.0492,
+      "n_locuteurs_hypothese": 5,
+      "n_locuteurs_impose": null,
+      "etapes_s": {
+        "segmentation": 4.457,
+        "detection": 0.023,
+        "empreintes": 53.777,
+        "regroupement": 0.268,
+        "sortie": 0.2
+      }
+    },
+    {
+      "uri": "summre__019c_EAPD",
+      "corpus": "summre",
+      "partition": "test",
+      "duree_audio_s": 1211.023,
+      "calcul_s": 60.51,
+      "rtf": 0.05,
+      "n_locuteurs_hypothese": 4,
+      "n_locuteurs_impose": null,
+      "etapes_s": {
+        "segmentation": 4.577,
+        "detection": 0.025,
+        "empreintes": 55.343,
+        "regroupement": 0.321,
+        "sortie": 0.189
+      }
+    },
+    {
+      "uri": "summre__024c_EBPH",
+      "corpus": "summre",
+      "partition": "test",
+      "duree_audio_s": 1236.215,
+      "calcul_s": 62.005,
+      "rtf": 0.0502,
+      "n_locuteurs_hypothese": 3,
+      "n_locuteurs_impose": null,
+      "etapes_s": {
+        "segmentation": 4.858,
+        "detection": 0.027,
+        "empreintes": 56.652,
+        "regroupement": 0.246,
+        "sortie": 0.17
+      }
+    },
+    {
+      "uri": "summre__025b_EBDH",
+      "corpus": "summre",
+      "partition": "test",
+      "duree_audio_s": 1317.369,
+      "calcul_s": 65.519,
+      "rtf": 0.0497,
+      "n_locuteurs_hypothese": 4,
+      "n_locuteurs_impose": null,
+      "etapes_s": {
+        "segmentation": 4.841,
+        "detection": 0.026,
+        "empreintes": 60.063,
+        "regroupement": 0.324,
+        "sortie": 0.2
+      }
+    },
+    {
+      "uri": "summre__039b_EDDH",
+      "corpus": "summre",
+      "partition": "test",
+      "duree_audio_s": 1407.377,
+      "calcul_s": 71.138,
+      "rtf": 0.0505,
+      "n_locuteurs_hypothese": 4,
+      "n_locuteurs_impose": null,
+      "etapes_s": {
+        "segmentation": 5.244,
+        "detection": 0.027,
+        "empreintes": 65.202,
+        "regroupement": 0.383,
+        "sortie": 0.218
+      }
+    },
+    {
+      "uri": "summre__045a_EARH",
+      "corpus": "summre",
+      "partition": "test",
+      "duree_audio_s": 1169.736,
+      "calcul_s": 59.256,
+      "rtf": 0.0507,
+      "n_locuteurs_hypothese": 3,
+      "n_locuteurs_impose": null,
+      "etapes_s": {
+        "segmentation": 4.779,
+        "detection": 0.025,
+        "empreintes": 54.028,
+        "regroupement": 0.208,
+        "sortie": 0.165
+      }
+    },
+    {
+      "uri": "summre__045b_EADH",
+      "corpus": "summre",
+      "partition": "test",
+      "duree_audio_s": 1170.761,
+      "calcul_s": 60.531,
+      "rtf": 0.0517,
+      "n_locuteurs_hypothese": 3,
+      "n_locuteurs_impose": null,
+      "etapes_s": {
+        "segmentation": 5.211,
+        "detection": 0.025,
+        "empreintes": 54.85,
+        "regroupement": 0.216,
+        "sortie": 0.164
+      }
+    },
+    {
+      "uri": "summre__046c_EBPH",
+      "corpus": "summre",
+      "partition": "test",
+      "duree_audio_s": 1189.116,
+      "calcul_s": 59.287,
+      "rtf": 0.0499,
+      "n_locuteurs_hypothese": 4,
+      "n_locuteurs_impose": null,
+      "etapes_s": {
+        "segmentation": 4.473,
+        "detection": 0.029,
+        "empreintes": 54.19,
+        "regroupement": 0.365,
+        "sortie": 0.188
+      }
+    },
+    {
+      "uri": "summre__047a_EDRH",
+      "corpus": "summre",
+      "partition": "test",
+      "duree_audio_s": 1095.354,
+      "calcul_s": 54.767,
+      "rtf": 0.05,
+      "n_locuteurs_hypothese": 3,
+      "n_locuteurs_impose": null,
+      "etapes_s": {
+        "segmentation": 4.469,
+        "detection": 0.024,
+        "empreintes": 49.82,
+        "regroupement": 0.204,
+        "sortie": 0.179
+      }
+    },
+    {
+      "uri": "summre__047c_EDPH",
+      "corpus": "summre",
+      "partition": "test",
+      "duree_audio_s": 1385.831,
+      "calcul_s": 70.236,
+      "rtf": 0.0507,
+      "n_locuteurs_hypothese": 3,
+      "n_locuteurs_impose": null,
+      "etapes_s": {
+        "segmentation": 5.508,
+        "detection": 0.027,
+        "empreintes": 64.178,
+        "regroupement": 0.275,
+        "sortie": 0.191
+      }
+    },
+    {
+      "uri": "summre__049b_EBDH",
+      "corpus": "summre",
+      "partition": "test",
+      "duree_audio_s": 1193.076,
+      "calcul_s": 60.944,
+      "rtf": 0.0511,
+      "n_locuteurs_hypothese": 3,
+      "n_locuteurs_impose": null,
+      "etapes_s": {
+        "segmentation": 4.529,
+        "detection": 0.025,
+        "empreintes": 55.89,
+        "regroupement": 0.255,
+        "sortie": 0.176
+      }
+    },
+    {
+      "uri": "summre__050c_EEPH",
+      "corpus": "summre",
+      "partition": "test",
+      "duree_audio_s": 1058.321,
+      "calcul_s": 53.899,
+      "rtf": 0.0509,
+      "n_locuteurs_hypothese": 3,
+      "n_locuteurs_impose": null,
+      "etapes_s": {
+        "segmentation": 4.34,
+        "detection": 0.022,
+        "empreintes": 49.149,
+        "regroupement": 0.183,
+        "sortie": 0.147
+      }
+    },
+    {
+      "uri": "summre__051a_EARH",
+      "corpus": "summre",
+      "partition": "test",
+      "duree_audio_s": 983.784,
+      "calcul_s": 48.904,
+      "rtf": 0.0497,
+      "n_locuteurs_hypothese": 3,
+      "n_locuteurs_impose": null,
+      "etapes_s": {
+        "segmentation": 4.006,
+        "detection": 0.023,
+        "empreintes": 44.554,
+        "regroupement": 0.143,
+        "sortie": 0.134
+      }
+    },
+    {
+      "uri": "summre__053b_EDDH",
+      "corpus": "summre",
+      "partition": "test",
+      "duree_audio_s": 1012.02,
+      "calcul_s": 50.823,
+      "rtf": 0.0502,
+      "n_locuteurs_hypothese": 3,
+      "n_locuteurs_impose": null,
+      "etapes_s": {
+        "segmentation": 4.126,
+        "detection": 0.021,
+        "empreintes": 46.253,
+        "regroupement": 0.212,
+        "sortie": 0.166
+      }
+    },
+    {
+      "uri": "summre__054a_EARH",
+      "corpus": "summre",
+      "partition": "test",
+      "duree_audio_s": 1202.419,
+      "calcul_s": 60.451,
+      "rtf": 0.0503,
+      "n_locuteurs_hypothese": 3,
+      "n_locuteurs_impose": null,
+      "etapes_s": {
+        "segmentation": 4.589,
+        "detection": 0.024,
+        "empreintes": 55.417,
+        "regroupement": 0.203,
+        "sortie": 0.166
+      }
+    },
+    {
+      "uri": "summre__054c_EAPH",
+      "corpus": "summre",
+      "partition": "test",
+      "duree_audio_s": 1188.025,
+      "calcul_s": 58.655,
+      "rtf": 0.0494,
+      "n_locuteurs_hypothese": 3,
+      "n_locuteurs_impose": null,
+      "etapes_s": {
+        "segmentation": 4.419,
+        "detection": 0.024,
+        "empreintes": 53.714,
+        "regroupement": 0.239,
+        "sortie": 0.167
+      }
+    },
+    {
+      "uri": "summre__059b_EBDH",
+      "corpus": "summre",
+      "partition": "test",
+      "duree_audio_s": 1415.136,
+      "calcul_s": 70.705,
+      "rtf": 0.05,
+      "n_locuteurs_hypothese": 4,
+      "n_locuteurs_impose": null,
+      "etapes_s": {
+        "segmentation": 5.287,
+        "detection": 0.028,
+        "empreintes": 64.744,
+        "regroupement": 0.36,
+        "sortie": 0.223
+      }
+    },
+    {
+      "uri": "summre__060a_EDRH",
+      "corpus": "summre",
+      "partition": "test",
+      "duree_audio_s": 1513.625,
+      "calcul_s": 79.214,
+      "rtf": 0.0523,
+      "n_locuteurs_hypothese": 4,
+      "n_locuteurs_impose": null,
+      "etapes_s": {
+        "segmentation": 6.379,
+        "detection": 0.035,
+        "empreintes": 72.186,
+        "regroupement": 0.311,
+        "sortie": 0.23
+      }
+    },
+    {
+      "uri": "summre__070a_EBRL",
+      "corpus": "summre",
+      "partition": "test",
+      "duree_audio_s": 867.135,
+      "calcul_s": 43.982,
+      "rtf": 0.0507,
+      "n_locuteurs_hypothese": 4,
+      "n_locuteurs_impose": null,
+      "etapes_s": {
+        "segmentation": 3.424,
+        "detection": 0.018,
+        "empreintes": 40.139,
+        "regroupement": 0.233,
+        "sortie": 0.128
+      }
+    },
+    {
+      "uri": "summre__070b_EBDL",
+      "corpus": "summre",
+      "partition": "test",
+      "duree_audio_s": 1149.023,
+      "calcul_s": 59.205,
+      "rtf": 0.0515,
+      "n_locuteurs_hypothese": 4,
+      "n_locuteurs_impose": null,
+      "etapes_s": {
+        "segmentation": 4.489,
+        "detection": 0.022,
+        "empreintes": 54.241,
+        "regroupement": 0.236,
+        "sortie": 0.172
+      }
+    },
+    {
+      "uri": "summre__072b_EEDH",
+      "corpus": "summre",
+      "partition": "test",
+      "duree_audio_s": 1200.774,
+      "calcul_s": 61.414,
+      "rtf": 0.0511,
+      "n_locuteurs_hypothese": 2,
+      "n_locuteurs_impose": null,
+      "etapes_s": {
+        "segmentation": 4.61,
+        "detection": 0.024,
+        "empreintes": 56.199,
+        "regroupement": 0.279,
+        "sortie": 0.232
+      }
+    },
+    {
+      "uri": "summre__072c_EEPH",
+      "corpus": "summre",
+      "partition": "test",
+      "duree_audio_s": 1052.478,
+      "calcul_s": 54.973,
+      "rtf": 0.0522,
+      "n_locuteurs_hypothese": 2,
+      "n_locuteurs_impose": null,
+      "etapes_s": {
+        "segmentation": 4.464,
+        "detection": 0.022,
+        "empreintes": 50.1,
+        "regroupement": 0.187,
+        "sortie": 0.136
+      }
+    },
+    {
+      "uri": "summre__074c_EAPH",
+      "corpus": "summre",
+      "partition": "test",
+      "duree_audio_s": 1044.699,
+      "calcul_s": 53.326,
+      "rtf": 0.051,
+      "n_locuteurs_hypothese": 3,
+      "n_locuteurs_impose": null,
+      "etapes_s": {
+        "segmentation": 4.073,
+        "detection": 0.022,
+        "empreintes": 48.867,
+        "regroupement": 0.177,
+        "sortie": 0.145
+      }
+    },
+    {
+      "uri": "summre__076b_EEDH",
+      "corpus": "summre",
+      "partition": "test",
+      "duree_audio_s": 489.298,
+      "calcul_s": 24.318,
+      "rtf": 0.0497,
+      "n_locuteurs_hypothese": 4,
+      "n_locuteurs_impose": null,
+      "etapes_s": {
+        "segmentation": 1.892,
+        "detection": 0.011,
+        "empreintes": 22.231,
+        "regroupement": 0.073,
+        "sortie": 0.074
+      }
+    },
+    {
+      "uri": "summre__077c_EBPH",
+      "corpus": "summre",
+      "partition": "test",
+      "duree_audio_s": 1211.419,
+      "calcul_s": 61.041,
+      "rtf": 0.0504,
+      "n_locuteurs_hypothese": 4,
+      "n_locuteurs_impose": null,
+      "etapes_s": {
+        "segmentation": 4.602,
+        "detection": 0.025,
+        "empreintes": 55.88,
+        "regroupement": 0.297,
+        "sortie": 0.189
+      }
+    },
+    {
+      "uri": "summre__080b_EBDH",
+      "corpus": "summre",
+      "partition": "test",
+      "duree_audio_s": 1316.261,
+      "calcul_s": 66.425,
+      "rtf": 0.0505,
+      "n_locuteurs_hypothese": 2,
+      "n_locuteurs_impose": null,
+      "etapes_s": {
+        "segmentation": 4.999,
+        "detection": 0.027,
+        "empreintes": 60.912,
+        "regroupement": 0.274,
+        "sortie": 0.152
+      }
+    },
+    {
+      "uri": "summre__088b_EADH",
+      "corpus": "summre",
+      "partition": "test",
+      "duree_audio_s": 1226.451,
+      "calcul_s": 61.482,
+      "rtf": 0.0501,
+      "n_locuteurs_hypothese": 3,
+      "n_locuteurs_impose": null,
+      "etapes_s": {
+        "segmentation": 4.717,
+        "detection": 0.024,
+        "empreintes": 56.261,
+        "regroupement": 0.243,
+        "sortie": 0.174
+      }
+    },
+    {
+      "uri": "summre__093c_EBPZ",
+      "corpus": "summre",
+      "partition": "test",
+      "duree_audio_s": 1125.567,
+      "calcul_s": 56.542,
+      "rtf": 0.0502,
+      "n_locuteurs_hypothese": 4,
+      "n_locuteurs_impose": null,
+      "etapes_s": {
+        "segmentation": 4.121,
+        "detection": 0.022,
+        "empreintes": 51.822,
+        "regroupement": 0.344,
+        "sortie": 0.172
+      }
+    },
+    {
+      "uri": "summre__100b_EADH",
+      "corpus": "summre",
+      "partition": "test",
+      "duree_audio_s": 1071.882,
+      "calcul_s": 53.084,
+      "rtf": 0.0495,
+      "n_locuteurs_hypothese": 3,
+      "n_locuteurs_impose": null,
+      "etapes_s": {
+        "segmentation": 4.042,
+        "detection": 0.021,
+        "empreintes": 48.64,
+        "regroupement": 0.175,
+        "sortie": 0.148
+      }
+    },
+    {
+      "uri": "summre__102a_EBRH",
+      "corpus": "summre",
+      "partition": "test",
+      "duree_audio_s": 1211.783,
+      "calcul_s": 61.117,
+      "rtf": 0.0504,
+      "n_locuteurs_hypothese": 4,
+      "n_locuteurs_impose": null,
+      "etapes_s": {
+        "segmentation": 4.577,
+        "detection": 0.025,
+        "empreintes": 56.007,
+        "regroupement": 0.265,
+        "sortie": 0.19
+      }
+    },
+    {
+      "uri": "summre__102c_EBPH",
+      "corpus": "summre",
+      "partition": "test",
+      "duree_audio_s": 1292.921,
+      "calcul_s": 65.088,
+      "rtf": 0.0503,
+      "n_locuteurs_hypothese": 4,
+      "n_locuteurs_impose": null,
+      "etapes_s": {
+        "segmentation": 4.971,
+        "detection": 0.024,
+        "empreintes": 59.305,
+        "regroupement": 0.505,
+        "sortie": 0.209
+      }
+    }
+  ]
+}

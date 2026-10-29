@@ -1,0 +1,89 @@
+2026-10-29T12:58:22+0100 INFO expérience EXP-0007, mode complet
+2026-10-29T12:58:22+0100 INFO commit 568efbb7730f4d6bf78cfe9efe432647317c3e9c, arbre propre (chemins contrôlés, D18) : True
+2026-10-29T12:58:22+0100 INFO fichiers non commités : experiments/EXP-0007_pyannote-c1-summre/run.log
+2026-10-29T12:58:22+0100 INFO python 3.11.15, torch 2.14.1, plateforme macOS-14.1.2-arm64-arm-64bit, fils torch 6
+2026-10-29T12:58:27+0100 INFO pipeline pyannote-community-1 chargée sur mps en 5.16 s (paramètres : {'num_speakers': None, 'min_speakers': None, 'max_speakers': None}, nombre de locuteurs : estime, détection oracle : False, trace : False)
+2026-10-29T12:58:31+0100 INFO préchauffage : 60 s de summre__004c_PAPH en 4.06 s (non compté)
+2026-10-29T12:59:36+0100 INFO [1/73] dev summre__004c_PAPH : 1263.7 s d'audio, 64.52 s de calcul, RTF 0.0511, 4 locuteurs
+2026-10-29T13:00:48+0100 INFO [2/73] dev summre__006b_EADH : 1281.4 s d'audio, 72.45 s de calcul, RTF 0.0565, 4 locuteurs
+2026-10-29T13:01:40+0100 INFO [3/73] dev summre__011c_ECPL : 1016.7 s d'audio, 52.08 s de calcul, RTF 0.0512, 4 locuteurs
+2026-10-29T13:02:46+0100 INFO [4/73] dev summre__015b_EBDD : 1295.5 s d'audio, 66.14 s de calcul, RTF 0.0511, 4 locuteurs
+2026-10-29T13:03:26+0100 INFO [5/73] dev summre__017a_EBRZ : 748.9 s d'audio, 39.94 s de calcul, RTF 0.0533, 3 locuteurs
+2026-10-29T13:04:35+0100 INFO [6/73] dev summre__018a_EARZ : 1317.7 s d'audio, 68.87 s de calcul, RTF 0.0523, 4 locuteurs
+2026-10-29T13:05:38+0100 INFO [7/73] dev summre__018b_EADZ : 1163.0 s d'audio, 62.81 s de calcul, RTF 0.0540, 4 locuteurs
+2026-10-29T13:06:35+0100 INFO [8/73] dev summre__020b_EBDZ : 1101.1 s d'audio, 57.01 s de calcul, RTF 0.0518, 3 locuteurs
+2026-10-29T13:07:32+0100 INFO [9/73] dev summre__020c_EBPZ : 1094.3 s d'audio, 56.99 s de calcul, RTF 0.0521, 3 locuteurs
+2026-10-29T13:08:30+0100 INFO [10/73] dev summre__021a_EARD : 1126.4 s d'audio, 57.73 s de calcul, RTF 0.0513, 4 locuteurs
+2026-10-29T13:09:26+0100 INFO [11/73] dev summre__021b_EADD : 1111.5 s d'audio, 55.96 s de calcul, RTF 0.0503, 4 locuteurs
+2026-10-29T13:10:32+0100 INFO [12/73] dev summre__027a_EBRH : 1327.1 s d'audio, 66.35 s de calcul, RTF 0.0500, 3 locuteurs
+2026-10-29T13:11:32+0100 INFO [13/73] dev summre__032a_EARH : 1180.7 s d'audio, 60.37 s de calcul, RTF 0.0511, 4 locuteurs
+2026-10-29T13:12:34+0100 INFO [14/73] dev summre__032b_EADH : 1226.2 s d'audio, 61.96 s de calcul, RTF 0.0505, 4 locuteurs
+2026-10-29T13:13:39+0100 INFO [15/73] dev summre__033a_EBRH : 1267.4 s d'audio, 64.12 s de calcul, RTF 0.0506, 4 locuteurs
+2026-10-29T13:14:42+0100 INFO [16/73] dev summre__033c_EBPH : 1242.3 s d'audio, 63.05 s de calcul, RTF 0.0508, 4 locuteurs
+2026-10-29T13:15:47+0100 INFO [17/73] dev summre__034a_EBRH : 1256.3 s d'audio, 65.07 s de calcul, RTF 0.0518, 4 locuteurs
+2026-10-29T13:16:47+0100 INFO [18/73] dev summre__035b_EADH : 1188.3 s d'audio, 60.60 s de calcul, RTF 0.0510, 4 locuteurs
+2026-10-29T13:17:46+0100 INFO [19/73] dev summre__036b_EADH : 1142.5 s d'audio, 58.25 s de calcul, RTF 0.0510, 4 locuteurs
+2026-10-29T13:19:07+0100 INFO [20/73] dev summre__036c_EAPH : 1607.7 s d'audio, 81.60 s de calcul, RTF 0.0508, 4 locuteurs
+2026-10-29T13:20:08+0100 INFO [21/73] dev summre__037a_EARH : 1207.9 s d'audio, 61.35 s de calcul, RTF 0.0508, 3 locuteurs
+2026-10-29T13:21:19+0100 INFO [22/73] dev summre__040a_EERH : 1393.2 s d'audio, 70.38 s de calcul, RTF 0.0505, 4 locuteurs
+2026-10-29T13:22:10+0100 INFO [23/73] dev summre__043a_EDRH : 987.0 s d'audio, 50.97 s de calcul, RTF 0.0516, 3 locuteurs
+2026-10-29T13:23:06+0100 INFO [24/73] dev summre__044c_EBPH : 1106.7 s d'audio, 56.09 s de calcul, RTF 0.0507, 3 locuteurs
+2026-10-29T13:23:57+0100 INFO [25/73] dev summre__066a_EARH : 1031.8 s d'audio, 51.06 s de calcul, RTF 0.0495, 3 locuteurs
+2026-10-29T13:24:55+0100 INFO [26/73] dev summre__069b_EEDL : 1157.6 s d'audio, 58.19 s de calcul, RTF 0.0503, 4 locuteurs
+2026-10-29T13:25:59+0100 INFO [27/73] dev summre__069c_EEPL : 1261.3 s d'audio, 63.79 s de calcul, RTF 0.0506, 4 locuteurs
+2026-10-29T13:26:51+0100 INFO [28/73] dev summre__075b_EBDH : 1018.8 s d'audio, 51.74 s de calcul, RTF 0.0508, 3 locuteurs
+2026-10-29T13:27:52+0100 INFO [29/73] dev summre__081a_EBRH : 1208.2 s d'audio, 61.66 s de calcul, RTF 0.0510, 3 locuteurs
+2026-10-29T13:28:58+0100 INFO [30/73] dev summre__081c_EBPH : 1235.3 s d'audio, 65.66 s de calcul, RTF 0.0531, 3 locuteurs
+2026-10-29T13:29:58+0100 INFO [31/73] dev summre__084c_EBPH : 1203.2 s d'audio, 60.16 s de calcul, RTF 0.0500, 2 locuteurs
+2026-10-29T13:30:57+0100 INFO [32/73] dev summre__091b_EBDH : 1154.9 s d'audio, 59.26 s de calcul, RTF 0.0513, 3 locuteurs
+2026-10-29T13:32:00+0100 INFO [33/73] dev summre__097b_EBDH : 1263.4 s d'audio, 63.02 s de calcul, RTF 0.0499, 4 locuteurs
+2026-10-29T13:33:03+0100 INFO [34/73] dev summre__097c_EBPH : 1265.5 s d'audio, 62.79 s de calcul, RTF 0.0496, 3 locuteurs
+2026-10-29T13:34:00+0100 INFO [35/73] dev summre__101c_EDPH : 1139.5 s d'audio, 56.67 s de calcul, RTF 0.0497, 2 locuteurs
+2026-10-29T13:35:02+0100 INFO [36/73] dev summre__104b_EADH : 1223.8 s d'audio, 61.74 s de calcul, RTF 0.0504, 4 locuteurs
+2026-10-29T13:36:02+0100 INFO [37/73] test summre__007a_ECRH : 1210.6 s d'audio, 60.44 s de calcul, RTF 0.0499, 4 locuteurs
+2026-10-29T13:37:21+0100 INFO [38/73] test summre__008a_EARH : 1565.6 s d'audio, 78.45 s de calcul, RTF 0.0501, 4 locuteurs
+2026-10-29T13:38:18+0100 INFO [39/73] test summre__012c_EBPZ : 1159.4 s d'audio, 57.59 s de calcul, RTF 0.0497, 3 locuteurs
+2026-10-29T13:39:20+0100 INFO [40/73] test summre__013c_EAPD : 1226.2 s d'audio, 62.29 s de calcul, RTF 0.0508, 4 locuteurs
+2026-10-29T13:40:21+0100 INFO [41/73] test summre__014c_EAPD : 1222.1 s d'audio, 60.95 s de calcul, RTF 0.0499, 4 locuteurs
+2026-10-29T13:41:22+0100 INFO [42/73] test summre__016c_EBPZ : 1217.8 s d'audio, 60.34 s de calcul, RTF 0.0495, 2 locuteurs
+2026-10-29T13:42:21+0100 INFO [43/73] test summre__019a_EARD : 1195.2 s d'audio, 58.77 s de calcul, RTF 0.0492, 5 locuteurs
+2026-10-29T13:43:21+0100 INFO [44/73] test summre__019c_EAPD : 1211.0 s d'audio, 60.51 s de calcul, RTF 0.0500, 4 locuteurs
+2026-10-29T13:44:23+0100 INFO [45/73] test summre__024c_EBPH : 1236.2 s d'audio, 62.00 s de calcul, RTF 0.0502, 3 locuteurs
+2026-10-29T13:45:29+0100 INFO [46/73] test summre__025b_EBDH : 1317.4 s d'audio, 65.52 s de calcul, RTF 0.0497, 4 locuteurs
+2026-10-29T13:46:40+0100 INFO [47/73] test summre__039b_EDDH : 1407.4 s d'audio, 71.14 s de calcul, RTF 0.0505, 4 locuteurs
+2026-10-29T13:47:39+0100 INFO [48/73] test summre__045a_EARH : 1169.7 s d'audio, 59.26 s de calcul, RTF 0.0507, 3 locuteurs
+2026-10-29T13:48:39+0100 INFO [49/73] test summre__045b_EADH : 1170.8 s d'audio, 60.53 s de calcul, RTF 0.0517, 3 locuteurs
+2026-10-29T13:49:39+0100 INFO [50/73] test summre__046c_EBPH : 1189.1 s d'audio, 59.29 s de calcul, RTF 0.0499, 4 locuteurs
+2026-10-29T13:50:34+0100 INFO [51/73] test summre__047a_EDRH : 1095.4 s d'audio, 54.77 s de calcul, RTF 0.0500, 3 locuteurs
+2026-10-29T13:51:44+0100 INFO [52/73] test summre__047c_EDPH : 1385.8 s d'audio, 70.24 s de calcul, RTF 0.0507, 3 locuteurs
+2026-10-29T13:52:45+0100 INFO [53/73] test summre__049b_EBDH : 1193.1 s d'audio, 60.94 s de calcul, RTF 0.0511, 3 locuteurs
+2026-10-29T13:53:39+0100 INFO [54/73] test summre__050c_EEPH : 1058.3 s d'audio, 53.90 s de calcul, RTF 0.0509, 3 locuteurs
+2026-10-29T13:54:28+0100 INFO [55/73] test summre__051a_EARH : 983.8 s d'audio, 48.90 s de calcul, RTF 0.0497, 3 locuteurs
+2026-10-29T13:55:18+0100 INFO [56/73] test summre__053b_EDDH : 1012.0 s d'audio, 50.82 s de calcul, RTF 0.0502, 3 locuteurs
+2026-10-29T13:56:19+0100 INFO [57/73] test summre__054a_EARH : 1202.4 s d'audio, 60.45 s de calcul, RTF 0.0503, 3 locuteurs
+2026-10-29T13:57:17+0100 INFO [58/73] test summre__054c_EAPH : 1188.0 s d'audio, 58.66 s de calcul, RTF 0.0494, 3 locuteurs
+2026-10-29T13:58:28+0100 INFO [59/73] test summre__059b_EBDH : 1415.1 s d'audio, 70.71 s de calcul, RTF 0.0500, 4 locuteurs
+2026-10-29T13:59:47+0100 INFO [60/73] test summre__060a_EDRH : 1513.6 s d'audio, 79.21 s de calcul, RTF 0.0523, 4 locuteurs
+2026-10-29T14:00:31+0100 INFO [61/73] test summre__070a_EBRL : 867.1 s d'audio, 43.98 s de calcul, RTF 0.0507, 4 locuteurs
+2026-10-29T14:01:31+0100 INFO [62/73] test summre__070b_EBDL : 1149.0 s d'audio, 59.21 s de calcul, RTF 0.0515, 4 locuteurs
+2026-10-29T14:02:32+0100 INFO [63/73] test summre__072b_EEDH : 1200.8 s d'audio, 61.41 s de calcul, RTF 0.0511, 2 locuteurs
+2026-10-29T14:03:27+0100 INFO [64/73] test summre__072c_EEPH : 1052.5 s d'audio, 54.97 s de calcul, RTF 0.0522, 2 locuteurs
+2026-10-29T14:04:20+0100 INFO [65/73] test summre__074c_EAPH : 1044.7 s d'audio, 53.33 s de calcul, RTF 0.0510, 3 locuteurs
+2026-10-29T14:04:45+0100 INFO [66/73] test summre__076b_EEDH : 489.3 s d'audio, 24.32 s de calcul, RTF 0.0497, 4 locuteurs
+2026-10-29T14:05:46+0100 INFO [67/73] test summre__077c_EBPH : 1211.4 s d'audio, 61.04 s de calcul, RTF 0.0504, 4 locuteurs
+2026-10-29T14:06:52+0100 INFO [68/73] test summre__080b_EBDH : 1316.3 s d'audio, 66.42 s de calcul, RTF 0.0505, 2 locuteurs
+2026-10-29T14:07:54+0100 INFO [69/73] test summre__088b_EADH : 1226.5 s d'audio, 61.48 s de calcul, RTF 0.0501, 3 locuteurs
+2026-10-29T14:08:50+0100 INFO [70/73] test summre__093c_EBPZ : 1125.6 s d'audio, 56.54 s de calcul, RTF 0.0502, 4 locuteurs
+2026-10-29T14:09:43+0100 INFO [71/73] test summre__100b_EADH : 1071.9 s d'audio, 53.08 s de calcul, RTF 0.0495, 3 locuteurs
+2026-10-29T14:10:44+0100 INFO [72/73] test summre__102a_EBRH : 1211.8 s d'audio, 61.12 s de calcul, RTF 0.0504, 4 locuteurs
+2026-10-29T14:11:49+0100 INFO [73/73] test summre__102c_EBPH : 1292.9 s d'audio, 65.09 s de calcul, RTF 0.0503, 4 locuteurs
+2026-10-29T14:11:49+0100 INFO total : 86622.5 s d'audio, 4398.1 s de calcul, RTF 0.0508 ; temps pour 30 min : 91 s
+2026-10-29T14:11:57+0100 INFO expérience EXP-0007, mode mesure CPU
+2026-10-29T14:11:57+0100 INFO commit 568efbb7730f4d6bf78cfe9efe432647317c3e9c, arbre propre (chemins contrôlés, D18) : True
+2026-10-29T14:11:57+0100 INFO fichiers non commités : experiments/EXP-0007_pyannote-c1-summre/execution_mps.json, experiments/EXP-0007_pyannote-c1-summre/rttm/summre__004c_PAPH.rttm, experiments/EXP-0007_pyannote-c1-summre/rttm/summre__006b_EADH.rttm, experiments/EXP-0007_pyannote-c1-summre/rttm/summre__007a_ECRH.rttm, experiments/EXP-0007_pyannote-c1-summre/rttm/summre__008a_EARH.rttm, experiments/EXP-0007_pyannote-c1-summre/rttm/summre__011c_ECPL.rttm, experiments/EXP-0007_pyannote-c1-summre/rttm/summre__012c_EBPZ.rttm, experiments/EXP-0007_pyannote-c1-summre/rttm/summre__013c_EAPD.rttm, experiments/EXP-0007_pyannote-c1-summre/rttm/summre__014c_EAPD.rttm, experiments/EXP-0007_pyannote-c1-summre/rttm/summre__015b_EBDD.rttm, experiments/EXP-0007_pyannote-c1-summre/rttm/summre__016c_EBPZ.rttm, experiments/EXP-0007_pyannote-c1-summre/rttm/summre__017a_EBRZ.rttm, experiments/EXP-0007_pyannote-c1-summre/rttm/summre__018a_EARZ.rttm, experiments/EXP-0007_pyannote-c1-summre/rttm/summre__018b_EADZ.rttm, experiments/EXP-0007_pyannote-c1-summre/rttm/summre__019a_EARD.rttm, experiments/EXP-0007_pyannote-c1-summre/rttm/summre__019c_EAPD.rttm, experiments/EXP-0007_pyannote-c1-summre/rttm/summre__020b_EBDZ.rttm, experiments/EXP-0007_pyannote-c1-summre/rttm/summre__020c_EBPZ.rttm, experiments/EXP-0007_pyannote-c1-summre/rttm/summre__021a_EARD.rttm, experiments/EXP-0007_pyannote-c1-summre/rttm/summre__021b_EADD.rttm, experiments/EXP-0007_pyannote-c1-summre/rttm/summre__024c_EBPH.rttm, experiments/EXP-0007_pyannote-c1-summre/rttm/summre__025b_EBDH.rttm, experiments/EXP-0007_pyannote-c1-summre/rttm/summre__027a_EBRH.rttm, experiments/EXP-0007_pyannote-c1-summre/rttm/summre__032a_EARH.rttm, experiments/EXP-0007_pyannote-c1-summre/rttm/summre__032b_EADH.rttm, experiments/EXP-0007_pyannote-c1-summre/rttm/summre__033a_EBRH.rttm, experiments/EXP-0007_pyannote-c1-summre/rttm/summre__033c_EBPH.rttm, experiments/EXP-0007_pyannote-c1-summre/rttm/summre__034a_EBRH.rttm, experiments/EXP-0007_pyannote-c1-summre/rttm/summre__035b_EADH.rttm, experiments/EXP-0007_pyannote-c1-summre/rttm/summre__036b_EADH.rttm, experiments/EXP-0007_pyannote-c1-summre/rttm/summre__036c_EAPH.rttm, experiments/EXP-0007_pyannote-c1-summre/rttm/summre__037a_EARH.rttm, experiments/EXP-0007_pyannote-c1-summre/rttm/summre__039b_EDDH.rttm, experiments/EXP-0007_pyannote-c1-summre/rttm/summre__040a_EERH.rttm, experiments/EXP-0007_pyannote-c1-summre/rttm/summre__043a_EDRH.rttm, experiments/EXP-0007_pyannote-c1-summre/rttm/summre__044c_EBPH.rttm, experiments/EXP-0007_pyannote-c1-summre/rttm/summre__045a_EARH.rttm, experiments/EXP-0007_pyannote-c1-summre/rttm/summre__045b_EADH.rttm, experiments/EXP-0007_pyannote-c1-summre/rttm/summre__046c_EBPH.rttm, experiments/EXP-0007_pyannote-c1-summre/rttm/summre__047a_EDRH.rttm, experiments/EXP-0007_pyannote-c1-summre/rttm/summre__047c_EDPH.rttm, experiments/EXP-0007_pyannote-c1-summre/rttm/summre__049b_EBDH.rttm, experiments/EXP-0007_pyannote-c1-summre/rttm/summre__050c_EEPH.rttm, experiments/EXP-0007_pyannote-c1-summre/rttm/summre__051a_EARH.rttm, experiments/EXP-0007_pyannote-c1-summre/rttm/summre__053b_EDDH.rttm, experiments/EXP-0007_pyannote-c1-summre/rttm/summre__054a_EARH.rttm, experiments/EXP-0007_pyannote-c1-summre/rttm/summre__054c_EAPH.rttm, experiments/EXP-0007_pyannote-c1-summre/rttm/summre__059b_EBDH.rttm, experiments/EXP-0007_pyannote-c1-summre/rttm/summre__060a_EDRH.rttm, experiments/EXP-0007_pyannote-c1-summre/rttm/summre__066a_EARH.rttm, experiments/EXP-0007_pyannote-c1-summre/rttm/summre__069b_EEDL.rttm, experiments/EXP-0007_pyannote-c1-summre/rttm/summre__069c_EEPL.rttm, experiments/EXP-0007_pyannote-c1-summre/rttm/summre__070a_EBRL.rttm, experiments/EXP-0007_pyannote-c1-summre/rttm/summre__070b_EBDL.rttm, experiments/EXP-0007_pyannote-c1-summre/rttm/summre__072b_EEDH.rttm, experiments/EXP-0007_pyannote-c1-summre/rttm/summre__072c_EEPH.rttm, experiments/EXP-0007_pyannote-c1-summre/rttm/summre__074c_EAPH.rttm, experiments/EXP-0007_pyannote-c1-summre/rttm/summre__075b_EBDH.rttm, experiments/EXP-0007_pyannote-c1-summre/rttm/summre__076b_EEDH.rttm, experiments/EXP-0007_pyannote-c1-summre/rttm/summre__077c_EBPH.rttm, experiments/EXP-0007_pyannote-c1-summre/rttm/summre__080b_EBDH.rttm, experiments/EXP-0007_pyannote-c1-summre/rttm/summre__081a_EBRH.rttm, experiments/EXP-0007_pyannote-c1-summre/rttm/summre__081c_EBPH.rttm, experiments/EXP-0007_pyannote-c1-summre/rttm/summre__084c_EBPH.rttm, experiments/EXP-0007_pyannote-c1-summre/rttm/summre__088b_EADH.rttm, experiments/EXP-0007_pyannote-c1-summre/rttm/summre__091b_EBDH.rttm, experiments/EXP-0007_pyannote-c1-summre/rttm/summre__093c_EBPZ.rttm, experiments/EXP-0007_pyannote-c1-summre/rttm/summre__097b_EBDH.rttm, experiments/EXP-0007_pyannote-c1-summre/rttm/summre__097c_EBPH.rttm, experiments/EXP-0007_pyannote-c1-summre/rttm/summre__100b_EADH.rttm, experiments/EXP-0007_pyannote-c1-summre/rttm/summre__101c_EDPH.rttm, experiments/EXP-0007_pyannote-c1-summre/rttm/summre__102a_EBRH.rttm, experiments/EXP-0007_pyannote-c1-summre/rttm/summre__102c_EBPH.rttm, experiments/EXP-0007_pyannote-c1-summre/rttm/summre__104b_EADH.rttm, experiments/EXP-0007_pyannote-c1-summre/run.log
+2026-10-29T14:11:57+0100 INFO python 3.11.15, torch 2.14.1, plateforme macOS-14.1.2-arm64-arm-64bit, fils torch 6
+2026-10-29T14:12:02+0100 INFO pipeline pyannote-community-1 chargée sur cpu en 4.86 s (paramètres : {'num_speakers': None, 'min_speakers': None, 'max_speakers': None}, nombre de locuteurs : estime, détection oracle : False, trace : False)
+2026-10-29T14:12:42+0100 INFO préchauffage : 60 s de summre__007a_ECRH en 39.38 s (non compté)
+2026-10-29T14:28:11+0100 INFO [1/2] temps summre__007a_ECRH : 1210.6 s d'audio, 929.45 s de calcul, RTF 0.7678, 4 locuteurs
+2026-10-29T14:43:37+0100 INFO [2/2] temps summre__012c_EBPZ : 1159.4 s d'audio, 926.22 s de calcul, RTF 0.7989, 3 locuteurs
+2026-10-29T14:43:37+0100 INFO total : 2370.0 s d'audio, 1855.7 s de calcul, RTF 0.7830 ; temps pour 30 min : 1409 s

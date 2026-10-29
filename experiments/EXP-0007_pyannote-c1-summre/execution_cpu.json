@@ -1,0 +1,264 @@
+{
+  "exp_id": "EXP-0007",
+  "mode": "mesure_cpu",
+  "sous_ensemble": "data/splits/summre/temps.txt",
+  "date_fin": "2026-10-29T14:43:37+01:00",
+  "git_commit": "568efbb7730f4d6bf78cfe9efe432647317c3e9c",
+  "arbre_propre": true,
+  "fichiers_non_commites": [
+    "experiments/EXP-0007_pyannote-c1-summre/execution_mps.json",
+    "experiments/EXP-0007_pyannote-c1-summre/rttm/summre__004c_PAPH.rttm",
+    "experiments/EXP-0007_pyannote-c1-summre/rttm/summre__006b_EADH.rttm",
+    "experiments/EXP-0007_pyannote-c1-summre/rttm/summre__007a_ECRH.rttm",
+    "experiments/EXP-0007_pyannote-c1-summre/rttm/summre__008a_EARH.rttm",
+    "experiments/EXP-0007_pyannote-c1-summre/rttm/summre__011c_ECPL.rttm",
+    "experiments/EXP-0007_pyannote-c1-summre/rttm/summre__012c_EBPZ.rttm",
+    "experiments/EXP-0007_pyannote-c1-summre/rttm/summre__013c_EAPD.rttm",
+    "experiments/EXP-0007_pyannote-c1-summre/rttm/summre__014c_EAPD.rttm",
+    "experiments/EXP-0007_pyannote-c1-summre/rttm/summre__015b_EBDD.rttm",
+    "experiments/EXP-0007_pyannote-c1-summre/rttm/summre__016c_EBPZ.rttm",
+    "experiments/EXP-0007_pyannote-c1-summre/rttm/summre__017a_EBRZ.rttm",
+    "experiments/EXP-0007_pyannote-c1-summre/rttm/summre__018a_EARZ.rttm",
+    "experiments/EXP-0007_pyannote-c1-summre/rttm/summre__018b_EADZ.rttm",
+    "experiments/EXP-0007_pyannote-c1-summre/rttm/summre__019a_EARD.rttm",
+    "experiments/EXP-0007_pyannote-c1-summre/rttm/summre__019c_EAPD.rttm",
+    "experiments/EXP-0007_pyannote-c1-summre/rttm/summre__020b_EBDZ.rttm",
+    "experiments/EXP-0007_pyannote-c1-summre/rttm/summre__020c_EBPZ.rttm",
+    "experiments/EXP-0007_pyannote-c1-summre/rttm/summre__021a_EARD.rttm",
+    "experiments/EXP-0007_pyannote-c1-summre/rttm/summre__021b_EADD.rttm",
+    "experiments/EXP-0007_pyannote-c1-summre/rttm/summre__024c_EBPH.rttm",
+    "experiments/EXP-0007_pyannote-c1-summre/rttm/summre__025b_EBDH.rttm",
+    "experiments/EXP-0007_pyannote-c1-summre/rttm/summre__027a_EBRH.rttm",
+    "experiments/EXP-0007_pyannote-c1-summre/rttm/summre__032a_EARH.rttm",
+    "experiments/EXP-0007_pyannote-c1-summre/rttm/summre__032b_EADH.rttm",
+    "experiments/EXP-0007_pyannote-c1-summre/rttm/summre__033a_EBRH.rttm",
+    "experiments/EXP-0007_pyannote-c1-summre/rttm/summre__033c_EBPH.rttm",
+    "experiments/EXP-0007_pyannote-c1-summre/rttm/summre__034a_EBRH.rttm",
+    "experiments/EXP-0007_pyannote-c1-summre/rttm/summre__035b_EADH.rttm",
+    "experiments/EXP-0007_pyannote-c1-summre/rttm/summre__036b_EADH.rttm",
+    "experiments/EXP-0007_pyannote-c1-summre/rttm/summre__036c_EAPH.rttm",
+    "experiments/EXP-0007_pyannote-c1-summre/rttm/summre__037a_EARH.rttm",
+    "experiments/EXP-0007_pyannote-c1-summre/rttm/summre__039b_EDDH.rttm",
+    "experiments/EXP-0007_pyannote-c1-summre/rttm/summre__040a_EERH.rttm",
+    "experiments/EXP-0007_pyannote-c1-summre/rttm/summre__043a_EDRH.rttm",
+    "experiments/EXP-0007_pyannote-c1-summre/rttm/summre__044c_EBPH.rttm",
+    "experiments/EXP-0007_pyannote-c1-summre/rttm/summre__045a_EARH.rttm",
+    "experiments/EXP-0007_pyannote-c1-summre/rttm/summre__045b_EADH.rttm",
+    "experiments/EXP-0007_pyannote-c1-summre/rttm/summre__046c_EBPH.rttm",
+    "experiments/EXP-0007_pyannote-c1-summre/rttm/summre__047a_EDRH.rttm",
+    "experiments/EXP-0007_pyannote-c1-summre/rttm/summre__047c_EDPH.rttm",
+    "experiments/EXP-0007_pyannote-c1-summre/rttm/summre__049b_EBDH.rttm",
+    "experiments/EXP-0007_pyannote-c1-summre/rttm/summre__050c_EEPH.rttm",
+    "experiments/EXP-0007_pyannote-c1-summre/rttm/summre__051a_EARH.rttm",
+    "experiments/EXP-0007_pyannote-c1-summre/rttm/summre__053b_EDDH.rttm",
+    "experiments/EXP-0007_pyannote-c1-summre/rttm/summre__054a_EARH.rttm",
+    "experiments/EXP-0007_pyannote-c1-summre/rttm/summre__054c_EAPH.rttm",
+    "experiments/EXP-0007_pyannote-c1-summre/rttm/summre__059b_EBDH.rttm",
+    "experiments/EXP-0007_pyannote-c1-summre/rttm/summre__060a_EDRH.rttm",
+    "experiments/EXP-0007_pyannote-c1-summre/rttm/summre__066a_EARH.rttm",
+    "experiments/EXP-0007_pyannote-c1-summre/rttm/summre__069b_EEDL.rttm",
+    "experiments/EXP-0007_pyannote-c1-summre/rttm/summre__069c_EEPL.rttm",
+    "experiments/EXP-0007_pyannote-c1-summre/rttm/summre__070a_EBRL.rttm",
+    "experiments/EXP-0007_pyannote-c1-summre/rttm/summre__070b_EBDL.rttm",
+    "experiments/EXP-0007_pyannote-c1-summre/rttm/summre__072b_EEDH.rttm",
+    "experiments/EXP-0007_pyannote-c1-summre/rttm/summre__072c_EEPH.rttm",
+    "experiments/EXP-0007_pyannote-c1-summre/rttm/summre__074c_EAPH.rttm",
+    "experiments/EXP-0007_pyannote-c1-summre/rttm/summre__075b_EBDH.rttm",
+    "experiments/EXP-0007_pyannote-c1-summre/rttm/summre__076b_EEDH.rttm",
+    "experiments/EXP-0007_pyannote-c1-summre/rttm/summre__077c_EBPH.rttm",
+    "experiments/EXP-0007_pyannote-c1-summre/rttm/summre__080b_EBDH.rttm",
+    "experiments/EXP-0007_pyannote-c1-summre/rttm/summre__081a_EBRH.rttm",
+    "experiments/EXP-0007_pyannote-c1-summre/rttm/summre__081c_EBPH.rttm",
+    "experiments/EXP-0007_pyannote-c1-summre/rttm/summre__084c_EBPH.rttm",
+    "experiments/EXP-0007_pyannote-c1-summre/rttm/summre__088b_EADH.rttm",
+    "experiments/EXP-0007_pyannote-c1-summre/rttm/summre__091b_EBDH.rttm",
+    "experiments/EXP-0007_pyannote-c1-summre/rttm/summre__093c_EBPZ.rttm",
+    "experiments/EXP-0007_pyannote-c1-summre/rttm/summre__097b_EBDH.rttm",
+    "experiments/EXP-0007_pyannote-c1-summre/rttm/summre__097c_EBPH.rttm",
+    "experiments/EXP-0007_pyannote-c1-summre/rttm/summre__100b_EADH.rttm",
+    "experiments/EXP-0007_pyannote-c1-summre/rttm/summre__101c_EDPH.rttm",
+    "experiments/EXP-0007_pyannote-c1-summre/rttm/summre__102a_EBRH.rttm",
+    "experiments/EXP-0007_pyannote-c1-summre/rttm/summre__102c_EBPH.rttm",
+    "experiments/EXP-0007_pyannote-c1-summre/rttm/summre__104b_EADH.rttm",
+    "experiments/EXP-0007_pyannote-c1-summre/run.log"
+  ],
+  "config_sha256": "eedd27c25947af16689bc2d06e9be8085a26453f3a108c71969be91f9aea9709",
+  "device": "cpu",
+  "torch_threads": 6,
+  "versions": {
+    "python": "3.11.15",
+    "torch": "2.14.1",
+    "pyannote.audio": "4.0.7",
+    "librosa": "0.11.0"
+  },
+  "mode_n_locuteurs": "estime",
+  "detection_oracle": false,
+  "trace": false,
+  "balayage": null,
+  "configuration_effective": {
+    "detection": [
+      {
+        "nom": "segmentation.modele",
+        "valeur": "pyannote/speaker-diarization-community-1/segmentation (PyanNet)",
+        "origine": "modele"
+      },
+      {
+        "nom": "segmentation.powerset",
+        "valeur": true,
+        "origine": "modele"
+      },
+      {
+        "nom": "segmentation.min_duration_off",
+        "valeur": 0.0,
+        "origine": "defaut"
+      }
+    ],
+    "segmentation": [
+      {
+        "nom": "segmentation.duree_fenetre_s",
+        "valeur": 10.0,
+        "origine": "modele"
+      },
+      {
+        "nom": "segmentation_step",
+        "valeur": 0.1,
+        "origine": "defaut"
+      },
+      {
+        "nom": "segmentation.locuteurs_par_fenetre",
+        "valeur": 3,
+        "origine": "modele"
+      },
+      {
+        "nom": "segmentation.locuteurs_simultanes",
+        "valeur": 2,
+        "origine": "modele"
+      },
+      {
+        "nom": "segmentation_batch_size",
+        "valeur": 32,
+        "origine": "defaut"
+      }
+    ],
+    "empreintes": [
+      {
+        "nom": "embedding.modele",
+        "valeur": "pyannote/speaker-diarization-community-1/embedding (WeSpeakerResNet34)",
+        "origine": "modele"
+      },
+      {
+        "nom": "embedding.dimension",
+        "valeur": 256,
+        "origine": "modele"
+      },
+      {
+        "nom": "embedding_exclude_overlap",
+        "valeur": true,
+        "origine": "defaut"
+      },
+      {
+        "nom": "embedding_batch_size",
+        "valeur": 32,
+        "origine": "defaut"
+      }
+    ],
+    "regroupement": [
+      {
+        "nom": "clustering.methode",
+        "valeur": "VBxClustering",
+        "origine": "defaut"
+      },
+      {
+        "nom": "clustering.metric",
+        "valeur": "cosine",
+        "origine": "defaut"
+      },
+      {
+        "nom": "clustering.threshold",
+        "valeur": 0.6,
+        "origine": "defaut"
+      },
+      {
+        "nom": "clustering.Fa",
+        "valeur": 0.07,
+        "origine": "defaut"
+      },
+      {
+        "nom": "clustering.Fb",
+        "valeur": 0.8,
+        "origine": "defaut"
+      },
+      {
+        "nom": "clustering.constrained_assignment",
+        "valeur": true,
+        "origine": "defaut"
+      },
+      {
+        "nom": "plda.modele",
+        "valeur": "pyannote/speaker-diarization-community-1/plda",
+        "origine": "modele"
+      },
+      {
+        "nom": "plda.lda_dimension",
+        "valeur": 128,
+        "origine": "modele"
+      },
+      {
+        "nom": "n_locuteurs",
+        "valeur": "estimé",
+        "origine": "experience"
+      }
+    ],
+    "sortie": [
+      {
+        "nom": "sortie.exclusive",
+        "valeur": false,
+        "origine": "code"
+      }
+    ]
+  },
+  "chargement_modeles_s": 4.86,
+  "prechauffage": {
+    "uri": "summre__007a_ECRH",
+    "duree_s": 60.0
+  },
+  "duree_audio_s": 2370.026,
+  "calcul_s": 1855.669,
+  "rtf": 0.783,
+  "fichiers": [
+    {
+      "uri": "summre__007a_ECRH",
+      "corpus": "summre",
+      "partition": "temps",
+      "duree_audio_s": 1210.595,
+      "calcul_s": 929.453,
+      "rtf": 0.7678,
+      "n_locuteurs_hypothese": 4,
+      "n_locuteurs_impose": null,
+      "etapes_s": {
+        "segmentation": 56.639,
+        "detection": 0.022,
+        "empreintes": 872.305,
+        "regroupement": 0.265,
+        "sortie": 0.189
+      }
+    },
+    {
+      "uri": "summre__012c_EBPZ",
+      "corpus": "summre",
+      "partition": "temps",
+      "duree_audio_s": 1159.431,
+      "calcul_s": 926.216,
+      "rtf": 0.7989,
+      "n_locuteurs_hypothese": 3,
+      "n_locuteurs_impose": null,
+      "etapes_s": {
+        "segmentation": 56.928,
+        "detection": 0.022,
+        "empreintes": 868.821,
+        "regroupement": 0.236,
+        "sortie": 0.164
+      }
+    }
+  ]
+}
