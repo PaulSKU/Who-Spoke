@@ -32,10 +32,25 @@ sur ±1 s d'au moins SYNC_MIN_SALIENCE). Sans diaphonie, notamment pour les pist
 séparées, le décalage est déclaré non mesurable. Un décalage mesurable supérieur à 50 ms
 est signalé. Décalage, coefficient et saillance sont consignés par piste dans le manifeste.
 
+Jetons non lexicaux (amendement du 28/10 de D20) : les transcriptions contiennent des
+jetons au format SPPAS (`+` pause courte, `*` bruit, `@` rire). Tout jeton composé
+uniquement de ces symboles est retiré avant la construction des intervalles ; un mot où un
+rire se mêle à du texte reste de la parole. L'inventaire des jetons retirés est consigné
+par réunion dans le manifeste (`jetons_retires`) et totalisé par partition.
+
 Un nouveau lancement après une préparation complète ne retélécharge rien : il recalcule
 les statistiques à partir des sorties et du manifeste, puis refait le contrôle croisé.
 
-Usage : uv run python scripts/data/get_summre.py
+Option `--references` : reconstruit les références et les UEM d'une préparation complète
+sans retélécharger l'audio. Seules les colonnes `meeting_id`, `speaker_id`, `audio_id` et
+`segments` des Parquet sont lues à distance (lectures partielles, à la révision figée),
+après contrôle que le SHA-256 LFS de chaque Parquet est celui du manifeste. Les mélanges et
+les colonnes du manifeste qui en dépendent (durée, fréquences, crête, décalages) sont
+repris tels quels.
+
+Usage :
+    uv run python scripts/data/get_summre.py
+    uv run python scripts/data/get_summre.py --references
 """
 
 from __future__ import annotations
@@ -91,9 +106,9 @@ SYNC_MIN_SALIENCE = 10.0
 # la première paire, dans l'ordre des identifiants, dont le total tombe dans la fourchette.
 TIMING_TOTAL_RANGE_S = (30 * 60.0, 45 * 60.0)
 
-# Jetons de convention SPPAS sans contenu lexical : pause courte, bruit, rire. Ils sont
-# gardés dans la référence (D20 §3 : les mots alignés), mais leur part est mesurée.
-NON_LEXICAL_TOKENS = ("+", "*", "@")
+# Symboles SPPAS sans contenu lexical : pause courte, bruit, rire. Un jeton composé
+# uniquement de ces symboles est retiré de la référence (amendement du 28/10 de D20).
+NON_LEXICAL_SYMBOLS = frozenset("+*@")
 
 
 def uri_of(meeting: str) -> str:
@@ -112,16 +127,24 @@ def _missing(value) -> bool:
     return value is None or (isinstance(value, float) and math.isnan(value))
 
 
-def word_intervals(segments: list[dict], skip: tuple[str, ...] = ()) -> tuple[list[tuple[float, float]], int]:
+def is_non_lexical(token: str | None) -> bool:
+    """Vrai pour un jeton composé uniquement de `+`, `*` ou `@` (espaces ignorés)."""
+    text = (token or "").replace(" ", "")
+    return bool(text) and set(text) <= NON_LEXICAL_SYMBOLS
+
+
+def word_intervals(
+    segments: list[dict], keep_non_lexical: bool = False
+) -> tuple[list[tuple[float, float]], int]:
     """Intervalles des mots d'une piste, et nombre de mots sans horodatage.
 
-    Un mot sans début ou sans fin prend les bornes de son segment. Les mots dont le texte
-    figure dans `skip` sont ignorés (mesure de la part des jetons non lexicaux).
+    Un mot sans début ou sans fin prend les bornes de son segment. Les jetons non lexicaux
+    sont ignorés, sauf avec `keep_non_lexical` (mesure de leur part dans la parole).
     """
     intervals, missing = [], 0
     for segment in segments or []:
         for word in segment.get("words") or []:
-            if word.get("word") in skip:
+            if not keep_non_lexical and is_non_lexical(word.get("word")):
                 continue
             start, end = word.get("start"), word.get("end")
             if _missing(start) or _missing(end):
@@ -144,7 +167,7 @@ def merge_intervals(intervals: list[tuple[float, float]], gap: float = MERGE_GAP
 
 
 def build_reference(
-    tracks: list[dict], skip: tuple[str, ...] = ()
+    tracks: list[dict], keep_non_lexical: bool = False
 ) -> tuple[dict[str, list[tuple[float, float]]], int]:
     """Référence d'une réunion : intervalles fusionnés par locuteur, et mots sans horodatage.
 
@@ -155,7 +178,7 @@ def build_reference(
     by_speaker: dict[str, list[tuple[float, float]]] = defaultdict(list)
     missing = 0
     for track in tracks:
-        intervals, n_missing = word_intervals(track["segments"], skip)
+        intervals, n_missing = word_intervals(track["segments"], keep_non_lexical)
         by_speaker[track["speaker_id"]] += intervals
         missing += n_missing
     reference = {
@@ -164,6 +187,30 @@ def build_reference(
         if intervals
     }
     return reference, missing
+
+
+def non_lexical_inventory(tracks: list[dict]) -> Counter:
+    """Jetons non lexicaux retirés de la référence, comptés par forme exacte."""
+    return Counter(
+        word.get("word")
+        for track in tracks
+        for segment in track["segments"] or []
+        for word in segment.get("words") or []
+        if is_non_lexical(word.get("word"))
+    )
+
+
+def format_inventory(inventory: Counter) -> str:
+    """`jeton:nombre`, séparés par des points-virgules, du plus fréquent au moins fréquent."""
+    return ";".join(f"{token}:{n}" for token, n in sorted(inventory.items(), key=lambda x: (-x[1], x[0])))
+
+
+def parse_inventory(text: str) -> Counter:
+    inventory = Counter()
+    for item in filter(None, text.split(";")):
+        token, n = item.rsplit(":", 1)
+        inventory[token] += int(n)
+    return inventory
 
 
 def rttm_text(uri: str, reference: dict[str, list[tuple[float, float]]]) -> str:
@@ -373,14 +420,7 @@ def prepare_meeting(meeting: str, partition: str, track_ids: list[str]) -> dict:
     wav.with_name(wav.name + ".part").replace(wav)
     duration = len(mix) / SAMPLE_RATE
 
-    reference, missing = build_reference(infos)
-    if not reference:
-        raise RuntimeError(f"{uri} : aucun mot horodaté")
-    RTTM_DIR.mkdir(parents=True, exist_ok=True)
-    (RTTM_DIR / f"{uri}.rttm").write_text(rttm_text(uri, reference))
-    uem = uem_bounds(reference, duration)
-    UEM_DIR.mkdir(parents=True, exist_ok=True)
-    (UEM_DIR / f"{uri}.uem").write_text(f"{uri} 1 {uem[0]:.3f} {uem[1]:.3f}\n")
+    reference_fields = write_reference(uri, infos, duration)
 
     # Synchronisation : chaque piste contre le mélange des autres, à 8 kHz.
     from scipy.signal import resample_poly
@@ -397,10 +437,6 @@ def prepare_meeting(meeting: str, partition: str, track_ids: list[str]) -> dict:
                 SYNC_RATE, SYNC_SEARCH_S,
             )
 
-    lexical, _ = build_reference(infos, skip=NON_LEXICAL_TOKENS)
-    n_tokens = Counter(
-        word.get("word") for info in infos for s in info["segments"] for word in s.get("words") or []
-    )
     return {
         "uri": uri,
         "partition": partition,
@@ -410,19 +446,96 @@ def prepare_meeting(meeting: str, partition: str, track_ids: list[str]) -> dict:
         "licence": LICENCE,
         "duree_s": round(duration, 3),
         "n_pistes": len(infos),
+        "frequences_source": ";".join(str(f) for f in sorted({info["frequence_source"] for info in infos})),
+        **reference_fields,
+        "crete_melange": round(float(np.max(np.abs(mix))), 4),
+        "decalages": format_lags(lags),
+    }
+
+
+def write_reference(uri: str, infos: list[dict], duration: float) -> dict:
+    """Écrit la référence (RTTM) et l'UEM d'une réunion ; renvoie les colonnes du manifeste.
+
+    `infos` : une entrée par piste, avec `speaker_id` et `segments`. Les jetons non lexicaux
+    sont retirés (amendement du 28/10 de D20) ; la parole qu'ils auraient ajoutée est
+    mesurée dans l'UEM pour l'inventaire.
+    """
+    reference, missing = build_reference(infos)
+    if not reference:
+        raise RuntimeError(f"{uri} : aucun mot horodaté")
+    RTTM_DIR.mkdir(parents=True, exist_ok=True)
+    (RTTM_DIR / f"{uri}.rttm").write_text(rttm_text(uri, reference))
+    uem = uem_bounds(reference, duration)
+    UEM_DIR.mkdir(parents=True, exist_ok=True)
+    (UEM_DIR / f"{uri}.uem").write_text(f"{uri} 1 {uem[0]:.3f} {uem[1]:.3f}\n")
+    with_tokens, _ = build_reference(infos, keep_non_lexical=True)
+    inventory = non_lexical_inventory(infos)
+    return {
         "n_locuteurs": len(reference),
         "locuteurs": ";".join(reference),
         "participants_sans_parole": ";".join(
             sorted(info["speaker_id"] for info in infos if info["speaker_id"] not in reference)
         ),
-        "frequences_source": ";".join(str(f) for f in sorted({info["frequence_source"] for info in infos})),
         "mots_sans_horodatage": missing,
-        "n_mots": sum(n_tokens.values()),
-        "n_jetons_non_lexicaux": sum(n_tokens[t] for t in NON_LEXICAL_TOKENS),
-        "parole_sans_jetons_non_lexicaux_s": round(speech_overlap(lexical, uem)["parole_s"], 3),
-        "crete_melange": round(float(np.max(np.abs(mix))), 4),
-        "decalages": format_lags(lags),
+        "n_mots": sum(len(s.get("words") or []) for info in infos for s in info["segments"] or []),
+        "n_jetons_non_lexicaux": sum(inventory.values()),
+        "jetons_retires": format_inventory(inventory),
+        "parole_avec_jetons_non_lexicaux_s": round(speech_overlap(with_tokens, uem)["parole_s"], 3),
     }
+
+
+def remote_words(partition: str, manifest: list[dict]) -> dict[str, list[dict]]:
+    """Mots alignés de chaque réunion d'une partition, lus à distance (colonnes seules).
+
+    Contrôle préalable : chaque Parquet de la partition à la révision figée a le SHA-256
+    LFS consigné dans le manifeste, donc le contenu qui a servi à la préparation.
+    """
+    import pyarrow.parquet as pq
+    from huggingface_hub import HfFileSystem
+
+    known = {}
+    for row in manifest:
+        if row["partition"] == partition:
+            known.update(zip(row["parquets"].split(";"), row["sha256"].split(";")))
+    files = remote_parquets(partition)
+    if {name for name, _, _ in files} != set(known):
+        sys.exit(f"[summre] {partition} : Parquet du dépôt différents de ceux du manifeste")
+    for name, _, lfs_sha in files:
+        if lfs_sha != known[name]:
+            sys.exit(f"[summre] {name} : SHA-256 LFS {lfs_sha} différent du manifeste ({known[name]})")
+
+    fs = HfFileSystem()
+    meetings: dict[str, list[dict]] = defaultdict(list)
+    for name, _, _ in files:
+        with fs.open(f"datasets/{REPO_ID}@{REVISION}/{name}", "rb", block_size=1 << 20) as handle:
+            table = pq.ParquetFile(handle).read(columns=["meeting_id", "speaker_id", "audio_id", "segments"])
+        for row in table.to_pylist():
+            meetings[row["meeting_id"]].append({
+                "speaker_id": row["speaker_id"], "audio_id": row["audio_id"],
+                "segments": [{"start": s["start"], "end": s["end"], "words": s["words"]}
+                             for s in row["segments"] or []],
+            })
+        print(f"[summre] {name} : mots lus", flush=True)
+    return meetings
+
+
+def rebuild_references(manifest: list[dict]) -> list[dict]:
+    """Références et UEM reconstruites à partir des mots ; autres colonnes reprises."""
+    rows = []
+    for partition in PARTITIONS:
+        meetings = remote_words(partition, manifest)
+        for row in (r for r in manifest if r["partition"] == partition):
+            meeting = row["uri"].removeprefix(f"{CORPUS}__")
+            infos = sorted(meetings.pop(meeting, []), key=lambda info: info["audio_id"])
+            if len(infos) != int(row["n_pistes"]):
+                sys.exit(f"[summre] {row['uri']} : {len(infos)} pistes lues, {row['n_pistes']} attendues")
+            fields = write_reference(row["uri"], infos, float(row["duree_s"]))
+            if fields["n_locuteurs"] != int(row["n_locuteurs"]):
+                print(f"[summre] {row['uri']} : {row['n_locuteurs']} → {fields['n_locuteurs']} locuteurs")
+            rows.append(row | fields)
+        if meetings:
+            sys.exit(f"[summre] {partition} : réunions absentes du manifeste : {sorted(meetings)}")
+    return rows
 
 
 def format_lags(lags: dict[str, tuple[float, float, float]]) -> str:
@@ -574,7 +687,7 @@ def read_manifest() -> list[dict]:
 MANIFEST_COLUMNS = [
     "uri", "partition", "zoom", "parquets", "sha256", "revision", "licence", "duree_s", "n_pistes",
     "n_locuteurs", "locuteurs", "participants_sans_parole", "frequences_source", "mots_sans_horodatage",
-    "n_mots", "n_jetons_non_lexicaux", "parole_sans_jetons_non_lexicaux_s", "crete_melange",
+    "n_mots", "n_jetons_non_lexicaux", "jetons_retires", "parole_avec_jetons_non_lexicaux_s", "crete_melange",
     "decalages",
 ]
 
@@ -639,7 +752,13 @@ def main() -> None:
         formatter_class=argparse.RawDescriptionHelpFormatter,
         epilog="Voir l'en-tête du script et docs/decisions/D20-preparation-summ-re.md.",
     )
-    parser.parse_args()
+    parser.add_argument(
+        "--references", action="store_true",
+        help="reconstruit références et UEM d'une préparation complète à partir des seules colonnes "
+             "de mots des Parquet (lecture à distance, SHA-256 LFS contrôlé contre le manifeste), "
+             "sans retélécharger l'audio",
+    )
+    args = parser.parse_args()
 
     manifest = read_manifest()
     known_sha = {}
@@ -650,14 +769,20 @@ def main() -> None:
         sys.exit(f"[summre] {STATE} porte sur une autre révision ({state.get('revision')})")
 
     rows = []
-    for partition in PARTITIONS:
-        if partition_done(partition, manifest):
-            print(f"[summre] {partition} déjà préparée : statistiques recalculées depuis les sorties")
-            rows += [dict(r, zoom=r["zoom"] == "True", duree_s=float(r["duree_s"]),
-                          n_locuteurs=int(r["n_locuteurs"]))
-                     for r in manifest if r["partition"] == partition]
-        else:
-            rows += prepare_partition(partition, state, known_sha)
+    if args.references:
+        if not all(partition_done(p, manifest) for p in PARTITIONS):
+            sys.exit("[summre] --references suppose une préparation complète de dev et test")
+        rows = [dict(r, zoom=r["zoom"] == "True", duree_s=float(r["duree_s"]))
+                for r in rebuild_references(manifest)]
+    else:
+        for partition in PARTITIONS:
+            if partition_done(partition, manifest):
+                print(f"[summre] {partition} déjà préparée : statistiques recalculées depuis les sorties")
+                rows += [dict(r, zoom=r["zoom"] == "True", duree_s=float(r["duree_s"]),
+                              n_locuteurs=int(r["n_locuteurs"]))
+                         for r in manifest if r["partition"] == partition]
+            else:
+                rows += prepare_partition(partition, state, known_sha)
 
     rows = [check_meeting(row) for row in rows]
 
@@ -708,10 +833,12 @@ def main() -> None:
     for partition in PARTITIONS:
         part = [r for r in rows if r["partition"] == partition]
         speech = sum(r["parole_s"] for r in part)
-        lexical = sum(float(r["parole_sans_jetons_non_lexicaux_s"]) for r in part)
-        print(f"[summre] {partition} : jetons non lexicaux {sum(int(r['n_jetons_non_lexicaux']) for r in part)} "
-              f"sur {sum(int(r['n_mots']) for r in part)} ; parole sans eux {lexical / 3600:.3f} h "
-              f"contre {speech / 3600:.3f} h ({100 * (speech - lexical) / speech:.2f} %)")
+        with_tokens = sum(float(r["parole_avec_jetons_non_lexicaux_s"]) for r in part)
+        inventory = sum((parse_inventory(r["jetons_retires"]) for r in part), Counter())
+        print(f"[summre] {partition} : jetons non lexicaux retirés {sum(int(r['n_jetons_non_lexicaux']) for r in part)} "
+              f"sur {sum(int(r['n_mots']) for r in part)} ; parole {speech / 3600:.3f} h, "
+              f"{with_tokens / 3600:.3f} h avec eux ({100 * (with_tokens - speech) / with_tokens:.2f} % retirés)")
+        print(f"[summre] {partition} : inventaire des jetons retirés : {format_inventory(inventory)}")
     print(f"[summre] temps.txt : {', '.join(timing)} "
           f"({sum(r['duree_s'] for r in rows if r['uri'] in timing) / 60:.1f} min)")
     print(f"[summre] crête maximale d'un mélange : {max(float(r['crete_melange']) for r in rows):.4f}")

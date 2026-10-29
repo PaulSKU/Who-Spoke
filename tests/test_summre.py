@@ -72,15 +72,76 @@ def test_participant_sans_parole_exclu_du_decompte():
     assert sorted(reference) == ["001", "002", "003"]
 
 
-def test_jetons_non_lexicaux_ignorables():
-    segment = {"start": 0.0, "end": 2.0, "words": [
+@pytest.mark.parametrize("token", ["+", "*", "@", "@@", "*+", "+ +"])
+def test_jeton_non_lexical(token):
+    assert get_summre.is_non_lexical(token)
+
+
+@pytest.mark.parametrize("token", ["oui", "@bonjour", "oui@", "", None, "-"])
+def test_jeton_lexical(token):
+    # Un rire mêlé à du texte reste de la parole (amendement du 28/10 de D20).
+    assert not get_summre.is_non_lexical(token)
+
+
+def test_jetons_non_lexicaux_retires_de_la_reference():
+    segment = {"start": 0.0, "end": 4.0, "words": [
         {"word": "oui", "start": 0.0, "end": 0.5},
         {"word": "@", "start": 1.0, "end": 2.0},
+        {"word": "+", "start": 2.0, "end": 2.1},
+        {"word": "ah@", "start": 3.0, "end": 4.0},
     ]}
-    complete, _ = get_summre.build_reference([track("001", [segment])])
-    lexical, _ = get_summre.build_reference([track("001", [segment])], skip=get_summre.NON_LEXICAL_TOKENS)
-    assert complete["001"] == [(0.0, 0.5), (1.0, 2.0)]
-    assert lexical["001"] == [(0.0, 0.5)]
+    lexical, _ = get_summre.build_reference([track("001", [segment])])
+    complete, _ = get_summre.build_reference([track("001", [segment])], keep_non_lexical=True)
+    assert lexical["001"] == [(0.0, 0.5), (3.0, 4.0)]
+    assert complete["001"] == [(0.0, 0.5), (1.0, 2.1), (3.0, 4.0)]
+
+
+def test_locuteur_sans_jeton_lexical_non_compte():
+    a = track("001", [{"start": 0.0, "end": 1.0, "words": words((0.0, 1.0))}])
+    b = track("002", [{"start": 2.0, "end": 3.0, "words": [{"word": "*", "start": 2.0, "end": 3.0}]}])
+    reference, _ = get_summre.build_reference([a, b])
+    assert list(reference) == ["001"]
+
+
+def test_inventaire_des_jetons_retires():
+    tracks = [
+        track("001", [{"start": 0.0, "end": 3.0, "words": [
+            {"word": "+", "start": 0.0, "end": 0.1}, {"word": "@", "start": 0.1, "end": 0.5},
+            {"word": "+", "start": 1.0, "end": 1.1}, {"word": "@oui", "start": 2.0, "end": 3.0},
+        ]}]),
+        track("002", [{"start": 0.0, "end": 1.0, "words": [{"word": "@@", "start": 0.0, "end": 1.0}]}]),
+    ]
+    inventory = get_summre.non_lexical_inventory(tracks)
+    assert inventory == {"+": 2, "@": 1, "@@": 1}
+    text = get_summre.format_inventory(inventory)
+    assert text == "+:2;@:1;@@:1"
+    assert get_summre.parse_inventory(text) == inventory
+
+
+def test_reference_et_uem_ecrites_sans_jetons(tmp_path, monkeypatch):
+    monkeypatch.setattr(get_summre, "RTTM_DIR", tmp_path / "rttm")
+    monkeypatch.setattr(get_summre, "UEM_DIR", tmp_path / "uem")
+    # Un bruit ouvre l'enregistrement : l'UEM part du premier mot lexical.
+    infos = [
+        track("001", [{"start": 2.0, "end": 9.0, "words": [
+            {"word": "*", "start": 2.0, "end": 3.0},
+            {"word": "bon", "start": 5.0, "end": 6.0},
+            {"word": "@", "start": 8.0, "end": 9.0},
+        ]}]),
+        track("002", [{"start": 6.0, "end": 7.0, "words": [{"word": "oui", "start": 6.0, "end": 7.0}]}]),
+    ]
+    fields = get_summre.write_reference("summre__x", infos, duration=20.0)
+    assert (tmp_path / "uem" / "summre__x.uem").read_text() == "summre__x 1 4.000 8.000\n"
+    assert (tmp_path / "rttm" / "summre__x.rttm").read_text() == (
+        "SPEAKER summre__x 1 5.000 1.000 <NA> <NA> 001 <NA> <NA>\n"
+        "SPEAKER summre__x 1 6.000 1.000 <NA> <NA> 002 <NA> <NA>\n"
+    )
+    assert fields["n_locuteurs"] == 2
+    assert fields["n_mots"] == 4
+    assert fields["n_jetons_non_lexicaux"] == 2
+    assert fields["jetons_retires"] == "*:1;@:1"
+    # Avec les jetons, dans l'UEM [4, 8] : 5–7 de parole lexicale, 8 exclu (borne de l'UEM).
+    assert fields["parole_avec_jetons_non_lexicaux_s"] == pytest.approx(2.0)
 
 
 def test_uem_premier_et_dernier_mot_bornes_au_signal():
