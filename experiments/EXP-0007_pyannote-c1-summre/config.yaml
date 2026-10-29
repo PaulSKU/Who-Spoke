@@ -1,0 +1,47 @@
+# EXP-0007 — pyannote community-1 par défaut sur SUMM-RE (mélange des micros-casques), dev et test (D20 §6).
+# Nouveau corpus : aucune expérience de référence, aucune variable modifiée. Configuration
+# identique à EXP-0001 hors des jeux évalués. Le sous-ensemble Zoom (zoom_dev.txt,
+# zoom_test.txt) est rapporté à part à partir des per_file, sans nouvelle expérience.
+exp_id: EXP-0007
+slug: pyannote-c1-summre
+reference: null
+variable_modifiee: null
+graine: 0                     # pipeline déterministe ; graine consignée par convention
+
+pipeline:
+  nom: pyannote-community-1   # pyannote/speaker-diarization-community-1, signal en mémoire (D16)
+  vad: integree               # segmentation de la pipeline, pas de VAD séparée
+  parametres:                 # nombre de locuteurs estimé : aucune contrainte
+    num_speakers: null
+    min_speakers: null
+    max_speakers: null
+
+mode_n_locuteurs: estime
+detection_oracle: false
+
+device: mps
+prechauffage_s: 60            # extrait du premier fichier, non compté (protocole §3.5)
+
+jeux:
+  - corpus: summre
+    partition: dev
+    liste: data/splits/summre/dev.txt
+  - corpus: summre
+    partition: test
+    liste: data/splits/summre/test.txt
+
+# Mesure en CPU seul sur le sous-ensemble de mesure du temps (protocole §3.5) :
+# 007a_ECRH (présentiel) et 012c_EBPZ (Zoom), 39,5 min (amendement 3 de D20).
+mesure_cpu:
+  corpus: summre
+  liste: data/splits/summre/temps.txt
+
+evaluation:
+  references: data/processed/summre/rttm   # mots alignés, fusion à 200 ms, sans jetons non lexicaux (D20 §3, amendement 1)
+  uem: data/splits/summre/uem              # premier mot − 1 s, dernier mot + 1 s (D20 §3)
+  conditions: {collar_0: 0.0, collar_0_25: 0.5}
+  skip_overlap: false
+
+materiel:
+  machine: MacBook Pro M2 Pro
+  ram_go: 16
