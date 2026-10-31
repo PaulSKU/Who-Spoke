@@ -17,6 +17,13 @@ l'évaluation est refusée (la configuration a changé depuis l'exécution).
 `temps_cpu` : si `device` vaut `cpu`, il est tiré de l'exécution principale, restreinte
 aux fichiers de `mesure_cpu.liste` ; sinon de `execution_cpu.json` (`--mesure-cpu`).
 
+`temps.conforme` (D21 §3) : true si tous les relevés d'alimentation consignés par
+l'exécution principale (bloc `alimentation` de `execution_<device>.json`) sont sur secteur,
+false si l'un d'eux ne l'est pas, null si l'état n'a pas pu être lu ou n'a pas été relevé
+(exécutions antérieures à D21). `temps_cpu.conforme` suit la même règle pour l'exécution
+dont il est tiré. Un temps non conforme n'est reporté ni dans le README ni dans une
+comparaison de temps de calcul.
+
 `arbre_propre` vaut true si les exécutions et l'évaluation ont eu lieu sur le même commit,
 sans fichier non commité sous les chemins contrôlés de D18 (`whospoke.experiment.is_controlled`),
 d'après les listes `fichiers_non_commites` consignées par les exécutions.
@@ -64,6 +71,7 @@ from whospoke.experiment import (
     reference_rttm,
     uem_path,
 )
+from whospoke.power import is_compliant
 
 LEADERBOARD = REPO_ROOT / "results" / "leaderboard.csv"
 REQUALIFICATION_RULE = "D18"
@@ -83,6 +91,11 @@ def round2(value: float | None) -> float | None:
     return None if value is None else round(value, 2)
 
 
+def power_compliance(execution: dict) -> bool | None:
+    """Conformité de l'alimentation d'une exécution (D21 §3) ; null sans relevés."""
+    return is_compliant((execution.get("alimentation") or {}).get("releves"))
+
+
 def timing_block(execution: dict, files: list[str]) -> dict:
     """Bloc `temps` d'un jeu : somme des temps de calcul de ses fichiers."""
     by_uri = {row["uri"]: row for row in execution["fichiers"]}
@@ -93,6 +106,7 @@ def timing_block(execution: dict, files: list[str]) -> dict:
         "chargement_modeles_s": round(execution["chargement_modeles_s"], 2),
         "calcul_s": round(compute, 2),
         "rtf": round(compute / audio, 4),
+        "conforme": power_compliance(execution),
     }
 
 
@@ -106,6 +120,7 @@ def cpu_block(execution: dict | None, subset: str | None = None) -> dict | None:
             "duree_audio_s": round(execution["duree_audio_s"], 2),
             "calcul_s": round(execution["calcul_s"], 2),
             "rtf": round(execution["rtf"], 4),
+            "conforme": power_compliance(execution),
         }
     by_uri = {row["uri"]: row for row in execution["fichiers"]}
     rows = execution["fichiers"] if subset is None else [by_uri[uri] for uri in dataset_uris(subset)]
@@ -116,6 +131,7 @@ def cpu_block(execution: dict | None, subset: str | None = None) -> dict | None:
         "duree_audio_s": round(audio, 2),
         "calcul_s": round(compute, 2),
         "rtf": round(compute / audio, 4),
+        "conforme": power_compliance(execution),
     }
 
 

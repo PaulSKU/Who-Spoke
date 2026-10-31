@@ -38,6 +38,11 @@ calcul de chaque fichier couvre la lecture du WAV normalisé et la pipeline comp
 l'horloge murale, après synchronisation du périphérique. Le balayage est chronométré à
 part et n'entre pas dans le RTF.
 
+Alimentation (D21 §3) : l'état d'alimentation (`pmset -g batt` sur macOS) est relevé au
+début de l'exécution, puis toutes les 60 s dans un fil d'arrière-plan, puis à la fin ; les
+relevés sont consignés dans le bloc `alimentation` de `execution_<périphérique>.json`, d'où
+scripts/evaluate.py tire `temps.conforme` (secteur pendant toute l'exécution).
+
 Le code doit être commité avant l'exécution : l'état de l'arbre (chemins contrôlés de
 D18) et la liste de tous les fichiers non commités sont consignés, puis repris par
 scripts/evaluate.py (`arbre_propre`).
@@ -76,6 +81,7 @@ from whospoke.experiment import (
 )
 from whospoke.pipelines.baseline import Baseline, save_trace
 from whospoke.pipelines.pyannote_community1 import PyannoteCommunity1
+from whospoke.power import PowerMonitor
 
 PIPELINES = {PyannoteCommunity1.name: PyannoteCommunity1, Baseline.name: Baseline}
 
@@ -240,6 +246,9 @@ def main() -> None:
     trace_dir = exp_dir / "trace"
 
     logger = setup_logging(exp_dir)
+    power = PowerMonitor()
+    first = power.start()
+    logger.info("alimentation au début : %s (%s)", first["source"] or "illisible", first["brut"])
     state = git_state()
     logger.info("expérience %s, mode %s", config["exp_id"], "mesure CPU" if args.mesure_cpu else "complet")
     logger.info("commit %s, arbre propre (chemins contrôlés, D18) : %s", state["commit"], state["clean"])
@@ -315,6 +324,13 @@ def main() -> None:
                     index, len(jobs), partition, uri, audio_s, compute_s, compute_s / audio_s, n_hyp,
                     "" if num_speakers is None else f" (imposé : {num_speakers})")
 
+    last = power.stop()
+    power_block = power.block()
+    logger.info("alimentation à la fin : %s ; %d relevés, conforme : %s", last["source"] or "illisible",
+                len(power_block["releves"]), power_block["conforme"])
+    if power_block["conforme"] is not True:
+        logger.warning("temps de calcul non conforme au protocole §3.5 (secteur non attesté)")
+
     total_audio = sum(row["duree_audio_s"] for row in per_file)
     total_compute = sum(row["calcul_s"] for row in per_file)
     result = {
@@ -341,6 +357,7 @@ def main() -> None:
         "duree_audio_s": round(total_audio, 3),
         "calcul_s": round(total_compute, 3),
         "rtf": round(total_compute / total_audio, 4),
+        "alimentation": power_block,
         "fichiers": per_file,
     }
     output_json.write_text(json.dumps(result, ensure_ascii=False, indent=2, default=str) + "\n")
