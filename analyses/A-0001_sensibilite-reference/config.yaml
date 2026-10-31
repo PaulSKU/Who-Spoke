@@ -1,0 +1,50 @@
+# A-0001 — sensibilité de l'évaluation de SUMM-RE à la convention de référence (D21 §2).
+# Analyse a posteriori (D21 §1, methode.md §4.7) : aucun système n'est exécuté ; les RTTM
+# d'EXP-0007 et d'EXP-0009 sont réévalués contre des variantes de la référence.
+analyse_id: A-0001
+slug: sensibilite-reference
+question: >-
+  Quelle part de l'erreur de pyannote et de la baseline sur SUMM-RE dépend de la
+  convention de construction de la référence ?
+
+sources:
+  - exp_id: EXP-0007
+    systeme: pyannote          # pyannote community-1, nombre de locuteurs estimé
+    rttm: experiments/EXP-0007_pyannote-c1-summre/rttm
+  - exp_id: EXP-0009
+    systeme: baseline          # baseline MFCC, θ = 1,00 retenu sur dev
+    rttm: experiments/EXP-0009_baseline-mfcc-summre/rttm
+
+jeux:
+  - corpus: summre
+    partition: dev
+    liste: data/splits/summre/dev.txt
+  - corpus: summre
+    partition: test
+    liste: data/splits/summre/test.txt
+
+reference_officielle: data/processed/summre/rttm   # fusion à 200 ms, jetons retirés (D20 §3, amendement 1)
+uem: data/splits/summre/uem                        # UEM officiel, le même pour toutes les variantes
+
+# Variantes construites par la même chaîne que la référence officielle :
+#   uv run python scripts/data/get_summre.py --variante <ECART_MS> <JETONS> (une par variante)
+variantes:
+  dossier: data/processed/summre/rttm_variantes    # ecart<ECART_MS>ms_jetons-<JETONS>/
+  ecarts_ms: [200, 300, 500, 1000]                 # fusion des pauses d'un même locuteur
+  jetons: [retires, conserves]                     # jetons non lexicaux (+, *, @)
+  officielle: {ecart_ms: 200, jetons: retires}     # identique octet pour octet à la référence officielle
+
+calculs:
+  metriques:                   # protocole §3.1 à §3.4, rapport des sommes (§4)
+    conditions: {collar_0: 0.0, collar_0_25: 0.5}
+    skip_overlap: false
+
+# Répartition des erreurs, référence officielle seulement, condition collar_0.
+repartition:
+  pause_max_s: 1.0             # (a) et (b) : pauses de 1 s au plus entre deux tours
+  tour_court_s: 0.5            # parole manquée : tour de référence de moins de 0,5 s, ou plus
+  attribution_manquee: parts_egales   # (K − K̂) / K de chaque intervalle à chaque tour actif
+
+resultats:
+  - resultats.csv              # une ligne par variante × système × partition
+  - repartition_erreurs.csv    # une ligne par système × partition
