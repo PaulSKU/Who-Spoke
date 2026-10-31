@@ -19,3 +19,5 @@ EXP-0009,2026-10-29T16:39:40+01:00,baseline-mfcc-summre,,,summre,dev,baseline,es
 EXP-0009,2026-10-29T16:39:40+01:00,baseline-mfcc-summre,,,summre,test,baseline,estime,49.36,21.87,3.08,24.42,42.66,61.17,0.62,0.0009,0.0009,568efbb
 EXP-0010,2026-10-31T17:11:36+01:00,baseline-ecapa-ami-sdm,EXP-0002,representation,ami,dev,baseline,estime,43.34,30.18,4.64,8.53,38.09,49.37,0.44,0.0142,0.0147,fba633a
 EXP-0010,2026-10-31T17:11:36+01:00,baseline-ecapa-ami-sdm,EXP-0002,representation,ami,test,baseline,estime,45.88,32.27,4.99,8.63,40.85,51.16,0.69,0.0143,0.0147,fba633a
+EXP-0011,2026-10-31T17:33:45+01:00,baseline-ecapa-vad-k-oracle,EXP-0006,representation,ami,dev,baseline,oracle,24.13,13.51,0.17,10.46,17.11,33.48,0.0,0.0188,0.017,14fde7e
+EXP-0011,2026-10-31T17:33:45+01:00,baseline-ecapa-vad-k-oracle,EXP-0006,representation,ami,test,baseline,oracle,25.39,14.59,0.13,10.67,18.72,37.36,0.0,0.0193,0.017,14fde7e
