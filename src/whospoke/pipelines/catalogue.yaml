@@ -248,9 +248,39 @@ moteurs:
     representation:
       libelle: Vecteur de fenêtre
       etape: representation
-      effet: "Moyenne et écart-type des MFCC (40 valeurs), centrés-réduits sur le fichier : décrit le timbre moyen et sa variabilité."
+      effet: "mfcc : moyenne et écart-type des MFCC (40 valeurs), centrés-réduits sur le fichier, qui décrivent le timbre moyen et sa variabilité ; ecapa ou wespeaker : empreinte d'un réseau entraîné à distinguer les voix, calculée sur les seules trames de parole de la fenêtre."
       composantes: [confusion]
-      decision: D19
+      decision: D19, D22
+    empreintes.modele:
+      libelle: Modèle d'empreintes
+      etape: representation
+      effet: "Réseau pré-entraîné qui résume la voix d'une fenêtre en un vecteur ; c'est lui qui sépare ou mélange deux personnes."
+      composantes: [confusion]
+      decision: D22
+    empreintes.dimension:
+      libelle: Dimension des empreintes
+      etape: representation
+      effet: "Taille du vecteur produit pour chaque fenêtre ; fixée par le modèle."
+      composantes: [confusion]
+      decision: D22
+    empreintes.duree_min_s:
+      libelle: Durée minimale de parole
+      etape: representation
+      effet: "Plus courte durée de signal que le modèle accepte ; une fenêtre dont la parole est plus courte n'a pas d'empreinte, est retirée du regroupement et signalée dans run.log."
+      composantes: [confusion]
+      decision: D22
+    empreintes.peripherique:
+      libelle: Périphérique des empreintes
+      etape: representation
+      effet: "Processeur de calcul des empreintes : n'agit que sur le temps."
+      composantes: [temps]
+      decision: D22
+    normalisation:
+      libelle: Normalisation des empreintes
+      etape: representation
+      effet: "fichier : centrage-réduction de chaque dimension sur le fichier, comme les MFCC ; l2 : norme unitaire, sans effet sur la distance cosinus."
+      composantes: [confusion]
+      decision: D22
     metric:
       libelle: Distance
       etape: regroupement

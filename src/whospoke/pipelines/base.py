@@ -54,11 +54,13 @@ class Setting:
 
 @dataclass
 class Resultat:
-    """Sortie d'un moteur : annotation, durée par étape (s) et trace facultative."""
+    """Sortie d'un moteur : annotation, durée par étape (s), trace facultative et
+    informations à consigner dans run.log (par exemple les fenêtres trop courtes, D22)."""
 
     annotation: Annotation
     durees_etapes: dict[str, float] = field(default_factory=dict)
     trace: dict | None = None
+    infos: dict = field(default_factory=dict)
 
 
 def load_catalogue(path: Path = CATALOGUE_PATH) -> dict:

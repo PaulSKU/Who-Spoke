@@ -36,8 +36,13 @@ def test_entrees_completes():
 
 
 def test_catalogue_baseline():
+    """Réglages des trois représentations (D22) ; pas d'entrée orpheline sur leur union."""
     described, catalogued = check_engine(Baseline(theta=0.5))
-    assert described == catalogued  # pas d'entrée orpheline
+    neural, _ = check_engine(Baseline(theta=0.5, representation="ecapa"))
+    assert described < neural
+    if os.environ.get("HF_TOKEN"):
+        assert check_engine(Baseline(theta=0.5, representation="wespeaker"))[0] == neural
+    assert described | neural == catalogued
 
 
 @pytest.mark.skipif(not os.environ.get("HF_TOKEN"), reason="HF_TOKEN absent")

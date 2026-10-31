@@ -13,9 +13,16 @@
    bornées à leur région et gardées si au moins 50 % de leur durée nominale y tombe
    (une fenêtre ne mélange jamais deux régions ; lecture de D19 à confirmer) ; une
    région plus courte qu'une fenêtre, mais d'au moins 0,5 s, donne une fenêtre unique.
-5. Représentation : moyenne et écart-type des MFCC sur la fenêtre (40 valeurs),
-   centrés-réduits sur le fichier. Seules les trames de parole de la fenêtre sont
-   prises en compte (lecture de D19 à confirmer).
+5. Représentation (`representation`, D22) :
+   - `mfcc` (défaut, D19) : moyenne et écart-type des MFCC sur la fenêtre (40 valeurs),
+     centrés-réduits sur le fichier. Seules les trames de parole de la fenêtre sont
+     prises en compte (amendement 2 de D19).
+   - `ecapa` ou `wespeaker` : empreinte neuronale (src/whospoke/embeddings.py) du signal
+     des seules trames de parole de la fenêtre, mises bout à bout, puis normalisée
+     (`normalisation`). Une fenêtre dont la parole est plus courte que la longueur
+     minimale du modèle n'a pas d'empreinte : elle est retirée du regroupement, ses
+     trames prennent l'étiquette de la fenêtre retenue la plus proche, et leur nombre
+     est rendu dans `Resultat.infos` pour être consigné dans run.log.
 6. Regroupement : agglomératif hiérarchique, distance cosinus, lien moyen ; coupe au
    seuil θ, ou au nombre de locuteurs s'il est donné.
 7. Attribution : chaque trame de parole reçoit l'étiquette de la fenêtre dont le centre
@@ -42,9 +49,14 @@ from scipy.ndimage import median_filter
 from scipy.spatial.distance import pdist
 
 from whospoke.audio import SAMPLE_RATE
+from whospoke.embeddings import EMBEDDING_MODELS, SpeakerEmbedder
 from whospoke.pipelines.base import Engine, Progress, Resultat, Setting
 
 _EPS = 1e-10
+
+# Normalisation des empreintes neuronales (D22) : centrage-réduction sur le fichier, comme
+# les statistiques de MFCC, ou norme euclidienne unitaire.
+NORMALISATIONS = ("fichier", "l2")
 
 
 @dataclass(frozen=True)
@@ -66,6 +78,8 @@ class BaselineParams:
     window_step_s: float = 0.75
     min_window_speech: float = 0.5
     min_region_s: float = 0.5
+    representation: str = "mfcc"
+    normalisation: str = "fichier"
     metric: str = "cosine"
     linkage: str = "average"
     theta: float | None = None
@@ -83,10 +97,11 @@ class Prepared:
     speech: np.ndarray           # (n_trames,) booléen
     regions: np.ndarray          # (n_régions, 2) en s
     windows: np.ndarray          # (n_fenêtres, 2) en s
-    features: np.ndarray         # (n_fenêtres, 2 × n_mfcc), centrés-réduits
+    features: np.ndarray         # (n_fenêtres, dimension), normalisés
     linkage_matrix: np.ndarray   # (n_fenêtres − 1, 4), vide si moins de 2 fenêtres
     nearest_window: np.ndarray   # (n_trames,) indice de fenêtre, −1 hors parole
     durations: dict[str, float]
+    n_too_short: int = 0         # fenêtres sans empreinte, retirées (représentation neuronale)
 
 
 def _runs(mask: np.ndarray) -> list[tuple[int, int, bool]]:
@@ -106,11 +121,22 @@ class Baseline(Engine):
     def __init__(self, device: str | None = "cpu", speaker_mode: str | None = None,
                  trace: bool = False, **params) -> None:
         super().__init__(speaker_mode=speaker_mode, trace=trace)
-        if device not in (None, "auto", "cpu"):
-            raise ValueError("La baseline s'exécute en CPU seul (D19)")
-        self.device = torch.device("cpu")
         self.params = BaselineParams(**params)
         self._defaults = BaselineParams()
+        representation = self.params.representation
+        if representation not in ("mfcc", *EMBEDDING_MODELS):
+            raise ValueError(f"Représentation inconnue : {representation!r}")
+        if self.params.normalisation not in NORMALISATIONS:
+            raise ValueError(f"Normalisation inconnue : {self.params.normalisation!r}")
+        self.embedder = None
+        if representation == "mfcc":
+            if device not in (None, "auto", "cpu"):
+                raise ValueError("La baseline MFCC s'exécute en CPU seul (D19)")
+            self.device = torch.device("cpu")
+        else:
+            # Modèle chargé une seule fois (D22).
+            self.embedder = SpeakerEmbedder(representation, device=device)
+            self.device = self.embedder.device
 
     def set_param(self, name: str, value) -> None:
         """Change un réglage après construction (valeur retenue par un balayage)."""
@@ -225,6 +251,34 @@ class Baseline(Engine):
             features = (features - features.mean(axis=0)) / np.where(std > 0, std, 1.0)
         return features
 
+    def speech_signals(self, y: np.ndarray, speech: np.ndarray, windows: np.ndarray) -> list[np.ndarray]:
+        """Signal des seules trames de parole de chaque fenêtre, mises bout à bout.
+
+        Un échantillon appartient à la trame dont le centre est le plus proche ; il est
+        gardé s'il tombe dans la fenêtre et si sa trame est de la parole.
+        """
+        hop = self._hop
+        sample_frames = np.minimum((np.arange(len(y)) + hop // 2) // hop, len(speech) - 1)
+        signals = []
+        for start, end in windows:
+            a, b = int(round(start * SAMPLE_RATE)), int(round(end * SAMPLE_RATE))
+            keep = speech[sample_frames[a:b]]
+            signals.append(np.ascontiguousarray(y[a:b][keep], dtype=np.float32))
+        return signals
+
+    def embed(self, y: np.ndarray, speech: np.ndarray, windows: np.ndarray) -> np.ndarray:
+        """Empreintes neuronales normalisées (NaN pour une fenêtre trop courte)."""
+        features = self.embedder.embed(self.speech_signals(y, speech, windows))
+        valid = ~np.isnan(features).any(axis=1)
+        if self.params.normalisation == "l2":
+            norms = np.linalg.norm(features[valid], axis=1, keepdims=True)
+            features[valid] = features[valid] / np.where(norms > 0, norms, 1.0)
+        elif valid.sum() > 1:
+            kept = features[valid]
+            std = kept.std(axis=0)
+            features[valid] = (kept - kept.mean(axis=0)) / np.where(std > 0, std, 1.0)
+        return features
+
     def link(self, features: np.ndarray) -> np.ndarray:
         if len(features) < 2:
             return np.zeros((0, 4))
@@ -308,7 +362,14 @@ class Baseline(Engine):
         done("detection")
         windows = self.segment(regions)
         done("segmentation")
-        features = self.represent(mfcc, mask, windows)
+        n_too_short = 0
+        if self.embedder is None:
+            features = self.represent(mfcc, mask, windows)
+        else:
+            features = self.embed(y, mask, windows)
+            valid = ~np.isnan(features).any(axis=1)
+            n_too_short = int((~valid).sum())
+            windows, features = windows[valid], features[valid]
         done("representation")
         linkage_matrix = self.link(features)
         nearest = np.full(len(mask), -1, dtype=int)
@@ -322,7 +383,7 @@ class Baseline(Engine):
             nearest[mask] = closest[mask]
         durations["regroupement"] = time.perf_counter() - clock[0]
         return Prepared(uri, duration_s, energy, threshold, mask, regions, windows, features,
-                        linkage_matrix, nearest, durations)
+                        linkage_matrix, nearest, durations, n_too_short)
 
     def finish(self, prepared: Prepared, theta: float | None = None,
                num_speakers: int | None = None, progress: Progress | None = None) -> Resultat:
@@ -352,7 +413,8 @@ class Baseline(Engine):
                 "n_locuteurs_impose": num_speakers,
                 "etiquettes_fenetres": labels,
             }
-        return Resultat(annotation=annotation, durees_etapes=durations, trace=trace)
+        infos = {"fenetres": int(len(prepared.windows)), "fenetres_trop_courtes": prepared.n_too_short}
+        return Resultat(annotation=annotation, durees_etapes=durations, trace=trace, infos=infos)
 
     def run(
         self,
@@ -365,6 +427,23 @@ class Baseline(Engine):
     ) -> Resultat:
         prepared = self.prepare(waveform, sample_rate, uri=uri, speech=speech, progress=progress)
         return self.finish(prepared, theta=self.params.theta, num_speakers=num_speakers, progress=progress)
+
+    def synchronize(self) -> None:
+        if self.embedder is not None:
+            self.embedder.synchronize()
+
+    def _describe_representation(self, s) -> list[Setting]:
+        settings = [s("representation")]
+        if self.embedder is None:
+            return settings
+        e = self.embedder
+        return settings + [
+            Setting("empreintes.modele", f"{e.checkpoint} ({e.architecture})", "modele"),
+            Setting("empreintes.dimension", e.dimension, "modele"),
+            Setting("empreintes.duree_min_s", e.min_samples / SAMPLE_RATE, "modele"),
+            Setting("empreintes.peripherique", e.device.type, "experience"),
+            s("normalisation"),
+        ]
 
     def describe(self) -> dict[str, list[Setting]]:
         p, d = self.params, self._defaults
@@ -382,7 +461,7 @@ class Baseline(Engine):
             "detection": [s("alpha"), s("floor_percentile"), s("level_percentile"),
                           s("median_frames"), s("min_speech_s"), s("min_silence_s")],
             "segmentation": [s("window_s"), s("window_step_s"), s("min_window_speech"), s("min_region_s")],
-            "representation": [Setting("representation", "moyenne et écart-type des MFCC des trames de parole, centrés-réduits", "code")],
+            "representation": self._describe_representation(s),
             "regroupement": [s("metric"), s("linkage"),
                              Setting("theta", p.theta, "experience"),
                              Setting("n_locuteurs", speakers, "experience")],

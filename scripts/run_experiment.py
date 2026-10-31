@@ -29,6 +29,11 @@ Clés de `config.yaml` lues ici (D19) :
   segmentation, les représentations et la matrice de liaison sont calculées une seule
   fois par fichier ; seule la coupe et l'attribution sont refaites pour chaque valeur.
 
+Fenêtres trop courtes (D22) : avec une représentation neuronale, une fenêtre dont la
+parole est plus courte que la longueur minimale du modèle d'empreintes est retirée du
+regroupement ; leur nombre est consigné par fichier (`fenetres_trop_courtes` dans
+`execution_<périphérique>.json`) et signalé dans run.log.
+
 Option `--trace` : le moteur enregistre, pour chaque fichier, sa trace (D19 §3) dans
 `trace/<uri>/` (non versionné). Sans effet sur les résultats.
 
@@ -51,6 +56,7 @@ scripts/evaluate.py (`arbre_propre`).
 from __future__ import annotations
 
 import argparse
+from importlib.metadata import version as _version
 import csv
 import hashlib
 import json
@@ -163,7 +169,11 @@ def run_sweep(config: dict, pipeline, exp_dir: Path, logger: logging.Logger) -> 
         waveform, sample_rate = load_waveform(processed_wav(corpus, uri))
         num_speakers, speech = oracle_inputs(config, corpus, uri)
         truth = (load_rttm(reference_rttm(corpus, uri), uri), load_uem(uem_path(corpus, uri), uri))
-        prepared.append((pipeline.prepare(waveform, sample_rate, uri=uri, speech=speech), num_speakers, truth))
+        prep = pipeline.prepare(waveform, sample_rate, uri=uri, speech=speech)
+        if prep.n_too_short:
+            logger.warning("balayage : %s, %d fenêtres trop courtes pour le modèle d'empreintes, "
+                           "retirées du regroupement", uri, prep.n_too_short)
+        prepared.append((prep, num_speakers, truth))
         del waveform
     prepare_s = time.perf_counter() - t0
     logger.info("balayage : préparation de %d fichiers en %.1f s", len(prepared), prepare_s)
@@ -319,7 +329,12 @@ def main() -> None:
             "rtf": round(compute_s / audio_s, 4), "n_locuteurs_hypothese": n_hyp,
             "n_locuteurs_impose": num_speakers,
             "etapes_s": {step: round(d, 3) for step, d in result.durees_etapes.items()},
+            **result.infos,
         })
+        if result.infos.get("fenetres_trop_courtes"):
+            logger.warning("%s : %d fenêtres sur %d trop courtes pour le modèle d'empreintes, "
+                           "retirées du regroupement", uri, result.infos["fenetres_trop_courtes"],
+                           result.infos["fenetres"] + result.infos["fenetres_trop_courtes"])
         logger.info("[%d/%d] %s %s : %.1f s d'audio, %.2f s de calcul, RTF %.4f, %d locuteurs%s",
                     index, len(jobs), partition, uri, audio_s, compute_s, compute_s / audio_s, n_hyp,
                     "" if num_speakers is None else f" (imposé : {num_speakers})")
@@ -346,7 +361,7 @@ def main() -> None:
         "torch_threads": torch.get_num_threads(),
         "versions": {"python": platform.python_version(), "torch": torch.__version__,
                      "pyannote.audio": __import__("pyannote.audio").audio.__version__,
-                     "librosa": librosa.__version__},
+                     "librosa": librosa.__version__, "speechbrain": _version("speechbrain")},
         "mode_n_locuteurs": pipeline.speaker_mode,
         "detection_oracle": bool(config.get("detection_oracle", False)),
         "trace": args.trace,
@@ -361,6 +376,10 @@ def main() -> None:
         "fichiers": per_file,
     }
     output_json.write_text(json.dumps(result, ensure_ascii=False, indent=2, default=str) + "\n")
+    if any("fenetres_trop_courtes" in row for row in per_file):
+        logger.info("fenêtres trop courtes pour le modèle d'empreintes : %d sur %d",
+                    sum(row.get("fenetres_trop_courtes", 0) for row in per_file),
+                    sum(row.get("fenetres", 0) + row.get("fenetres_trop_courtes", 0) for row in per_file))
     logger.info("total : %.1f s d'audio, %.1f s de calcul, RTF %.4f ; temps pour 30 min : %.0f s",
                 total_audio, total_compute, total_compute / total_audio, 1800 * total_compute / total_audio)
 
