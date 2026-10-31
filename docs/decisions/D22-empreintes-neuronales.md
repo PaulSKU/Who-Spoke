@@ -38,6 +38,11 @@ La comparaison demandée par le sujet est faite proprement : une seule variable 
 
 Les fichiers concernés sont `src/whospoke/pipelines/baseline.py` (représentation configurable : `mfcc`, `ecapa`, `wespeaker`), le catalogue des réglages et `docs/corpus.md` §9 (données d'entraînement des deux modèles d'empreintes). La dépendance `speechbrain` est ajoutée par `uv add`. Calcul en MPS si possible, en CPU sinon, avec le temps mesuré selon le protocole §3.5.
 
+## Amendement du 31/10/2026 (avant exécution)
+
+1. **Normalisation des empreintes.** Elle consiste en un centrage-réduction sur le fichier, comme pour les statistiques de MFCC (D19), afin que seule la représentation change. La normalisation L2 seule est écartée : avec une distance cosinus, elle revient à ne rien faire. Le centrage retire la composante commune au fichier (canal, salle), ce qui est la pratique usuelle avec les x-vectors **[probable]**. La réduction, moins usuelle pour des empreintes neuronales, est gardée par cohérence avec D19 ; c'est une limite consignée.
+2. **Calcul en CPU.** Sur cette machine, les deux modèles renvoient des valeurs NaN par intermittence en MPS (constaté par Claude Code le 31/10). Les expériences EXP-0010 à EXP-0015 tournent donc en CPU, sur secteur. pyannote n'est pas concerné : EXP-0001 est reproduit à l'octet près en MPS.
+
 ## Liens
 
 D8, D19, D21 ; EXP-0002, EXP-0006, EXP-0009.
