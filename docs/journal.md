@@ -277,3 +277,19 @@ Résultats : pyannote atteint 26 % de DER sans collar sur SUMM-RE et 14,8 % avec
 Décisions : aucune ; trois propositions soumises à la candidate (analyse de sensibilité de la référence, capture de l'alimentation dans les exécutions, suite de D9).
 Problèmes : EXP-0008 en partie sur batterie ; son RTF n'est pas exploité.
 Suite : analyse de sensibilité de la référence ; empreintes neuronales (D8) ; écoute de 080b_EBDH et 008a_EARH.
+
+## 2026-10-31 — D21 : alimentation, variantes de référence, A-0001 (Claude Code)
+
+Objectif : appliquer D21 (contrôle de l'alimentation, analyses a posteriori) et exécuter A-0001.
+Réalisé :
+- Commit `docs:` de D21, de methode §2 et §4.7, du README, du journal et des notes d'EXP-0007 à EXP-0009.
+- `src/whospoke/power.py` et `scripts/run_experiment.py` : relevés de `pmset -g batt` au début, toutes les 60 s (fil d'arrière-plan) et à la fin, bloc `alimentation` de `execution_<device>.json`. `scripts/evaluate.py` : champ `conforme` dans `temps` et dans `temps_cpu` (true, false, null ; null sans relevés). Protocole §3.5 (révision 1.3) et methode §4.2-§4.3 mis à jour. Résultats existants non modifiés. 5 tests (secteur, batterie, illisible, relevés périodiques, champ des résultats).
+- `scripts/data/get_summre.py --variante ECART_MS JETONS` : variantes de la référence à partir des mots relus à distance, dans `data/processed/summre/rttm_variantes/` (non versionné), UEM officiel réutilisé. 6 tests synthétiques. Les 8 variantes ont été générées ; `ecart200ms_jetons-retires` est identique octet pour octet à la référence officielle sur les 73 réunions (contrôle du script et `cmp`). Aucune variante ne change le nombre de locuteurs d'une réunion.
+- `scripts/analyses/a0001_sensibilite_reference.py` et `analyses/A-0001_sensibilite-reference/` (configuration commitée avant exécution, commit 8586831, arbre propre). 8 tests de la répartition sur des cas construits à la main ; suite : 140 tests réussis. Durée de l'analyse : 16 min 44 s.
+Résultats : A-0001 (`resultats.csv`, `repartition_erreurs.csv`). La variante officielle reproduit exactement les métriques d'EXP-0007 et d'EXP-0009.
+- EXP-0007, DER sans collar de 200 ms à 1 000 ms, jetons retirés : dev 26,00 → 18,35 % (fausse alarme 14,24 → 5,10), test 26,30 → 21,13 % (11,28 → 5,03). Avec collar : dev 10,76 → 11,36 %, test 14,82 → 14,72 %.
+- EXP-0009, mêmes variantes : dev 46,54 → 49,00 %, test 49,36 → 51,43 % (parole manquée en hausse).
+- Répartition, référence officielle : fausse alarme de pyannote en pauses intra-locuteur ≤ 1 s 43,7 % (dev) et 34,2 % (test), pauses inter-locuteurs ≤ 1 s 16,0 % et 18,9 %, ailleurs 40,3 % et 46,8 % (dont environ 1 200 s pendant la parole de référence). Baseline : 31,2 / 21,0 / 47,8 % (dev), 19,7 / 24,1 / 56,3 % (test). Parole manquée sur des tours de moins de 0,5 s : 9,8 % et 7,6 % (pyannote), 7,2 % et 5,9 % (baseline).
+Décisions : aucune.
+Problèmes : la parole manquée en chevauchement partiel (0 < K̂ < K) n'est pas attribuable à un tour précis ; elle est répartie à parts égales entre les tours actifs (convention consignée dans config.yaml et l'en-tête du script). La catégorie (c) est détaillée en silences longs, bords et fausse alarme pendant la parole, en plus des trois catégories de D21.
+Suite : observations et interprétation d'A-0001 au cockpit (`notes.md`) ; la règle d'interprétation de D21 §2 s'applique.
