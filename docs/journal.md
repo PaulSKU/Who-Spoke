@@ -293,3 +293,12 @@ Résultats : A-0001 (`resultats.csv`, `repartition_erreurs.csv`). La variante of
 Décisions : aucune.
 Problèmes : la parole manquée en chevauchement partiel (0 < K̂ < K) n'est pas attribuable à un tour précis ; elle est répartie à parts égales entre les tours actifs (convention consignée dans config.yaml et l'en-tête du script). La catégorie (c) est détaillée en silences longs, bords et fausse alarme pendant la parole, en plus des trois catégories de D21.
 Suite : observations et interprétation d'A-0001 au cockpit (`notes.md`) ; la règle d'interprétation de D21 §2 s'applique.
+
+## 2026-10-31 — Interprétation d'A-0001 (cockpit)
+
+Objectif : trancher l'hypothèse sur la fausse alarme de pyannote sur SUMM-RE.
+Réalisé : notes.md d'A-0001 ; limite ajoutée à corpus.md §2 ; README mis à jour.
+Résultats : pyannote recouvre 84 % des pauses de 1 s au plus d'un même locuteur. Les pauses courtes expliquent un peu plus de la moitié de sa fausse alarme, le faux chevauchement environ un quart (1 200 s par partition). Le DER sans collar varie de 5 à 8 points selon la règle de fusion, le DER avec collar de moins de 0,6 point. Le classement des systèmes est inchangé. Les partitions dev et test ont probablement des conventions de pause différentes.
+Décisions : convention de référence inchangée (200 ms), conformément à D21 §2 ; écarts de la session acceptés (conforme dans temps_cpu, détail de la catégorie (c), répartition à parts égales de la parole manquée en chevauchement partiel).
+Problèmes : aucun.
+Suite : empreintes neuronales (D8, fiche D22).

@@ -38,7 +38,7 @@ Le périphérique de calcul est choisi automatiquement (CUDA, puis MPS, puis CPU
 
 ## État d'avancement
 
-Au 29 octobre 2026 (troisième jour).
+Au 31 octobre 2026.
 
 | Chantier | État |
 |---|---|
@@ -63,4 +63,4 @@ Résultats sur les partitions de test, chevauchements comptés :
 | EXP-0007 — pyannote community-1 | SUMM-RE, français (37 réunions) | 26,3 % | 14,8 % | 28,7 % | 31/37 | ≈ 1 min 30 s (MPS) ; ≈ 23 min (CPU) |
 | EXP-0009 — baseline MFCC | SUMM-RE, français | 49,4 % | 42,7 % | 61,2 % | 17/37 | ≈ 2 s (CPU) |
 
-Les chiffres sur AMI sont optimistes pour pyannote, qui a vu ce corpus à l'entraînement (`docs/corpus.md` §9). SUMM-RE est en français, mais il est enregistré en micros-casques, pas en micro de salle. Les expériences et leur interprétation sont dans `experiments/` et `results/leaderboard.csv`.
+Les chiffres sur AMI sont optimistes pour pyannote, qui a vu ce corpus à l'entraînement (`docs/corpus.md` §9). SUMM-RE est en français, mais il est enregistré en micros-casques, pas en micro de salle. Sur SUMM-RE, le DER sans collar dépend fortement de la convention de découpage de la référence (jusqu'à 8 points pour pyannote), alors que le DER avec collar n'en dépend presque pas (analyse A-0001) : les deux sont toujours rapportés. Les expériences et leur interprétation sont dans `experiments/` et `results/leaderboard.csv`.
