@@ -1,0 +1,46 @@
+# EXP-0011 — baseline à empreintes ECAPA-TDNN (D22), AMI SDM, détection de parole et nombre de
+# locuteurs oracles (dev et test). Seule variable par rapport à EXP-0006 : la représentation
+# des fenêtres. θ fixé à la valeur de la référence (sans effet en nombre imposé).
+exp_id: EXP-0011
+slug: baseline-ecapa-vad-k-oracle
+reference: EXP-0006
+variable_modifiee: representation
+graine: 0                     # baseline déterministe ; graine consignée par convention
+
+pipeline:
+  nom: baseline               # src/whospoke/pipelines/baseline.py, valeurs de D19 §2 hors représentation
+  vad: oracle                 # régions de parole de la référence restreinte à l'UEM
+  parametres:
+    representation: ecapa            # ECAPA-TDNN (src/whospoke/embeddings.py), seule variable (D22)
+    normalisation: fichier      # centrage-réduction sur le fichier, comme les MFCC (amendement 1 de D22)
+    theta: 0.95               # valeur de la référence (D22) ; sans effet, la coupe se fait au nombre imposé
+
+mode_n_locuteurs: oracle      # coupe de l'arbre au nombre de locuteurs de la référence
+detection_oracle: true
+
+device: cpu                   # empreintes en CPU : NaN intermittents en MPS (amendement 2 de D22)
+prechauffage_s: 60            # extrait du premier fichier, non compté (protocole §3.5)
+
+jeux:
+  - corpus: ami
+    partition: dev
+    liste: data/splits/ami/dev.txt
+  - corpus: ami
+    partition: test
+    liste: data/splits/ami/test.txt
+
+# Sous-ensemble de mesure du temps (protocole §3.5) : device étant cpu, temps_cpu est
+# tiré de l'exécution principale restreinte à ces fichiers.
+mesure_cpu:
+  corpus: ami
+  liste: data/splits/ami/temps.txt
+
+evaluation:
+  references: data/processed/ami/rttm   # RTTM only_words, uri réécrit en ami__<réunion>
+  uem: data/splits/ami/uem              # UEM du dépôt pyannote/AMI-diarization-setup
+  conditions: {collar_0: 0.0, collar_0_25: 0.5}
+  skip_overlap: false
+
+materiel:
+  machine: MacBook Pro M2 Pro
+  ram_go: 16
