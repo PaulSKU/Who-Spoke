@@ -47,6 +47,8 @@ Who-Spoke/
 ├── scripts/                  points d'entrée en ligne de commande (préparation, exécution, évaluation)
 ├── experiments/
 │   └── EXP-NNNN_slug/        une expérience, immuable une fois exécutée
+├── analyses/
+│   └── A-NNNN_slug/          une analyse a posteriori sur des sorties existantes (D21)
 ├── results/
 │   └── leaderboard.csv       une ligne par évaluation, alimentée uniquement par le script d'évaluation
 ├── app/                      démonstration Gradio
@@ -178,6 +180,19 @@ Source : …
 ```
 
 ---
+
+### 4.7 Analyse a posteriori — `analyses/A-NNNN_slug/`
+
+Une analyse recalcule des métriques ou des répartitions d'erreur à partir de sorties existantes (RTTM, fichiers par fichier) et de références, sans exécuter de système de diarisation (D21).
+
+| Fichier | Contenu | Produit par |
+|---|---|---|
+| `config.yaml` | Expériences sources, références ou variantes, calculs demandés | Claude Code, avant exécution |
+| `*.csv` | Résultats, une ligne par combinaison analysée | Script d'analyse |
+| `execution.json` | Commit, état de l'arbre (D18), empreinte de la configuration, date | Script d'analyse |
+| `notes.md` | Observations factuelles, puis interprétation du cockpit | Cockpit |
+
+Mêmes règles d'immuabilité que les expériences. Une analyse ne change ni le protocole ni les références : ses conclusions passent, le cas échéant, par une fiche de décision. Les analyses n'alimentent pas `results/leaderboard.csv`.
 
 ## 5. Boucle de travail
 

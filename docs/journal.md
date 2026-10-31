@@ -268,3 +268,12 @@ Problèmes :
 - Machine sur batterie au début de la session : les exécutions ont attendu le secteur (démarrage à 12:58). Le Mac a été débranché de 15:14 à 16:25 : environ la moitié d'EXP-0008 (essentiellement le test, RTF MPS 0,057 contre 0,052 en dev) a tourné sur batterie, contrairement au protocole §3.5. Les métriques de diarisation n'en dépendent pas ; EXP-0008 n'a pas de mesure CPU (diagnostic). EXP-0009 a attendu le secteur.
 - Le balayage d'EXP-0009 a pris 786 s (préparation comprise), hors RTF.
 Suite : interprétation au cockpit (`notes.md` d'EXP-0007 à EXP-0009, analyse des échecs §7, sous-ensemble Zoom).
+
+## 2026-10-29 — Interprétation d'EXP-0007 à EXP-0009, SUMM-RE (cockpit)
+
+Objectif : interpréter les premiers résultats en français.
+Réalisé : notes.md d'EXP-0007 à EXP-0009 ; README mis à jour.
+Résultats : pyannote atteint 26 % de DER sans collar sur SUMM-RE et 14,8 % avec collar (test). La fausse alarme domine (11 à 14 points), et les trois quarts disparaissent avec le collar : il s'agit probablement d'un effet de la convention de référence (fusion à 200 ms). Le nombre de locuteurs oracle ne fait rien gagner en moyenne (EXP-0008), comme sur AMI. La baseline atteint 49 % sur le test (θ = 1,00). Les réunions Zoom sont les plus faciles pour pyannote (17 %).
+Décisions : aucune ; trois propositions soumises à la candidate (analyse de sensibilité de la référence, capture de l'alimentation dans les exécutions, suite de D9).
+Problèmes : EXP-0008 en partie sur batterie ; son RTF n'est pas exploité.
+Suite : analyse de sensibilité de la référence ; empreintes neuronales (D8) ; écoute de 080b_EBDH et 008a_EARH.
