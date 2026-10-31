@@ -1,0 +1,55 @@
+{
+  "analyse_id": "A-0001",
+  "date": "2026-10-31T15:39:43+01:00",
+  "git_commit": "85868316d2e6ab81d1a8c4a836685d8f50522bd7",
+  "arbre_propre": true,
+  "fichiers_non_commites": [],
+  "config_sha256": "f6dc1121e5b60ea99e7e63af10558c92038fd3d92e0eb46213dd05aee9b9bdd0",
+  "reference_officielle_rttm_sha256": "c6f7dd324e9944d07188c29cecf1e6f32071e93814647a1b01482c7fb3960400",
+  "variantes": {
+    "ecart200ms_jetons-retires": {
+      "date_generation": "2026-10-31T15:21:23+01:00",
+      "revision": "47cb4ec3437ef5497b6092b8c6d1e0b5b1d86dc0",
+      "rttm_sha256": "c6f7dd324e9944d07188c29cecf1e6f32071e93814647a1b01482c7fb3960400"
+    },
+    "ecart200ms_jetons-conserves": {
+      "date_generation": "2026-10-31T15:21:23+01:00",
+      "revision": "47cb4ec3437ef5497b6092b8c6d1e0b5b1d86dc0",
+      "rttm_sha256": "2d0a23ef0e196b2d7900f6d8248f713a33c54011a0e2c8a40dd5923f731550f5"
+    },
+    "ecart300ms_jetons-retires": {
+      "date_generation": "2026-10-31T15:21:23+01:00",
+      "revision": "47cb4ec3437ef5497b6092b8c6d1e0b5b1d86dc0",
+      "rttm_sha256": "6c8239a9b11a3cd5dca09719e7997368ac735c544c9d36294847a3fcd5daf078"
+    },
+    "ecart300ms_jetons-conserves": {
+      "date_generation": "2026-10-31T15:21:23+01:00",
+      "revision": "47cb4ec3437ef5497b6092b8c6d1e0b5b1d86dc0",
+      "rttm_sha256": "4764ec4c2513902807a97cec05f1852cc1303f5294a01867797accb4da5e9d60"
+    },
+    "ecart500ms_jetons-retires": {
+      "date_generation": "2026-10-31T15:21:23+01:00",
+      "revision": "47cb4ec3437ef5497b6092b8c6d1e0b5b1d86dc0",
+      "rttm_sha256": "49458312195ea9fd7da37c0e666cffb2d8ca25dcd2135476743fb815cd249d9e"
+    },
+    "ecart500ms_jetons-conserves": {
+      "date_generation": "2026-10-31T15:21:23+01:00",
+      "revision": "47cb4ec3437ef5497b6092b8c6d1e0b5b1d86dc0",
+      "rttm_sha256": "b1ae2925464c5bf29b878de1e208ad09734760807b6d2ccddb6f9f91cd1139ac"
+    },
+    "ecart1000ms_jetons-retires": {
+      "date_generation": "2026-10-31T15:21:23+01:00",
+      "revision": "47cb4ec3437ef5497b6092b8c6d1e0b5b1d86dc0",
+      "rttm_sha256": "379703b717bd6b04735c1d90bd5b02a2a0edcbbbe62ee5ab5e47e4dfdc3ad25d"
+    },
+    "ecart1000ms_jetons-conserves": {
+      "date_generation": "2026-10-31T15:21:23+01:00",
+      "revision": "47cb4ec3437ef5497b6092b8c6d1e0b5b1d86dc0",
+      "rttm_sha256": "2a3403f3731a9e0985027c0981d7c9d896f871dc1f79878bedeef06d19664649"
+    }
+  },
+  "fichiers": [
+    "resultats.csv",
+    "repartition_erreurs.csv"
+  ]
+}
