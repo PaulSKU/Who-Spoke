@@ -107,7 +107,7 @@ Date : AAAA-MM-JJ
 | `per_file_<corpus>_<partition>.csv` | Métriques par fichier | Script d'évaluation |
 | `rttm/` | Hypothèses du système, un RTTM par fichier | Script d'exécution |
 | `run.log` | Journal d'exécution | Script d'exécution |
-| `execution_<device>.json` | Mesures d'une exécution : temps par fichier et par étape, chargement des modèles, commit, état de l'arbre (`arbre_propre`, `fichiers_non_commites`), versions, empreinte de `config.yaml` (D18), configuration effective du moteur (`describe()`), valeur retenue par un balayage (D19) | Script d'exécution |
+| `execution_<device>.json` | Mesures d'une exécution : temps par fichier et par étape, chargement des modèles, commit, état de l'arbre (`arbre_propre`, `fichiers_non_commites`), versions, empreinte de `config.yaml` (D18), configuration effective du moteur (`describe()`), valeur retenue par un balayage (D19), relevés d'alimentation (bloc `alimentation`, D21 §3) | Script d'exécution |
 | `balayage_<corpus>_<partition>.csv` | Balayage d'un réglage sur dev (D19 §4), format ci-dessous | Script d'exécution |
 | `trace/<uri>/` | Trace du moteur par fichier (`trace.npz`, `trace.json`), avec l'option `--trace` ; non versionnée (D19 §3) | Script d'exécution |
 | `notes.md` | Interprétation des résultats | Rédigé après analyse dans le cockpit |
@@ -139,14 +139,14 @@ Les taux sont exprimés en pourcentage, avec deux décimales.
     "der_zones_chevauchement": 0.0,
     "n_locuteurs": {"erreur_absolue_moyenne": 0.0, "taux_exact": 0.0}
   },
-  "temps": {"device": "mps", "chargement_modeles_s": 0.0, "calcul_s": 0.0, "rtf": 0.0},
-  "temps_cpu": {"sous_ensemble": "data/splits/ami/temps.txt", "duree_audio_s": 0.0, "calcul_s": 0.0, "rtf": 0.0},
+  "temps": {"device": "mps", "chargement_modeles_s": 0.0, "calcul_s": 0.0, "rtf": 0.0, "conforme": true},
+  "temps_cpu": {"sous_ensemble": "data/splits/ami/temps.txt", "duree_audio_s": 0.0, "calcul_s": 0.0, "rtf": 0.0, "conforme": true},
   "evaluation": {"date": "2026-10-28T19:00:00+01:00", "git_commit": "abc1234", "arbre_propre": true, "fichiers_non_commites": []},
   "invalidee": null
 }
 ```
 
-Les définitions exactes de chaque champ figurent dans `docs/protocole-eval.md`.
+`conforme` (blocs `temps` et `temps_cpu`) vaut `true`, `false` ou `null` selon les relevés d'alimentation de l'exécution concernée (D21 §3, protocole §3.5). Les définitions exactes de chaque champ figurent dans `docs/protocole-eval.md`.
 
 ### 4.4 `results/leaderboard.csv`
 
