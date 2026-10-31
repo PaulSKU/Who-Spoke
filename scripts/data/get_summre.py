@@ -48,9 +48,22 @@ après contrôle que le SHA-256 LFS de chaque Parquet est celui du manifeste. Le
 les colonnes du manifeste qui en dépendent (durée, fréquences, crête, décalages) sont
 repris tels quels.
 
+Option `--variante ECART_MS JETONS` (répétable ; D21 §1 et §2) : construit une variante de
+la référence, à partir des mots lus à distance comme avec `--references` (même contrôle
+des SHA-256 LFS), par la même chaîne que la référence officielle, en changeant seulement
+l'écart de fusion des pauses d'un même locuteur (ECART_MS, en millisecondes) et le
+traitement des jetons non lexicaux (JETONS : `retires`, comme la référence officielle, ou
+`conserves`). Les RTTM sont écrits dans
+data/processed/summre/rttm_variantes/ecart<ECART_MS>ms_jetons-<JETONS>/ (non versionné),
+avec un fichier `variante.json` (paramètres, révision, date). Ni les références
+officielles, ni les UEM, ni le manifeste, ni les listes ne sont touchés : l'UEM officiel
+sert pour toutes les variantes. La variante « 200 ms, jetons retirés » est comparée octet
+pour octet à la référence officielle, et toute différence arrête le script.
+
 Usage :
     uv run python scripts/data/get_summre.py
     uv run python scripts/data/get_summre.py --references
+    uv run python scripts/data/get_summre.py --variante 500 retires --variante 500 conserves
 """
 
 from __future__ import annotations
@@ -65,6 +78,7 @@ import subprocess
 import sys
 import warnings
 from collections import Counter, defaultdict
+from datetime import datetime
 from pathlib import Path
 
 import numpy as np
@@ -77,6 +91,7 @@ STATE = RAW_DIR / "etat.json"
 DERIVED_DIR = REPO_ROOT / "data" / "raw" / "dia-summre-test"
 PROCESSED_DIR = REPO_ROOT / "data" / "processed" / "summre"
 RTTM_DIR = PROCESSED_DIR / "rttm"
+VARIANTS_DIR = PROCESSED_DIR / "rttm_variantes"
 SPLITS_DIR = REPO_ROOT / "data" / "splits" / "summre"
 UEM_DIR = SPLITS_DIR / "uem"
 MANIFEST = REPO_ROOT / "data" / "manifests" / "summre.csv"
@@ -167,13 +182,15 @@ def merge_intervals(intervals: list[tuple[float, float]], gap: float = MERGE_GAP
 
 
 def build_reference(
-    tracks: list[dict], keep_non_lexical: bool = False
+    tracks: list[dict], keep_non_lexical: bool = False, gap: float = MERGE_GAP_S
 ) -> tuple[dict[str, list[tuple[float, float]]], int]:
     """Référence d'une réunion : intervalles fusionnés par locuteur, et mots sans horodatage.
 
     `tracks` : une entrée par piste, avec `speaker_id` et `segments`. Un participant sans
     aucun mot n'apparaît pas dans la référence (il n'est pas compté comme locuteur).
     Le chevauchement découle des intervalles de locuteurs différents qui se recouvrent.
+    `gap` : écart de fusion (200 ms pour la référence officielle ; autre valeur pour une
+    variante, D21 §2).
     """
     by_speaker: dict[str, list[tuple[float, float]]] = defaultdict(list)
     missing = 0
@@ -182,7 +199,7 @@ def build_reference(
         by_speaker[track["speaker_id"]] += intervals
         missing += n_missing
     reference = {
-        speaker: merge_intervals(intervals)
+        speaker: merge_intervals(intervals, gap)
         for speaker, intervals in sorted(by_speaker.items())
         if intervals
     }
@@ -677,6 +694,75 @@ def cross_check(test_rows: list[dict]) -> list[tuple[str, float]]:
 # --- Programme principal ------------------------------------------------------------------
 
 
+# --- Variantes de la référence (D21 §1 et §2) ----------------------------------------------
+
+TOKEN_MODES = {"retires": False, "conserves": True}
+
+
+def variant_name(gap_ms: int, tokens: str) -> str:
+    """Nom du dossier d'une variante, par exemple `ecart200ms_jetons-retires`."""
+    if tokens not in TOKEN_MODES:
+        raise ValueError(f"traitement des jetons inconnu : {tokens!r} (attendu : {', '.join(TOKEN_MODES)})")
+    if gap_ms < 0:
+        raise ValueError(f"écart de fusion négatif : {gap_ms}")
+    return f"ecart{gap_ms}ms_jetons-{tokens}"
+
+
+def is_official(gap_ms: int, tokens: str) -> bool:
+    return gap_ms == round(1000 * MERGE_GAP_S) and tokens == "retires"
+
+
+def write_variant(uri: str, infos: list[dict], gap_ms: int, tokens: str, out_dir: Path) -> int:
+    """Écrit le RTTM d'une réunion pour une variante ; renvoie son nombre de locuteurs."""
+    reference, _ = build_reference(infos, keep_non_lexical=TOKEN_MODES[tokens], gap=gap_ms / 1000)
+    if not reference:
+        raise RuntimeError(f"{uri} : aucun mot horodaté")
+    out_dir.mkdir(parents=True, exist_ok=True)
+    (out_dir / f"{uri}.rttm").write_text(rttm_text(uri, reference))
+    return len(reference)
+
+
+def differing_files(variant_dir: Path, official_dir: Path, uris: list[str]) -> list[str]:
+    """Réunions dont le RTTM de la variante diffère, octet pour octet, de la référence officielle."""
+    return [uri for uri in uris
+            if (variant_dir / f"{uri}.rttm").read_bytes() != (official_dir / f"{uri}.rttm").read_bytes()]
+
+
+def build_variants(manifest: list[dict], variants: list[tuple[int, str]]) -> None:
+    """Construit les variantes demandées pour dev et test, à partir des mots lus une seule fois."""
+    names = {variant_name(gap_ms, tokens): (gap_ms, tokens) for gap_ms, tokens in variants}
+    uris = []
+    for partition in PARTITIONS:
+        meetings = remote_words(partition, manifest)
+        for row in (r for r in manifest if r["partition"] == partition):
+            meeting = row["uri"].removeprefix(f"{CORPUS}__")
+            infos = sorted(meetings.pop(meeting, []), key=lambda info: info["audio_id"])
+            if len(infos) != int(row["n_pistes"]):
+                sys.exit(f"[summre] {row['uri']} : {len(infos)} pistes lues, {row['n_pistes']} attendues")
+            for name, (gap_ms, tokens) in names.items():
+                n = write_variant(row["uri"], infos, gap_ms, tokens, VARIANTS_DIR / name)
+                if n != int(row["n_locuteurs"]):
+                    print(f"[summre] {name} {row['uri']} : {n} locuteurs ({row['n_locuteurs']} dans la "
+                          "référence officielle)")
+            uris.append(row["uri"])
+        if meetings:
+            sys.exit(f"[summre] {partition} : réunions absentes du manifeste : {sorted(meetings)}")
+    date = datetime.now().astimezone().isoformat(timespec="seconds")
+    for name, (gap_ms, tokens) in names.items():
+        out_dir = VARIANTS_DIR / name
+        (out_dir / "variante.json").write_text(json.dumps({
+            "variante": name, "ecart_fusion_ms": gap_ms, "jetons_non_lexicaux": tokens,
+            "revision": REVISION, "n_reunions": len(uris), "uem": "officiel (data/splits/summre/uem/)",
+            "date": date,
+        }, ensure_ascii=False, indent=2) + "\n")
+        print(f"[summre] variante {name} : {len(uris)} RTTM dans {out_dir}")
+        if is_official(gap_ms, tokens):
+            differ = differing_files(out_dir, RTTM_DIR, uris)
+            if differ:
+                sys.exit(f"[summre] {name} diffère de la référence officielle : {differ}")
+            print(f"[summre] {name} identique octet pour octet à la référence officielle ({len(uris)} RTTM)")
+
+
 def read_manifest() -> list[dict]:
     if not MANIFEST.exists():
         return []
@@ -758,9 +844,28 @@ def main() -> None:
              "de mots des Parquet (lecture à distance, SHA-256 LFS contrôlé contre le manifeste), "
              "sans retélécharger l'audio",
     )
+    parser.add_argument(
+        "--variante", nargs=2, action="append", metavar=("ECART_MS", "JETONS"),
+        help="construit une variante de la référence (D21) dans data/processed/summre/rttm_variantes/ : "
+             "écart de fusion en millisecondes et traitement des jetons non lexicaux (retires ou "
+             "conserves) ; répétable ; références officielles, UEM et manifeste inchangés",
+    )
     args = parser.parse_args()
 
     manifest = read_manifest()
+    if args.variante:
+        if args.references:
+            sys.exit("[summre] --variante et --references sont exclusifs")
+        if not all(partition_done(p, manifest) for p in PARTITIONS):
+            sys.exit("[summre] --variante suppose une préparation complète de dev et test")
+        try:
+            variants = [(int(gap), tokens) for gap, tokens in args.variante]
+            for gap_ms, tokens in variants:
+                variant_name(gap_ms, tokens)
+        except ValueError as error:
+            sys.exit(f"[summre] --variante : {error}")
+        build_variants(manifest, variants)
+        return
     known_sha = {}
     for row in manifest:
         known_sha.update(zip(row["parquets"].split(";"), row["sha256"].split(";")))

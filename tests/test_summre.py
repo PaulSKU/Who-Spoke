@@ -207,3 +207,88 @@ def test_decalage_non_mesurable_sans_diaphonie():
 def test_code_de_lieu_zoom():
     assert get_summre.is_zoom("020b_EBDZ")
     assert not get_summre.is_zoom("007a_ECRH")
+
+
+# --- Variantes de la référence (D21 §1 et §2) --------------------------------------------
+
+
+def test_nom_de_variante():
+    assert get_summre.variant_name(200, "retires") == "ecart200ms_jetons-retires"
+    assert get_summre.variant_name(1000, "conserves") == "ecart1000ms_jetons-conserves"
+    with pytest.raises(ValueError):
+        get_summre.variant_name(200, "gardes")
+    assert get_summre.is_official(200, "retires")
+    assert not get_summre.is_official(300, "retires") and not get_summre.is_official(200, "conserves")
+
+
+def test_ecart_de_fusion_parametre():
+    segment = {"start": 0.0, "end": 3.0, "words": words((0.0, 0.5), (0.7, 1.0), (1.21, 1.5), (2.0, 3.0))}
+    assert get_summre.build_reference([track("001", [segment])], gap=0.3)[0] == {
+        "001": [(0.0, 1.5), (2.0, 3.0)]}
+    assert get_summre.build_reference([track("001", [segment])], gap=0.5)[0] == {"001": [(0.0, 3.0)]}
+
+
+def reunion_synthetique():
+    """Deux pistes : un bruit, deux mots séparés de 0,4 s, un rire ; un locuteur muet sauf un rire."""
+    return [
+        {"speaker_id": "001", "audio_id": "a", "segments": [{"start": 2.0, "end": 9.0, "words": [
+            {"word": "*", "start": 2.0, "end": 3.0},
+            {"word": "bon", "start": 5.0, "end": 5.6},
+            {"word": "alors", "start": 6.0, "end": 6.5},
+            {"word": "@", "start": 6.6, "end": 7.0},
+        ]}]},
+        {"speaker_id": "002", "audio_id": "b", "segments": [{"start": 6.2, "end": 7.5, "words": [
+            {"word": "oui", "start": 6.2, "end": 7.5}]}]},
+        {"speaker_id": "003", "audio_id": "c", "segments": [{"start": 1.0, "end": 1.5, "words": [
+            {"word": "@", "start": 1.0, "end": 1.5}]}]},
+    ]
+
+
+@pytest.fixture
+def variantes(tmp_path, monkeypatch):
+    """Référence officielle et UEM écrites par la chaîne officielle, mots lus « à distance » simulés."""
+    for name, sub in (("RTTM_DIR", "rttm"), ("UEM_DIR", "uem"), ("VARIANTS_DIR", "rttm_variantes")):
+        monkeypatch.setattr(get_summre, name, tmp_path / sub)
+    monkeypatch.setattr(get_summre, "PARTITIONS", {"dev": (1, 3)})
+    infos = reunion_synthetique()
+    get_summre.write_reference("summre__x", infos, duration=20.0)
+    monkeypatch.setattr(get_summre, "remote_words", lambda partition, manifest: {"x": reunion_synthetique()})
+    manifest = [{"uri": "summre__x", "partition": "dev", "n_pistes": "3", "n_locuteurs": "2"}]
+    return tmp_path, manifest
+
+
+def test_variante_officielle_identique_a_la_reference(variantes):
+    tmp_path, manifest = variantes
+    uem_avant = (tmp_path / "uem" / "summre__x.uem").read_bytes()
+    get_summre.build_variants(manifest, [(200, "retires")])
+    variante = tmp_path / "rttm_variantes" / "ecart200ms_jetons-retires"
+    assert (variante / "summre__x.rttm").read_bytes() == (tmp_path / "rttm" / "summre__x.rttm").read_bytes()
+    assert not list(variante.glob("*.uem"))  # l'UEM officiel est réutilisé, jamais réécrit
+    assert (tmp_path / "uem" / "summre__x.uem").read_bytes() == uem_avant
+    assert '"ecart_fusion_ms": 200' in (variante / "variante.json").read_text()
+
+
+def test_variantes_ecart_et_jetons(variantes):
+    tmp_path, manifest = variantes
+    get_summre.build_variants(manifest, [(500, "retires"), (200, "conserves")])
+    base = tmp_path / "rttm_variantes"
+    # 500 ms : les deux mots de 001 (écart de 0,4 s) sont fusionnés.
+    assert (base / "ecart500ms_jetons-retires" / "summre__x.rttm").read_text() == (
+        "SPEAKER summre__x 1 5.000 1.500 <NA> <NA> 001 <NA> <NA>\n"
+        "SPEAKER summre__x 1 6.200 1.300 <NA> <NA> 002 <NA> <NA>\n"
+    )
+    # Jetons conservés : bruit et rire deviennent de la parole, et 003 apparaît comme locuteur.
+    assert (base / "ecart200ms_jetons-conserves" / "summre__x.rttm").read_text() == (
+        "SPEAKER summre__x 1 1.000 0.500 <NA> <NA> 003 <NA> <NA>\n"
+        "SPEAKER summre__x 1 2.000 1.000 <NA> <NA> 001 <NA> <NA>\n"
+        "SPEAKER summre__x 1 5.000 0.600 <NA> <NA> 001 <NA> <NA>\n"
+        "SPEAKER summre__x 1 6.000 1.000 <NA> <NA> 001 <NA> <NA>\n"
+        "SPEAKER summre__x 1 6.200 1.300 <NA> <NA> 002 <NA> <NA>\n"
+    )
+
+
+def test_variante_officielle_differente_refusee(variantes):
+    tmp_path, manifest = variantes
+    (tmp_path / "rttm" / "summre__x.rttm").write_text("altérée\n")
+    with pytest.raises(SystemExit, match="diffère"):
+        get_summre.build_variants(manifest, [(200, "retires")])
