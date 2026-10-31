@@ -21,3 +21,5 @@ EXP-0010,2026-10-31T17:11:36+01:00,baseline-ecapa-ami-sdm,EXP-0002,representatio
 EXP-0010,2026-10-31T17:11:36+01:00,baseline-ecapa-ami-sdm,EXP-0002,representation,ami,test,baseline,estime,45.88,32.27,4.99,8.63,40.85,51.16,0.69,0.0143,0.0147,fba633a
 EXP-0011,2026-10-31T17:33:45+01:00,baseline-ecapa-vad-k-oracle,EXP-0006,representation,ami,dev,baseline,oracle,24.13,13.51,0.17,10.46,17.11,33.48,0.0,0.0188,0.017,14fde7e
 EXP-0011,2026-10-31T17:33:45+01:00,baseline-ecapa-vad-k-oracle,EXP-0006,representation,ami,test,baseline,oracle,25.39,14.59,0.13,10.67,18.72,37.36,0.0,0.0193,0.017,14fde7e
+EXP-0012,2026-10-31T18:24:56+01:00,baseline-ecapa-summre,EXP-0009,representation,summre,dev,baseline,estime,30.84,17.74,4.31,8.79,19.24,39.93,0.5,0.0172,0.0163,3856355
+EXP-0012,2026-10-31T18:24:56+01:00,baseline-ecapa-summre,EXP-0009,representation,summre,test,baseline,estime,33.42,21.87,3.08,8.47,24.42,39.16,0.24,0.0186,0.0163,3856355
