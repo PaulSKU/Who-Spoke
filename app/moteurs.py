@@ -79,8 +79,16 @@ class FixedOverhead:
 
 # Surcoût fixe par (moteur, périphérique) : durée du premier appel après chargement − RTF ×
 # durée, moyenne de 3 lancements (scripts/measure_overhead.py, 60 s de summre__004c_PAPH,
-# partition dev). À remesurer quand l'expérience source ou son RTF change.
-FIXED_OVERHEAD: dict[tuple[str, str], FixedOverhead] = {}
+# partition dev). À remesurer quand l'expérience source ou son RTF change. Mesure du
+# 01/11/2026 sur secteur, charge moyenne de la machine de 2,7 à 3,8 (8,8 au plus pendant
+# pyannote en CPU, d'où sa dispersion : 2,7 à 9,8 s selon le lancement).
+FIXED_OVERHEAD: dict[tuple[str, str], FixedOverhead] = {
+    ("baseline-mfcc", "cpu"): FixedOverhead(1.5, "2026-11-01"),
+    ("baseline-ecapa", "cpu"): FixedOverhead(1.3, "2026-11-01"),
+    ("baseline-wespeaker", "cpu"): FixedOverhead(1.6, "2026-11-01"),
+    ("pyannote-community-1", "mps"): FixedOverhead(1.1, "2026-11-01"),
+    ("pyannote-community-1", "cpu"): FixedOverhead(6.6, "2026-11-01"),
+}
 
 
 def fixed_overhead(key: str, device: str) -> FixedOverhead | None:

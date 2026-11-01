@@ -130,3 +130,15 @@ def test_moteur_factice_respecte_le_contrat(tmp_path):
     assert engine.describe_dict()["sortie"][0]["origine"] == "code"
     with pytest.raises(ValueError):
         engine.run(torch.zeros(2, SR), SR, uri="ES2004a")
+
+
+def test_surcout_fixe_mesure_pour_chaque_moteur_et_peripherique():
+    """Chaque moteur a un surcoût fixe daté sur ses périphériques mesurés (CPU, et MPS pour pyannote)."""
+    from datetime import date
+
+    for key, spec in moteurs.SPECS.items():
+        for device in ("cpu",) if spec.cpu_only else ("cpu", "mps"):
+            overhead = moteurs.fixed_overhead(key, device)
+            assert overhead is not None and overhead.seconds >= 0.0, (key, device)
+            date.fromisoformat(overhead.measured_on)
+    assert moteurs.fixed_overhead("pyannote-community-1", "cuda") is None
