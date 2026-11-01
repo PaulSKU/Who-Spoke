@@ -173,20 +173,22 @@ def test_silero_absent(monkeypatch):
 
 
 def test_version_empreinte_et_fils_de_torch(tmp_path, monkeypatch):
-    """Un faux paquet silero_vad qui, comme le vrai, impose un fil à l'import."""
-    package = tmp_path / "silero_vad"
-    (package / "data").mkdir(parents=True)
-    (package / "data" / "__init__.py").write_text("")
-    (package / "data" / silero.MODEL_FILE).write_bytes(b"autres poids")
-    monkeypatch.syspath_prepend(str(tmp_path))
+    """Un faux paquet silero_vad qui, comme le vrai, impose un fil à l'import. Un dossier
+    par version : réécrit sur place dans la même seconde et à taille égale, le module
+    serait relu depuis son bytecode périmé."""
     real = {name: module for name, module in sys.modules.items() if name.startswith("silero_vad")}
     before = torch.get_num_threads()
     try:
         for version, error in (("5.1.2", "5.1.2 installé"), ("6.2.3", "empreinte")):
+            package = tmp_path / version / "silero_vad"
+            (package / "data").mkdir(parents=True)
+            (package / "data" / "__init__.py").write_text("")
+            (package / "data" / silero.MODEL_FILE).write_bytes(b"autres poids")
             (package / "__init__.py").write_text(
                 f"import torch\ntorch.set_num_threads(1)\n__version__ = {version!r}\n"
                 "def get_speech_timestamps_from_probs(*a, **k):\n    return []\n"
                 "def load_silero_vad(onnx=False):\n    return 'modele'\n")
+            monkeypatch.syspath_prepend(str(tmp_path / version))
             for name in [m for m in sys.modules if m.startswith("silero_vad")]:
                 del sys.modules[name]
             importlib.invalidate_caches()
