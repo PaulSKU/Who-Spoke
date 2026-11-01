@@ -1,0 +1,49 @@
+# EXP-0016 — pyannote community-1 sur SUMM-RE, dev et test, sortie exclusive évaluée (D25, V1 ;
+# planning v2.0, rang A1). Configuration d'EXP-0007, sauf la sortie évaluée :
+# `output.exclusive_speaker_diarization` (au plus un locuteur par trame). La sortie
+# habituelle de la même exécution est écrite dans rttm_habituelle/ et doit reproduire à
+# l'octet les RTTM d'EXP-0007.
+exp_id: EXP-0016
+slug: pyannote-c1-summre-exclusive
+reference: EXP-0007
+variable_modifiee: sortie
+graine: 0                     # pipeline déterministe ; graine consignée par convention
+
+pipeline:
+  nom: pyannote-community-1   # pyannote/speaker-diarization-community-1, signal en mémoire (D16)
+  vad: integree               # segmentation de la pipeline, pas de VAD séparée
+  parametres:                 # nombre de locuteurs estimé : aucune contrainte
+    num_speakers: null
+    min_speakers: null
+    max_speakers: null
+    sortie: exclusive           # sortie évaluée (D25, V1) ; la sortie habituelle est aussi enregistrée
+
+mode_n_locuteurs: estime
+detection_oracle: false
+
+device: mps
+prechauffage_s: 60            # extrait du premier fichier, non compté (protocole §3.5)
+
+jeux:
+  - corpus: summre
+    partition: dev
+    liste: data/splits/summre/dev.txt
+  - corpus: summre
+    partition: test
+    liste: data/splits/summre/test.txt
+
+# Mesure en CPU seul sur le sous-ensemble de mesure du temps (protocole §3.5) :
+# 007a_ECRH (présentiel) et 012c_EBPZ (Zoom), 39,5 min (amendement 3 de D20).
+mesure_cpu:
+  corpus: summre
+  liste: data/splits/summre/temps.txt
+
+evaluation:
+  references: data/processed/summre/rttm   # mots alignés, fusion à 200 ms, sans jetons non lexicaux (D20 §3, amendement 1)
+  uem: data/splits/summre/uem              # premier mot − 1 s, dernier mot + 1 s (D20 §3)
+  conditions: {collar_0: 0.0, collar_0_25: 0.5}
+  skip_overlap: false
+
+materiel:
+  machine: MacBook Pro M2 Pro
+  ram_go: 16

@@ -1,0 +1,578 @@
+{
+  "exp_id": "EXP-0016",
+  "mode": "mesure_cpu",
+  "sous_ensemble": "data/splits/summre/temps.txt",
+  "date_fin": "2026-11-01T21:47:52+01:00",
+  "git_commit": "12a67a668522476ce137226f40343021094d9e4e",
+  "arbre_propre": true,
+  "fichiers_non_commites": [
+    "docs/corpus-maison/conventions-annotation.md",
+    "docs/corpus.md",
+    "docs/decisions/D21-analyses-et-alimentation.md",
+    "docs/journal.md",
+    "docs/planning.md",
+    "docs/constats.yaml",
+    "docs/synthese.md",
+    "experiments/EXP-0016_pyannote-c1-summre-exclusive/config.yaml",
+    "experiments/EXP-0016_pyannote-c1-summre-exclusive/execution_mps.json",
+    "experiments/EXP-0016_pyannote-c1-summre-exclusive/rttm/summre__004c_PAPH.rttm",
+    "experiments/EXP-0016_pyannote-c1-summre-exclusive/rttm/summre__006b_EADH.rttm",
+    "experiments/EXP-0016_pyannote-c1-summre-exclusive/rttm/summre__007a_ECRH.rttm",
+    "experiments/EXP-0016_pyannote-c1-summre-exclusive/rttm/summre__008a_EARH.rttm",
+    "experiments/EXP-0016_pyannote-c1-summre-exclusive/rttm/summre__011c_ECPL.rttm",
+    "experiments/EXP-0016_pyannote-c1-summre-exclusive/rttm/summre__012c_EBPZ.rttm",
+    "experiments/EXP-0016_pyannote-c1-summre-exclusive/rttm/summre__013c_EAPD.rttm",
+    "experiments/EXP-0016_pyannote-c1-summre-exclusive/rttm/summre__014c_EAPD.rttm",
+    "experiments/EXP-0016_pyannote-c1-summre-exclusive/rttm/summre__015b_EBDD.rttm",
+    "experiments/EXP-0016_pyannote-c1-summre-exclusive/rttm/summre__016c_EBPZ.rttm",
+    "experiments/EXP-0016_pyannote-c1-summre-exclusive/rttm/summre__017a_EBRZ.rttm",
+    "experiments/EXP-0016_pyannote-c1-summre-exclusive/rttm/summre__018a_EARZ.rttm",
+    "experiments/EXP-0016_pyannote-c1-summre-exclusive/rttm/summre__018b_EADZ.rttm",
+    "experiments/EXP-0016_pyannote-c1-summre-exclusive/rttm/summre__019a_EARD.rttm",
+    "experiments/EXP-0016_pyannote-c1-summre-exclusive/rttm/summre__019c_EAPD.rttm",
+    "experiments/EXP-0016_pyannote-c1-summre-exclusive/rttm/summre__020b_EBDZ.rttm",
+    "experiments/EXP-0016_pyannote-c1-summre-exclusive/rttm/summre__020c_EBPZ.rttm",
+    "experiments/EXP-0016_pyannote-c1-summre-exclusive/rttm/summre__021a_EARD.rttm",
+    "experiments/EXP-0016_pyannote-c1-summre-exclusive/rttm/summre__021b_EADD.rttm",
+    "experiments/EXP-0016_pyannote-c1-summre-exclusive/rttm/summre__024c_EBPH.rttm",
+    "experiments/EXP-0016_pyannote-c1-summre-exclusive/rttm/summre__025b_EBDH.rttm",
+    "experiments/EXP-0016_pyannote-c1-summre-exclusive/rttm/summre__027a_EBRH.rttm",
+    "experiments/EXP-0016_pyannote-c1-summre-exclusive/rttm/summre__032a_EARH.rttm",
+    "experiments/EXP-0016_pyannote-c1-summre-exclusive/rttm/summre__032b_EADH.rttm",
+    "experiments/EXP-0016_pyannote-c1-summre-exclusive/rttm/summre__033a_EBRH.rttm",
+    "experiments/EXP-0016_pyannote-c1-summre-exclusive/rttm/summre__033c_EBPH.rttm",
+    "experiments/EXP-0016_pyannote-c1-summre-exclusive/rttm/summre__034a_EBRH.rttm",
+    "experiments/EXP-0016_pyannote-c1-summre-exclusive/rttm/summre__035b_EADH.rttm",
+    "experiments/EXP-0016_pyannote-c1-summre-exclusive/rttm/summre__036b_EADH.rttm",
+    "experiments/EXP-0016_pyannote-c1-summre-exclusive/rttm/summre__036c_EAPH.rttm",
+    "experiments/EXP-0016_pyannote-c1-summre-exclusive/rttm/summre__037a_EARH.rttm",
+    "experiments/EXP-0016_pyannote-c1-summre-exclusive/rttm/summre__039b_EDDH.rttm",
+    "experiments/EXP-0016_pyannote-c1-summre-exclusive/rttm/summre__040a_EERH.rttm",
+    "experiments/EXP-0016_pyannote-c1-summre-exclusive/rttm/summre__043a_EDRH.rttm",
+    "experiments/EXP-0016_pyannote-c1-summre-exclusive/rttm/summre__044c_EBPH.rttm",
+    "experiments/EXP-0016_pyannote-c1-summre-exclusive/rttm/summre__045a_EARH.rttm",
+    "experiments/EXP-0016_pyannote-c1-summre-exclusive/rttm/summre__045b_EADH.rttm",
+    "experiments/EXP-0016_pyannote-c1-summre-exclusive/rttm/summre__046c_EBPH.rttm",
+    "experiments/EXP-0016_pyannote-c1-summre-exclusive/rttm/summre__047a_EDRH.rttm",
+    "experiments/EXP-0016_pyannote-c1-summre-exclusive/rttm/summre__047c_EDPH.rttm",
+    "experiments/EXP-0016_pyannote-c1-summre-exclusive/rttm/summre__049b_EBDH.rttm",
+    "experiments/EXP-0016_pyannote-c1-summre-exclusive/rttm/summre__050c_EEPH.rttm",
+    "experiments/EXP-0016_pyannote-c1-summre-exclusive/rttm/summre__051a_EARH.rttm",
+    "experiments/EXP-0016_pyannote-c1-summre-exclusive/rttm/summre__053b_EDDH.rttm",
+    "experiments/EXP-0016_pyannote-c1-summre-exclusive/rttm/summre__054a_EARH.rttm",
+    "experiments/EXP-0016_pyannote-c1-summre-exclusive/rttm/summre__054c_EAPH.rttm",
+    "experiments/EXP-0016_pyannote-c1-summre-exclusive/rttm/summre__059b_EBDH.rttm",
+    "experiments/EXP-0016_pyannote-c1-summre-exclusive/rttm/summre__060a_EDRH.rttm",
+    "experiments/EXP-0016_pyannote-c1-summre-exclusive/rttm/summre__066a_EARH.rttm",
+    "experiments/EXP-0016_pyannote-c1-summre-exclusive/rttm/summre__069b_EEDL.rttm",
+    "experiments/EXP-0016_pyannote-c1-summre-exclusive/rttm/summre__069c_EEPL.rttm",
+    "experiments/EXP-0016_pyannote-c1-summre-exclusive/rttm/summre__070a_EBRL.rttm",
+    "experiments/EXP-0016_pyannote-c1-summre-exclusive/rttm/summre__070b_EBDL.rttm",
+    "experiments/EXP-0016_pyannote-c1-summre-exclusive/rttm/summre__072b_EEDH.rttm",
+    "experiments/EXP-0016_pyannote-c1-summre-exclusive/rttm/summre__072c_EEPH.rttm",
+    "experiments/EXP-0016_pyannote-c1-summre-exclusive/rttm/summre__074c_EAPH.rttm",
+    "experiments/EXP-0016_pyannote-c1-summre-exclusive/rttm/summre__075b_EBDH.rttm",
+    "experiments/EXP-0016_pyannote-c1-summre-exclusive/rttm/summre__076b_EEDH.rttm",
+    "experiments/EXP-0016_pyannote-c1-summre-exclusive/rttm/summre__077c_EBPH.rttm",
+    "experiments/EXP-0016_pyannote-c1-summre-exclusive/rttm/summre__080b_EBDH.rttm",
+    "experiments/EXP-0016_pyannote-c1-summre-exclusive/rttm/summre__081a_EBRH.rttm",
+    "experiments/EXP-0016_pyannote-c1-summre-exclusive/rttm/summre__081c_EBPH.rttm",
+    "experiments/EXP-0016_pyannote-c1-summre-exclusive/rttm/summre__084c_EBPH.rttm",
+    "experiments/EXP-0016_pyannote-c1-summre-exclusive/rttm/summre__088b_EADH.rttm",
+    "experiments/EXP-0016_pyannote-c1-summre-exclusive/rttm/summre__091b_EBDH.rttm",
+    "experiments/EXP-0016_pyannote-c1-summre-exclusive/rttm/summre__093c_EBPZ.rttm",
+    "experiments/EXP-0016_pyannote-c1-summre-exclusive/rttm/summre__097b_EBDH.rttm",
+    "experiments/EXP-0016_pyannote-c1-summre-exclusive/rttm/summre__097c_EBPH.rttm",
+    "experiments/EXP-0016_pyannote-c1-summre-exclusive/rttm/summre__100b_EADH.rttm",
+    "experiments/EXP-0016_pyannote-c1-summre-exclusive/rttm/summre__101c_EDPH.rttm",
+    "experiments/EXP-0016_pyannote-c1-summre-exclusive/rttm/summre__102a_EBRH.rttm",
+    "experiments/EXP-0016_pyannote-c1-summre-exclusive/rttm/summre__102c_EBPH.rttm",
+    "experiments/EXP-0016_pyannote-c1-summre-exclusive/rttm/summre__104b_EADH.rttm",
+    "experiments/EXP-0016_pyannote-c1-summre-exclusive/rttm_habituelle/summre__004c_PAPH.rttm",
+    "experiments/EXP-0016_pyannote-c1-summre-exclusive/rttm_habituelle/summre__006b_EADH.rttm",
+    "experiments/EXP-0016_pyannote-c1-summre-exclusive/rttm_habituelle/summre__007a_ECRH.rttm",
+    "experiments/EXP-0016_pyannote-c1-summre-exclusive/rttm_habituelle/summre__008a_EARH.rttm",
+    "experiments/EXP-0016_pyannote-c1-summre-exclusive/rttm_habituelle/summre__011c_ECPL.rttm",
+    "experiments/EXP-0016_pyannote-c1-summre-exclusive/rttm_habituelle/summre__012c_EBPZ.rttm",
+    "experiments/EXP-0016_pyannote-c1-summre-exclusive/rttm_habituelle/summre__013c_EAPD.rttm",
+    "experiments/EXP-0016_pyannote-c1-summre-exclusive/rttm_habituelle/summre__014c_EAPD.rttm",
+    "experiments/EXP-0016_pyannote-c1-summre-exclusive/rttm_habituelle/summre__015b_EBDD.rttm",
+    "experiments/EXP-0016_pyannote-c1-summre-exclusive/rttm_habituelle/summre__016c_EBPZ.rttm",
+    "experiments/EXP-0016_pyannote-c1-summre-exclusive/rttm_habituelle/summre__017a_EBRZ.rttm",
+    "experiments/EXP-0016_pyannote-c1-summre-exclusive/rttm_habituelle/summre__018a_EARZ.rttm",
+    "experiments/EXP-0016_pyannote-c1-summre-exclusive/rttm_habituelle/summre__018b_EADZ.rttm",
+    "experiments/EXP-0016_pyannote-c1-summre-exclusive/rttm_habituelle/summre__019a_EARD.rttm",
+    "experiments/EXP-0016_pyannote-c1-summre-exclusive/rttm_habituelle/summre__019c_EAPD.rttm",
+    "experiments/EXP-0016_pyannote-c1-summre-exclusive/rttm_habituelle/summre__020b_EBDZ.rttm",
+    "experiments/EXP-0016_pyannote-c1-summre-exclusive/rttm_habituelle/summre__020c_EBPZ.rttm",
+    "experiments/EXP-0016_pyannote-c1-summre-exclusive/rttm_habituelle/summre__021a_EARD.rttm",
+    "experiments/EXP-0016_pyannote-c1-summre-exclusive/rttm_habituelle/summre__021b_EADD.rttm",
+    "experiments/EXP-0016_pyannote-c1-summre-exclusive/rttm_habituelle/summre__024c_EBPH.rttm",
+    "experiments/EXP-0016_pyannote-c1-summre-exclusive/rttm_habituelle/summre__025b_EBDH.rttm",
+    "experiments/EXP-0016_pyannote-c1-summre-exclusive/rttm_habituelle/summre__027a_EBRH.rttm",
+    "experiments/EXP-0016_pyannote-c1-summre-exclusive/rttm_habituelle/summre__032a_EARH.rttm",
+    "experiments/EXP-0016_pyannote-c1-summre-exclusive/rttm_habituelle/summre__032b_EADH.rttm",
+    "experiments/EXP-0016_pyannote-c1-summre-exclusive/rttm_habituelle/summre__033a_EBRH.rttm",
+    "experiments/EXP-0016_pyannote-c1-summre-exclusive/rttm_habituelle/summre__033c_EBPH.rttm",
+    "experiments/EXP-0016_pyannote-c1-summre-exclusive/rttm_habituelle/summre__034a_EBRH.rttm",
+    "experiments/EXP-0016_pyannote-c1-summre-exclusive/rttm_habituelle/summre__035b_EADH.rttm",
+    "experiments/EXP-0016_pyannote-c1-summre-exclusive/rttm_habituelle/summre__036b_EADH.rttm",
+    "experiments/EXP-0016_pyannote-c1-summre-exclusive/rttm_habituelle/summre__036c_EAPH.rttm",
+    "experiments/EXP-0016_pyannote-c1-summre-exclusive/rttm_habituelle/summre__037a_EARH.rttm",
+    "experiments/EXP-0016_pyannote-c1-summre-exclusive/rttm_habituelle/summre__039b_EDDH.rttm",
+    "experiments/EXP-0016_pyannote-c1-summre-exclusive/rttm_habituelle/summre__040a_EERH.rttm",
+    "experiments/EXP-0016_pyannote-c1-summre-exclusive/rttm_habituelle/summre__043a_EDRH.rttm",
+    "experiments/EXP-0016_pyannote-c1-summre-exclusive/rttm_habituelle/summre__044c_EBPH.rttm",
+    "experiments/EXP-0016_pyannote-c1-summre-exclusive/rttm_habituelle/summre__045a_EARH.rttm",
+    "experiments/EXP-0016_pyannote-c1-summre-exclusive/rttm_habituelle/summre__045b_EADH.rttm",
+    "experiments/EXP-0016_pyannote-c1-summre-exclusive/rttm_habituelle/summre__046c_EBPH.rttm",
+    "experiments/EXP-0016_pyannote-c1-summre-exclusive/rttm_habituelle/summre__047a_EDRH.rttm",
+    "experiments/EXP-0016_pyannote-c1-summre-exclusive/rttm_habituelle/summre__047c_EDPH.rttm",
+    "experiments/EXP-0016_pyannote-c1-summre-exclusive/rttm_habituelle/summre__049b_EBDH.rttm",
+    "experiments/EXP-0016_pyannote-c1-summre-exclusive/rttm_habituelle/summre__050c_EEPH.rttm",
+    "experiments/EXP-0016_pyannote-c1-summre-exclusive/rttm_habituelle/summre__051a_EARH.rttm",
+    "experiments/EXP-0016_pyannote-c1-summre-exclusive/rttm_habituelle/summre__053b_EDDH.rttm",
+    "experiments/EXP-0016_pyannote-c1-summre-exclusive/rttm_habituelle/summre__054a_EARH.rttm",
+    "experiments/EXP-0016_pyannote-c1-summre-exclusive/rttm_habituelle/summre__054c_EAPH.rttm",
+    "experiments/EXP-0016_pyannote-c1-summre-exclusive/rttm_habituelle/summre__059b_EBDH.rttm",
+    "experiments/EXP-0016_pyannote-c1-summre-exclusive/rttm_habituelle/summre__060a_EDRH.rttm",
+    "experiments/EXP-0016_pyannote-c1-summre-exclusive/rttm_habituelle/summre__066a_EARH.rttm",
+    "experiments/EXP-0016_pyannote-c1-summre-exclusive/rttm_habituelle/summre__069b_EEDL.rttm",
+    "experiments/EXP-0016_pyannote-c1-summre-exclusive/rttm_habituelle/summre__069c_EEPL.rttm",
+    "experiments/EXP-0016_pyannote-c1-summre-exclusive/rttm_habituelle/summre__070a_EBRL.rttm",
+    "experiments/EXP-0016_pyannote-c1-summre-exclusive/rttm_habituelle/summre__070b_EBDL.rttm",
+    "experiments/EXP-0016_pyannote-c1-summre-exclusive/rttm_habituelle/summre__072b_EEDH.rttm",
+    "experiments/EXP-0016_pyannote-c1-summre-exclusive/rttm_habituelle/summre__072c_EEPH.rttm",
+    "experiments/EXP-0016_pyannote-c1-summre-exclusive/rttm_habituelle/summre__074c_EAPH.rttm",
+    "experiments/EXP-0016_pyannote-c1-summre-exclusive/rttm_habituelle/summre__075b_EBDH.rttm",
+    "experiments/EXP-0016_pyannote-c1-summre-exclusive/rttm_habituelle/summre__076b_EEDH.rttm",
+    "experiments/EXP-0016_pyannote-c1-summre-exclusive/rttm_habituelle/summre__077c_EBPH.rttm",
+    "experiments/EXP-0016_pyannote-c1-summre-exclusive/rttm_habituelle/summre__080b_EBDH.rttm",
+    "experiments/EXP-0016_pyannote-c1-summre-exclusive/rttm_habituelle/summre__081a_EBRH.rttm",
+    "experiments/EXP-0016_pyannote-c1-summre-exclusive/rttm_habituelle/summre__081c_EBPH.rttm",
+    "experiments/EXP-0016_pyannote-c1-summre-exclusive/rttm_habituelle/summre__084c_EBPH.rttm",
+    "experiments/EXP-0016_pyannote-c1-summre-exclusive/rttm_habituelle/summre__088b_EADH.rttm",
+    "experiments/EXP-0016_pyannote-c1-summre-exclusive/rttm_habituelle/summre__091b_EBDH.rttm",
+    "experiments/EXP-0016_pyannote-c1-summre-exclusive/rttm_habituelle/summre__093c_EBPZ.rttm",
+    "experiments/EXP-0016_pyannote-c1-summre-exclusive/rttm_habituelle/summre__097b_EBDH.rttm",
+    "experiments/EXP-0016_pyannote-c1-summre-exclusive/rttm_habituelle/summre__097c_EBPH.rttm",
+    "experiments/EXP-0016_pyannote-c1-summre-exclusive/rttm_habituelle/summre__100b_EADH.rttm",
+    "experiments/EXP-0016_pyannote-c1-summre-exclusive/rttm_habituelle/summre__101c_EDPH.rttm",
+    "experiments/EXP-0016_pyannote-c1-summre-exclusive/rttm_habituelle/summre__102a_EBRH.rttm",
+    "experiments/EXP-0016_pyannote-c1-summre-exclusive/rttm_habituelle/summre__102c_EBPH.rttm",
+    "experiments/EXP-0016_pyannote-c1-summre-exclusive/rttm_habituelle/summre__104b_EADH.rttm",
+    "experiments/EXP-0016_pyannote-c1-summre-exclusive/run.log",
+    "experiments/EXP-0017_pyannote-c1-ami-sdm-exclusive/config.yaml",
+    "experiments/EXP-0018_pyannote-c1-summre-borne-2-6/config.yaml",
+    "experiments/EXP-0019_pyannote-c1-ami-sdm-borne-2-6/config.yaml"
+  ],
+  "config_sha256": "306f61d4b08e5a552125477c98bc3b844b9b533d2777a826e2479d7ccb9ddcff",
+  "device": "cpu",
+  "torch_threads": 6,
+  "versions": {
+    "python": "3.11.15",
+    "torch": "2.14.1",
+    "pyannote.audio": "4.0.7",
+    "librosa": "0.11.0",
+    "speechbrain": "1.1.2"
+  },
+  "mode_n_locuteurs": "estime",
+  "detection_oracle": false,
+  "trace": false,
+  "balayage": null,
+  "configuration_effective": {
+    "detection": [
+      {
+        "nom": "segmentation.modele",
+        "valeur": "pyannote/speaker-diarization-community-1/segmentation@3533c8cf8e369892e6b79ff1bf80f7b0286a54ee (PyanNet)",
+        "origine": "modele"
+      },
+      {
+        "nom": "segmentation.powerset",
+        "valeur": true,
+        "origine": "modele"
+      },
+      {
+        "nom": "segmentation.min_duration_off",
+        "valeur": 0.0,
+        "origine": "defaut"
+      }
+    ],
+    "segmentation": [
+      {
+        "nom": "segmentation.duree_fenetre_s",
+        "valeur": 10.0,
+        "origine": "modele"
+      },
+      {
+        "nom": "segmentation_step",
+        "valeur": 0.1,
+        "origine": "defaut"
+      },
+      {
+        "nom": "segmentation.locuteurs_par_fenetre",
+        "valeur": 3,
+        "origine": "modele"
+      },
+      {
+        "nom": "segmentation.locuteurs_simultanes",
+        "valeur": 2,
+        "origine": "modele"
+      },
+      {
+        "nom": "segmentation_batch_size",
+        "valeur": 32,
+        "origine": "defaut"
+      }
+    ],
+    "empreintes": [
+      {
+        "nom": "embedding.modele",
+        "valeur": "pyannote/speaker-diarization-community-1/embedding@3533c8cf8e369892e6b79ff1bf80f7b0286a54ee (WeSpeakerResNet34)",
+        "origine": "modele"
+      },
+      {
+        "nom": "embedding.dimension",
+        "valeur": 256,
+        "origine": "modele"
+      },
+      {
+        "nom": "embedding_exclude_overlap",
+        "valeur": true,
+        "origine": "defaut"
+      },
+      {
+        "nom": "embedding_batch_size",
+        "valeur": 32,
+        "origine": "defaut"
+      }
+    ],
+    "regroupement": [
+      {
+        "nom": "clustering.methode",
+        "valeur": "VBxClustering",
+        "origine": "defaut"
+      },
+      {
+        "nom": "clustering.metric",
+        "valeur": "cosine",
+        "origine": "defaut"
+      },
+      {
+        "nom": "clustering.threshold",
+        "valeur": 0.6,
+        "origine": "defaut"
+      },
+      {
+        "nom": "clustering.Fa",
+        "valeur": 0.07,
+        "origine": "defaut"
+      },
+      {
+        "nom": "clustering.Fb",
+        "valeur": 0.8,
+        "origine": "defaut"
+      },
+      {
+        "nom": "clustering.constrained_assignment",
+        "valeur": true,
+        "origine": "defaut"
+      },
+      {
+        "nom": "plda.modele",
+        "valeur": "pyannote/speaker-diarization-community-1/plda@3533c8cf8e369892e6b79ff1bf80f7b0286a54ee",
+        "origine": "modele"
+      },
+      {
+        "nom": "plda.lda_dimension",
+        "valeur": 128,
+        "origine": "modele"
+      },
+      {
+        "nom": "n_locuteurs",
+        "valeur": "estimé",
+        "origine": "experience"
+      }
+    ],
+    "sortie": [
+      {
+        "nom": "sortie.exclusive",
+        "valeur": true,
+        "origine": "experience"
+      }
+    ]
+  },
+  "chargement_modeles_s": 4.43,
+  "prechauffage": {
+    "uri": "summre__007a_ECRH",
+    "duree_s": 60.0
+  },
+  "duree_audio_s": 2370.026,
+  "calcul_s": 1996.965,
+  "rtf": 0.8426,
+  "alimentation": {
+    "commande": "pmset -g batt",
+    "intervalle_s": 60.0,
+    "releves": [
+      {
+        "date": "2026-11-01T21:13:40+01:00",
+        "moment": "debut",
+        "source": "secteur",
+        "brut": "Now drawing from 'AC Power'"
+      },
+      {
+        "date": "2026-11-01T21:14:40+01:00",
+        "moment": "periodique",
+        "source": "secteur",
+        "brut": "Now drawing from 'AC Power'"
+      },
+      {
+        "date": "2026-11-01T21:15:40+01:00",
+        "moment": "periodique",
+        "source": "secteur",
+        "brut": "Now drawing from 'AC Power'"
+      },
+      {
+        "date": "2026-11-01T21:16:40+01:00",
+        "moment": "periodique",
+        "source": "secteur",
+        "brut": "Now drawing from 'AC Power'"
+      },
+      {
+        "date": "2026-11-01T21:17:40+01:00",
+        "moment": "periodique",
+        "source": "secteur",
+        "brut": "Now drawing from 'AC Power'"
+      },
+      {
+        "date": "2026-11-01T21:18:40+01:00",
+        "moment": "periodique",
+        "source": "secteur",
+        "brut": "Now drawing from 'AC Power'"
+      },
+      {
+        "date": "2026-11-01T21:19:40+01:00",
+        "moment": "periodique",
+        "source": "secteur",
+        "brut": "Now drawing from 'AC Power'"
+      },
+      {
+        "date": "2026-11-01T21:20:40+01:00",
+        "moment": "periodique",
+        "source": "secteur",
+        "brut": "Now drawing from 'AC Power'"
+      },
+      {
+        "date": "2026-11-01T21:21:40+01:00",
+        "moment": "periodique",
+        "source": "secteur",
+        "brut": "Now drawing from 'AC Power'"
+      },
+      {
+        "date": "2026-11-01T21:22:40+01:00",
+        "moment": "periodique",
+        "source": "secteur",
+        "brut": "Now drawing from 'AC Power'"
+      },
+      {
+        "date": "2026-11-01T21:23:40+01:00",
+        "moment": "periodique",
+        "source": "secteur",
+        "brut": "Now drawing from 'AC Power'"
+      },
+      {
+        "date": "2026-11-01T21:24:40+01:00",
+        "moment": "periodique",
+        "source": "secteur",
+        "brut": "Now drawing from 'AC Power'"
+      },
+      {
+        "date": "2026-11-01T21:25:40+01:00",
+        "moment": "periodique",
+        "source": "secteur",
+        "brut": "Now drawing from 'AC Power'"
+      },
+      {
+        "date": "2026-11-01T21:26:40+01:00",
+        "moment": "periodique",
+        "source": "secteur",
+        "brut": "Now drawing from 'AC Power'"
+      },
+      {
+        "date": "2026-11-01T21:27:40+01:00",
+        "moment": "periodique",
+        "source": "secteur",
+        "brut": "Now drawing from 'AC Power'"
+      },
+      {
+        "date": "2026-11-01T21:28:40+01:00",
+        "moment": "periodique",
+        "source": "secteur",
+        "brut": "Now drawing from 'AC Power'"
+      },
+      {
+        "date": "2026-11-01T21:29:40+01:00",
+        "moment": "periodique",
+        "source": "secteur",
+        "brut": "Now drawing from 'AC Power'"
+      },
+      {
+        "date": "2026-11-01T21:30:40+01:00",
+        "moment": "periodique",
+        "source": "secteur",
+        "brut": "Now drawing from 'AC Power'"
+      },
+      {
+        "date": "2026-11-01T21:31:40+01:00",
+        "moment": "periodique",
+        "source": "secteur",
+        "brut": "Now drawing from 'AC Power'"
+      },
+      {
+        "date": "2026-11-01T21:32:40+01:00",
+        "moment": "periodique",
+        "source": "secteur",
+        "brut": "Now drawing from 'AC Power'"
+      },
+      {
+        "date": "2026-11-01T21:33:40+01:00",
+        "moment": "periodique",
+        "source": "secteur",
+        "brut": "Now drawing from 'AC Power'"
+      },
+      {
+        "date": "2026-11-01T21:34:41+01:00",
+        "moment": "periodique",
+        "source": "secteur",
+        "brut": "Now drawing from 'AC Power'"
+      },
+      {
+        "date": "2026-11-01T21:35:41+01:00",
+        "moment": "periodique",
+        "source": "secteur",
+        "brut": "Now drawing from 'AC Power'"
+      },
+      {
+        "date": "2026-11-01T21:36:41+01:00",
+        "moment": "periodique",
+        "source": "secteur",
+        "brut": "Now drawing from 'AC Power'"
+      },
+      {
+        "date": "2026-11-01T21:37:41+01:00",
+        "moment": "periodique",
+        "source": "secteur",
+        "brut": "Now drawing from 'AC Power'"
+      },
+      {
+        "date": "2026-11-01T21:38:41+01:00",
+        "moment": "periodique",
+        "source": "secteur",
+        "brut": "Now drawing from 'AC Power'"
+      },
+      {
+        "date": "2026-11-01T21:39:41+01:00",
+        "moment": "periodique",
+        "source": "secteur",
+        "brut": "Now drawing from 'AC Power'"
+      },
+      {
+        "date": "2026-11-01T21:40:41+01:00",
+        "moment": "periodique",
+        "source": "secteur",
+        "brut": "Now drawing from 'AC Power'"
+      },
+      {
+        "date": "2026-11-01T21:41:41+01:00",
+        "moment": "periodique",
+        "source": "secteur",
+        "brut": "Now drawing from 'AC Power'"
+      },
+      {
+        "date": "2026-11-01T21:42:41+01:00",
+        "moment": "periodique",
+        "source": "secteur",
+        "brut": "Now drawing from 'AC Power'"
+      },
+      {
+        "date": "2026-11-01T21:43:41+01:00",
+        "moment": "periodique",
+        "source": "secteur",
+        "brut": "Now drawing from 'AC Power'"
+      },
+      {
+        "date": "2026-11-01T21:44:41+01:00",
+        "moment": "periodique",
+        "source": "secteur",
+        "brut": "Now drawing from 'AC Power'"
+      },
+      {
+        "date": "2026-11-01T21:45:41+01:00",
+        "moment": "periodique",
+        "source": "secteur",
+        "brut": "Now drawing from 'AC Power'"
+      },
+      {
+        "date": "2026-11-01T21:46:41+01:00",
+        "moment": "periodique",
+        "source": "secteur",
+        "brut": "Now drawing from 'AC Power'"
+      },
+      {
+        "date": "2026-11-01T21:47:41+01:00",
+        "moment": "periodique",
+        "source": "secteur",
+        "brut": "Now drawing from 'AC Power'"
+      },
+      {
+        "date": "2026-11-01T21:47:52+01:00",
+        "moment": "fin",
+        "source": "secteur",
+        "brut": "Now drawing from 'AC Power'"
+      }
+    ],
+    "conforme": true
+  },
+  "fichiers": [
+    {
+      "uri": "summre__007a_ECRH",
+      "corpus": "summre",
+      "partition": "temps",
+      "duree_audio_s": 1210.595,
+      "calcul_s": 1048.919,
+      "rtf": 0.8664,
+      "n_locuteurs_hypothese": 4,
+      "n_locuteurs_impose": null,
+      "etapes_s": {
+        "segmentation": 69.775,
+        "detection": 0.024,
+        "empreintes": 978.576,
+        "regroupement": 0.319,
+        "sortie": 0.195
+      },
+      "n_locuteurs_vbx": 4,
+      "kmeans": false,
+      "n_locuteurs_kmeans": null
+    },
+    {
+      "uri": "summre__012c_EBPZ",
+      "corpus": "summre",
+      "partition": "temps",
+      "duree_audio_s": 1159.431,
+      "calcul_s": 948.046,
+      "rtf": 0.8177,
+      "n_locuteurs_hypothese": 3,
+      "n_locuteurs_impose": null,
+      "etapes_s": {
+        "segmentation": 56.561,
+        "detection": 0.021,
+        "empreintes": 890.981,
+        "regroupement": 0.268,
+        "sortie": 0.17
+      },
+      "n_locuteurs_vbx": 3,
+      "kmeans": false,
+      "n_locuteurs_kmeans": null
+    }
+  ]
+}
