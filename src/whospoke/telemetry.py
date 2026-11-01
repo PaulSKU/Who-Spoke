@@ -17,8 +17,10 @@ les paquets installés par uv.lock) :
 - FastAPI (sous Gradio) : télémétrie OpenTelemetry native, exportée seulement si un point
   d'arrivée OTLP est configuré ; coupée en plus par `OTEL_SDK_DISABLED`, qui neutralise
   aussi tout autre SDK OpenTelemetry (celui de pyannote.audio compris).
-- Sans télémétrie trouvée : speechbrain, torch, torchaudio, lightning, optuna, librosa.
-  pyannoteai (client du service payant de pyannote) n'est jamais appelé.
+- Sans télémétrie trouvée : speechbrain, torch, torchaudio, lightning, optuna, librosa ;
+  silero-vad 6.2.3 (chantier E5, ajouté à la fusion : poids lus dans le paquet, aucun
+  appel réseau en usage). pyannoteai (client du service payant de pyannote) n'est jamais
+  appelé.
 
 Tout moteur ajouté (D23) complète cette liste avant son intégration, ainsi que
 `docs/methode.md` §7. Les moteurs en environnement séparé (Nemotron 3, DiariZen ;

@@ -19,6 +19,7 @@ Le dépôt ne contient **aucun poids de modèle ni aucun audio**. Les modèles s
 | `BUT-FIT/diarizen-wavlm-large-s80-md-v2` (DiariZen) | Moteur DiariZen, environnement séparé (D23, rang A5 ; enveloppe préparée, chantier E4) | `027b3e221b9d` | **CC BY-NC 4.0** : usage non commercial (recherche, démonstration de la piscine) ; code DiariZen sous MIT (commit `844f5555b0a9`) | Fiche, `MODEL_LICENSE` et API du Hub, 01/11/2026 **[certain]** |
 | `pyannote/wespeaker-voxceleb-resnet34-LM` | Empreintes de DiariZen | `837717ddb9ff` | **CC-BY-4.0** | API du Hub, 01/11/2026 **[certain]** |
 | `nvidia/Nemotron-3-Diarization` | Moteur Nemotron 3, environnement séparé (D23, rang A4 ; enveloppe préparée, chantier E4) | `f667ed73aee5` | **OpenMDW-1.1** (licence ouverte de NVIDIA pour les modèles) ; non restreint | Fiche et API du Hub, 01/11/2026 **[certain]** |
+| Silero VAD (`silero-vad`, poids `silero_vad.jit` inclus dans le paquet) | Détection fine en post-traitement de pyannote (D25, V2 et V3 ; chantier E5) | version 6.2.3, poids `e1122837f415` (SHA-256) | **MIT** ; ni dépôt du Hub ni jeton | `LICENSE` et métadonnées de la roue PyPI, 01/11/2026 **[certain]** |
 
 CC-BY-4.0 impose de citer l'auteur, de donner un lien vers la licence et d'indiquer les modifications, en cas de partage du modèle ou d'une œuvre adaptée. Le projet ne redistribue pas les poids et ne les modifie pas. L'attribution est faite par ce tableau, auquel renvoie le README : auteur, identifiant, révision et licence de chaque modèle.
 
@@ -55,6 +56,8 @@ Versions figées par `uv.lock`, licences lues dans les métadonnées des paquets
 Aucune de ces licences n'empêche la publication du dépôt sous MIT : aucune n'est copyleft.
 
 Environnements séparés des moteurs externes (`envs/`, hors du dépôt ; versions dans `scripts/envs/*.txt`) : transformers 5.22.1 (Apache-2.0) et torch 2.15.0 pour Nemotron 3 ; torch 2.1.1, fork de pyannote.audio 3.1.1 (MIT, fourni par DiariZen) et lightning 2.6.6 (Apache-2.0) pour DiariZen. Explorés sans être retenus : NeMo 3.0.0 (Apache-2.0) et NeMo-Speech.cpp 0.3.0 (Apache-2.0).
+
+À ajouter à `uv.lock` par la piste A à la fusion d'`outils` (chantier E5) : silero-vad 6.2.3 (MIT), qui ne dépend que de `packaging` et de torch.
 
 ## 5. Corpus
 
