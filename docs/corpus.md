@@ -21,6 +21,7 @@ La recherche complète qui fonde cette fiche est dans `docs/recherche/corpus-dia
 | VoxConverse | Variété (nombre de locuteurs, conditions) | Candidat | CC BY 4.0 (recherche) | ~2 à 6 Go selon le sous-ensemble |
 | NOTSOFAR-1 (monocanal) | Test en champ lointain non contaminé (anglais) | Candidat, question au tuteur | CC BY 4.0 | inconnu |
 | OpenSLR 28 + bruits MUSAN | Augmentation (si ajustement fin) | Candidat | Apache 2.0 ; CC BY 4.0 | ~1,9 Go |
+| DEMAND (4 environnements, canal 1) | Bruits de D24 (SUMM-RE test dégradé) | Retenu (01/11) | CC BY-SA 3.0 | ~0,04 Go conservés (0,4 Go téléchargés) |
 
 ---
 
@@ -122,6 +123,20 @@ Réunions réelles en anglais d'environ 6 minutes, avec 4 à 8 participants, enr
 | OpenSLR 28 (RIRS_NOISES) | Apache 2.0 **[probable]** | 1,3 Go | Réponses impulsionnelles de salles réelles et simulées |
 | MUSAN, sous-dossier `noise` | CC BY 4.0 **[certain]** | ~0,6 Go (11 Go pour MUSAN complet) | Bruits d'ambiance |
 | Simulation de codec (Opus, bande téléphonique) | — | — | Par ffmpeg, pré-calculée |
+
+### 7.1 Ressources retenues pour D24 (01/11/2026)
+
+Vérifications du 01/11/2026, avant tout téléchargement (D24 §1).
+
+| Ressource | Source | Licence | Taille | Décision |
+|---|---|---|---|---|
+| pyroomacoustics 0.10.1 | PyPI (EPFL-LCAV) | MIT (texte de licence de la distribution) **[certain]** | roue macOS cp311 de 1,1 Mo ; dépendances Cython, numpy, scipy | Retenu : réponses impulsionnelles simulées (méthode des images) |
+| MUSAN, sous-ensemble `noise` | OpenSLR 17 | CC BY 4.0 **[certain]** | une seule archive `musan.tar.gz` de 11,09 Go (11 086 114 085 octets), sans sous-ensemble téléchargeable à part **[certain]** | Écarté : téléchargement non raisonnable pour moins de 1 Go utile, avec 29 Go libres sur la machine |
+| DEMAND, version 16 kHz | Zenodo, enregistrement 1227121 (Thiemann, Ito, Vincent, 2013) | CC BY-SA 3.0 Unported d'après `DEMAND.pdf` et la description ; les métadonnées Zenodo indiquent CC BY 4.0 **[certain : les deux mentions coexistent]** ; la plus restrictive est retenue | 17 archives de 78 à 130 Mo (1,77 Go en tout) ; 4 archives téléchargées | Retenu : bruits de D24 |
+
+**DEMAND.** Bruits réels enregistrés à Rennes en 2012 et 2013, par une antenne de 16 microphones, 300 s par environnement, à 48 kHz et 16 kHz. Environnements retenus pour D24 : OOFFICE (petit bureau, trois personnes sur ordinateur), PCAFETER (cafétéria d'entreprise animée), DLIVING (salon), DWASHING (buanderie, lave-linge en marche, bruit stationnaire proche d'une ventilation). OMEETING est exclu, parce qu'il enregistre une discussion autour de l'antenne. Seul le canal 1 de chaque environnement est conservé dans `data/raw/demand/` (non versionné) ; MD5 contrôlé contre Zenodo et SHA-256 de chaque archive consigné dans `data/manifests/demand.csv`. Limites : PCAFETER et OOFFICE peuvent contenir des voix lointaines, à vérifier à l'écoute de contrôle ; 300 s de bruit par environnement, bouclées avec un fondu enchaîné de 1 s pour couvrir une réunion. Aucun modèle pré-entraîné du projet ne déclare DEMAND parmi ses données d'entraînement **[probable]** ; l'augmentation d'ECAPA (SpeechBrain) utilise d'autres bruits (§9).
+
+**Pistes individuelles de SUMM-RE test.** Elles ont été supprimées après la préparation du 28/10 (§2). Pour la réverbération réaliste de D24, elles sont retéléchargées par `scripts/data/make_summre_degrade.py --telecharger-pistes` : 28 Parquet de test, 12,72 Go, même révision et mêmes SHA-256 que le 28/10 ; pistes à 16 kHz conservées dans `data/raw/summre/pistes/test/` (non versionné).
 
 ## 8. Corpus écartés
 
