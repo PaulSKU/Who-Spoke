@@ -31,3 +31,5 @@ EXP-0015,2026-11-01T17:46:57+01:00,baseline-wespeaker-summre,EXP-0009,representa
 EXP-0015,2026-11-01T17:46:57+01:00,baseline-wespeaker-summre,EXP-0009,representation,summre,test,baseline,estime,35.86,21.87,3.08,10.92,26.74,44.29,0.41,0.0217,0.0194,5bcb295
 EXP-0016,2026-11-01T21:13:31+01:00,pyannote-c1-summre-exclusive,EXP-0007,sortie,summre,dev,pyannote-community-1,estime,29.18,13.15,10.68,5.36,12.97,31.94,0.08,0.0656,0.8426,12a67a6
 EXP-0016,2026-11-01T21:13:31+01:00,pyannote-c1-summre-exclusive,EXP-0007,sortie,summre,test,pyannote-community-1,estime,30.4,15.55,8.3,6.55,17.78,32.31,0.19,0.0594,0.8426,12a67a6
+EXP-0017,2026-11-01T22:48:36+01:00,pyannote-c1-ami-sdm-exclusive,EXP-0001,sortie,ami,dev,pyannote-community-1,estime,23.09,16.08,3.12,3.89,14.45,26.52,0.11,0.0547,0.8343,4dc5e63
+EXP-0017,2026-11-01T22:48:36+01:00,pyannote-c1-ami-sdm-exclusive,EXP-0001,sortie,ami,test,pyannote-community-1,estime,24.48,18.48,2.52,3.48,16.76,30.28,0.38,0.0509,0.8343,4dc5e63

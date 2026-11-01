@@ -1,0 +1,1213 @@
+{
+  "exp_id": "EXP-0017",
+  "mode": "complet",
+  "sous_ensemble": null,
+  "date_fin": "2026-11-01T22:48:36+01:00",
+  "git_commit": "4dc5e636e1a90a13ceefeac38140b7c2909f2bb3",
+  "arbre_propre": true,
+  "fichiers_non_commites": [
+    "experiments/EXP-0017_pyannote-c1-ami-sdm-exclusive/config.yaml",
+    "experiments/EXP-0017_pyannote-c1-ami-sdm-exclusive/run.log",
+    "experiments/EXP-0018_pyannote-c1-summre-borne-2-6/config.yaml",
+    "experiments/EXP-0019_pyannote-c1-ami-sdm-borne-2-6/config.yaml"
+  ],
+  "config_sha256": "5911fd0652ffd2ff0845e9c700cc1c988c7507c2906e3a7eb570f84cc7e98cc3",
+  "device": "mps",
+  "torch_threads": 6,
+  "versions": {
+    "python": "3.11.15",
+    "torch": "2.14.1",
+    "pyannote.audio": "4.0.7",
+    "librosa": "0.11.0",
+    "speechbrain": "1.1.2"
+  },
+  "mode_n_locuteurs": "estime",
+  "detection_oracle": false,
+  "trace": false,
+  "balayage": null,
+  "configuration_effective": {
+    "detection": [
+      {
+        "nom": "segmentation.modele",
+        "valeur": "pyannote/speaker-diarization-community-1/segmentation@3533c8cf8e369892e6b79ff1bf80f7b0286a54ee (PyanNet)",
+        "origine": "modele"
+      },
+      {
+        "nom": "segmentation.powerset",
+        "valeur": true,
+        "origine": "modele"
+      },
+      {
+        "nom": "segmentation.min_duration_off",
+        "valeur": 0.0,
+        "origine": "defaut"
+      }
+    ],
+    "segmentation": [
+      {
+        "nom": "segmentation.duree_fenetre_s",
+        "valeur": 10.0,
+        "origine": "modele"
+      },
+      {
+        "nom": "segmentation_step",
+        "valeur": 0.1,
+        "origine": "defaut"
+      },
+      {
+        "nom": "segmentation.locuteurs_par_fenetre",
+        "valeur": 3,
+        "origine": "modele"
+      },
+      {
+        "nom": "segmentation.locuteurs_simultanes",
+        "valeur": 2,
+        "origine": "modele"
+      },
+      {
+        "nom": "segmentation_batch_size",
+        "valeur": 32,
+        "origine": "defaut"
+      }
+    ],
+    "empreintes": [
+      {
+        "nom": "embedding.modele",
+        "valeur": "pyannote/speaker-diarization-community-1/embedding@3533c8cf8e369892e6b79ff1bf80f7b0286a54ee (WeSpeakerResNet34)",
+        "origine": "modele"
+      },
+      {
+        "nom": "embedding.dimension",
+        "valeur": 256,
+        "origine": "modele"
+      },
+      {
+        "nom": "embedding_exclude_overlap",
+        "valeur": true,
+        "origine": "defaut"
+      },
+      {
+        "nom": "embedding_batch_size",
+        "valeur": 32,
+        "origine": "defaut"
+      }
+    ],
+    "regroupement": [
+      {
+        "nom": "clustering.methode",
+        "valeur": "VBxClustering",
+        "origine": "defaut"
+      },
+      {
+        "nom": "clustering.metric",
+        "valeur": "cosine",
+        "origine": "defaut"
+      },
+      {
+        "nom": "clustering.threshold",
+        "valeur": 0.6,
+        "origine": "defaut"
+      },
+      {
+        "nom": "clustering.Fa",
+        "valeur": 0.07,
+        "origine": "defaut"
+      },
+      {
+        "nom": "clustering.Fb",
+        "valeur": 0.8,
+        "origine": "defaut"
+      },
+      {
+        "nom": "clustering.constrained_assignment",
+        "valeur": true,
+        "origine": "defaut"
+      },
+      {
+        "nom": "plda.modele",
+        "valeur": "pyannote/speaker-diarization-community-1/plda@3533c8cf8e369892e6b79ff1bf80f7b0286a54ee",
+        "origine": "modele"
+      },
+      {
+        "nom": "plda.lda_dimension",
+        "valeur": 128,
+        "origine": "modele"
+      },
+      {
+        "nom": "n_locuteurs",
+        "valeur": "estimé",
+        "origine": "experience"
+      }
+    ],
+    "sortie": [
+      {
+        "nom": "sortie.exclusive",
+        "valeur": true,
+        "origine": "experience"
+      }
+    ]
+  },
+  "chargement_modeles_s": 4.749,
+  "prechauffage": {
+    "uri": "ami__IS1008a",
+    "duree_s": 60.0
+  },
+  "duree_audio_s": 67427.088,
+  "calcul_s": 3564.895,
+  "rtf": 0.0529,
+  "alimentation": {
+    "commande": "pmset -g batt",
+    "intervalle_s": 60.0,
+    "releves": [
+      {
+        "date": "2026-11-01T21:49:02+01:00",
+        "moment": "debut",
+        "source": "secteur",
+        "brut": "Now drawing from 'AC Power'"
+      },
+      {
+        "date": "2026-11-01T21:50:02+01:00",
+        "moment": "periodique",
+        "source": "secteur",
+        "brut": "Now drawing from 'AC Power'"
+      },
+      {
+        "date": "2026-11-01T21:51:02+01:00",
+        "moment": "periodique",
+        "source": "secteur",
+        "brut": "Now drawing from 'AC Power'"
+      },
+      {
+        "date": "2026-11-01T21:52:02+01:00",
+        "moment": "periodique",
+        "source": "secteur",
+        "brut": "Now drawing from 'AC Power'"
+      },
+      {
+        "date": "2026-11-01T21:53:02+01:00",
+        "moment": "periodique",
+        "source": "secteur",
+        "brut": "Now drawing from 'AC Power'"
+      },
+      {
+        "date": "2026-11-01T21:54:03+01:00",
+        "moment": "periodique",
+        "source": "secteur",
+        "brut": "Now drawing from 'AC Power'"
+      },
+      {
+        "date": "2026-11-01T21:55:03+01:00",
+        "moment": "periodique",
+        "source": "secteur",
+        "brut": "Now drawing from 'AC Power'"
+      },
+      {
+        "date": "2026-11-01T21:56:03+01:00",
+        "moment": "periodique",
+        "source": "secteur",
+        "brut": "Now drawing from 'AC Power'"
+      },
+      {
+        "date": "2026-11-01T21:57:03+01:00",
+        "moment": "periodique",
+        "source": "secteur",
+        "brut": "Now drawing from 'AC Power'"
+      },
+      {
+        "date": "2026-11-01T21:58:03+01:00",
+        "moment": "periodique",
+        "source": "secteur",
+        "brut": "Now drawing from 'AC Power'"
+      },
+      {
+        "date": "2026-11-01T21:59:03+01:00",
+        "moment": "periodique",
+        "source": "secteur",
+        "brut": "Now drawing from 'AC Power'"
+      },
+      {
+        "date": "2026-11-01T22:00:03+01:00",
+        "moment": "periodique",
+        "source": "secteur",
+        "brut": "Now drawing from 'AC Power'"
+      },
+      {
+        "date": "2026-11-01T22:01:03+01:00",
+        "moment": "periodique",
+        "source": "secteur",
+        "brut": "Now drawing from 'AC Power'"
+      },
+      {
+        "date": "2026-11-01T22:02:03+01:00",
+        "moment": "periodique",
+        "source": "secteur",
+        "brut": "Now drawing from 'AC Power'"
+      },
+      {
+        "date": "2026-11-01T22:03:03+01:00",
+        "moment": "periodique",
+        "source": "secteur",
+        "brut": "Now drawing from 'AC Power'"
+      },
+      {
+        "date": "2026-11-01T22:04:03+01:00",
+        "moment": "periodique",
+        "source": "secteur",
+        "brut": "Now drawing from 'AC Power'"
+      },
+      {
+        "date": "2026-11-01T22:05:03+01:00",
+        "moment": "periodique",
+        "source": "secteur",
+        "brut": "Now drawing from 'AC Power'"
+      },
+      {
+        "date": "2026-11-01T22:06:03+01:00",
+        "moment": "periodique",
+        "source": "secteur",
+        "brut": "Now drawing from 'AC Power'"
+      },
+      {
+        "date": "2026-11-01T22:07:03+01:00",
+        "moment": "periodique",
+        "source": "secteur",
+        "brut": "Now drawing from 'AC Power'"
+      },
+      {
+        "date": "2026-11-01T22:08:03+01:00",
+        "moment": "periodique",
+        "source": "secteur",
+        "brut": "Now drawing from 'AC Power'"
+      },
+      {
+        "date": "2026-11-01T22:09:03+01:00",
+        "moment": "periodique",
+        "source": "secteur",
+        "brut": "Now drawing from 'AC Power'"
+      },
+      {
+        "date": "2026-11-01T22:10:03+01:00",
+        "moment": "periodique",
+        "source": "secteur",
+        "brut": "Now drawing from 'AC Power'"
+      },
+      {
+        "date": "2026-11-01T22:11:03+01:00",
+        "moment": "periodique",
+        "source": "secteur",
+        "brut": "Now drawing from 'AC Power'"
+      },
+      {
+        "date": "2026-11-01T22:12:03+01:00",
+        "moment": "periodique",
+        "source": "secteur",
+        "brut": "Now drawing from 'AC Power'"
+      },
+      {
+        "date": "2026-11-01T22:13:03+01:00",
+        "moment": "periodique",
+        "source": "secteur",
+        "brut": "Now drawing from 'AC Power'"
+      },
+      {
+        "date": "2026-11-01T22:14:04+01:00",
+        "moment": "periodique",
+        "source": "secteur",
+        "brut": "Now drawing from 'AC Power'"
+      },
+      {
+        "date": "2026-11-01T22:15:04+01:00",
+        "moment": "periodique",
+        "source": "secteur",
+        "brut": "Now drawing from 'AC Power'"
+      },
+      {
+        "date": "2026-11-01T22:16:04+01:00",
+        "moment": "periodique",
+        "source": "secteur",
+        "brut": "Now drawing from 'AC Power'"
+      },
+      {
+        "date": "2026-11-01T22:17:04+01:00",
+        "moment": "periodique",
+        "source": "secteur",
+        "brut": "Now drawing from 'AC Power'"
+      },
+      {
+        "date": "2026-11-01T22:18:04+01:00",
+        "moment": "periodique",
+        "source": "secteur",
+        "brut": "Now drawing from 'AC Power'"
+      },
+      {
+        "date": "2026-11-01T22:19:04+01:00",
+        "moment": "periodique",
+        "source": "secteur",
+        "brut": "Now drawing from 'AC Power'"
+      },
+      {
+        "date": "2026-11-01T22:20:04+01:00",
+        "moment": "periodique",
+        "source": "secteur",
+        "brut": "Now drawing from 'AC Power'"
+      },
+      {
+        "date": "2026-11-01T22:21:04+01:00",
+        "moment": "periodique",
+        "source": "secteur",
+        "brut": "Now drawing from 'AC Power'"
+      },
+      {
+        "date": "2026-11-01T22:22:04+01:00",
+        "moment": "periodique",
+        "source": "secteur",
+        "brut": "Now drawing from 'AC Power'"
+      },
+      {
+        "date": "2026-11-01T22:23:04+01:00",
+        "moment": "periodique",
+        "source": "secteur",
+        "brut": "Now drawing from 'AC Power'"
+      },
+      {
+        "date": "2026-11-01T22:24:04+01:00",
+        "moment": "periodique",
+        "source": "secteur",
+        "brut": "Now drawing from 'AC Power'"
+      },
+      {
+        "date": "2026-11-01T22:25:04+01:00",
+        "moment": "periodique",
+        "source": "secteur",
+        "brut": "Now drawing from 'AC Power'"
+      },
+      {
+        "date": "2026-11-01T22:26:04+01:00",
+        "moment": "periodique",
+        "source": "secteur",
+        "brut": "Now drawing from 'AC Power'"
+      },
+      {
+        "date": "2026-11-01T22:27:04+01:00",
+        "moment": "periodique",
+        "source": "secteur",
+        "brut": "Now drawing from 'AC Power'"
+      },
+      {
+        "date": "2026-11-01T22:28:04+01:00",
+        "moment": "periodique",
+        "source": "secteur",
+        "brut": "Now drawing from 'AC Power'"
+      },
+      {
+        "date": "2026-11-01T22:29:04+01:00",
+        "moment": "periodique",
+        "source": "secteur",
+        "brut": "Now drawing from 'AC Power'"
+      },
+      {
+        "date": "2026-11-01T22:30:04+01:00",
+        "moment": "periodique",
+        "source": "secteur",
+        "brut": "Now drawing from 'AC Power'"
+      },
+      {
+        "date": "2026-11-01T22:31:04+01:00",
+        "moment": "periodique",
+        "source": "secteur",
+        "brut": "Now drawing from 'AC Power'"
+      },
+      {
+        "date": "2026-11-01T22:32:04+01:00",
+        "moment": "periodique",
+        "source": "secteur",
+        "brut": "Now drawing from 'AC Power'"
+      },
+      {
+        "date": "2026-11-01T22:33:04+01:00",
+        "moment": "periodique",
+        "source": "secteur",
+        "brut": "Now drawing from 'AC Power'"
+      },
+      {
+        "date": "2026-11-01T22:34:04+01:00",
+        "moment": "periodique",
+        "source": "secteur",
+        "brut": "Now drawing from 'AC Power'"
+      },
+      {
+        "date": "2026-11-01T22:35:04+01:00",
+        "moment": "periodique",
+        "source": "secteur",
+        "brut": "Now drawing from 'AC Power'"
+      },
+      {
+        "date": "2026-11-01T22:36:05+01:00",
+        "moment": "periodique",
+        "source": "secteur",
+        "brut": "Now drawing from 'AC Power'"
+      },
+      {
+        "date": "2026-11-01T22:37:05+01:00",
+        "moment": "periodique",
+        "source": "secteur",
+        "brut": "Now drawing from 'AC Power'"
+      },
+      {
+        "date": "2026-11-01T22:38:05+01:00",
+        "moment": "periodique",
+        "source": "secteur",
+        "brut": "Now drawing from 'AC Power'"
+      },
+      {
+        "date": "2026-11-01T22:39:05+01:00",
+        "moment": "periodique",
+        "source": "secteur",
+        "brut": "Now drawing from 'AC Power'"
+      },
+      {
+        "date": "2026-11-01T22:40:05+01:00",
+        "moment": "periodique",
+        "source": "secteur",
+        "brut": "Now drawing from 'AC Power'"
+      },
+      {
+        "date": "2026-11-01T22:41:05+01:00",
+        "moment": "periodique",
+        "source": "secteur",
+        "brut": "Now drawing from 'AC Power'"
+      },
+      {
+        "date": "2026-11-01T22:42:05+01:00",
+        "moment": "periodique",
+        "source": "secteur",
+        "brut": "Now drawing from 'AC Power'"
+      },
+      {
+        "date": "2026-11-01T22:43:05+01:00",
+        "moment": "periodique",
+        "source": "secteur",
+        "brut": "Now drawing from 'AC Power'"
+      },
+      {
+        "date": "2026-11-01T22:44:05+01:00",
+        "moment": "periodique",
+        "source": "secteur",
+        "brut": "Now drawing from 'AC Power'"
+      },
+      {
+        "date": "2026-11-01T22:45:05+01:00",
+        "moment": "periodique",
+        "source": "secteur",
+        "brut": "Now drawing from 'AC Power'"
+      },
+      {
+        "date": "2026-11-01T22:46:05+01:00",
+        "moment": "periodique",
+        "source": "secteur",
+        "brut": "Now drawing from 'AC Power'"
+      },
+      {
+        "date": "2026-11-01T22:47:05+01:00",
+        "moment": "periodique",
+        "source": "secteur",
+        "brut": "Now drawing from 'AC Power'"
+      },
+      {
+        "date": "2026-11-01T22:48:05+01:00",
+        "moment": "periodique",
+        "source": "secteur",
+        "brut": "Now drawing from 'AC Power'"
+      },
+      {
+        "date": "2026-11-01T22:48:36+01:00",
+        "moment": "fin",
+        "source": "secteur",
+        "brut": "Now drawing from 'AC Power'"
+      }
+    ],
+    "conforme": true
+  },
+  "fichiers": [
+    {
+      "uri": "ami__IS1008a",
+      "corpus": "ami",
+      "partition": "dev",
+      "duree_audio_s": 943.957,
+      "calcul_s": 50.779,
+      "rtf": 0.0538,
+      "n_locuteurs_hypothese": 4,
+      "n_locuteurs_impose": null,
+      "etapes_s": {
+        "segmentation": 3.867,
+        "detection": 0.017,
+        "empreintes": 46.546,
+        "regroupement": 0.171,
+        "sortie": 0.156
+      },
+      "n_locuteurs_vbx": 4,
+      "kmeans": false,
+      "n_locuteurs_kmeans": null
+    },
+    {
+      "uri": "ami__IS1008b",
+      "corpus": "ami",
+      "partition": "dev",
+      "duree_audio_s": 1768.533,
+      "calcul_s": 101.575,
+      "rtf": 0.0574,
+      "n_locuteurs_hypothese": 5,
+      "n_locuteurs_impose": null,
+      "etapes_s": {
+        "segmentation": 7.697,
+        "detection": 0.037,
+        "empreintes": 92.978,
+        "regroupement": 0.431,
+        "sortie": 0.329
+      },
+      "n_locuteurs_vbx": 5,
+      "kmeans": false,
+      "n_locuteurs_kmeans": null
+    },
+    {
+      "uri": "ami__IS1008c",
+      "corpus": "ami",
+      "partition": "dev",
+      "duree_audio_s": 1546.411,
+      "calcul_s": 84.775,
+      "rtf": 0.0548,
+      "n_locuteurs_hypothese": 4,
+      "n_locuteurs_impose": null,
+      "etapes_s": {
+        "segmentation": 6.579,
+        "detection": 0.03,
+        "empreintes": 77.519,
+        "regroupement": 0.316,
+        "sortie": 0.243
+      },
+      "n_locuteurs_vbx": 4,
+      "kmeans": false,
+      "n_locuteurs_kmeans": null
+    },
+    {
+      "uri": "ami__IS1008d",
+      "corpus": "ami",
+      "partition": "dev",
+      "duree_audio_s": 1480.875,
+      "calcul_s": 79.497,
+      "rtf": 0.0537,
+      "n_locuteurs_hypothese": 4,
+      "n_locuteurs_impose": null,
+      "etapes_s": {
+        "segmentation": 5.86,
+        "detection": 0.032,
+        "empreintes": 72.985,
+        "regroupement": 0.312,
+        "sortie": 0.227
+      },
+      "n_locuteurs_vbx": 4,
+      "kmeans": false,
+      "n_locuteurs_kmeans": null
+    },
+    {
+      "uri": "ami__ES2011a",
+      "corpus": "ami",
+      "partition": "dev",
+      "duree_audio_s": 1113.845,
+      "calcul_s": 59.724,
+      "rtf": 0.0536,
+      "n_locuteurs_hypothese": 3,
+      "n_locuteurs_impose": null,
+      "etapes_s": {
+        "segmentation": 4.452,
+        "detection": 0.023,
+        "empreintes": 54.805,
+        "regroupement": 0.234,
+        "sortie": 0.152
+      },
+      "n_locuteurs_vbx": 3,
+      "kmeans": false,
+      "n_locuteurs_kmeans": null
+    },
+    {
+      "uri": "ami__ES2011b",
+      "corpus": "ami",
+      "partition": "dev",
+      "duree_audio_s": 1581.269,
+      "calcul_s": 86.502,
+      "rtf": 0.0547,
+      "n_locuteurs_hypothese": 4,
+      "n_locuteurs_impose": null,
+      "etapes_s": {
+        "segmentation": 6.592,
+        "detection": 0.032,
+        "empreintes": 79.208,
+        "regroupement": 0.356,
+        "sortie": 0.242
+      },
+      "n_locuteurs_vbx": 4,
+      "kmeans": false,
+      "n_locuteurs_kmeans": null
+    },
+    {
+      "uri": "ami__ES2011c",
+      "corpus": "ami",
+      "partition": "dev",
+      "duree_audio_s": 1616.064,
+      "calcul_s": 87.508,
+      "rtf": 0.0541,
+      "n_locuteurs_hypothese": 4,
+      "n_locuteurs_impose": null,
+      "etapes_s": {
+        "segmentation": 6.751,
+        "detection": 0.031,
+        "empreintes": 80.022,
+        "regroupement": 0.388,
+        "sortie": 0.241
+      },
+      "n_locuteurs_vbx": 4,
+      "kmeans": false,
+      "n_locuteurs_kmeans": null
+    },
+    {
+      "uri": "ami__ES2011d",
+      "corpus": "ami",
+      "partition": "dev",
+      "duree_audio_s": 1982.325,
+      "calcul_s": 108.376,
+      "rtf": 0.0547,
+      "n_locuteurs_hypothese": 4,
+      "n_locuteurs_impose": null,
+      "etapes_s": {
+        "segmentation": 7.99,
+        "detection": 0.043,
+        "empreintes": 99.214,
+        "regroupement": 0.715,
+        "sortie": 0.325
+      },
+      "n_locuteurs_vbx": 4,
+      "kmeans": false,
+      "n_locuteurs_kmeans": null
+    },
+    {
+      "uri": "ami__TS3004a",
+      "corpus": "ami",
+      "partition": "dev",
+      "duree_audio_s": 1345.323,
+      "calcul_s": 73.957,
+      "rtf": 0.055,
+      "n_locuteurs_hypothese": 4,
+      "n_locuteurs_impose": null,
+      "etapes_s": {
+        "segmentation": 5.535,
+        "detection": 0.026,
+        "empreintes": 67.731,
+        "regroupement": 0.35,
+        "sortie": 0.203
+      },
+      "n_locuteurs_vbx": 4,
+      "kmeans": false,
+      "n_locuteurs_kmeans": null
+    },
+    {
+      "uri": "ami__TS3004b",
+      "corpus": "ami",
+      "partition": "dev",
+      "duree_audio_s": 2246.059,
+      "calcul_s": 122.29,
+      "rtf": 0.0544,
+      "n_locuteurs_hypothese": 4,
+      "n_locuteurs_impose": null,
+      "etapes_s": {
+        "segmentation": 9.158,
+        "detection": 0.042,
+        "empreintes": 111.92,
+        "regroupement": 0.733,
+        "sortie": 0.345
+      },
+      "n_locuteurs_vbx": 4,
+      "kmeans": false,
+      "n_locuteurs_kmeans": null
+    },
+    {
+      "uri": "ami__TS3004c",
+      "corpus": "ami",
+      "partition": "dev",
+      "duree_audio_s": 2970.0,
+      "calcul_s": 163.056,
+      "rtf": 0.0549,
+      "n_locuteurs_hypothese": 4,
+      "n_locuteurs_impose": null,
+      "etapes_s": {
+        "segmentation": 12.169,
+        "detection": 0.056,
+        "empreintes": 149.297,
+        "regroupement": 0.961,
+        "sortie": 0.455
+      },
+      "n_locuteurs_vbx": 4,
+      "kmeans": false,
+      "n_locuteurs_kmeans": null
+    },
+    {
+      "uri": "ami__TS3004d",
+      "corpus": "ami",
+      "partition": "dev",
+      "duree_audio_s": 2750.8,
+      "calcul_s": 152.074,
+      "rtf": 0.0553,
+      "n_locuteurs_hypothese": 4,
+      "n_locuteurs_impose": null,
+      "etapes_s": {
+        "segmentation": 11.126,
+        "detection": 0.054,
+        "empreintes": 139.042,
+        "regroupement": 1.278,
+        "sortie": 0.43
+      },
+      "n_locuteurs_vbx": 4,
+      "kmeans": false,
+      "n_locuteurs_kmeans": null
+    },
+    {
+      "uri": "ami__IB4001",
+      "corpus": "ami",
+      "partition": "dev",
+      "duree_audio_s": 1780.821,
+      "calcul_s": 96.458,
+      "rtf": 0.0542,
+      "n_locuteurs_hypothese": 4,
+      "n_locuteurs_impose": null,
+      "etapes_s": {
+        "segmentation": 7.921,
+        "detection": 0.04,
+        "empreintes": 87.675,
+        "regroupement": 0.434,
+        "sortie": 0.281
+      },
+      "n_locuteurs_vbx": 4,
+      "kmeans": false,
+      "n_locuteurs_kmeans": null
+    },
+    {
+      "uri": "ami__IB4002",
+      "corpus": "ami",
+      "partition": "dev",
+      "duree_audio_s": 1882.368,
+      "calcul_s": 102.574,
+      "rtf": 0.0545,
+      "n_locuteurs_hypothese": 4,
+      "n_locuteurs_impose": null,
+      "etapes_s": {
+        "segmentation": 7.662,
+        "detection": 0.037,
+        "empreintes": 93.716,
+        "regroupement": 0.766,
+        "sortie": 0.304
+      },
+      "n_locuteurs_vbx": 4,
+      "kmeans": false,
+      "n_locuteurs_kmeans": null
+    },
+    {
+      "uri": "ami__IB4003",
+      "corpus": "ami",
+      "partition": "dev",
+      "duree_audio_s": 2023.424,
+      "calcul_s": 110.462,
+      "rtf": 0.0546,
+      "n_locuteurs_hypothese": 4,
+      "n_locuteurs_impose": null,
+      "etapes_s": {
+        "segmentation": 8.449,
+        "detection": 0.038,
+        "empreintes": 100.993,
+        "regroupement": 0.544,
+        "sortie": 0.319
+      },
+      "n_locuteurs_vbx": 4,
+      "kmeans": false,
+      "n_locuteurs_kmeans": null
+    },
+    {
+      "uri": "ami__IB4004",
+      "corpus": "ami",
+      "partition": "dev",
+      "duree_audio_s": 2393.003,
+      "calcul_s": 131.364,
+      "rtf": 0.0549,
+      "n_locuteurs_hypothese": 4,
+      "n_locuteurs_impose": null,
+      "etapes_s": {
+        "segmentation": 9.887,
+        "detection": 0.045,
+        "empreintes": 120.115,
+        "regroupement": 0.833,
+        "sortie": 0.37
+      },
+      "n_locuteurs_vbx": 4,
+      "kmeans": false,
+      "n_locuteurs_kmeans": null
+    },
+    {
+      "uri": "ami__IB4010",
+      "corpus": "ami",
+      "partition": "dev",
+      "duree_audio_s": 2960.64,
+      "calcul_s": 164.214,
+      "rtf": 0.0555,
+      "n_locuteurs_hypothese": 4,
+      "n_locuteurs_impose": null,
+      "etapes_s": {
+        "segmentation": 12.425,
+        "detection": 0.062,
+        "empreintes": 149.352,
+        "regroupement": 1.497,
+        "sortie": 0.673
+      },
+      "n_locuteurs_vbx": 4,
+      "kmeans": false,
+      "n_locuteurs_kmeans": null
+    },
+    {
+      "uri": "ami__IB4011",
+      "corpus": "ami",
+      "partition": "dev",
+      "duree_audio_s": 2417.067,
+      "calcul_s": 130.235,
+      "rtf": 0.0539,
+      "n_locuteurs_hypothese": 4,
+      "n_locuteurs_impose": null,
+      "etapes_s": {
+        "segmentation": 10.95,
+        "detection": 0.049,
+        "empreintes": 117.323,
+        "regroupement": 1.298,
+        "sortie": 0.395
+      },
+      "n_locuteurs_vbx": 4,
+      "kmeans": false,
+      "n_locuteurs_kmeans": null
+    },
+    {
+      "uri": "ami__IS1009a",
+      "corpus": "ami",
+      "partition": "test",
+      "duree_audio_s": 838.997,
+      "calcul_s": 42.808,
+      "rtf": 0.051,
+      "n_locuteurs_hypothese": 4,
+      "n_locuteurs_impose": null,
+      "etapes_s": {
+        "segmentation": 3.456,
+        "detection": 0.023,
+        "empreintes": 38.981,
+        "regroupement": 0.153,
+        "sortie": 0.133
+      },
+      "n_locuteurs_vbx": 4,
+      "kmeans": false,
+      "n_locuteurs_kmeans": null
+    },
+    {
+      "uri": "ami__IS1009b",
+      "corpus": "ami",
+      "partition": "test",
+      "duree_audio_s": 2052.437,
+      "calcul_s": 105.377,
+      "rtf": 0.0513,
+      "n_locuteurs_hypothese": 5,
+      "n_locuteurs_impose": null,
+      "etapes_s": {
+        "segmentation": 8.171,
+        "detection": 0.038,
+        "empreintes": 96.237,
+        "regroupement": 0.507,
+        "sortie": 0.329
+      },
+      "n_locuteurs_vbx": 5,
+      "kmeans": false,
+      "n_locuteurs_kmeans": null
+    },
+    {
+      "uri": "ami__IS1009c",
+      "corpus": "ami",
+      "partition": "test",
+      "duree_audio_s": 1820.843,
+      "calcul_s": 91.543,
+      "rtf": 0.0503,
+      "n_locuteurs_hypothese": 4,
+      "n_locuteurs_impose": null,
+      "etapes_s": {
+        "segmentation": 6.835,
+        "detection": 0.036,
+        "empreintes": 83.961,
+        "regroupement": 0.361,
+        "sortie": 0.266
+      },
+      "n_locuteurs_vbx": 4,
+      "kmeans": false,
+      "n_locuteurs_kmeans": null
+    },
+    {
+      "uri": "ami__IS1009d",
+      "corpus": "ami",
+      "partition": "test",
+      "duree_audio_s": 1944.661,
+      "calcul_s": 100.713,
+      "rtf": 0.0518,
+      "n_locuteurs_hypothese": 4,
+      "n_locuteurs_impose": null,
+      "etapes_s": {
+        "segmentation": 7.517,
+        "detection": 0.036,
+        "empreintes": 92.281,
+        "regroupement": 0.499,
+        "sortie": 0.297
+      },
+      "n_locuteurs_vbx": 4,
+      "kmeans": false,
+      "n_locuteurs_kmeans": null
+    },
+    {
+      "uri": "ami__ES2004a",
+      "corpus": "ami",
+      "partition": "test",
+      "duree_audio_s": 1049.355,
+      "calcul_s": 53.154,
+      "rtf": 0.0507,
+      "n_locuteurs_hypothese": 4,
+      "n_locuteurs_impose": null,
+      "etapes_s": {
+        "segmentation": 4.382,
+        "detection": 0.029,
+        "empreintes": 48.305,
+        "regroupement": 0.22,
+        "sortie": 0.153
+      },
+      "n_locuteurs_vbx": 4,
+      "kmeans": false,
+      "n_locuteurs_kmeans": null
+    },
+    {
+      "uri": "ami__ES2004b",
+      "corpus": "ami",
+      "partition": "test",
+      "duree_audio_s": 2345.493,
+      "calcul_s": 118.765,
+      "rtf": 0.0506,
+      "n_locuteurs_hypothese": 6,
+      "n_locuteurs_impose": null,
+      "etapes_s": {
+        "segmentation": 8.88,
+        "detection": 0.045,
+        "empreintes": 108.64,
+        "regroupement": 0.711,
+        "sortie": 0.394
+      },
+      "n_locuteurs_vbx": 6,
+      "kmeans": false,
+      "n_locuteurs_kmeans": null
+    },
+    {
+      "uri": "ami__ES2004c",
+      "corpus": "ami",
+      "partition": "test",
+      "duree_audio_s": 2334.368,
+      "calcul_s": 119.722,
+      "rtf": 0.0513,
+      "n_locuteurs_hypothese": 5,
+      "n_locuteurs_impose": null,
+      "etapes_s": {
+        "segmentation": 9.171,
+        "detection": 0.044,
+        "empreintes": 109.414,
+        "regroupement": 0.618,
+        "sortie": 0.376
+      },
+      "n_locuteurs_vbx": 5,
+      "kmeans": false,
+      "n_locuteurs_kmeans": null
+    },
+    {
+      "uri": "ami__ES2004d",
+      "corpus": "ami",
+      "partition": "test",
+      "duree_audio_s": 2222.291,
+      "calcul_s": 113.033,
+      "rtf": 0.0509,
+      "n_locuteurs_hypothese": 4,
+      "n_locuteurs_impose": null,
+      "etapes_s": {
+        "segmentation": 8.673,
+        "detection": 0.042,
+        "empreintes": 103.24,
+        "regroupement": 0.622,
+        "sortie": 0.349
+      },
+      "n_locuteurs_vbx": 4,
+      "kmeans": false,
+      "n_locuteurs_kmeans": null
+    },
+    {
+      "uri": "ami__TS3003a",
+      "corpus": "ami",
+      "partition": "test",
+      "duree_audio_s": 1505.643,
+      "calcul_s": 76.167,
+      "rtf": 0.0506,
+      "n_locuteurs_hypothese": 2,
+      "n_locuteurs_impose": null,
+      "etapes_s": {
+        "segmentation": 5.65,
+        "detection": 0.03,
+        "empreintes": 69.951,
+        "regroupement": 0.279,
+        "sortie": 0.182
+      },
+      "n_locuteurs_vbx": 2,
+      "kmeans": false,
+      "n_locuteurs_kmeans": null
+    },
+    {
+      "uri": "ami__TS3003b",
+      "corpus": "ami",
+      "partition": "test",
+      "duree_audio_s": 2210.304,
+      "calcul_s": 112.044,
+      "rtf": 0.0507,
+      "n_locuteurs_hypothese": 4,
+      "n_locuteurs_impose": null,
+      "etapes_s": {
+        "segmentation": 8.559,
+        "detection": 0.042,
+        "empreintes": 102.471,
+        "regroupement": 0.533,
+        "sortie": 0.331
+      },
+      "n_locuteurs_vbx": 4,
+      "kmeans": false,
+      "n_locuteurs_kmeans": null
+    },
+    {
+      "uri": "ami__TS3003c",
+      "corpus": "ami",
+      "partition": "test",
+      "duree_audio_s": 2570.0,
+      "calcul_s": 130.079,
+      "rtf": 0.0506,
+      "n_locuteurs_hypothese": 4,
+      "n_locuteurs_impose": null,
+      "etapes_s": {
+        "segmentation": 9.639,
+        "detection": 0.05,
+        "empreintes": 119.303,
+        "regroupement": 0.602,
+        "sortie": 0.376
+      },
+      "n_locuteurs_vbx": 4,
+      "kmeans": false,
+      "n_locuteurs_kmeans": null
+    },
+    {
+      "uri": "ami__TS3003d",
+      "corpus": "ami",
+      "partition": "test",
+      "duree_audio_s": 2618.2,
+      "calcul_s": 133.779,
+      "rtf": 0.0511,
+      "n_locuteurs_hypothese": 4,
+      "n_locuteurs_impose": null,
+      "etapes_s": {
+        "segmentation": 10.516,
+        "detection": 0.051,
+        "empreintes": 121.816,
+        "regroupement": 0.867,
+        "sortie": 0.408
+      },
+      "n_locuteurs_vbx": 4,
+      "kmeans": false,
+      "n_locuteurs_kmeans": null
+    },
+    {
+      "uri": "ami__EN2002a",
+      "corpus": "ami",
+      "partition": "test",
+      "duree_audio_s": 2142.709,
+      "calcul_s": 108.413,
+      "rtf": 0.0506,
+      "n_locuteurs_hypothese": 4,
+      "n_locuteurs_impose": null,
+      "etapes_s": {
+        "segmentation": 8.303,
+        "detection": 0.042,
+        "empreintes": 98.776,
+        "regroupement": 0.687,
+        "sortie": 0.493
+      },
+      "n_locuteurs_vbx": 4,
+      "kmeans": false,
+      "n_locuteurs_kmeans": null
+    },
+    {
+      "uri": "ami__EN2002b",
+      "corpus": "ami",
+      "partition": "test",
+      "duree_audio_s": 1786.848,
+      "calcul_s": 90.946,
+      "rtf": 0.0509,
+      "n_locuteurs_hypothese": 4,
+      "n_locuteurs_impose": null,
+      "etapes_s": {
+        "segmentation": 7.165,
+        "detection": 0.037,
+        "empreintes": 82.912,
+        "regroupement": 0.474,
+        "sortie": 0.274
+      },
+      "n_locuteurs_vbx": 4,
+      "kmeans": false,
+      "n_locuteurs_kmeans": null
+    },
+    {
+      "uri": "ami__EN2002c",
+      "corpus": "ami",
+      "partition": "test",
+      "duree_audio_s": 2972.256,
+      "calcul_s": 150.783,
+      "rtf": 0.0507,
+      "n_locuteurs_hypothese": 3,
+      "n_locuteurs_impose": null,
+      "etapes_s": {
+        "segmentation": 11.125,
+        "detection": 0.059,
+        "empreintes": 137.66,
+        "regroupement": 1.354,
+        "sortie": 0.453
+      },
+      "n_locuteurs_vbx": 3,
+      "kmeans": false,
+      "n_locuteurs_kmeans": null
+    },
+    {
+      "uri": "ami__EN2002d",
+      "corpus": "ami",
+      "partition": "test",
+      "duree_audio_s": 2209.899,
+      "calcul_s": 112.149,
+      "rtf": 0.0507,
+      "n_locuteurs_hypothese": 4,
+      "n_locuteurs_impose": null,
+      "etapes_s": {
+        "segmentation": 9.214,
+        "detection": 0.043,
+        "empreintes": 101.362,
+        "regroupement": 0.958,
+        "sortie": 0.368
+      },
+      "n_locuteurs_vbx": 4,
+      "kmeans": false,
+      "n_locuteurs_kmeans": null
+    }
+  ]
+}
