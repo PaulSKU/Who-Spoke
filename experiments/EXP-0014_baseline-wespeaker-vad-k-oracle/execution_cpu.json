@@ -1,0 +1,1096 @@
+{
+  "exp_id": "EXP-0014",
+  "mode": "complet",
+  "sous_ensemble": null,
+  "date_fin": "2026-11-01T16:44:40+01:00",
+  "git_commit": "bd51ca910a57179d63d5a2ba6ce20297df0be6c0",
+  "arbre_propre": true,
+  "fichiers_non_commites": [
+    "docs/decisions/D17-interface.md",
+    "docs/journal.md",
+    "docs/decisions/D23-moteurs-supplementaires.md",
+    "docs/planning.md",
+    "docs/recherche/veille-2026-11-01-modeles-recents.md",
+    "experiments/EXP-0014_baseline-wespeaker-vad-k-oracle/run.log",
+    "experiments/EXP-0015_baseline-wespeaker-summre/config.yaml",
+    "experiments/EXP-0015_baseline-wespeaker-summre/notes.md"
+  ],
+  "config_sha256": "d56b2d2375e5d4a0f489fa20b2dc205e84728b636bece13cf00924a17838d501",
+  "device": "cpu",
+  "torch_threads": 6,
+  "versions": {
+    "python": "3.11.15",
+    "torch": "2.14.1",
+    "pyannote.audio": "4.0.7",
+    "librosa": "0.11.0",
+    "speechbrain": "1.1.2"
+  },
+  "mode_n_locuteurs": "oracle",
+  "detection_oracle": true,
+  "trace": false,
+  "balayage": null,
+  "configuration_effective": {
+    "analyse": [
+      {
+        "nom": "frame_s",
+        "valeur": 0.025,
+        "origine": "defaut"
+      },
+      {
+        "nom": "hop_s",
+        "valeur": 0.01,
+        "origine": "defaut"
+      },
+      {
+        "nom": "n_mfcc",
+        "valeur": 20,
+        "origine": "defaut"
+      },
+      {
+        "nom": "n_mels",
+        "valeur": 40,
+        "origine": "defaut"
+      }
+    ],
+    "normalisation_cepstrale": [
+      {
+        "nom": "cmn",
+        "valeur": true,
+        "origine": "defaut"
+      }
+    ],
+    "detection": [
+      {
+        "nom": "alpha",
+        "valeur": 0.3,
+        "origine": "defaut"
+      },
+      {
+        "nom": "floor_percentile",
+        "valeur": 10.0,
+        "origine": "defaut"
+      },
+      {
+        "nom": "level_percentile",
+        "valeur": 90.0,
+        "origine": "defaut"
+      },
+      {
+        "nom": "median_frames",
+        "valeur": 11,
+        "origine": "defaut"
+      },
+      {
+        "nom": "min_speech_s",
+        "valeur": 0.3,
+        "origine": "defaut"
+      },
+      {
+        "nom": "min_silence_s",
+        "valeur": 0.2,
+        "origine": "defaut"
+      }
+    ],
+    "segmentation": [
+      {
+        "nom": "window_s",
+        "valeur": 1.5,
+        "origine": "defaut"
+      },
+      {
+        "nom": "window_step_s",
+        "valeur": 0.75,
+        "origine": "defaut"
+      },
+      {
+        "nom": "min_window_speech",
+        "valeur": 0.5,
+        "origine": "defaut"
+      },
+      {
+        "nom": "min_region_s",
+        "valeur": 0.5,
+        "origine": "defaut"
+      }
+    ],
+    "representation": [
+      {
+        "nom": "representation",
+        "valeur": "wespeaker",
+        "origine": "experience"
+      },
+      {
+        "nom": "empreintes.modele",
+        "valeur": "pyannote/speaker-diarization-community-1/embedding@3533c8cf8e369892e6b79ff1bf80f7b0286a54ee (WeSpeakerResNet34)",
+        "origine": "modele"
+      },
+      {
+        "nom": "empreintes.dimension",
+        "valeur": 256,
+        "origine": "modele"
+      },
+      {
+        "nom": "empreintes.duree_min_s",
+        "valeur": 0.105,
+        "origine": "modele"
+      },
+      {
+        "nom": "empreintes.peripherique",
+        "valeur": "cpu",
+        "origine": "experience"
+      },
+      {
+        "nom": "normalisation",
+        "valeur": "fichier",
+        "origine": "defaut"
+      }
+    ],
+    "regroupement": [
+      {
+        "nom": "metric",
+        "valeur": "cosine",
+        "origine": "defaut"
+      },
+      {
+        "nom": "linkage",
+        "valeur": "average",
+        "origine": "defaut"
+      },
+      {
+        "nom": "theta",
+        "valeur": 0.95,
+        "origine": "experience"
+      },
+      {
+        "nom": "n_locuteurs",
+        "valeur": "imposé par fichier",
+        "origine": "experience"
+      }
+    ],
+    "attribution": [
+      {
+        "nom": "merge_gap_s",
+        "valeur": 0.2,
+        "origine": "defaut"
+      }
+    ],
+    "sortie": [
+      {
+        "nom": "sortie.chevauchement",
+        "valeur": false,
+        "origine": "code"
+      }
+    ]
+  },
+  "chargement_modeles_s": 3.637,
+  "prechauffage": {
+    "uri": "ami__IS1008a",
+    "duree_s": 60.0
+  },
+  "duree_audio_s": 67427.088,
+  "calcul_s": 1733.103,
+  "rtf": 0.0257,
+  "alimentation": {
+    "commande": "pmset -g batt",
+    "intervalle_s": 60.0,
+    "releves": [
+      {
+        "date": "2026-11-01T16:15:41+01:00",
+        "moment": "debut",
+        "source": "secteur",
+        "brut": "Now drawing from 'AC Power'"
+      },
+      {
+        "date": "2026-11-01T16:16:41+01:00",
+        "moment": "periodique",
+        "source": "secteur",
+        "brut": "Now drawing from 'AC Power'"
+      },
+      {
+        "date": "2026-11-01T16:17:41+01:00",
+        "moment": "periodique",
+        "source": "secteur",
+        "brut": "Now drawing from 'AC Power'"
+      },
+      {
+        "date": "2026-11-01T16:18:41+01:00",
+        "moment": "periodique",
+        "source": "secteur",
+        "brut": "Now drawing from 'AC Power'"
+      },
+      {
+        "date": "2026-11-01T16:19:41+01:00",
+        "moment": "periodique",
+        "source": "secteur",
+        "brut": "Now drawing from 'AC Power'"
+      },
+      {
+        "date": "2026-11-01T16:20:41+01:00",
+        "moment": "periodique",
+        "source": "secteur",
+        "brut": "Now drawing from 'AC Power'"
+      },
+      {
+        "date": "2026-11-01T16:21:41+01:00",
+        "moment": "periodique",
+        "source": "secteur",
+        "brut": "Now drawing from 'AC Power'"
+      },
+      {
+        "date": "2026-11-01T16:22:41+01:00",
+        "moment": "periodique",
+        "source": "secteur",
+        "brut": "Now drawing from 'AC Power'"
+      },
+      {
+        "date": "2026-11-01T16:23:41+01:00",
+        "moment": "periodique",
+        "source": "secteur",
+        "brut": "Now drawing from 'AC Power'"
+      },
+      {
+        "date": "2026-11-01T16:24:41+01:00",
+        "moment": "periodique",
+        "source": "secteur",
+        "brut": "Now drawing from 'AC Power'"
+      },
+      {
+        "date": "2026-11-01T16:25:41+01:00",
+        "moment": "periodique",
+        "source": "secteur",
+        "brut": "Now drawing from 'AC Power'"
+      },
+      {
+        "date": "2026-11-01T16:26:41+01:00",
+        "moment": "periodique",
+        "source": "secteur",
+        "brut": "Now drawing from 'AC Power'"
+      },
+      {
+        "date": "2026-11-01T16:27:41+01:00",
+        "moment": "periodique",
+        "source": "secteur",
+        "brut": "Now drawing from 'AC Power'"
+      },
+      {
+        "date": "2026-11-01T16:28:41+01:00",
+        "moment": "periodique",
+        "source": "secteur",
+        "brut": "Now drawing from 'AC Power'"
+      },
+      {
+        "date": "2026-11-01T16:29:41+01:00",
+        "moment": "periodique",
+        "source": "secteur",
+        "brut": "Now drawing from 'AC Power'"
+      },
+      {
+        "date": "2026-11-01T16:30:41+01:00",
+        "moment": "periodique",
+        "source": "secteur",
+        "brut": "Now drawing from 'AC Power'"
+      },
+      {
+        "date": "2026-11-01T16:31:42+01:00",
+        "moment": "periodique",
+        "source": "secteur",
+        "brut": "Now drawing from 'AC Power'"
+      },
+      {
+        "date": "2026-11-01T16:32:42+01:00",
+        "moment": "periodique",
+        "source": "secteur",
+        "brut": "Now drawing from 'AC Power'"
+      },
+      {
+        "date": "2026-11-01T16:33:42+01:00",
+        "moment": "periodique",
+        "source": "secteur",
+        "brut": "Now drawing from 'AC Power'"
+      },
+      {
+        "date": "2026-11-01T16:34:42+01:00",
+        "moment": "periodique",
+        "source": "secteur",
+        "brut": "Now drawing from 'AC Power'"
+      },
+      {
+        "date": "2026-11-01T16:35:42+01:00",
+        "moment": "periodique",
+        "source": "secteur",
+        "brut": "Now drawing from 'AC Power'"
+      },
+      {
+        "date": "2026-11-01T16:36:42+01:00",
+        "moment": "periodique",
+        "source": "secteur",
+        "brut": "Now drawing from 'AC Power'"
+      },
+      {
+        "date": "2026-11-01T16:37:42+01:00",
+        "moment": "periodique",
+        "source": "secteur",
+        "brut": "Now drawing from 'AC Power'"
+      },
+      {
+        "date": "2026-11-01T16:38:42+01:00",
+        "moment": "periodique",
+        "source": "secteur",
+        "brut": "Now drawing from 'AC Power'"
+      },
+      {
+        "date": "2026-11-01T16:39:42+01:00",
+        "moment": "periodique",
+        "source": "secteur",
+        "brut": "Now drawing from 'AC Power'"
+      },
+      {
+        "date": "2026-11-01T16:40:42+01:00",
+        "moment": "periodique",
+        "source": "secteur",
+        "brut": "Now drawing from 'AC Power'"
+      },
+      {
+        "date": "2026-11-01T16:41:42+01:00",
+        "moment": "periodique",
+        "source": "secteur",
+        "brut": "Now drawing from 'AC Power'"
+      },
+      {
+        "date": "2026-11-01T16:42:42+01:00",
+        "moment": "periodique",
+        "source": "secteur",
+        "brut": "Now drawing from 'AC Power'"
+      },
+      {
+        "date": "2026-11-01T16:43:42+01:00",
+        "moment": "periodique",
+        "source": "secteur",
+        "brut": "Now drawing from 'AC Power'"
+      },
+      {
+        "date": "2026-11-01T16:44:40+01:00",
+        "moment": "fin",
+        "source": "secteur",
+        "brut": "Now drawing from 'AC Power'"
+      }
+    ],
+    "conforme": true
+  },
+  "fichiers": [
+    {
+      "uri": "ami__IS1008a",
+      "corpus": "ami",
+      "partition": "dev",
+      "duree_audio_s": 943.957,
+      "calcul_s": 27.495,
+      "rtf": 0.0291,
+      "n_locuteurs_hypothese": 4,
+      "n_locuteurs_impose": 4,
+      "etapes_s": {
+        "analyse": 0.411,
+        "normalisation_cepstrale": 0.001,
+        "detection": 0.008,
+        "segmentation": 0.0,
+        "representation": 26.915,
+        "regroupement": 0.12,
+        "attribution": 0.007
+      },
+      "fenetres": 958,
+      "fenetres_trop_courtes": 0
+    },
+    {
+      "uri": "ami__IS1008b",
+      "corpus": "ami",
+      "partition": "dev",
+      "duree_audio_s": 1768.533,
+      "calcul_s": 43.264,
+      "rtf": 0.0245,
+      "n_locuteurs_hypothese": 4,
+      "n_locuteurs_impose": 4,
+      "etapes_s": {
+        "analyse": 0.781,
+        "normalisation_cepstrale": 0.008,
+        "detection": 0.032,
+        "segmentation": 0.001,
+        "representation": 41.787,
+        "regroupement": 0.532,
+        "attribution": 0.012
+      },
+      "fenetres": 1717,
+      "fenetres_trop_courtes": 0
+    },
+    {
+      "uri": "ami__IS1008c",
+      "corpus": "ami",
+      "partition": "dev",
+      "duree_audio_s": 1546.411,
+      "calcul_s": 43.497,
+      "rtf": 0.0281,
+      "n_locuteurs_hypothese": 4,
+      "n_locuteurs_impose": 4,
+      "etapes_s": {
+        "analyse": 1.945,
+        "normalisation_cepstrale": 0.011,
+        "detection": 0.023,
+        "segmentation": 0.002,
+        "representation": 40.948,
+        "regroupement": 0.346,
+        "attribution": 0.01
+      },
+      "fenetres": 1647,
+      "fenetres_trop_courtes": 0
+    },
+    {
+      "uri": "ami__IS1008d",
+      "corpus": "ami",
+      "partition": "dev",
+      "duree_audio_s": 1480.875,
+      "calcul_s": 44.364,
+      "rtf": 0.03,
+      "n_locuteurs_hypothese": 4,
+      "n_locuteurs_impose": 4,
+      "etapes_s": {
+        "analyse": 0.664,
+        "normalisation_cepstrale": 0.002,
+        "detection": 0.016,
+        "segmentation": 0.001,
+        "representation": 43.296,
+        "regroupement": 0.299,
+        "attribution": 0.009
+      },
+      "fenetres": 1550,
+      "fenetres_trop_courtes": 0
+    },
+    {
+      "uri": "ami__ES2011a",
+      "corpus": "ami",
+      "partition": "dev",
+      "duree_audio_s": 1113.845,
+      "calcul_s": 30.107,
+      "rtf": 0.027,
+      "n_locuteurs_hypothese": 4,
+      "n_locuteurs_impose": 4,
+      "etapes_s": {
+        "analyse": 0.439,
+        "normalisation_cepstrale": 0.002,
+        "detection": 0.008,
+        "segmentation": 0.001,
+        "representation": 29.466,
+        "regroupement": 0.136,
+        "attribution": 0.007
+      },
+      "fenetres": 1040,
+      "fenetres_trop_courtes": 0
+    },
+    {
+      "uri": "ami__ES2011b",
+      "corpus": "ami",
+      "partition": "dev",
+      "duree_audio_s": 1581.269,
+      "calcul_s": 42.419,
+      "rtf": 0.0268,
+      "n_locuteurs_hypothese": 4,
+      "n_locuteurs_impose": 4,
+      "etapes_s": {
+        "analyse": 0.751,
+        "normalisation_cepstrale": 0.003,
+        "detection": 0.016,
+        "segmentation": 0.001,
+        "representation": 41.223,
+        "regroupement": 0.343,
+        "attribution": 0.01
+      },
+      "fenetres": 1651,
+      "fenetres_trop_courtes": 0
+    },
+    {
+      "uri": "ami__ES2011c",
+      "corpus": "ami",
+      "partition": "dev",
+      "duree_audio_s": 1616.064,
+      "calcul_s": 41.79,
+      "rtf": 0.0259,
+      "n_locuteurs_hypothese": 4,
+      "n_locuteurs_impose": 4,
+      "etapes_s": {
+        "analyse": 0.712,
+        "normalisation_cepstrale": 0.003,
+        "detection": 0.016,
+        "segmentation": 0.001,
+        "representation": 40.468,
+        "regroupement": 0.482,
+        "attribution": 0.011
+      },
+      "fenetres": 1721,
+      "fenetres_trop_courtes": 0
+    },
+    {
+      "uri": "ami__ES2011d",
+      "corpus": "ami",
+      "partition": "dev",
+      "duree_audio_s": 1982.325,
+      "calcul_s": 44.187,
+      "rtf": 0.0223,
+      "n_locuteurs_hypothese": 4,
+      "n_locuteurs_impose": 4,
+      "etapes_s": {
+        "analyse": 0.895,
+        "normalisation_cepstrale": 0.003,
+        "detection": 0.037,
+        "segmentation": 0.001,
+        "representation": 42.708,
+        "regroupement": 0.398,
+        "attribution": 0.012
+      },
+      "fenetres": 1798,
+      "fenetres_trop_courtes": 0
+    },
+    {
+      "uri": "ami__TS3004a",
+      "corpus": "ami",
+      "partition": "dev",
+      "duree_audio_s": 1345.323,
+      "calcul_s": 26.426,
+      "rtf": 0.0196,
+      "n_locuteurs_hypothese": 4,
+      "n_locuteurs_impose": 4,
+      "etapes_s": {
+        "analyse": 0.861,
+        "normalisation_cepstrale": 0.003,
+        "detection": 0.02,
+        "segmentation": 0.001,
+        "representation": 25.317,
+        "regroupement": 0.151,
+        "attribution": 0.008
+      },
+      "fenetres": 1097,
+      "fenetres_trop_courtes": 0
+    },
+    {
+      "uri": "ami__TS3004b",
+      "corpus": "ami",
+      "partition": "dev",
+      "duree_audio_s": 2246.059,
+      "calcul_s": 60.157,
+      "rtf": 0.0268,
+      "n_locuteurs_hypothese": 4,
+      "n_locuteurs_impose": 4,
+      "etapes_s": {
+        "analyse": 1.273,
+        "normalisation_cepstrale": 0.008,
+        "detection": 0.096,
+        "segmentation": 0.002,
+        "representation": 57.842,
+        "regroupement": 0.789,
+        "attribution": 0.016
+      },
+      "fenetres": 2395,
+      "fenetres_trop_courtes": 0
+    },
+    {
+      "uri": "ami__TS3004c",
+      "corpus": "ami",
+      "partition": "dev",
+      "duree_audio_s": 2970.0,
+      "calcul_s": 61.851,
+      "rtf": 0.0208,
+      "n_locuteurs_hypothese": 4,
+      "n_locuteurs_impose": 4,
+      "etapes_s": {
+        "analyse": 3.247,
+        "normalisation_cepstrale": 0.011,
+        "detection": 0.091,
+        "segmentation": 0.002,
+        "representation": 57.495,
+        "regroupement": 0.782,
+        "attribution": 0.017
+      },
+      "fenetres": 2439,
+      "fenetres_trop_courtes": 0
+    },
+    {
+      "uri": "ami__TS3004d",
+      "corpus": "ami",
+      "partition": "dev",
+      "duree_audio_s": 2750.8,
+      "calcul_s": 63.098,
+      "rtf": 0.0229,
+      "n_locuteurs_hypothese": 4,
+      "n_locuteurs_impose": 4,
+      "etapes_s": {
+        "analyse": 1.483,
+        "normalisation_cepstrale": 0.005,
+        "detection": 0.102,
+        "segmentation": 0.001,
+        "representation": 60.701,
+        "regroupement": 0.597,
+        "attribution": 0.015
+      },
+      "fenetres": 2187,
+      "fenetres_trop_courtes": 0
+    },
+    {
+      "uri": "ami__IB4001",
+      "corpus": "ami",
+      "partition": "dev",
+      "duree_audio_s": 1780.821,
+      "calcul_s": 47.159,
+      "rtf": 0.0265,
+      "n_locuteurs_hypothese": 4,
+      "n_locuteurs_impose": 4,
+      "etapes_s": {
+        "analyse": 0.793,
+        "normalisation_cepstrale": 0.003,
+        "detection": 0.033,
+        "segmentation": 0.001,
+        "representation": 45.85,
+        "regroupement": 0.357,
+        "attribution": 0.012
+      },
+      "fenetres": 1677,
+      "fenetres_trop_courtes": 0
+    },
+    {
+      "uri": "ami__IB4002",
+      "corpus": "ami",
+      "partition": "dev",
+      "duree_audio_s": 1882.368,
+      "calcul_s": 43.149,
+      "rtf": 0.0229,
+      "n_locuteurs_hypothese": 4,
+      "n_locuteurs_impose": 4,
+      "etapes_s": {
+        "analyse": 0.955,
+        "normalisation_cepstrale": 0.003,
+        "detection": 0.048,
+        "segmentation": 0.001,
+        "representation": 41.631,
+        "regroupement": 0.278,
+        "attribution": 0.011
+      },
+      "fenetres": 1486,
+      "fenetres_trop_courtes": 0
+    },
+    {
+      "uri": "ami__IB4003",
+      "corpus": "ami",
+      "partition": "dev",
+      "duree_audio_s": 2023.424,
+      "calcul_s": 65.201,
+      "rtf": 0.0322,
+      "n_locuteurs_hypothese": 4,
+      "n_locuteurs_impose": 4,
+      "etapes_s": {
+        "analyse": 1.096,
+        "normalisation_cepstrale": 0.004,
+        "detection": 0.017,
+        "segmentation": 0.001,
+        "representation": 63.193,
+        "regroupement": 0.737,
+        "attribution": 0.015
+      },
+      "fenetres": 2437,
+      "fenetres_trop_courtes": 0
+    },
+    {
+      "uri": "ami__IB4004",
+      "corpus": "ami",
+      "partition": "dev",
+      "duree_audio_s": 2393.003,
+      "calcul_s": 73.081,
+      "rtf": 0.0305,
+      "n_locuteurs_hypothese": 4,
+      "n_locuteurs_impose": 4,
+      "etapes_s": {
+        "analyse": 1.16,
+        "normalisation_cepstrale": 0.01,
+        "detection": 0.033,
+        "segmentation": 0.002,
+        "representation": 70.706,
+        "regroupement": 1.008,
+        "attribution": 0.017
+      },
+      "fenetres": 2851,
+      "fenetres_trop_courtes": 0
+    },
+    {
+      "uri": "ami__IB4010",
+      "corpus": "ami",
+      "partition": "dev",
+      "duree_audio_s": 2960.64,
+      "calcul_s": 89.014,
+      "rtf": 0.0301,
+      "n_locuteurs_hypothese": 4,
+      "n_locuteurs_impose": 4,
+      "etapes_s": {
+        "analyse": 1.58,
+        "normalisation_cepstrale": 0.012,
+        "detection": 0.074,
+        "segmentation": 0.002,
+        "representation": 85.672,
+        "regroupement": 1.487,
+        "attribution": 0.021
+      },
+      "fenetres": 3379,
+      "fenetres_trop_courtes": 0
+    },
+    {
+      "uri": "ami__IB4011",
+      "corpus": "ami",
+      "partition": "dev",
+      "duree_audio_s": 2417.067,
+      "calcul_s": 64.134,
+      "rtf": 0.0265,
+      "n_locuteurs_hypothese": 4,
+      "n_locuteurs_impose": 4,
+      "etapes_s": {
+        "analyse": 1.104,
+        "normalisation_cepstrale": 0.004,
+        "detection": 0.047,
+        "segmentation": 0.001,
+        "representation": 61.906,
+        "regroupement": 0.908,
+        "attribution": 0.016
+      },
+      "fenetres": 2726,
+      "fenetres_trop_courtes": 0
+    },
+    {
+      "uri": "ami__IS1009a",
+      "corpus": "ami",
+      "partition": "test",
+      "duree_audio_s": 838.997,
+      "calcul_s": 16.773,
+      "rtf": 0.02,
+      "n_locuteurs_hypothese": 4,
+      "n_locuteurs_impose": 4,
+      "etapes_s": {
+        "analyse": 0.295,
+        "normalisation_cepstrale": 0.001,
+        "detection": 0.005,
+        "segmentation": 0.0,
+        "representation": 16.345,
+        "regroupement": 0.077,
+        "attribution": 0.005
+      },
+      "fenetres": 771,
+      "fenetres_trop_courtes": 0
+    },
+    {
+      "uri": "ami__IS1009b",
+      "corpus": "ami",
+      "partition": "test",
+      "duree_audio_s": 2052.437,
+      "calcul_s": 56.685,
+      "rtf": 0.0276,
+      "n_locuteurs_hypothese": 4,
+      "n_locuteurs_impose": 4,
+      "etapes_s": {
+        "analyse": 0.939,
+        "normalisation_cepstrale": 0.005,
+        "detection": 0.022,
+        "segmentation": 0.001,
+        "representation": 54.917,
+        "regroupement": 0.675,
+        "attribution": 0.012
+      },
+      "fenetres": 2317,
+      "fenetres_trop_courtes": 0
+    },
+    {
+      "uri": "ami__IS1009c",
+      "corpus": "ami",
+      "partition": "test",
+      "duree_audio_s": 1820.843,
+      "calcul_s": 53.013,
+      "rtf": 0.0291,
+      "n_locuteurs_hypothese": 4,
+      "n_locuteurs_impose": 4,
+      "etapes_s": {
+        "analyse": 0.796,
+        "normalisation_cepstrale": 0.003,
+        "detection": 0.022,
+        "segmentation": 0.001,
+        "representation": 51.609,
+        "regroupement": 0.467,
+        "attribution": 0.012
+      },
+      "fenetres": 1933,
+      "fenetres_trop_courtes": 0
+    },
+    {
+      "uri": "ami__IS1009d",
+      "corpus": "ami",
+      "partition": "test",
+      "duree_audio_s": 1944.661,
+      "calcul_s": 56.413,
+      "rtf": 0.029,
+      "n_locuteurs_hypothese": 4,
+      "n_locuteurs_impose": 4,
+      "etapes_s": {
+        "analyse": 1.223,
+        "normalisation_cepstrale": 0.005,
+        "detection": 0.036,
+        "segmentation": 0.001,
+        "representation": 54.463,
+        "regroupement": 0.535,
+        "attribution": 0.013
+      },
+      "fenetres": 1966,
+      "fenetres_trop_courtes": 0
+    },
+    {
+      "uri": "ami__ES2004a",
+      "corpus": "ami",
+      "partition": "test",
+      "duree_audio_s": 1049.355,
+      "calcul_s": 22.903,
+      "rtf": 0.0218,
+      "n_locuteurs_hypothese": 4,
+      "n_locuteurs_impose": 4,
+      "etapes_s": {
+        "analyse": 0.503,
+        "normalisation_cepstrale": 0.002,
+        "detection": 0.009,
+        "segmentation": 0.001,
+        "representation": 22.177,
+        "regroupement": 0.126,
+        "attribution": 0.006
+      },
+      "fenetres": 1008,
+      "fenetres_trop_courtes": 0
+    },
+    {
+      "uri": "ami__ES2004b",
+      "corpus": "ami",
+      "partition": "test",
+      "duree_audio_s": 2345.493,
+      "calcul_s": 57.124,
+      "rtf": 0.0244,
+      "n_locuteurs_hypothese": 4,
+      "n_locuteurs_impose": 4,
+      "etapes_s": {
+        "analyse": 1.192,
+        "normalisation_cepstrale": 0.005,
+        "detection": 0.031,
+        "segmentation": 0.001,
+        "representation": 54.785,
+        "regroupement": 0.948,
+        "attribution": 0.014
+      },
+      "fenetres": 2616,
+      "fenetres_trop_courtes": 0
+    },
+    {
+      "uri": "ami__ES2004c",
+      "corpus": "ami",
+      "partition": "test",
+      "duree_audio_s": 2334.368,
+      "calcul_s": 66.183,
+      "rtf": 0.0284,
+      "n_locuteurs_hypothese": 4,
+      "n_locuteurs_impose": 4,
+      "etapes_s": {
+        "analyse": 1.025,
+        "normalisation_cepstrale": 0.006,
+        "detection": 0.038,
+        "segmentation": 0.001,
+        "representation": 64.123,
+        "regroupement": 0.835,
+        "attribution": 0.015
+      },
+      "fenetres": 2602,
+      "fenetres_trop_courtes": 0
+    },
+    {
+      "uri": "ami__ES2004d",
+      "corpus": "ami",
+      "partition": "test",
+      "duree_audio_s": 2222.291,
+      "calcul_s": 57.761,
+      "rtf": 0.026,
+      "n_locuteurs_hypothese": 4,
+      "n_locuteurs_impose": 4,
+      "etapes_s": {
+        "analyse": 1.083,
+        "normalisation_cepstrale": 0.008,
+        "detection": 0.043,
+        "segmentation": 0.002,
+        "representation": 55.897,
+        "regroupement": 0.588,
+        "attribution": 0.013
+      },
+      "fenetres": 2197,
+      "fenetres_trop_courtes": 0
+    },
+    {
+      "uri": "ami__TS3003a",
+      "corpus": "ami",
+      "partition": "test",
+      "duree_audio_s": 1505.643,
+      "calcul_s": 29.146,
+      "rtf": 0.0194,
+      "n_locuteurs_hypothese": 4,
+      "n_locuteurs_impose": 4,
+      "etapes_s": {
+        "analyse": 0.653,
+        "normalisation_cepstrale": 0.002,
+        "detection": 0.017,
+        "segmentation": 0.001,
+        "representation": 28.204,
+        "regroupement": 0.19,
+        "attribution": 0.008
+      },
+      "fenetres": 1237,
+      "fenetres_trop_courtes": 0
+    },
+    {
+      "uri": "ami__TS3003b",
+      "corpus": "ami",
+      "partition": "test",
+      "duree_audio_s": 2210.304,
+      "calcul_s": 50.758,
+      "rtf": 0.023,
+      "n_locuteurs_hypothese": 4,
+      "n_locuteurs_impose": 4,
+      "etapes_s": {
+        "analyse": 0.981,
+        "normalisation_cepstrale": 0.004,
+        "detection": 0.042,
+        "segmentation": 0.001,
+        "representation": 48.977,
+        "regroupement": 0.602,
+        "attribution": 0.013
+      },
+      "fenetres": 2213,
+      "fenetres_trop_courtes": 0
+    },
+    {
+      "uri": "ami__TS3003c",
+      "corpus": "ami",
+      "partition": "test",
+      "duree_audio_s": 2570.0,
+      "calcul_s": 54.005,
+      "rtf": 0.021,
+      "n_locuteurs_hypothese": 4,
+      "n_locuteurs_impose": 4,
+      "etapes_s": {
+        "analyse": 1.85,
+        "normalisation_cepstrale": 0.012,
+        "detection": 0.06,
+        "segmentation": 0.001,
+        "representation": 51.252,
+        "regroupement": 0.647,
+        "attribution": 0.013
+      },
+      "fenetres": 2300,
+      "fenetres_trop_courtes": 0
+    },
+    {
+      "uri": "ami__TS3003d",
+      "corpus": "ami",
+      "partition": "test",
+      "duree_audio_s": 2618.2,
+      "calcul_s": 56.662,
+      "rtf": 0.0216,
+      "n_locuteurs_hypothese": 4,
+      "n_locuteurs_impose": 4,
+      "etapes_s": {
+        "analyse": 1.323,
+        "normalisation_cepstrale": 0.011,
+        "detection": 0.071,
+        "segmentation": 0.001,
+        "representation": 54.388,
+        "regroupement": 0.702,
+        "attribution": 0.015
+      },
+      "fenetres": 2307,
+      "fenetres_trop_courtes": 0
+    },
+    {
+      "uri": "ami__EN2002a",
+      "corpus": "ami",
+      "partition": "test",
+      "duree_audio_s": 2142.709,
+      "calcul_s": 59.808,
+      "rtf": 0.0279,
+      "n_locuteurs_hypothese": 4,
+      "n_locuteurs_impose": 4,
+      "etapes_s": {
+        "analyse": 0.969,
+        "normalisation_cepstrale": 0.004,
+        "detection": 0.036,
+        "segmentation": 0.001,
+        "representation": 57.839,
+        "regroupement": 0.804,
+        "attribution": 0.014
+      },
+      "fenetres": 2429,
+      "fenetres_trop_courtes": 0
+    },
+    {
+      "uri": "ami__EN2002b",
+      "corpus": "ami",
+      "partition": "test",
+      "duree_audio_s": 1786.848,
+      "calcul_s": 45.144,
+      "rtf": 0.0253,
+      "n_locuteurs_hypothese": 4,
+      "n_locuteurs_impose": 4,
+      "etapes_s": {
+        "analyse": 0.719,
+        "normalisation_cepstrale": 0.004,
+        "detection": 0.02,
+        "segmentation": 0.001,
+        "representation": 43.803,
+        "regroupement": 0.486,
+        "attribution": 0.012
+      },
+      "fenetres": 1905,
+      "fenetres_trop_courtes": 0
+    },
+    {
+      "uri": "ami__EN2002c",
+      "corpus": "ami",
+      "partition": "test",
+      "duree_audio_s": 2972.256,
+      "calcul_s": 78.648,
+      "rtf": 0.0265,
+      "n_locuteurs_hypothese": 3,
+      "n_locuteurs_impose": 3,
+      "etapes_s": {
+        "analyse": 1.396,
+        "normalisation_cepstrale": 0.012,
+        "detection": 0.041,
+        "segmentation": 0.002,
+        "representation": 75.574,
+        "regroupement": 1.416,
+        "attribution": 0.019
+      },
+      "fenetres": 3400,
+      "fenetres_trop_courtes": 0
+    },
+    {
+      "uri": "ami__EN2002d",
+      "corpus": "ami",
+      "partition": "test",
+      "duree_audio_s": 2209.899,
+      "calcul_s": 61.684,
+      "rtf": 0.0279,
+      "n_locuteurs_hypothese": 4,
+      "n_locuteurs_impose": 4,
+      "etapes_s": {
+        "analyse": 0.981,
+        "normalisation_cepstrale": 0.003,
+        "detection": 0.034,
+        "segmentation": 0.001,
+        "representation": 59.71,
+        "regroupement": 0.802,
+        "attribution": 0.016
+      },
+      "fenetres": 2489,
+      "fenetres_trop_courtes": 0
+    }
+  ]
+}
