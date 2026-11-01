@@ -7,9 +7,12 @@ Les titres `##` sont des parties ; le texte qui précède la première partie es
 l'introduction.
 
 Correspondance automatique, sans liste tenue à la main. Variantes d'un terme : le terme
-français, les termes anglais en italique, et les éléments entre parenthèses qui
-contiennent une majuscule (sigles, noms propres : VAD, EEND, Sortformer) ; un qualificatif
-en minuscules, comme « (système) » dans « Hybride (système) », n'en est pas une. Chaque mot
+français, les termes anglais en italique, les éléments entre parenthèses qui contiennent
+une majuscule (sigles, noms propres : VAD, EEND, Sortformer) ; un qualificatif en
+minuscules, comme « (système) » dans « Hybride (système) », n'en est pas une. S'y ajoutent
+les formes de la ligne facultative « Formes courtes : a, b, c. » placée sous le titre de
+l'entrée (D26, amendement du 01/11), soumises aux mêmes règles. Une variante revendiquée
+par deux entrées renvoie à la première et est signalée (`Linker.conflicts`). Chaque mot
 peut prendre la marque du pluriel (s, x). Un terme n'est reconnu que comme mot entier :
 jamais à l'intérieur d'un identifiant ou d'une expression (`der_c0`, `clustering.threshold`,
 `VBxClustering`, `collar=0.5`).
@@ -39,6 +42,15 @@ SKIP_TAGS = {"a", "code", "button", "pre", "script", "style", "textarea", "selec
 VOID_TAGS = {"br", "img", "input", "hr", "meta", "link", "wbr", "source", "col", "area", "base", "embed"}
 _FIELD = re.compile(r"^([A-ZÀ-Ý][^:]{1,40}) : (.*)$")
 _HEADING = re.compile(r"^###\s+(.+?)\s*$")
+_SHORT_FORMS = re.compile(r"^Formes courtes\s*:\s*(.*)$")
+
+
+def parse_short_forms(line: str) -> list[str]:
+    """Formes d'une ligne « Formes courtes : a, b, c. » (point final facultatif)."""
+    match = _SHORT_FORMS.match(line.strip())
+    if not match:
+        return []
+    return [form.strip() for form in match.group(1).strip().rstrip(".").split(",") if form.strip()]
 
 
 def slug(text: str) -> str:
@@ -54,6 +66,7 @@ class Term:
     aliases: list[str]
     part: str
     fields: list[tuple[str, str]] = field(default_factory=list)
+    short_forms: list[str] = field(default_factory=list)   # ligne « Formes courtes : … »
 
     @property
     def anchor(self) -> str:
@@ -61,7 +74,7 @@ class Term:
 
     @property
     def variants(self) -> list[str]:
-        return [self.name, *self.english, *self.aliases]
+        return [self.name, *self.english, *self.aliases, *self.short_forms]
 
     @property
     def definition(self) -> str:
@@ -131,6 +144,9 @@ def read_glossary(path: Path) -> Glossary:
             current = Term(heading.group(1), name, english, aliases, part)
             glossary.terms.append(current)
             continue
+        if current is not None and _SHORT_FORMS.match(line):
+            current.short_forms += parse_short_forms(line)
+            continue
         if current is not None:
             match = _FIELD.match(line)
             if match:
@@ -176,10 +192,18 @@ class Linker:
     def __init__(self, glossary: Glossary) -> None:
         self.glossary = glossary
         entries = []
+        owners: dict[str, Term] = {}
+        self.conflicts: list[str] = []
         for term in glossary.terms:
             for variant in term.variants:
-                if len(variant) >= 2:
-                    entries.append((variant, term))
+                if len(variant) < 2:
+                    continue
+                key = variant.casefold()
+                owner = owners.setdefault(key, term)
+                if owner is not term:
+                    self.conflicts.append(f"« {variant} » : {owner.name} et {term.name}")
+                    continue
+                entries.append((variant, term))
         # Variante la plus longue d'abord : l'alternative regex s'arrête à la première qui convient.
         entries.sort(key=lambda e: len(e[0]), reverse=True)
         self._entries = entries
@@ -314,8 +338,10 @@ def render(glossary: Glossary, linker: Linker | None = None) -> str:
             english = "".join(f' <span class="gl-en">({escape(e)})</span>' for e in term.english)
             aliases = (f' <span class="gl-alias">{escape(", ".join(term.aliases))}</span>' if term.aliases else "")
             fields = "".join(f"<dt>{escape(k)}</dt>{link(f'<dd>{_inline(v)}</dd>', term.anchor)}" for k, v in term.fields)
+            short = (f'<p class="gl-short">Formes courtes : {escape(", ".join(term.short_forms))}</p>'
+                     if term.short_forms else "")
             body.append(f'<article class="gl-term" id="{term.anchor}"><h4>{escape(term.name)}{english}{aliases}</h4>'
-                        f'<dl>{fields}</dl></article>')
+                        f'{short}<dl>{fields}</dl></article>')
     intro = f'<p class="pl-meta">{_inline(glossary.intro)}</p>' if glossary.intro else ""
     return (f'<div class="gl-root">{intro}<nav class="gl-indexes" aria-label="Index du glossaire">{index}</nav>'
             + "".join(body) + "</div>")

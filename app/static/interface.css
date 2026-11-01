@@ -269,6 +269,7 @@ a.gl-index {
 .gl-term { padding: 12px 0; border-top: 1px solid var(--ws-line); scroll-margin-top: 16px; border-radius: 6px; }
 .gl-term h4 { margin: 0 0 6px; font-size: 1rem; letter-spacing: -0.01em; }
 .gl-en { color: var(--ws-slate); font-weight: 400; font-style: italic; }
+.gl-short { margin: -2px 0 8px; color: var(--ws-slate); font-size: 0.82rem; }
 .gl-alias { color: var(--ws-slate); font-weight: 400; font-size: 0.85rem; margin-left: 6px; }
 .gl-term dl { display: grid; grid-template-columns: minmax(120px, 170px) minmax(0, 1fr); gap: 4px 16px; margin: 0; }
 .gl-term dt { color: var(--ws-slate); font-size: 0.85rem; }

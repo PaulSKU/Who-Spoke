@@ -167,3 +167,77 @@ def test_renvois_dans_les_onglets():
     assert "gl-link" in status(["segmentation"], {}, "En cours")
     assert "gl-link" in title("Décomposition de l'erreur par les oracles")
     interface.build_app(fake=True)
+
+
+# --- Formes courtes (D26, amendement du 01/11) -----------------------------------------
+
+SHORT = """# Glossaire
+
+### Confusion de locuteur (*speaker confusion*)
+Formes courtes : confusion.
+Définition : parole attribuée au mauvais locuteur.
+
+### Détection d'activité vocale (VAD, *voice activity detection*)
+Formes courtes : détection de parole, détection d'activité vocale.
+Définition : parole ou non.
+
+### Empreinte vocale (*speaker embedding*)
+Formes courtes : empreinte, embedding
+Définition : un vecteur par voix.
+
+### Effet de bord
+Formes courtes : confusion.
+Définition : entrée fabriquée qui revendique une forme déjà prise.
+"""
+
+
+@pytest.fixture
+def short_glossary(tmp_path):
+    path = tmp_path / "glossaire.md"
+    path.write_text(SHORT)
+    return g.read_glossary(path)
+
+
+def test_ligne_formes_courtes_lue_et_non_affichee_comme_champ(short_glossary):
+    terms = {t.name: t for t in short_glossary.terms}
+    assert terms["Confusion de locuteur"].short_forms == ["confusion"]
+    assert terms["Détection d'activité vocale"].short_forms == ["détection de parole", "détection d'activité vocale"]
+    assert terms["Empreinte vocale"].short_forms == ["empreinte", "embedding"]       # point final facultatif
+    assert all(key != "Formes courtes" for t in short_glossary.terms for key, _ in t.fields)
+    assert terms["Confusion de locuteur"].definition == "parole attribuée au mauvais locuteur."
+    html = g.render(short_glossary)
+    assert '<p class="gl-short">Formes courtes : confusion</p>' in html
+
+
+def test_formes_courtes_renvoient_a_l_entree_mot_entier(short_glossary):
+    linker = g.Linker(short_glossary)
+    assert anchors(linker.link("<th>Confusion</th>")) == ["gl-confusion-de-locuteur"]
+    assert anchors(linker.link("<li>Détection de parole</li>")) == ["gl-detection-d-activite-vocale"]
+    assert anchors(linker.link("<p>deux empreintes, des embeddings</p>")) == ["gl-empreinte-vocale"]
+    for text in ("confusion_c0", "confusion.ratio", "embeddingDim", "nb_confusion"):
+        assert anchors(linker.link(f"<p>{text}</p>")) == [], text
+    # Le terme complet reste prioritaire sur sa forme courte.
+    html = linker.link("<p>Confusion de locuteur</p>")
+    assert re.findall(r">([^<]+)</a>", html) == ["Confusion de locuteur"]
+
+
+def test_forme_revendiquee_par_deux_entrees_signalee(short_glossary):
+    linker = g.Linker(short_glossary)
+    assert linker.conflicts == ["« confusion » : Confusion de locuteur et Effet de bord"]
+    assert anchors(linker.link("<p>confusion</p>")) == ["gl-confusion-de-locuteur"]   # la première l'emporte
+
+
+def test_formes_courtes_du_depot():
+    """Glossaire de la branche (sans formes courtes) et, s'il est présent, celui du dépôt
+    principal : aucune forme revendiquée deux fois, chacune renvoie à sa propre entrée."""
+    paths = [REPO_ROOT / g.GLOSSARY_RELATIVE]
+    main = REPO_ROOT.parent / "Who-Spoke" / g.GLOSSARY_RELATIVE
+    if main.is_file():
+        paths.append(main)
+    for path in paths:
+        glossary = g.read_glossary(path)
+        linker = g.Linker(glossary)
+        assert linker.conflicts == [], path
+        for term in glossary.terms:
+            for form in term.short_forms:
+                assert anchors(linker.link(f"<p>{form}</p>"))[:1] == [term.anchor], (path, form)
