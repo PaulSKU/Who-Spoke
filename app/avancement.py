@@ -11,6 +11,10 @@ seule, sans rien exécuter :
   à leur expérience de référence (`reference` et `variable_modifiee` de results.json) ;
 - décisions : D1 à D15 depuis le tableau de `docs/cadrage.md` et sa phrase « Statut »,
   D16 et suivantes depuis la ligne « Statut : » de chaque fiche et de ses amendements ;
+- « Ce que nous avons appris » (audit R-U7) : constats `cle: true` de `docs/constats.yaml`,
+  avec leur confiance et un lien vers chaque expérience ou analyse source ; bouton qui
+  affiche `docs/synthese.md` dans la page ;
+- graphique des systèmes de référence (`reference_systems`, `app/graphique.py`) ;
 - file d'attente de la piste A (D23, amendement du 01/11) : tableau « File d'attente » de
   `docs/planning.md` (Rang, Contenu, Calcul estimé, Prérequis), complété d'un état calculé
   (fiches de décision citées présentes ou non).
@@ -25,6 +29,9 @@ from html import escape
 from pathlib import Path
 
 import yaml
+
+from app import constats as constats_file
+from app import graphique
 
 VERDICTS = {
     "reference": "référence",
@@ -104,6 +111,8 @@ class Item:
     variable: str | None = None
     pipeline: str | None = None
     mode: str | None = None
+    vad: str | None = None
+    representation: str | None = None
 
     @property
     def notes(self) -> Path:
@@ -167,9 +176,77 @@ def read_items(root: Path) -> list[Item]:
             item.variable = first.get("variable_modifiee")
             item.pipeline = (first.get("systeme") or {}).get("pipeline")
             item.mode = (first.get("systeme") or {}).get("mode_n_locuteurs")
+            item.vad = (first.get("systeme") or {}).get("vad")
+            item.representation = _representation(directory)
             item.date = first.get("date") or _execution_date(directory)
             items.append(item)
     return sorted(items, key=lambda i: (i.date or "9999", i.id))
+
+
+def _representation(directory: Path) -> str | None:
+    """Représentation de la baseline (`pipeline.parametres.representation` de config.yaml)."""
+    try:
+        config = yaml.safe_load((directory / "config.yaml").read_text()) or {}
+    except (OSError, yaml.YAMLError):
+        return None
+    return ((config.get("pipeline") or {}).get("parametres") or {}).get("representation")
+
+
+# Systèmes de référence du graphique (R-U7), dans l'ordre d'affichage : (pipeline,
+# représentation) -> libellé. La baseline sans représentation déclarée est celle des MFCC.
+REFERENCE_SYSTEMS = {
+    ("baseline", "mfcc"): "Baseline MFCC",
+    ("baseline", "ecapa"): "Baseline ECAPA",
+    ("baseline", "wespeaker"): "Baseline WeSpeaker",
+    ("pyannote-community-1", None): "pyannote community-1",
+}
+CORPUS_LABELS = {"summre": "SUMM-RE", "ami": "AMI (SDM)"}
+CORPUS_ORDER = ("summre", "ami")       # SUMM-RE, jeu prioritaire (D3), en premier
+CHART_VERDICTS = ("retenu", "reference")
+
+
+def _system(item: Item) -> tuple[str | None, str | None]:
+    if item.pipeline == "baseline":
+        return "baseline", item.representation or "mfcc"
+    return item.pipeline, item.representation
+
+
+def reference_systems(items: list[Item]) -> list[tuple[str, list[graphique.Bar]]]:
+    """Barres du graphique, par corpus : pour chaque système de `REFERENCE_SYSTEMS`, sa
+    première expérience en condition réaliste (nombre de locuteurs estimé, détection non
+    oracle) ayant un résultat de test non invalidé sur le corpus ; puis, automatiquement,
+    toute autre expérience dont le verdict est « retenu » ou « référence »."""
+    experiments = sorted((i for i in items if i.kind == "experience"), key=lambda i: i.id)
+
+    def usable(item: Item, corpus: str):
+        result = item.result("test", corpus)
+        ok = (result is not None and not result.invalidated and result.der_c0 is not None
+              and all(v is not None for v in result.components.values()))
+        return result if ok else None
+
+    corpora = sorted({r.corpus for i in experiments for r in i.results if r.partition == "test"},
+                     key=lambda c: (CORPUS_ORDER.index(c) if c in CORPUS_ORDER else len(CORPUS_ORDER), c))
+    groups = []
+    for corpus in corpora:
+        bars, chosen = [], set()
+        for system, label in REFERENCE_SYSTEMS.items():
+            item = next((i for i in experiments if _system(i) == system and i.mode == "estime"
+                         and i.vad != "oracle" and usable(i, corpus)), None)
+            if item is None:
+                continue
+            result = usable(item, corpus)
+            chosen.add(item.id)
+            bars.append(graphique.Bar(label, item.id, item.id, dict(result.components), result.der_c0))
+        for item in experiments:
+            result = usable(item, corpus)
+            if item.id in chosen or result is None or item.header.verdict not in CHART_VERDICTS:
+                continue
+            label = REFERENCE_SYSTEMS.get(_system(item), item.pipeline or item.slug)
+            bars.append(graphique.Bar(label, f"{item.id}, {VERDICTS[item.header.verdict]}", item.id,
+                                      dict(result.components), result.der_c0))
+        if bars:
+            groups.append((CORPUS_LABELS.get(corpus, corpus), bars))
+    return groups
 
 
 def _execution_date(directory: Path) -> str:
@@ -400,7 +477,7 @@ def _oracles_html(items: list[Item]) -> str:
     )
 
 
-def _decisions_html(decisions: list[Decision]) -> str:
+def _decisions_table(decisions: list[Decision]) -> str:
     rows = []
     for d in decisions:
         amendments = "".join(f'<span class="sub">{_inline(t)} : {_inline(s)}</span>' for t, s in d.amendments)
@@ -410,6 +487,65 @@ def _decisions_html(decisions: list[Decision]) -> str:
     return ('<div class="ws-table-wrap"><table class="ws-table av-table"><thead><tr><th scope="col">Fiche</th>'
             '<th scope="col">Décision</th><th scope="col">Statut</th></tr></thead>'
             f'<tbody>{"".join(rows)}</tbody></table></div>')
+
+
+def _decisions_html(decisions: list[Decision]) -> str:
+    """D16 et suivantes visibles ; D1 à D15 (cadrage) repliées par défaut (R-U7)."""
+    framing = [d for d in decisions if d.number <= 15]
+    later = [d for d in decisions if d.number > 15]
+    html = _decisions_table(later) if later else ""
+    if framing:
+        open_ones = sum(1 for d in framing if "ouvert" in d.status)
+        summary = (f"Décisions de cadrage D1 à D15 ({len(framing)}, dont {open_ones} avec un point ouvert)"
+                   if open_ones else f"Décisions de cadrage D1 à D15 ({len(framing)})")
+        html += (f'<details class="av-framing"><summary>{escape(summary)}</summary>'
+                 f'{_decisions_table(framing)}</details>')
+    return html
+
+
+# --- « Ce que nous avons appris » et synthèse (R-U7) ----------------------------------
+
+CONFIDENCE_LABELS = {"certain": "certain", "probable": "probable", "incertain": "incertain"}
+SYNTHESIS = Path("docs") / "synthese.md"
+SYNTHESIS_ID = "synthese"
+
+
+def _source_html(source: str, items: dict[str, Item]) -> str:
+    item = items.get(source)
+    if item is not None and item.notes.is_file():
+        return f'<button type="button" class="av-notes av-source" data-id="{escape(source)}">{escape(source)}</button>'
+    return f'<span class="av-source av-source-missing" title="Absente de ce dépôt">{escape(source)}</span>'
+
+
+def _learned_html(root: Path, items: list[Item]) -> str:
+    data = constats_file.read(root)
+    by_id = {item.id: item for item in items}
+    synthesis = ""
+    if (root / SYNTHESIS).is_file():
+        synthesis = (f'<button type="button" class="av-notes av-synthesis" data-id="{SYNTHESIS_ID}">'
+                     'Lire la synthèse (docs/synthese.md)</button>')
+    if not data.present:
+        return (f'<p class="ws-empty-note">docs/constats.yaml absent de ce dépôt.</p>{synthesis}')
+    key = [c for c in data.items if c.cle]
+    items_html = "".join(
+        f'<li class="av-learned-item"><p>{escape(c.texte)}</p><p class="av-learned-meta">'
+        f'<span class="av-confidence av-conf-{escape(c.confiance)}">'
+        f'{escape(CONFIDENCE_LABELS.get(c.confiance, c.confiance))}</span>'
+        f'<span class="sub">{escape(c.id)} · sources :</span> '
+        + " ".join(_source_html(s, by_id) for s in c.sources) + "</p></li>"
+        for c in key)
+    problems = "".join(f"<li>{escape(p)}</li>" for p in data.problems)
+    return (
+        '<div class="av-learned"><h3 class="av-learned-title">Ce que nous avons appris</h3>'
+        + (f'<ul class="av-learned-list">{items_html}</ul>' if key else
+           '<p class="ws-empty-note">Aucun constat clé pour l\'instant.</p>')
+        + (f'<div class="pl-issues" role="note"><p class="strong">docs/constats.yaml : à corriger</p><ul>{problems}</ul></div>'
+           if problems else "")
+        + f'<p class="ws-caption">{len(key)} constats clés sur {len(data.items)}, tirés de docs/constats.yaml '
+        f'(version {escape(data.version)} du {escape(data.date)}), tenu par le cockpit. Confiance : certain, '
+        'mesuré dans nos expériences ; probable, déduit de plusieurs mesures ; incertain, hypothèse non testée. '
+        f'Un clic sur une source affiche ses notes.</p>{synthesis}</div>'
+    )
 
 
 def _queue_html(queue: list[QueueRow]) -> str:
@@ -441,7 +577,10 @@ def render(root: Path) -> dict[str, str]:
                f"{_count(len(decisions), 'décision')}. En-têtes de notes.md manquants ou illisibles : "
                f"{len(missing)} sur {len(items)}.")
     return {
-        "resume": f'<p class="pl-meta">{escape(summary)} Lu dans <code>{escape(str(root))}</code>.</p>',
+        # Chemin local du dépôt masqué (R-U7) : seul compte ce qui est lu, pas où.
+        "resume": f'<p class="pl-meta">{escape(summary)} Lu en lecture seule dans le dépôt.</p>',
+        "appris": _learned_html(root, items),
+        "graphique": graphique.figure(reference_systems(items)),
         "frise": _timeline_html(items, root),
         "oracles": _oracles_html(items),
         "decisions": _decisions_html(decisions),
@@ -451,6 +590,10 @@ def render(root: Path) -> dict[str, str]:
 
 def notes_markdown(root: Path, item_id: str) -> str:
     """Contenu de notes.md d'une expérience ou d'une analyse (en-tête YAML retiré)."""
+    if item_id == SYNTHESIS_ID:
+        path = root / SYNTHESIS
+        return (f"`{SYNTHESIS.as_posix()}`\n\n{path.read_text(encoding='utf-8', errors='replace')}"
+                if path.is_file() else f"*{SYNTHESIS.as_posix()} absent de ce dépôt.*")
     if not re.fullmatch(r"(EXP|A)-\d{4}", item_id or ""):
         return "*Identifiant invalide.*"
     folder = root / ("experiments" if item_id.startswith("EXP") else "analyses")

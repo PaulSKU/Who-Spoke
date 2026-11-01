@@ -1332,6 +1332,12 @@ def build_app(fake: bool = False, fake_max_s: float = 20.0, repo_root: Path = RE
                                    "en-têtes des notes.md, results, fiches de décision, planning."),
                             js_on_load=None)
                     progress_summary = gr.HTML(sections["resume"], js_on_load=None)
+                    progress_learned = gr.HTML(sections["appris"], js_on_load=NOTES_JS)
+                with gr.Column(elem_classes="ws-card"):
+                    gr.HTML(_title("Erreurs des systèmes de référence",
+                                   "DER test sans collar décomposé, par corpus : quatre systèmes de référence, "
+                                   "puis toute expérience retenue ou de référence."), js_on_load=None)
+                    progress_chart = gr.HTML(sections["graphique"], js_on_load=None)
                 with gr.Column(elem_classes="ws-card"):
                     gr.HTML(_title("Expériences et analyses", "Dans l'ordre chronologique. DER sans collar, "
                                    "chevauchements comptés ; en dessous, avec collar de 0,25 s."), js_on_load=None)
@@ -1362,8 +1368,8 @@ def build_app(fake: bool = False, fake_max_s: float = 20.0, repo_root: Path = RE
 
         def refresh_progress():
             sections = progress_sections()
-            return (sections["resume"], sections["frise"], sections["oracles"], sections["decisions"],
-                    sections["file"])
+            return (sections["resume"], sections["appris"], sections["graphique"], sections["frise"],
+                    sections["oracles"], sections["decisions"], sections["file"])
 
         def show_notes(evt: gr.EventData):
             item_id = (getattr(evt, "_data", None) or {}).get("notes")
@@ -1371,9 +1377,11 @@ def build_app(fake: bool = False, fake_max_s: float = 20.0, repo_root: Path = RE
                 return gr.skip(), gr.skip()
             return avancement.notes_markdown(repo_root, item_id), gr.update(visible=True)
 
-        progress_tab.select(refresh_progress, None, [progress_summary, progress_timeline, progress_oracles,
-                                                     progress_decisions, progress_queue])
+        progress_tab.select(refresh_progress, None, [progress_summary, progress_learned, progress_chart,
+                                                     progress_timeline, progress_oracles, progress_decisions,
+                                                     progress_queue])
         progress_timeline.click(show_notes, None, [notes_view, notes_card])
+        progress_learned.click(show_notes, None, [notes_view, notes_card])
         mode.change(mode_changed, mode, [k, range_row])
 
         # Durée annoncée : recalculée à chaque changement de fichier ou de réglage.

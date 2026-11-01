@@ -164,7 +164,7 @@ def test_notes_affichees_sans_en_tete(depot):
 
 def test_depot_vide_ou_incomplet(tmp_path):
     sections = av.render(tmp_path)
-    assert set(sections) == {"resume", "frise", "oracles", "decisions", "file"}
+    assert set(sections) == {"resume", "appris", "graphique", "frise", "oracles", "decisions", "file"}
     assert "introuvable" in sections["file"]
 
 
