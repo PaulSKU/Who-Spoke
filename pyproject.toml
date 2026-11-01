@@ -5,6 +5,8 @@ description = "Who Spoke? — diarisation de locuteurs (qui parle, et quand)"
 authors = [
     { name = "Pollos-ECE", email = "paul.sidrot@edu.ece.fr" }
 ]
+license = "MIT"
+license-files = ["LICENSE"]
 requires-python = ">=3.11,<3.12"
 dependencies = [
     "gradio>=6.31.0",
@@ -21,6 +23,10 @@ dependencies = [
     "speechbrain>=1.1.2",
 ]
 
+[project.scripts]
+# Commande en ligne (chantier E1) : `uv run whospoke diarize <audio> …`
+whospoke = "whospoke.cli:main"
+
 [build-system]
 requires = ["uv_build>=0.11.28,<0.12.0"]
 build-backend = "uv_build"
@@ -32,8 +38,11 @@ dev = [
 
 [tool.pytest.ini_options]
 # Tests lents exclus par défaut (D19, amendement 5) ; les lancer avec `uv run pytest -m lent`.
+# Tests `modele` : chargent un modèle pré-entraîné depuis le cache local ; exclus de
+# l'intégration continue (suite rapide sans modèle ni jeton, .github/workflows/tests.yml).
 markers = [
     "lent: test lent (modèle complet sur un fichier réel), exclu par défaut",
+    "modele: charge un modèle pré-entraîné (cache Hugging Face requis), exclu de l'intégration continue",
 ]
 addopts = "-m 'not lent'"
 # Racine du dépôt importable, pour les tests de l'application (paquet `app`, D17).

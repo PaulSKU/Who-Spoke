@@ -35,7 +35,8 @@ CHECKS = (
 
 ENTRY_POINTS = sorted(
     [path.relative_to(REPO_ROOT) for path in (REPO_ROOT / "scripts").rglob("*.py")]
-    + [REPO_ROOT.joinpath("app", "app.py").relative_to(REPO_ROOT)]
+    + [REPO_ROOT.joinpath("app", "app.py").relative_to(REPO_ROOT),
+       REPO_ROOT.joinpath("src", "whospoke", "cli.py").relative_to(REPO_ROOT)]
 )
 
 
@@ -66,8 +67,9 @@ def test_import_du_paquet_coupe_tout():
 
 
 def test_paquet_whospoke_sans_import_tiers():
-    """`whospoke/__init__.py` et `whospoke/telemetry.py` n'importent que la bibliothèque standard."""
-    for name in ("__init__.py", "telemetry.py"):
+    """`whospoke/__init__.py`, `whospoke/telemetry.py` et la commande en ligne `whospoke/cli.py`
+    n'importent que la bibliothèque standard à leur chargement."""
+    for name in ("__init__.py", "telemetry.py", "cli.py"):
         tree = ast.parse((REPO_ROOT / "src" / "whospoke" / name).read_text())
         for node in tree.body:
             if isinstance(node, ast.Import | ast.ImportFrom):
