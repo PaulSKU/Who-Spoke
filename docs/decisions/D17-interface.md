@@ -63,3 +63,13 @@ Le prototype de l'onglet Analyse (branche `interface`, moteur factice) fonctionn
 | Emplacement des fichiers d'ECAPA | Dossier fixe indépendant du dossier courant (cache Hugging Face), jamais `pretrained_models/` du dossier de lancement |
 
 **Séquence.** La fusion dans `main` attend la fin du lot EXP-0013 à EXP-0015, puisqu'elle modifie `uv.lock`. Viennent ensuite la suite de tests complète, puis l'essai avec les vrais moteurs sur l'extrait de 3 min, avant le rang 1 de D23.
+
+## Amendement 2 — annonce du temps de calcul (2026-11-01)
+
+Statut : actée
+
+Les mesures du 01/11 montrent que l'annonce reste trop courte, de 5 à 18 % sur 27 min. Le RTF du jour dépend de la charge de la machine : 0,059 à 0,063 pour pyannote, contre 0,051 dans EXP-0007. Remesurer ne réglerait rien, car la charge pendant la démonstration est inconnue. Deux règles en découlent :
+
+- **Fourchette.** Le temps est annoncé comme une fourchette : borne basse = surcoût + RTF × durée, borne haute = surcoût + 1,3 × RTF × durée. Une fois l'analyse lancée, l'estimation est recalée sur la vitesse observée depuis le début de l'étape la plus longue.
+- **Surcoût fixe.** Il n'est ajouté que si le moteur n'est pas déjà chargé et préchauffé, ce que le préchauffage du chantier B2 rend connu.
+

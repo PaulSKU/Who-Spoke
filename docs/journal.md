@@ -547,3 +547,17 @@ Résultats : surcoûts fixes mesurés le 01/11 : MFCC 1,5 s, ECAPA 1,3 s, WeSpea
 Décisions : aucune.
 Problèmes : l'annonce reste trop courte dans tous les cas. Sur la réunion, l'écart de pyannote vient du RTF (0,0632 obtenu contre 0,0512 dans EXP-0007), pas d'un coût fixe ; l'exécution de contrôle donne aussi 0,059 avec le même code et les mêmes versions. Machine chargée pendant toutes les mesures (charge moyenne 2,7 à 9,3 : application Claude, indexation de macOS), sans contrôle possible. Le surcoût est compté à chaque analyse, même moteur déjà chaud : l'annonce est alors plus longue d'environ le surcoût. Le README du cockpit indique encore « fusion et essai avec les vrais moteurs à faire » pour l'interface.
 Suite : décider comment absorber l'écart proportionnel (remesure du RTF, marge), puis rang 1 de D23.
+
+## 2026-11-01 — Feuille de route après l'audit (cockpit)
+
+Objectif : organiser la mise en œuvre de toutes les recommandations de l'audit, retenues par la candidate.
+Réalisé : planning en version 2.0 (cinq pistes, file A1 à A9, chantiers B1 à B6 et E1 et E2, calendrier jusqu'au 16/11) ; fiches D24 (robustesse) et D25 (fausse alarme de pyannote) ; amendement du 01/11 de D23 (file réordonnée).
+Décisions : D24, D25, amendement de D23 ; licence MIT par défaut (audit R-R1), modifiable par la candidate ; pas de conversation orchestratrice supplémentaire, mais des prompts en lot et la lecture directe du dépôt par le cockpit.
+Suite : lancer A1 (piste A), B1 (worktree `ui`) et E1 (worktree `outils`).
+
+## 2026-11-01 — Retour des correctifs D27 et du temps restant (cockpit)
+
+Objectif : trancher les points ouverts du rapport.
+Réalisé : amendement 2 de D17.
+Résultats : télémétrie coupée au niveau du paquet (4 variables, dont OTEL_SDK_DISABLED), contrôle réseau sans connexion sortante ; temps restant encore sous-estimé, car le RTF varie avec la charge de la machine.
+Décisions : annonce en fourchette, recalage sur la vitesse observée, surcoût fixe seulement si le moteur est froid (amendement 2 de D17, appliqué au chantier B2). Le README était déjà à jour : la remarque du rapport date d'avant sa mise à jour.

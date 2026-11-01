@@ -1,55 +1,90 @@
-# Planning du sprint final
+# Planning et feuille de route du sprint final
 
-Version 1.1 du 1er novembre 2026 (file d'attente de D23). Fin du projet : **lundi 16 novembre 2026** (démonstration et rendu). Mis à jour par le cockpit à chaque changement de date ou de périmètre.
+Version 2.0 du 1er novembre 2026 : recommandations de l'audit du 01/11 retenues, file D23 réordonnée (D23, amendement du 01/11). Fin du projet : **lundi 16 novembre 2026** (démonstration et rendu). Mis à jour par le cockpit à chaque changement de date ou de périmètre.
 
 ## Principes
 
-Le système présenté en démonstration est **pyannote community-1**, éventuellement amélioré ; la baseline sert à la comparaison et à la compréhension. **La configuration de démonstration est gelée le mardi 10 novembre.** Après le jeudi 12 novembre, plus aucune nouvelle expérience : seulement des corrections, la documentation et la répétition. Chaque jour, une seule session Claude Code à la fois sur le dépôt.
+- **Gel.** La configuration de démonstration est gelée le **mardi 10 novembre** (`configs/demo.yaml`). Après le jeudi 12 novembre, plus aucune expérience : seulement des corrections, la documentation et la répétition.
+- **Machine.** Une seule expérience tourne à la fois, sur secteur. Aucun autre calcul lourd ne tourne pendant une expérience (tests avec modèles, analyses), pour ne pas fausser les temps.
+- **Parallélisme.** Les travaux sans calcul (interface avec le moteur factice, outils, documents) avancent en parallèle dans des worktrees git séparés.
+- **Fusions.** Une fusion dans `main` n'a lieu que lorsque aucune expérience ne tourne. Seule la piste A ajoute des dépendances (`uv add`) ; les autres pistes demandent au cockpit.
+- **Corpus maison.** Les enregistrements arrivent au fil des jours. Chacun est traité dès son arrivée (pré-annotation, annotation, évaluation par fichier), sans aucun réglage sur ce corpus. Il n'est jamais envoyé hors de la machine (D27).
+- **Coupe.** Ce qui n'est pas lancé le 9/11 au soir est coupé.
 
-## File d'attente des expériences (D23)
+## Pistes de travail
 
-Tous les moteurs identifiés sont testés, sans qu'aucun en remplace un autre. Les expériences tournent l'une après l'autre : à la fin d'une expérience, le cockpit prépare le prompt de la suivante. L'ordre de la file prévaut sur les dates du calendrier, qui restent indicatives.
+| Piste | Qui | Où | Nature |
+|---|---|---|---|
+| A — Expériences | Claude Code, session « expériences » | `~/Dev/Who-Spoke` (`main`) | File D23 : une expérience après l'autre, de nuit si possible |
+| B — Interface et démonstration | Claude Code, session « interface » | worktree `~/Dev/Who-Spoke-ui` (branche `ui`) | Chantiers C2 à C6 de l'audit, moteur factice |
+| E — Outils | Claude Code, session « outils » | worktree `~/Dev/Who-Spoke-outils` (branche `outils`) | Licence, commande en ligne, intégration continue, chaîne du corpus maison |
+| C — Cockpit | Cockpit | Documents du dépôt | Fiches, interprétations, synthèse, scénario de démonstration, prompts |
+| D — Candidate | Candidate | — | Enregistrements, annotation, écoutes, répétitions, relais entre les sessions |
 
-| Rang | Expérience ou chantier | Condition |
-|---|---|---|
-| 0 | EXP-0013 à EXP-0015, baseline avec empreintes WeSpeaker | En cours |
-| 1 | NeMo Sortformer v2 | Local ; essai d'installation borné à 2 h |
-| 2 | Nemotron 3 Diarization | Local ; essai borné à 2 h ; licence et données d'entraînement vérifiées avant exécution |
-| 3 | pyannote, nombre de locuteurs borné entre 2 et 6 | Local |
-| 4 | Robustesse : SUMM-RE test dégradé | Fiche D24 |
-| 5 | Amélioration n° 2 : faux chevauchement de pyannote | Fiche D25 |
-| 6 | Voxtral Mini Transcribe 3 (API Mistral) | Clé d'API et coût acceptés ; corpus publics seulement |
-| 7 | Nemotron 3.5 Transcribe (GPU loué) | Accord sur la location ; possible après le gel, comme comparaison |
+Pas de conversation « orchestratrice » supplémentaire : le cockpit tient ce rôle et lit directement le dépôt (journal, résultats). Chaque session Claude Code reçoit un prompt en lot, avec plusieurs étapes et des conditions d'arrêt, et consigne son rapport dans `docs/journal.md`. La candidate n'a qu'à signaler au cockpit qu'une session a fini.
+
+## File d'attente de la piste A (D23, amendement du 01/11)
+
+| Rang | Contenu | Calcul estimé | Prérequis |
+|---|---|---|---|
+| A1 | pyannote à révision figée, sorties habituelle et exclusive enregistrées ; V1 de D25 sur SUMM-RE et AMI ; contrôle que la sortie habituelle reproduit EXP-0007 et EXP-0001 | ≈ 2 h | — |
+| A2 | pyannote borné entre 2 et 6 locuteurs, avec consignation du passage au KMeans | ≈ 2 h | A1 |
+| A3 | D24 : génération du SUMM-RE dégradé, écoute de contrôle, puis pyannote et baseline ECAPA sur les 7 conditions | génération ≈ 1 h ; calcul ≈ 6 h (nuit) | Écoute par la candidate |
+| A4 | Nemotron 3 Diarization (essai borné à 2 h) : AMI, SUMM-RE, puis D24 | ≈ 3 h | Licence et contamination consignées (corpus.md §9) |
+| A5 | DiariZen (essai borné à 4 h) : AMI, SUMM-RE, puis D24 | ≈ 3 à 6 h en CPU | Idem |
+| A6 | D25 V2 et V3 : réglage de Silero VAD sur SUMM-RE dev, puis évaluation complète | ≈ 2 h | A1, A3 |
+| A7 | Option : réglage du seuil de regroupement de pyannote sur SUMM-RE dev (audit R-Q5) | ≈ 3 h | A2 |
+| A8 | Options : NeMo Sortformer v2 ; Voxtral (corpus publics seulement) | — | S'il reste du temps avant le 9/11 |
+| A9 | Corpus maison : évaluation de tous les moteurs retenus, au fil des références disponibles ; évaluation complète le 9/11 | court | Références (piste D) |
+
+Nemotron 3.5 Transcribe est retiré : il ne tourne que sur GPU NVIDIA.
+
+## Chantiers des pistes B et E (audit du 01/11)
+
+| Ordre | Piste | Chantier | Contenu |
+|---|---|---|---|
+| B1 | B | C2 | Finitions (libellés en français, pied de page, éléments rognés, tête de lecture, ordre des étapes) ; timeline en pleine largeur après l'analyse |
+| B2 | B | C5 | Démonstration : préchauffage des modèles au démarrage avec l'indicateur « moteurs prêts », durée annoncée avant lancement, cache des résultats (plan de repli) |
+| B3 | B | C3 | Vue d'ensemble (mini-forme d'onde), lecture suivie, raccourcis clavier |
+| B4 | B | C4 | Appariement visible, « Expliquer cette erreur », extrait typique par locuteur, renommage dans le tableau |
+| B5 | B | C6 | Avancement raconté (graphique, synthèse), Pipeline relié aux mesures |
+| B6 | B | P2 | Fusion de locuteurs avec le DER avant et après, indicateurs d'interaction, exports Audacity et PNG, bascule de la sortie exclusive (selon A1) |
+| E1 | E | C7 | Licence MIT et tableau des licences tierces ; commande en ligne `whospoke diarize` ; intégration continue (suite rapide, torch en CPU) |
+| E2 | E | — | Chaîne du corpus maison : synchronisation par le clap, pré-annotation à partir des pistes d'aide, export des étiquettes Audacity, conversion en RTTM avec fusion à 200 ms et UEM, contrôle de qualité |
+
+Points de fusion : après B2, après B4, après B6 et après E1 et E2, chaque fois entre deux expériences de la piste A.
 
 ## Calendrier
 
-| Date | Claude Code (avec le cockpit) | Candidate | Livrable du jour |
-|---|---|---|---|
-| Dim. 1/11 | Fin des expériences WeSpeaker (EXP-0013 à 0015) | Recrutement des participants | Comparaison MFCC / ECAPA / WeSpeaker / pyannote |
-| Lun. 2/11 | File D23, rangs 1 à 3 : NeMo Sortformer v2 (V6), Nemotron 3 Diarization, pyannote borné entre 2 et 6 locuteurs | Dates d'enregistrement fixées, consentements envoyés | Statut des deux moteurs NVIDIA ; résultats disponibles |
-| Mar. 3/11 | Prototype de l'onglet Analyse de l'interface (D17) | Préparation du matériel (téléphones, pièce, visio) | Démo minimale de bout en bout |
-| Mer. 4/11 | Robustesse : SUMM-RE test dégradé (réverbération, bruit, codec de visio), pyannote et baseline | **Enregistrements M01–M03** | Tableau de robustesse |
-| Jeu. 5/11 | Amélioration n° 2 : faux chevauchement de pyannote (post-traitement, sortie exclusive) ; si le temps le permet : détection neuronale pour la baseline | **Enregistrements** (fin) | Ablation n° 2 |
-| Ven. 6/11 | Scripts de pré-annotation à partir des pistes d'aide, conversion en RTTM | **Annotation** | Corpus maison pré-annoté |
-| Sam. 7/11 | — | **Annotation, contrôle qualité** (2 min ré-annotées) | Références du corpus maison |
-| Dim. 8/11 | Réserve | Réserve | — |
-| Lun. 9/11 | Évaluation de tous les systèmes sur le corpus maison | Écoute des cas d'échec | Décision finale sur l'amélioration n° 1 (D9) |
-| Mar. 10/11 | Page Pipeline ; finitions de l'interface ; **gel de la configuration de démonstration** | Essai de l'interface | Configuration gelée |
-| Mer. 11/11 | Férié (Armistice) : réserve | — | — |
-| Jeu. 12/11 | Test d'installation dans un environnement vierge ; README de reproduction | Répétition sur des fichiers inédits | Dépôt reproductible |
-| Ven. 13/11 | Synthèse : tableau comparatif, ablation, cas d'échec, temps de calcul | Relecture | Document de synthèse |
-| Sam. 14/11 – dim. 15/11 | Réserve ; comparaisons cloud (D23, rangs 6 et 7) si elles n'ont pas pu tourner avant | Répétition de la démonstration | — |
-| **Lun. 16/11** | — | **Démonstration et rendu** | — |
+| Date | A — Expériences | B — Interface | E — Outils | C — Cockpit | D — Candidate |
+|---|---|---|---|---|---|
+| Dim. 1/11 (soir) | A1 (nuit) | B1 | E1 | D23 à D25, feuille de route, prompts | Premiers enregistrements |
+| Lun. 2/11 | A2 ; génération de A3 | B2 | E2 | Interprétation d'A1 ; `docs/synthese.md` ; glossaire | Écoute de contrôle de D24 ; enregistrements |
+| Mar. 3/11 | A3 (nuit) | B3 | Fusion E | Interprétation d'A2 ; `docs/demo.md` (première version) | Enregistrements ; annotation dès la pré-annotation prête |
+| Mer. 4/11 | A4 | B4 | — | Interprétation d'A3 | Enregistrements, annotation |
+| Jeu. 5/11 | A5 | B5 | — | Interprétation d'A4 | Annotation |
+| Ven. 6/11 | A6 ; A9 sur les premières références | B6 | — | Interprétations d'A5 et A6 | Annotation, contrôle qualité |
+| Sam. 7/11 | A7 ou A8 si le temps le permet | Réserve | — | Synthèse à jour | Annotation (fin) |
+| Dim. 8/11 | Réserve | Réserve | — | — | Réserve |
+| Lun. 9/11 | A9 complet ; coupe de ce qui n'a pas commencé | Fusion finale | — | Choix de la configuration de démonstration | Écoute des cas d'échec |
+| **Mar. 10/11** | **Gel** (`configs/demo.yaml`) | Finitions | — | Fiche de gel | Essai de l'interface |
+| Mer. 11/11 | Férié : réserve | — | — | — | — |
+| Jeu. 12/11 | Installation sur machine vierge | — | — | README de reproduction | Répétition sur des fichiers inédits |
+| Ven. 13/11 | — | — | — | Document de synthèse | Relecture |
+| Sam. 14/11 – dim. 15/11 | Réserve | — | — | Scénario final | Répétitions chronométrées, réseau coupé |
+| **Lun. 16/11** | — | — | — | — | **Démonstration et rendu** |
 
-## Chemin critique
+## Chemin critique et risques
 
-Le corpus maison est le seul chantier qui dépend de personnes extérieures. Les étapes s'enchaînent ainsi : enregistrement (4–5/11), annotation (6–7/11), évaluation (9/11), puis gel (10/11). Tout retard sur les enregistrements décale la décision sur l'amélioration n° 1 et le choix de la configuration de démonstration. Si les enregistrements glissent au-delà du 6/11, le gel est fixé sur SUMM-RE et le corpus maison ne sert plus qu'au test final.
+Le corpus maison est le seul élément qui dépend de personnes extérieures : sans références le 9/11, le choix de la configuration se fait sur SUMM-RE et D24, et le corpus maison ne sert qu'à la démonstration. Côté technique, le risque principal est l'installation de Nemotron 3 et de DiariZen sur Mac (support non documenté) : les essais sont bornés, et un échec est un résultat documenté. Le risque de surcharge vient du relais entre trois sessions ; il est limité par les prompts en lot et par la lecture directe du dépôt par le cockpit.
 
 ## Hors périmètre (coupes assumées)
 
 | Élément | Motif |
 |---|---|
-| Ajustement fin (fine-tuning) et entraînement avec augmentation | Coût et risque trop élevés en 15 jours ; fuite de locuteurs dans SUMM-RE (D20) |
-| NOTSOFAR-1 | Volume, test en anglais ; la robustesse est mesurée par simulation sur SUMM-RE |
-| Installation d'un moteur externe au-delà de 2 h d'essai | Règle d'essai borné (D23) ; l'échec est documenté |
-| Service cloud ou GPU loué comme moteur de démonstration | La démonstration reste locale ; Voxtral et Nemotron 3.5 sont des comparaisons (D23) |
+| Ajustement fin et entraînement avec augmentation | Coût et risque trop élevés ; fuite de locuteurs dans SUMM-RE (D20) |
+| NOTSOFAR-1 | Volume ; la robustesse est mesurée par simulation (D24) |
+| Nemotron 3.5 Transcribe | GPU NVIDIA seulement (D23, amendement du 01/11) |
+| Service cloud ou GPU loué comme moteur de démonstration | La démonstration reste locale (D23) |
+| Transcription, enregistrement au micro, modification de réglage depuis l'interface | Hors sujet ou exclus par D26 |
+| Annulation réelle d'une analyse, fusion DOVER-Lap, débruitage en amont | Gain incertain ou risque de régression (audit, P3) |

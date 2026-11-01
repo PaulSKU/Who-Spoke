@@ -44,6 +44,21 @@ Tester tous les moteurs renforce la comparaison exigée par le sujet. Les règle
 
 Le planning (`docs/planning.md`) est mis à jour. Chaque moteur fait l'objet d'un prompt dédié, préparé par le cockpit à la fin de l'expérience précédente.
 
+## Amendement du 01/11/2026 — file réordonnée après l'audit
+
+Statut : actée
+
+L'audit du 01/11 (`docs/audit/audit-2026-11-01.md`), dont la candidate a retenu les recommandations, conduit à réordonner la file :
+
+- **Sortformer v2 recule.** Il est limité à 4 locuteurs, et sa version v2.1 est nettement dépassée par Nemotron 3 Diarization sur tous les jeux publiés par NVIDIA.
+- **DiariZen entre dans la file.** Il annonce 13,9 % de DER sur AMI-SDM, contre 19,9 % pour community-1 ; ses poids sont sous CC BY-NC 4.0.
+- **Nemotron 3.5 est retiré.** Il ne tourne que sur GPU NVIDIA.
+
+La file en vigueur est celle de `docs/planning.md` (version 2.0, rangs A1 à A9). Elle remplace le tableau du §2. Les règles communes du §1 restent inchangées. Deux précisions s'ajoutent :
+
+- l'essai d'installation de DiariZen est borné à 4 h, parce que son installation n'est documentée que pour CUDA ;
+- avant toute exécution, la contamination de Nemotron 3 Diarization est consignée dans `docs/corpus.md` §9 : AMI train et dev, VoxConverse dev et test.
+
 ## Liens
 
 D6, D10, D17, D19, D21 ; `docs/recherche/veille-2026-11-01-modeles-recents.md`.
