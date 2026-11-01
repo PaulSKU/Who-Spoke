@@ -21,7 +21,7 @@ etapes:
   sortie: {libelle: Sortie, role: "Écrire les tours de parole attribués, un par ligne, avec leur début, leur durée et leur locuteur."}
 
 moteurs:
-  pyannote-community-1:
+  pyannote-community-1: &pyannote-community-1
     segmentation.modele:
       libelle: Modèle de segmentation
       etape: detection
@@ -437,6 +437,47 @@ moteurs:
       effet: "Environnement séparé et versions des bibliothèques ; le périphérique change le temps, pas le résultat attendu."
       composantes: [temps]
       decision: D23
+
+  # pyannote suivi du masque de Silero VAD (D25, V2 ; V3 avec la sortie exclusive ;
+  # `whospoke.pipelines.silero`) : entrées de pyannote reprises, plus celles du masque.
+  pyannote-community-1-silero:
+    <<: *pyannote-community-1
+    silero.modele:
+      libelle: Détection fine (Silero VAD)
+      etape: detection
+      effet: "Petit réseau de détection de parole, appliqué après pyannote : chaque tour est coupé là où il n'entend pas de voix. Rouvre les pauses que la segmentation a pontées ; ne crée jamais de parole."
+      composantes: [fausse alarme, parole manquée]
+      decision: D25
+    silero.seuil:
+      libelle: Seuil de Silero
+      etape: detection
+      effet: "Probabilité de parole à partir de laquelle une trame de 32 ms est gardée : plus haut, plus de pauses rouvertes (moins de fausse alarme), mais plus de parole faible coupée (plus de parole manquée)."
+      composantes: [fausse alarme, parole manquée]
+      decision: D25
+    silero.silence_min_s:
+      libelle: Durée minimale de silence rouvert
+      etape: detection
+      effet: "Une pause plus courte n'est pas rouverte. La référence fusionne les pauses de 200 ms au plus : rouvrir plus court ne peut qu'ajouter de la parole manquée."
+      composantes: [fausse alarme, parole manquée, frontières]
+      decision: D25
+    silero.marge_s:
+      libelle: Marge autour de la parole
+      etape: detection
+      effet: "Durée gardée de part et d'autre de chaque zone de parole de Silero : protège les débuts et fins de mots, au prix de pauses rouvertes un peu plus courtes."
+      composantes: [frontières, parole manquée]
+      decision: D25
+    silero.parole_min_s:
+      libelle: Durée minimale de parole (Silero)
+      etape: detection
+      effet: "Une zone de parole plus courte est ignorée par Silero, et donc retirée de la sortie de pyannote (valeur par défaut de Silero)."
+      composantes: [parole manquée]
+      decision: D25
+    silero.peripherique:
+      libelle: Calcul de Silero
+      etape: detection
+      effet: "Silero tourne en CPU sur un fil, quel que soit le périphérique de pyannote ; il n'ajoute que du temps."
+      composantes: [temps]
+      decision: D25
 
 # Réglages communs à tous les moteurs, décrits par le code hors des moteurs
 # (`whospoke.audio.describe_normalisation`) : étape Normalisation de la page Pipeline
