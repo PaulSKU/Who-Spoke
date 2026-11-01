@@ -660,19 +660,37 @@ VIEWER_TEMPLATE = (
     '<div class="wsp-body"><div class="wsp-toolbar">'
     '<button type="button" class="wsp-play">Lecture</button>'
     '<span class="wsp-time" aria-live="off"></span>'
+    '<span class="wsp-speaking" hidden></span>'
+    '<span class="wsp-iso" role="status" hidden></span>'
+    '<div class="wsp-tools">'
     '<div class="wsp-zoom" role="group" aria-label="Zoom de la timeline">'
     '<button type="button" class="wsp-zoom-out" aria-label="Dézoomer">−</button>'
     '<input type="range" class="wsp-zoom-range" min="0" max="100" step="1" value="0" '
     'aria-label="Niveau de zoom">'
     '<button type="button" class="wsp-zoom-in" aria-label="Zoomer">+</button>'
-    '<button type="button" class="wsp-zoom-fit">Tout afficher</button></div></div>'
+    '<button type="button" class="wsp-zoom-fit">Tout afficher</button></div>'
+    '<button type="button" class="wsp-follow" aria-pressed="true">Suivre la lecture</button>'
+    '<button type="button" class="wsp-help-toggle" aria-expanded="false" aria-controls="wsp-help" '
+    'aria-label="Raccourcis clavier" title="Raccourcis clavier (?)">?</button></div></div>'
+    '<div class="wsp-help" id="wsp-help" role="region" aria-label="Raccourcis clavier" hidden>'
+    '<dl><dt><kbd>Espace</kbd></dt><dd>Lecture ou pause</dd>'
+    '<dt><kbd>←</kbd> <kbd>→</kbd></dt><dd>Tour de parole précédent ou suivant (du locuteur isolé, s\'il y en a un)</dd>'
+    '<dt><kbd>1</kbd> à <kbd>9</kbd></dt><dd>Isoler un locuteur du premier moteur :</dd>'
+    '<dt></dt><dd><ol class="wsp-help-speakers"></ol></dd>'
+    '<dt><kbd>0</kbd></dt><dd>Tous les locuteurs</dd>'
+    '<dt><kbd>?</kbd></dt><dd>Afficher ou masquer cette aide (<kbd>Échap</kbd> la ferme)</dd></dl>'
+    '<p>Inactifs pendant la saisie dans un champ (nom d\'un locuteur, réglages). Vue d\'ensemble : '
+    'glisser la fenêtre pour déplacer la vue, ou cliquer ailleurs pour y amener la lecture.</p></div>'
+    '<div class="wsp-overview"><span class="wsp-overview-label">Vue d\'ensemble</span>'
+    '<div class="wsp-minimap"></div></div>'
     '<div class="wsp-wave"></div>'
     '<div class="wsp-rows"><div class="wsp-labels"></div>'
     '<div class="wsp-viewport"><div class="wsp-canvas"><div class="wsp-lanes"></div>'
     '<div class="wsp-axis" aria-hidden="true"></div><div class="wsp-playhead"></div></div></div></div>'
     '<p class="wsp-errsum" hidden></p>'
     '<p class="wsp-hint">Cliquez sur un segment pour l\'écouter et le repérer sur la forme d\'onde. Zoom : curseur, boutons, ou Ctrl + molette ; '
-    'défilement : pavé tactile, Maj + molette ou barre de défilement de la forme d\'onde.</p></div></div>'
+    'défilement : vue d\'ensemble, pavé tactile ou Maj + molette. Raccourcis : <kbd>Espace</kbd>, <kbd>←</kbd> <kbd>→</kbd>, '
+    '<kbd>1</kbd> à <kbd>9</kbd>, <kbd>0</kbd>, <kbd>?</kbd> pour l\'aide.</p></div></div>'
 )
 
 ENGINE_INFO_DEVICE = "auto : CUDA, puis MPS, puis CPU (D15)."
@@ -718,7 +736,7 @@ def build_app(fake: bool = False, fake_max_s: float = 20.0, repo_root: Path = RE
         for key, spec in moteurs.SPECS.items()
     ]
     head = "".join(f'<script src="{_file_url(WAVESURFER_DIR / name)}"></script>'
-                   for name in ("wavesurfer.min.js", "regions.min.js"))
+                   for name in ("wavesurfer.min.js", "regions.min.js", "minimap.min.js"))
 
     if warm_up:
         # Moteur proposé par défaut en premier, sur le périphérique de « auto ».

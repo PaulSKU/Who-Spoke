@@ -15,7 +15,7 @@ def test_construction_en_mode_factice():
 
 
 def test_bibliotheques_javascript_embarquees():
-    for name in ("wavesurfer.min.js", "regions.min.js", "LICENSE"):
+    for name in ("wavesurfer.min.js", "regions.min.js", "minimap.min.js", "LICENSE"):
         assert (interface.WAVESURFER_DIR / name).is_file()
     for path in interface.STATIC_DIR.rglob("*.js"):
         assert "http://" not in path.read_text() and "https://" not in path.read_text(), path
@@ -98,6 +98,36 @@ def test_visualiseur_avec_zoom():
         assert name in template
     script = (interface.STATIC_DIR / "visualiseur.js").read_text()
     assert "ws.zoom(" in script and "setScroll" in script
+
+
+def test_greffon_minimap_embarque_a_la_meme_version():
+    """B3 : greffon Minimap de wavesurfer 7.12.12, archive npm vérifiée (app/README.md)."""
+    import hashlib
+
+    data = (interface.WAVESURFER_DIR / "minimap.min.js").read_bytes()
+    assert hashlib.sha256(data).hexdigest() == "f671920e50c1bd6e53b381c6b996b06952df3336e062f96f5472a6ecdce3fa73"
+    assert b"t.WaveSurfer.Minimap=" in data
+    assert "BSD 3-Clause License" in (interface.WAVESURFER_DIR / "LICENSE").read_text()
+
+
+def test_vue_d_ensemble_raccourcis_et_pastille():
+    """B3 (audit R-U2, R-U3) : éléments du gabarit et du script du visualiseur."""
+    template = interface.VIEWER_TEMPLATE
+    for name in ("wsp-minimap", "wsp-follow", "wsp-help-toggle", "wsp-help", "wsp-help-speakers",
+                 "wsp-speaking", "wsp-iso", 'aria-pressed="true"'):
+        assert name in template
+    script = (interface.STATIC_DIR / "visualiseur.js").read_text()
+    assert "WaveSurfer.Minimap.create(" in script and "plugins: [regions, minimap]" in script
+    # Fenêtre visible déplaçable : le greffon la dessine en pointer-events: none.
+    assert "overlay.style.pointerEvents = 'auto'" in script and "setPointerCapture" in script
+    # Raccourcis : touches gérées, et inactifs dans un champ de saisie ou le tableau des noms.
+    for key in ("' '", "'ArrowLeft'", "'ArrowRight'", "/^[0-9]$/", "'?'", "'Escape'"):
+        assert key in script
+    typing = script[script.index("const TYPING"):script.index("function typing")]
+    for selector in ("input", "textarea", "select", "contenteditable", ".ws-names"):
+        assert selector in typing
+    assert "document.removeEventListener('keydown', element._onKey)" in script   # un seul écouteur
+    assert "'parle : '" in script and "'parlent : '" in script
 
 
 def test_forme_d_onde_neutre_seul_le_segment_selectionne():
