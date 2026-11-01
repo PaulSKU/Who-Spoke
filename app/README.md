@@ -7,7 +7,7 @@ uv run python -m app.app             # moteurs réels (modèles chargés au prem
 uv run python -m app.app --factice   # moteur factice : aucune inférence
 ```
 
-Puis ouvrir http://127.0.0.1:7860 (serveur local uniquement, pas de lien public). Options : `--port`, `--factice-max-s` (durée maximale simulée d'une analyse en mode factice), `--depot` (racine du dépôt dont sont lus, en lecture seule, les expériences, `results/leaderboard.csv` et le catalogue ; par défaut ce dépôt). Pendant le développement sur la branche `interface`, qui n'a pas toutes les expériences :
+Puis ouvrir http://127.0.0.1:7860 (serveur local uniquement, pas de lien public). Options : `--port`, `--factice-max-s` (durée maximale simulée d'une analyse en mode factice), `--depot` (racine du dépôt dont sont lus, en lecture seule, les expériences, les analyses, `results/leaderboard.csv`, le catalogue et les documents de `docs/` ; par défaut ce dépôt). Pendant le développement sur la branche `interface`, qui n'a pas toutes les expériences :
 
 ```bash
 uv run python -m app.app --factice --depot ~/Dev/Who-Spoke
@@ -48,6 +48,19 @@ Révision des modèles : lue dans la valeur d'un réglage `*.modele` au format `
 
 La maquette du 27/10 (`docs/maquettes/pipeline-maquette-2026-10-27.html`) a servi pour le contenu ; son style et ses polices distantes ne sont pas repris.
 
+## Onglet « Avancement » (D26, chantier I2)
+
+Récapitulatif de la conduite du projet, régénéré à chaque ouverture de l'onglet, en lecture seule sous la racine `--depot` (`app/avancement.py`) :
+
+| Section | Source |
+|---|---|
+| Frise des expériences et analyses, dans l'ordre chronologique (date de `results_*.json` ou d'`execution.json`) : identifiant, question, corpus, DER test puis dev dans les deux conditions de collar, verdict, décisions, bouton « notes.md » qui affiche les notes dans la page | En-tête YAML de `notes.md` (D26 §2 : `id`, `question`, `verdict`, `decisions`), `results_<corpus>_<partition>.json` |
+| Décomposition de l'erreur par les oracles : EXP-0002 à EXP-0006, puis EXP-0010 et EXP-0011 ; DER test et ses trois composantes, écart avec l'expérience de référence | `results_*.json` (`reference`, `variable_modifiee`, `systeme`) |
+| Décisions et statuts, amendements compris | D1 à D15 : tableau du §0 et phrase « Statut » de `docs/cadrage.md` (points restés ouverts compris) ; D16 et suivantes : ligne `Statut :` de chaque fiche et de ses amendements (« statut non indiqué » à défaut) |
+| File d'attente de D23, avec un « État constaté » calculé : expériences citées créées ou ayant des résultats, fiches citées présentes ou absentes | Tableau « File d'attente » de `docs/planning.md`, dossiers d'expériences, fiches |
+
+Un `notes.md` sans en-tête s'affiche « en-tête manquant », un en-tête mal formé « en-tête illisible » ; un `id` qui ne correspond pas au dossier ou un verdict hors de la liste de D26 §2 sont signalés à côté de la question. Un résultat portant un bloc `invalidee` est marqué « invalidée ». Au 01/11, sur le dépôt principal, les 16 `notes.md` sont sans en-tête.
+
 ## Fonctionnement hors ligne et dossiers temporaires (D17, amendement 1)
 
 | Point | Comportement | Où |
@@ -66,6 +79,7 @@ La maquette du 27/10 (`docs/maquettes/pipeline-maquette-2026-10-27.html`) a serv
 | Forme d'onde neutre (D26) : seul le segment sélectionné, dernier cliqué, y est mis en évidence par une bande d'encre et entouré sur sa piste ; timeline par locuteur, écoute d'un segment au clic, zoom (curseur, boutons, Ctrl + molette ; jusqu'à 60 px par seconde) | `app/static/visualiseur.js` et `.css` |
 | Thème (teintes neutres, polices système) et feuille de style | `app/theme.py`, `app/static/interface.css` |
 | Onglet Pipeline | `app/pipeline.py`, `app/static/pipeline.js` |
+| Onglet Avancement | `app/avancement.py` |
 
 ## Principes d'affichage
 

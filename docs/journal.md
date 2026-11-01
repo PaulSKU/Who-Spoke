@@ -376,3 +376,16 @@ Résultats : aucune expérience.
 Décisions : aucune. Points soumis : les textes et trois valeurs de l'étape Normalisation (canaux, format, entrée en mémoire) sont dans `app/pipeline.py`, faute de constantes exposées par `whospoke.audio` et d'entrée au catalogue ; les déplacer dans le catalogue au gel ?
 Problèmes : pendant la vérification, le zoom de la timeline s'est trouvé au maximum après une interaction dans la page ; l'alignement des pistes est resté exact (10 800 px des deux côtés).
 Suite : I2 (onglet Avancement), après les en-têtes YAML des `notes.md`.
+
+## 2026-11-01 — D26 : onglet Avancement (chantier I2), branche `interface` (Claude Code)
+
+Objectif : chantier I2 de D26, onglet Avancement généré depuis le dépôt, mêmes règles qu'I1 (branche `interface`, racine de dépôt configurable en lecture seule, aucun modèle).
+Réalisé :
+- `app/avancement.py` : frise des expériences et analyses (ordre chronologique ; question, verdict et décisions lus dans l'en-tête YAML de `notes.md`, D26 §2 ; corpus et DER des `results_*.json`, partition test puis dev, collar 0 puis 0,25 s ; résultats invalidés marqués) ; décomposition de l'erreur par les oracles (EXP-0002 à EXP-0006, EXP-0010, EXP-0011 : DER test, parole manquée, fausse alarme, confusion, écart avec la référence) ; décisions (D1 à D15 depuis le tableau et la phrase « Statut » de `cadrage.md`, points ouverts compris ; D16 et suivantes depuis la ligne `Statut :` des fiches et de leurs amendements) ; file d'attente de D23 depuis `planning.md`, complétée d'un état constaté (expériences citées créées ou avec résultats, fiches citées présentes ou absentes).
+- Onglet dans `app/app.py`, régénéré à chaque ouverture ; un bouton « notes.md » par ligne affiche les notes, sans leur en-tête, dans la page.
+- En-têtes absents (« en-tête manquant »), mal formés (« en-tête illisible »), `id` incohérent ou verdict hors liste : affichés sans erreur. 9 tests sur un dépôt fabriqué dans un dossier temporaire (en-têtes complets, absents, cassés, incohérents ; décisions ; file ; lecture seule). Suite sans les trois fichiers qui chargent des modèles : 205 réussis, 1 ignoré.
+- Vérifié dans le navigateur avec `--depot ~/Dev/Who-Spoke` : 15 expériences, 1 analyse, 24 décisions ; les 16 `notes.md` sont « en-tête manquant » ; file : rang 0 « 2/3 avec résultats, 3/3 créées », rangs 4 et 5 « fiche D24 absente », « fiche D25 absente ». Toutes les requêtes du navigateur vers 127.0.0.1 ; aucune connexion serveur hors 127.0.0.1.
+Résultats : aucune expérience.
+Décisions : aucune.
+Problèmes : les amendements sans ligne `Statut :` propre (D18 du 28/10, D19, D20, D22) s'affichent « statut non indiqué ». `docs/planning.md` n'est pas encore versionné dans le dépôt principal : l'onglet le lit tel qu'il est sur disque.
+Suite : en-têtes des `notes.md` par le cockpit ; chantier I3 (glossaire intégré).
