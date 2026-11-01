@@ -561,3 +561,45 @@ Objectif : trancher les points ouverts du rapport.
 Réalisé : amendement 2 de D17.
 Résultats : télémétrie coupée au niveau du paquet (4 variables, dont OTEL_SDK_DISABLED), contrôle réseau sans connexion sortante ; temps restant encore sous-estimé, car le RTF varie avec la charge de la machine.
 Décisions : annonce en fourchette, recalage sur la vitesse observée, surcoût fixe seulement si le moteur est froid (amendement 2 de D17, appliqué au chantier B2). Le README était déjà à jour : la remarque du rapport date d'avant sa mise à jour.
+
+## 2026-11-01 — Retour du chantier B1-B2 et charge de la machine (cockpit)
+
+Objectif : trancher les choix de la session interface ; traiter l'effet du travail en parallèle sur les temps.
+Réalisé : amendement du 01/11 de D21 (charge de la machine, campagne de temps dédiée).
+Décisions :
+- case « Réafficher un résultat déjà calculé » décochée par défaut, et badge visible quand un résultat vient du cache ;
+- clé du cache fondée sur la configuration effective et les révisions des modèles, plutôt que sur le commit (un commit de documents ne doit pas l'invalider) ;
+- autres choix validés : préchauffage de tous les moteurs disponibles, seuils du recalage, option `--sans-prechauffage`, modification du test du dépôt principal ;
+- temps des expériences menées pendant le travail en parallèle non comparables ; temps de référence mesurés par une campagne dédiée après le gel.
+
+## 2026-11-01 — Retour des chantiers E1 et E2 (cockpit)
+
+Objectif : trancher les quatre points de la session outils.
+Réalisé : amendement du 01/11 de `docs/corpus-maison/conventions-annotation.md`.
+Décisions : code du locuteur dans le texte des labels ; label `exclusion` pour les annonces, retiré de l'UEM ; ré-annotation de contrôle sans pré-annotation ; références dans `data/processed/maison/`, versionnées seulement avec l'accord de tous les participants (option 3 du consentement, règle déjà prévue par le README du corpus maison). L'intégration continue (torch en CPU sans toucher à uv.lock) et la commande `whospoke diarize` sont validées.
+Suite : correctifs d'E2 et chantier E3 (script de la campagne de temps, rapport d'évaluation par fichier du corpus maison).
+
+## 2026-11-01 — Retour du chantier B3 (cockpit)
+
+Objectif : valider les choix de la session interface.
+Décisions :
+- choix validés : un déplacement manuel coupe le suivi de la lecture ; ← revient au début du tour en cours s'il a commencé depuis plus de 0,3 s ; isoler un locuteur estompe les autres pistes sans changer ce qui est lu ;
+- clé du cache complétée par une empreinte du code des moteurs (`src/whospoke/` et `app/moteurs.py`), pour qu'un changement de code qui modifie les résultats invalide le cache sans qu'un commit de documents le fasse.
+Suite : chantier B4.
+
+## 2026-11-01 — Retour des correctifs d'E2 et du chantier E3 (cockpit)
+
+Objectif : trancher les trois points de la session outils.
+Décisions :
+- sous-ensemble de la campagne de temps : celui du protocole §3.5 (`data/splits/<corpus>/temps.txt`), et non un tirage par graine. La demande du cockpit contredisait le protocole ; l'option de tirage est retirée pour qu'il n'existe qu'une seule définition ;
+- seuil de charge au démarrage : réglage du script, fixé le jour de la campagne à partir d'une mesure de la charge au repos (5 min, toutes applications fermées, `--mesurer-repos`), consignée dans la sortie de la campagne ;
+- le document de synthèse publie, pour chaque enregistrement du corpus maison : son code (M01…), sa condition, le nombre de locuteurs de la référence et de l'hypothèse, sa durée arrondie à la minute et les métriques dans les deux conditions de collar. Ni horaires de parole, ni contenu, ni nom. Les sorties détaillées restent dans `data/processed/maison/rapport/` ;
+- garde-fous ajoutés par la session validés (sorties non versionnées, contrôle réseau obligatoire avant une exécution réelle).
+Suite : fusion d'`outils` dans `main` au prochain arrêt de la piste A, avant l'application du relevé de charge de D21 (module `whospoke.charge`) ; chantier E4 (préparation de Nemotron 3 Diarization et de DiariZen).
+
+## 2026-11-01 — Retour du chantier B4 ; constats et synthèse (cockpit)
+
+Objectif : valider les choix de B4 ; créer les sources du chantier B5.
+Réalisé : `docs/constats.yaml` (10 constats rattachés aux étapes du catalogue, avec sources et confiance) ; `docs/synthese.md` (synthèse vivante, R-M3).
+Décisions : choix de B4 validés (frontière de tour à 0,25 s, contiguïté à 0,05 s, pauses entre deux passages de parole seulement, couleurs de la référence calées sur le premier moteur en comparaison).
+Suite : chantier B5.

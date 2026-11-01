@@ -1,0 +1,90 @@
+# Constats mesurés, rattachés aux étapes du pipeline (D26 ; audit du 01/11, R-U7 et R-U8).
+# Tenu par le cockpit à chaque interprétation. Source unique de l'encadré « Ce que nous avons appris »
+# (onglet Avancement) et des constats affichés sous chaque étape (onglet Pipeline).
+# Champs : id ; etape (identifiant d'étape de src/whospoke/pipelines/catalogue.yaml, ou « evaluation ») ;
+# moteurs (identifiants des moteurs concernés, vide = tous) ; texte (une phrase, chiffres compris) ;
+# sources (expériences ou analyses) ; confiance (certain | probable | incertain) ; cle (vrai = repris dans l'encadré).
+
+version: 1
+date: 2026-11-01
+
+constats:
+  - id: C01
+    etape: detection
+    moteurs: [baseline-ecapa, baseline-wespeaker, baseline-mfcc]
+    texte: "La détection par énergie est le premier défaut de la baseline : avec ECAPA, la parole manquée fait 32,3 des 45,9 points de DER sur AMI test, et 21,9 des 33,4 points sur SUMM-RE test."
+    sources: [EXP-0010, EXP-0012]
+    confiance: certain
+    cle: true
+
+  - id: C02
+    etape: detection
+    moteurs: [baseline-mfcc]
+    texte: "Une détection de parole parfaite retire 15,3 points de DER à la baseline MFCC sur AMI test (64,4 → 49,1 %)."
+    sources: [EXP-0002, EXP-0004]
+    confiance: certain
+    cle: false
+
+  - id: C03
+    etape: segmentation
+    moteurs: [pyannote-community-1]
+    texte: "À empreinte identique (WeSpeaker), pyannote devance la baseline de 29,3 points sur AMI test, dont 21,1 de parole manquée : son avance vient surtout de la segmentation neuronale, qui détecte la parole et le chevauchement."
+    sources: [EXP-0001, EXP-0013]
+    confiance: certain
+    cle: true
+
+  - id: C04
+    etape: detection
+    moteurs: [pyannote-community-1]
+    texte: "En français (SUMM-RE test), la fausse alarme est la première erreur de pyannote : 11,3 des 26,3 points de DER ; 34 à 44 % se trouve dans des pauses de 1 s au plus d'un même locuteur, que pyannote recouvre, et environ un quart vient de faux chevauchements."
+    sources: [EXP-0007, A-0001]
+    confiance: certain
+    cle: true
+
+  - id: C05
+    etape: representation
+    moteurs: [baseline-mfcc, baseline-ecapa]
+    texte: "Remplacer les MFCC par des empreintes ECAPA fait tomber la confusion de la baseline de 27,1 à 8,6 points sur AMI test, et de 24,4 à 8,5 sur SUMM-RE test."
+    sources: [EXP-0002, EXP-0010, EXP-0009, EXP-0012]
+    confiance: certain
+    cle: true
+
+  - id: C06
+    etape: representation
+    moteurs: [baseline-ecapa, baseline-wespeaker]
+    texte: "Sous oracles, ECAPA et WeSpeaker ne se distinguent pas (écart +2,2 points, IC à 95 % [−0,1 ; +4,6]) ; en condition réaliste, WeSpeaker est légèrement moins bon (+2,5 à +3,3 points)."
+    sources: [EXP-0011, EXP-0014, EXP-0013, EXP-0015]
+    confiance: certain
+    cle: false
+
+  - id: C07
+    etape: regroupement
+    moteurs: [pyannote-community-1]
+    texte: "Donner à pyannote le nombre exact de locuteurs ne l'améliore pas : +0,48 point sur AMI test, −0,72 point non significatif sur SUMM-RE test."
+    sources: [EXP-0005, EXP-0008]
+    confiance: certain
+    cle: true
+
+  - id: C08
+    etape: regroupement
+    moteurs: [baseline-wespeaker]
+    texte: "Avec le seuil réglé pour minimiser le DER, la baseline WeSpeaker ne trouve jamais le bon nombre de locuteurs sur AMI test (0/16), alors que son DER reste proche de celui d'ECAPA (7/16)."
+    sources: [EXP-0013, EXP-0010]
+    confiance: certain
+    cle: false
+
+  - id: C09
+    etape: evaluation
+    moteurs: []
+    texte: "Sur SUMM-RE, le DER sans collar varie de 5 à 8 points selon la règle de découpage de la référence, le DER avec collar de moins de 0,6 point : les deux sont toujours rapportés."
+    sources: [A-0001]
+    confiance: certain
+    cle: true
+
+  - id: C10
+    etape: evaluation
+    moteurs: [pyannote-community-1]
+    texte: "AMI surestime pyannote, qui l'a vu à l'entraînement : à empreinte identique, son avance sur la baseline est de 29,3 points sur AMI test, mais de 9,6 points en français (SUMM-RE test)."
+    sources: [EXP-0013, EXP-0001, EXP-0015, EXP-0007]
+    confiance: probable
+    cle: true

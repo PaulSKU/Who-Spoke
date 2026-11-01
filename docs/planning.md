@@ -69,7 +69,7 @@ Points de fusion : après B2, après B4, après B6 et après E1 et E2, chaque fo
 | Lun. 9/11 | A9 complet ; coupe de ce qui n'a pas commencé | Fusion finale | — | Choix de la configuration de démonstration | Écoute des cas d'échec |
 | **Mar. 10/11** | **Gel** (`configs/demo.yaml`) | Finitions | — | Fiche de gel | Essai de l'interface |
 | Mer. 11/11 | Férié : réserve | — | — | — | — |
-| Jeu. 12/11 | Installation sur machine vierge | — | — | README de reproduction | Répétition sur des fichiers inédits |
+| Jeu. 12/11 | Campagne de temps, machine au repos (D21, amendement du 01/11) ; installation sur machine vierge | — | — | README de reproduction | Répétition sur des fichiers inédits |
 | Ven. 13/11 | — | — | — | Document de synthèse | Relecture |
 | Sam. 14/11 – dim. 15/11 | Réserve | — | — | Scénario final | Répétitions chronométrées, réseau coupé |
 | **Lun. 16/11** | — | — | — | — | **Démonstration et rendu** |

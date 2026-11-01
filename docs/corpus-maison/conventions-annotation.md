@@ -54,3 +54,13 @@ Pour connaître le bruit de la référence elle-même, on ré-annote **deux minu
 ## 6. Coût estimé
 
 Avec pré-annotation à partir des pistes d'aide, il faut compter environ 3 à 5 heures de travail par heure d'audio, soit **2 à 3 heures pour les 30 minutes du corpus maison**, plus environ une heure pour M02 si elle est annotée à partir de zéro **[estimation, à partir des coûts publiés pour la vérification de références VoxConverse et des mesures de Broux et al., 2018]**. Le temps réel est noté dans le journal, car c'est en soi une donnée intéressante pour le rendu.
+
+### Amendement du 01/11/2026 (chaîne du chantier E2)
+
+| Point | Règle |
+|---|---|
+| Code du locuteur | Le texte de chaque label porte le code du locuteur (`S1`, `S2`…), ce qui rend la conversion indépendante du nom de la piste et de la manière d'exporter (un fichier pour toutes les pistes ou un par piste) |
+| Annonces de début et de fin | Couvertes par un label `exclusion` et retirées de l'UEM, en plus de la règle « clap + 1 s » |
+| Contrôle qualité | Les 2 min tirées au sort sont ré-annotées sans voir la pré-annotation ni la première annotation ; seule l'écoute des pistes d'aide alignées est permise |
+| Emplacement des références | RTTM et UEM dans `data/processed/maison/` (non versionné). Ils ne sont copiés dans `data/splits/maison/` (versionné) que pour un enregistrement dont tous les participants ont coché l'option 3 du formulaire de consentement. Cette information est consignée par enregistrement, sans aucun nom |
+

@@ -58,6 +58,18 @@ L'**UEM officiel est gardé pour toutes les variantes**, afin que seul le décou
 
 EXP-0008 n'est pas requalifiée ; son temps de calcul n'est pas exploité (`notes.md`).
 
+## Amendement du 01/11/2026 — charge de la machine et campagne de temps
+
+Statut : actée
+
+**Constat.** Depuis le 01/11, des sessions de développement tournent en parallèle des expériences (planning v2.0) : tests, navigateur, outils de l'agent. Le RTF de pyannote passe de 0,051 (EXP-0007) à 0,06–0,07 (contrôle D27, EXP-0016), alors que les métriques restent identiques à l'octet. L'alimentation sur secteur ne suffit donc plus à garantir un temps comparable.
+
+**Règles.**
+
+1. `run_experiment.py` relève aussi la charge moyenne de la machine (`sysctl vm.loadavg` sur macOS), aux mêmes instants que l'alimentation. Le relevé est consigné dans `execution_<device>.json`, et le bloc `temps` reçoit un champ `charge_concurrente` (vrai si la charge moyenne sur 1 min dépasse le nombre de cœurs de performance à un relevé au moins).
+2. Les métriques de qualité de toutes les expériences restent valides.
+3. Les temps rapportés dans le README, la synthèse et la démonstration viennent d'une **campagne de temps** dédiée : chaque moteur retenu traite un même sous-ensemble fixe (par exemple 3 réunions de SUMM-RE test et 3 d'AMI test), machine au repos, sur secteur, sans autre session ouverte. Elle a lieu après le gel et donne aussi les RTF de l'interface. Les temps des expériences antérieures restent consignés, sans être comparés à ceux de la campagne.
+
 ## Conséquences
 
 Fichiers concernés : `methode.md` (§2 et nouveau §4.7, faits par le cockpit), `protocole-eval.md` §3.5 (champ `conforme`), le script d'analyse `scripts/analyses/a0001_sensibilite_reference.py`, une option de `get_summre.py` pour générer une variante de référence, et `run_experiment.py` avec `evaluate.py` pour l'alimentation.
