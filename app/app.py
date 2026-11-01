@@ -34,6 +34,7 @@ import json
 import signal
 import threading
 import time
+from datetime import datetime
 from html import escape
 
 import gradio as gr
@@ -164,6 +165,16 @@ def _status_html(steps: list[str], state: dict[str, float], title: str, detail: 
     return (f'<div class="{root}"><div class="st-head" aria-live="polite">'
             f'<p class="st-title">{escape(title)}</p><span class="st-detail">{escape(detail)}</span></div>'
             f'{error_html}{bar}{steps_html}</div>')
+
+
+def _estimate_source(run: dict, fake: bool) -> str:
+    """Provenance de l'estimation du temps restant : RTF mesuré et surcoût fixe daté."""
+    text = f"RTF {_num(run['rtf'], 4)} mesuré par {run['measured'].exp_id}"
+    overhead = run.get("overhead")
+    if overhead is not None:
+        day = datetime.strptime(overhead.measured_on, "%Y-%m-%d").strftime("%d/%m/%Y")
+        return f"{text}, surcoût fixe {_num(overhead.seconds, 1)} s mesuré le {day}"
+    return text if fake else f"{text}, surcoût fixe non mesuré"
 
 
 def _step_fraction(steps: list[str], state: dict[str, float]) -> float:
@@ -621,10 +632,12 @@ def build_app(fake: bool = False, fake_max_s: float = 20.0, repo_root: Path = RE
                 run["measured"] = temps.measured_rtf(run["spec"].source_exp, run["device"],
                                                      moteurs.source_device(run["spec"], experiments), leaderboard)
                 run["rtf"] = run["measured"].rtf if run["measured"] else None
+                run["overhead"] = None if fake else moteurs.fixed_overhead(run["spec"].key, run["device"])
 
             def remaining_text() -> str:
                 remaining = temps.cumulative_remaining_s(
-                    [(run["rtf"], run["elapsed"], run["done"]) for run in runs], duration_s)
+                    [(run["rtf"], run["overhead"].seconds if run["overhead"] else 0.0, run["elapsed"], run["done"])
+                     for run in runs], duration_s)
                 scope = " pour les deux moteurs" if prefix and not runs[0]["done"] else ""
                 if remaining is None:
                     return "temps restant inconnu (RTF non mesuré sur ce périphérique)"
@@ -669,7 +682,7 @@ def build_app(fake: bool = False, fake_max_s: float = 20.0, repo_root: Path = RE
                         run["elapsed"] = time.perf_counter() - t0
                         measured = run["measured"]
                         detail = (f"{temps.format_duration(run['elapsed'])} écoulées, {remaining_text()}"
-                                  + (f" (RTF {_num(run['rtf'], 4)} mesuré par {measured.exp_id})" if measured else ""))
+                                  + (f" ({_estimate_source(run, fake)})" if measured else ""))
                         title = f"Analyse de {Path(audio_path).name} avec {spec.label}"
                         if prefix:
                             title += f" ({index}/{len(runs)})"

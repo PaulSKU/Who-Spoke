@@ -64,6 +64,19 @@ def test_etat_d_echec():
     assert "st-fail" not in interface._status_html(steps, state, "En cours")
 
 
+def test_provenance_de_l_estimation():
+    from types import SimpleNamespace
+
+    from app.moteurs import FixedOverhead
+
+    run = {"rtf": 0.0512, "measured": SimpleNamespace(exp_id="EXP-0007"),
+           "overhead": FixedOverhead(2.25, "2026-11-01")}
+    assert interface._estimate_source(run, fake=False) == (
+        "RTF 0,0512 mesuré par EXP-0007, surcoût fixe 2,2 s mesuré le 01/11/2026")
+    run["overhead"] = None
+    assert interface._estimate_source(run, fake=False).endswith("surcoût fixe non mesuré")
+    assert interface._estimate_source(run, fake=True) == "RTF 0,0512 mesuré par EXP-0007"
+
 def test_der_dans_les_deux_conditions_avec_mention_sans_uem(tmp_path):
     from pyannote.core import Annotation, Segment
 

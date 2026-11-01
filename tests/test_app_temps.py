@@ -60,6 +60,11 @@ def test_temps_restant():
     assert temps.remaining_s(0.05, 600.0, 10.0) == pytest.approx(20.0)
     assert temps.remaining_s(0.05, 600.0, 45.0) == 0.0
     assert temps.remaining_s(None, 600.0, 10.0) is None
+    # Surcoût fixe du premier appel ajouté à RTF × durée.
+    assert temps.remaining_s(0.05, 600.0, 10.0, overhead_s=3.0) == pytest.approx(23.0)
+    assert temps.announced_s(0.05, 600.0, 3.0) == pytest.approx(33.0)
+    assert temps.announced_s(0.05, 600.0) == pytest.approx(30.0)
+    assert temps.announced_s(None, 600.0, 3.0) is None
 
 
 @pytest.mark.parametrize("seconds, text", [
@@ -70,12 +75,15 @@ def test_format_des_durees(seconds, text):
 
 
 def test_temps_restant_cumule_de_deux_moteurs():
-    # 600 s d'audio, RTF 0,05 (30 s) puis 0,02 (12 s).
-    runs = [(0.05, 10.0, False), (0.02, None, False)]
+    # 600 s d'audio, RTF 0,05 (30 s) puis 0,02 (12 s), sans surcoût.
+    runs = [(0.05, 0.0, 10.0, False), (0.02, 0.0, None, False)]
     assert temps.cumulative_remaining_s(runs, 600.0) == pytest.approx(20.0 + 12.0)
-    assert temps.cumulative_remaining_s([(0.05, 31.0, True), (0.02, 4.0, False)], 600.0) == pytest.approx(8.0)
+    assert temps.cumulative_remaining_s([(0.05, 0.0, 31.0, True), (0.02, 0.0, 4.0, False)], 600.0) == pytest.approx(8.0)
     # Estimation du premier dépassée : il ne compte plus que pour 0.
-    assert temps.cumulative_remaining_s([(0.05, 40.0, False), (0.02, None, False)], 600.0) == pytest.approx(12.0)
+    assert temps.cumulative_remaining_s([(0.05, 0.0, 40.0, False), (0.02, 0.0, None, False)], 600.0) == pytest.approx(12.0)
     # RTF inconnu pour un moteur pas encore terminé : estimation impossible.
-    assert temps.cumulative_remaining_s([(0.05, 1.0, False), (None, None, False)], 600.0) is None
-    assert temps.cumulative_remaining_s([(None, 9.0, True), (0.02, 1.0, False)], 600.0) == pytest.approx(11.0)
+    assert temps.cumulative_remaining_s([(0.05, 0.0, 1.0, False), (None, 0.0, None, False)], 600.0) is None
+    assert temps.cumulative_remaining_s([(None, 0.0, 9.0, True), (0.02, 0.0, 1.0, False)], 600.0) == pytest.approx(11.0)
+    # Surcoûts fixes : 2 s pour le premier (en cours), 5 s pour le second (à venir).
+    runs = [(0.05, 2.0, 10.0, False), (0.02, 5.0, None, False)]
+    assert temps.cumulative_remaining_s(runs, 600.0) == pytest.approx(22.0 + 17.0)

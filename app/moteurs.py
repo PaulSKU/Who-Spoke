@@ -69,6 +69,25 @@ SPECS: dict[str, EngineSpec] = {
 }
 
 
+@dataclass(frozen=True)
+class FixedOverhead:
+    """Surcoût fixe du premier appel après chargement, ajouté à RTF × durée (app/temps.py)."""
+
+    seconds: float
+    measured_on: str          # AAAA-MM-JJ
+
+
+# Surcoût fixe par (moteur, périphérique) : durée du premier appel après chargement − RTF ×
+# durée, moyenne de 3 lancements (scripts/measure_overhead.py, 60 s de summre__004c_PAPH,
+# partition dev). À remesurer quand l'expérience source ou son RTF change.
+FIXED_OVERHEAD: dict[tuple[str, str], FixedOverhead] = {}
+
+
+def fixed_overhead(key: str, device: str) -> FixedOverhead | None:
+    """Surcoût fixe mesuré du moteur `key` sur `device`, ou None s'il n'a pas été mesuré."""
+    return FIXED_OVERHEAD.get((key, device))
+
+
 class EngineUnavailable(RuntimeError):
     """Moteur non utilisable en l'état (expérience source absente ou non exécutée)."""
 

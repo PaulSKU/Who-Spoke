@@ -6,8 +6,13 @@ périphérique choisi (D17, amendement 1) : `rtf_cpu` pour le CPU seul, `rtf` po
 périphérique de l'exécution principale de l'expérience. Pour une expérience exécutée en
 CPU, `rtf` sert de repli si `rtf_cpu` est vide (même périphérique). On prend la plus
 grande valeur entre dev et test, pour ne pas annoncer un temps trop court. Le RTF exclut
-le chargement des modèles : l'estimation ne porte que sur le calcul. C'est un affichage,
-pas une mesure au sens de D21 : un temps non conforme peut l'alimenter.
+le chargement des modèles et un préchauffage, et porte sur des réunions longues.
+
+Estimation (décision du cockpit du 01/11/2026) : surcoût fixe du moteur + RTF × durée. Le
+surcoût fixe, mesuré au premier appel après chargement (`scripts/measure_overhead.py`), est
+rangé avec sa date à côté de la correspondance des moteurs (`app.moteurs.FIXED_OVERHEAD`).
+Il est compté à chaque analyse, y compris quand le moteur est déjà chaud. C'est un
+affichage, pas une mesure au sens de D21 : un temps non conforme peut l'alimenter.
 """
 
 from __future__ import annotations
@@ -65,33 +70,42 @@ def measured_rtf(
     return None
 
 
-def remaining_s(rtf: float | None, duration_s: float, elapsed_s: float) -> float | None:
-    """Temps de calcul restant estimé (s) ; None sans RTF mesuré.
-
-    Estimation : RTF × durée de l'audio − temps déjà écoulé, jamais négative. Une fois
-    l'estimation dépassée, la valeur reste à 0 : l'interface l'indique comme telle.
-    """
+def announced_s(rtf: float | None, duration_s: float, overhead_s: float = 0.0) -> float | None:
+    """Temps de calcul annoncé (s) : surcoût fixe + RTF × durée ; None sans RTF mesuré."""
     if rtf is None:
         return None
-    return max(0.0, rtf * duration_s - elapsed_s)
+    return overhead_s + rtf * duration_s
 
 
-def cumulative_remaining_s(runs: list[tuple[float | None, float | None, bool]],
+def remaining_s(rtf: float | None, duration_s: float, elapsed_s: float,
+                overhead_s: float = 0.0) -> float | None:
+    """Temps de calcul restant estimé (s) ; None sans RTF mesuré.
+
+    Estimation : surcoût fixe + RTF × durée de l'audio − temps déjà écoulé, jamais
+    négative. Une fois l'estimation dépassée, la valeur reste à 0 : l'interface l'indique
+    comme telle.
+    """
+    announced = announced_s(rtf, duration_s, overhead_s)
+    return None if announced is None else max(0.0, announced - elapsed_s)
+
+
+def cumulative_remaining_s(runs: list[tuple[float | None, float, float | None, bool]],
                            duration_s: float) -> float | None:
     """Temps restant cumulé de plusieurs moteurs exécutés l'un après l'autre (D26, I5).
 
-    `runs` : pour chaque moteur, (RTF mesuré, temps écoulé depuis son démarrage ou None
-    s'il n'a pas démarré, terminé ?). Un moteur terminé ne compte plus ; un moteur en cours
-    compte pour RTF × durée − écoulé (jamais négatif) ; un moteur à venir pour RTF × durée.
-    None si un moteur non terminé n'a pas de RTF mesuré.
+    `runs` : pour chaque moteur, (RTF mesuré, surcoût fixe, temps écoulé depuis son
+    démarrage ou None s'il n'a pas démarré, terminé ?). Un moteur terminé ne compte plus ;
+    un moteur en cours compte pour surcoût + RTF × durée − écoulé (jamais négatif) ; un
+    moteur à venir pour surcoût + RTF × durée. None si un moteur non terminé n'a pas de RTF
+    mesuré.
     """
     total = 0.0
-    for rtf, elapsed, done in runs:
+    for rtf, overhead_s, elapsed, done in runs:
         if done:
             continue
         if rtf is None:
             return None
-        total += remaining_s(rtf, duration_s, elapsed or 0.0)
+        total += remaining_s(rtf, duration_s, elapsed or 0.0, overhead_s)
     return total
 
 
