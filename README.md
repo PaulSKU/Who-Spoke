@@ -10,8 +10,11 @@ Prérequis : [uv](https://docs.astral.sh/uv/) et l'exécutable `ffmpeg` accessib
 uv sync
 cp .env.example .env    # puis renseigner HF_TOKEN (jeton Hugging Face)
 uv run python scripts/check_env.py
+uv run python scripts/prefetch_models.py   # une fois, avec accès réseau : modèles aux révisions figées
 uv run pytest
 ```
+
+Le modèle pyannote est à accès restreint : accepter ses conditions sur le Hub Hugging Face avant le préchargement. Le script télécharge les modèles dans le cache Hugging Face, puis vérifie qu'ils se chargent hors ligne. Ensuite, aucun accès réseau n'est nécessaire.
 
 La suite par défaut exclut les tests lents. Le test de reproduction d'EXP-0001 (RTTM d'ES2004a identique à l'octet près, environ 1 min en MPS, `HF_TOKEN` et audio AMI requis) se lance à part, avant toute modification de l'enveloppe pyannote (D19, amendement 5) :
 
@@ -21,18 +24,40 @@ uv run pytest -m lent
 
 Le périphérique de calcul est choisi automatiquement (CUDA, puis MPS, puis CPU) et peut être forcé.
 
+## Lancer l'interface
+
+```bash
+uv run python -m app.app             # moteurs réels
+uv run python -m app.app --factice   # moteur factice, sans calcul (démonstration de l'interface seule)
+```
+
+Puis ouvrir http://127.0.0.1:7860 dans un navigateur. Le serveur est local : aucun lien public, aucune connexion vers l'extérieur. Les modèles sont lus dans le cache local, et la télémétrie des bibliothèques est coupée (D27). Il faut avoir lancé `scripts/prefetch_models.py` une fois auparavant. Options : `--port` pour changer de port ; `--depot` pour lire les expériences d'un autre dossier du dépôt.
+
+| Onglet | Rôle |
+|---|---|
+| Analyse | Dépôt d'un fichier audio de tout format ; choix du moteur (pyannote community-1, baseline MFCC, ECAPA ou WeSpeaker), du nombre de locuteurs (automatique, imposé ou fourchette) et du périphérique ; avancement avec temps restant ; forme d'onde et timeline des locuteurs, écoute d'un segment au clic, zoom ; statistiques et renommage des locuteurs ; exports RTTM et JSON. Avec une référence RTTM : DER décomposé et carte des erreurs. Option de comparaison de deux moteurs sur le même fichier |
+| Pipeline | Étapes et réglages effectifs de chaque moteur, en lecture seule, générés depuis les expériences et le catalogue |
+| Avancement | Expériences, verdicts, décomposition de l'erreur par les oracles, décisions et file d'attente, générés depuis le dépôt |
+| Glossaire | Vocabulaire du projet, lié depuis les autres onglets |
+
+Pour une réunion de 30 min, l'analyse prend environ 1 min 30 s avec pyannote en MPS, et moins d'une minute avec les baselines en CPU. Détails techniques, vérifications hors ligne et limites connues : `app/README.md`.
+
 ## Documentation
 
 | Document | Contenu |
 |---|---|
 | `docs/cadrage.md` | Décisions initiales D1 à D15, contraintes de la cible |
 | `docs/decisions/` | Décisions suivantes (D16 et au-delà) |
+| `docs/planning.md` | Planning du sprint et file d'attente des expériences |
 | `docs/methode.md` | Conventions, arborescence, formats |
 | `docs/protocole-eval.md` | Protocole d'évaluation figé |
 | `docs/corpus.md` | Fiche des corpus |
 | `docs/corpus-maison/` | Consentement, protocole d'enregistrement et conventions d'annotation du corpus maison |
 | `docs/glossaire.md` | Concepts et vocabulaire, dans l'ordre de lecture |
-| `docs/recherche/` | Recherche documentaire sur les corpus |
+| `docs/recherche/` | Recherche documentaire (corpus, veille sur les modèles) |
+| `docs/maquettes/` | Maquettes de l'interface |
+| `app/README.md` | Application de démonstration : fonctionnement, vérifications, limites |
+| `experiments/`, `analyses/` | Expériences et analyses a posteriori, avec leur interprétation (`notes.md`) |
 | `docs/journal.md` | Journal de bord |
 | `results/leaderboard.csv` | Une ligne par expérience et par jeu évalué |
 
@@ -42,17 +67,18 @@ Au 1er novembre 2026.
 
 | Chantier | État |
 |---|---|
-| Cadrage, méthode, protocole d'évaluation | Fait (D1 à D26 ; D24 et D25 réservées) |
+| Cadrage, méthode, protocole d'évaluation | Fait (D1 à D27 ; D24 et D25 réservées) |
 | Chaîne d'évaluation (DER, JER, chevauchement, nombre de locuteurs, bootstrap) | Faite, testée |
 | Corpus AMI, micro de salle (dev et test) | Préparé |
-| pyannote community-1 | Intégré ; résultat publié reproduit sur AMI (EXP-0001) |
-| Baseline classique (énergie, MFCC, regroupement) | Faite (EXP-0002) |
+| pyannote community-1 | Intégré ; résultat publié reproduit sur AMI (EXP-0001) ; modèle figé à une révision (D18) |
+| Baseline classique (énergie, MFCC, regroupement) | Faite (EXP-0002, EXP-0009) |
 | Diagnostics oracles (détection, nombre de locuteurs) | Faits (EXP-0003 à EXP-0006) |
 | Empreintes neuronales (D8, D22) | Faites (EXP-0010 à EXP-0015) : ECAPA retenue pour la baseline ; la parole manquée par la détection d'énergie devient l'erreur principale |
-| Moteurs supplémentaires (D23) | File d'attente : NeMo Sortformer v2, Nemotron 3 Diarization, puis comparaisons cloud |
-| SUMM-RE (validation en français) | Préparé (dev 36, test 37 réunions) ; pyannote, oracle et baseline évalués (EXP-0007 à EXP-0009) |
-| Corpus maison (3 réunions en français) | Documents prêts ; enregistrements à faire |
-| Interface de démonstration (D17, D26) | Onglets Analyse, Pipeline, Avancement et Glossaire faits avec un moteur factice (branche `interface`) ; fusion et essai avec les vrais moteurs à faire |
+| Analyses a posteriori | A-0001 : sensibilité de la référence de SUMM-RE à la convention de découpage |
+| Moteurs supplémentaires (D23) | File d'attente : NeMo Sortformer v2 (prochain), Nemotron 3 Diarization, puis comparaisons cloud |
+| SUMM-RE (validation en français) | Préparé (dev 36, test 37 réunions) ; pyannote, oracle et baselines MFCC, ECAPA et WeSpeaker évalués (EXP-0007 à EXP-0009, EXP-0012, EXP-0015) |
+| Corpus maison (3 réunions en français) | Documents prêts ; enregistrements prévus les 4 et 5 novembre |
+| Interface de démonstration (D17, D26) | Faite et fusionnée : onglets Analyse, Pipeline, Avancement et Glossaire ; essai avec les vrais moteurs et fonctionnement hors ligne vérifiés (D27) |
 
 Résultats sur les partitions de test, chevauchements comptés :
 
