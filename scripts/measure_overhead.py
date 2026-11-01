@@ -51,6 +51,7 @@ from pathlib import Path
 REPO_ROOT = Path(__file__).resolve().parents[1]
 SCRIPT = Path(__file__).resolve()
 PROCESSED = REPO_ROOT / "data" / "processed" / "summre"
+sys.path.insert(0, str(REPO_ROOT))   # paquet `app` (moteurs de l'application)
 
 ENGINES = (
     ("baseline-mfcc", "cpu"),
