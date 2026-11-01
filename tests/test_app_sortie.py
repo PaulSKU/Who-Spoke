@@ -111,3 +111,56 @@ def test_lecture_d_une_reference(tmp_path):
     path.write_text("")
     with pytest.raises(ValueError, match="aucune"):
         sortie.read_reference(path)
+
+
+# --- Carte des erreurs (D26, chantier I4) -----------------------------------------------
+
+
+def assert_same_as_der(reference, hypothesis, duration):
+    """Les durées de la carte, sans collar, redonnent exactement les composantes du DER."""
+    errors = sortie.error_map(reference, hypothesis, duration)
+    der = sortie.der_report(reference, hypothesis, duration)["collar_0"]
+    totals = errors["totaux"]
+    assert totals["manquee"] == der["manquee_s"]
+    assert totals["fausse_alarme"] == der["fausse_alarme_s"]
+    assert totals["confusion"] == der["confusion_s"]
+    assert totals["reference"] == der["duree_reference_s"]
+    return errors, der
+
+
+def test_carte_des_erreurs_cas_construit():
+    # A parle 0–4, B 3–8 (chevauchement 3–4) ; l'hypothèse ne voit qu'un locuteur X sur
+    # 0–6, puis Y sur 7–10 (B jusqu'à 8, puis silence de référence).
+    reference = annotation([(0.0, 4.0, "A"), (3.0, 8.0, "B")], uri="ref")
+    hypothesis = annotation([(0.0, 6.0, "X"), (7.0, 10.0, "Y")])
+    errors, der = assert_same_as_der(reference, hypothesis, 12.0)
+    totals = errors["totaux"]
+    # Appariement optimal : X↔A (4 s communes), Y↔B (1 s commune).
+    # Manquée : B pendant le chevauchement 3–4 (X n'en couvre qu'un) et B sur 6–7 ; fausse
+    # alarme : Y sur 8–10 ; confusion : X attribué à A pendant que seul B parle (4–6).
+    assert totals["manquee"] == pytest.approx(2.0)
+    assert totals["fausse_alarme"] == pytest.approx(2.0)
+    assert totals["confusion"] == pytest.approx(2.0)
+    kinds = {(z["type"], z["debut"], z["fin"]) for z in errors["zones"]}
+    assert ("confusion", 4.0, 6.0) in kinds and ("fausse_alarme", 8.0, 10.0) in kinds
+    confusion = next(z for z in errors["zones"] if z["type"] == "confusion")
+    assert confusion["reference"] == "B" and confusion["hypothese"] == "X"   # noms d'origine
+
+
+def test_carte_vide_pour_une_hypothese_parfaite():
+    errors, _ = assert_same_as_der(HYP, HYP, 10.0)
+    assert errors["zones"] == []
+
+
+def test_carte_des_erreurs_annotations_aleatoires():
+    rng = np.random.default_rng(0)
+    for case in range(25):
+        def random_annotation(labels, uri):
+            turns = []
+            for _ in range(int(rng.integers(3, 12))):
+                start = float(np.round(rng.uniform(0, 55), 3))
+                turns.append((start, round(start + float(rng.uniform(0.2, 8)), 3), str(rng.choice(labels))))
+            return annotation(turns, uri=uri)
+        reference = random_annotation(["A", "B", "C"], "ref")
+        hypothesis = random_annotation(["S0", "S1", "S2", "S3"], "hyp")
+        assert_same_as_der(reference, hypothesis, 50.0)        # la référence déborde : coupée

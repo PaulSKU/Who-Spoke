@@ -159,9 +159,7 @@ def der_report(reference: Annotation, hypothesis: Annotation, duration_s: float)
     Mêmes métriques que le protocole (`DiarizationEvaluator`), dans les deux conditions
     de collar, chevauchements comptés ; l'UEM est l'audio analysé, de 0 à sa durée.
     """
-    uem = Timeline([Segment(0.0, duration_s)])
-    reference = reference.crop(uem, mode="intersection")
-    reference.uri = hypothesis.uri
+    reference, uem = _evaluation_inputs(reference, hypothesis, duration_s)
     if reference.get_timeline().duration() == 0.0:
         raise ValueError("La référence ne contient aucune parole dans l'audio analysé")
     result = DiarizationEvaluator().add(reference, hypothesis, uem=uem)
@@ -169,6 +167,86 @@ def der_report(reference: Annotation, hypothesis: Annotation, duration_s: float)
         "zones": result["zones"],
         "n_locuteurs": result["n_locuteurs"],
     }
+
+
+# Carte des erreurs (D26, chantier I4) : statuts de pyannote.metrics et noms affichés.
+ERROR_TYPES = {"missed detection": "manquee", "false alarm": "fausse_alarme", "confusion": "confusion"}
+
+
+def _evaluation_inputs(reference: Annotation, hypothesis: Annotation, duration_s: float):
+    """Référence coupée à l'audio et UEM, exactement comme `der_report`."""
+    uem = Timeline([Segment(0.0, duration_s)])
+    reference = reference.crop(uem, mode="intersection")
+    reference.uri = hypothesis.uri
+    return reference, uem
+
+
+def error_map(reference: Annotation, hypothesis: Annotation, duration_s: float) -> dict:
+    """Carte des erreurs sans collar, chevauchements comptés, après appariement optimal.
+
+    Reprend pas à pas `DiarizationErrorRate.compute_components` de pyannote.metrics
+    (restriction à l'UEM, étiquettes renommées, appariement hongrois `optimal_mapping`),
+    puis `IdentificationErrorAnalysis.difference` sur l'hypothèse appariée, qui donne le
+    statut de chaque segment. Les durées sont cumulées segment par segment comme le fait
+    le DER (durée × nombre d'erreurs du segment) : elles redonnent ses composantes.
+
+    Renvoie `{"totaux": {manquee, fausse_alarme, confusion, reference} en s,
+    "zones": [{type, debut, fin, reference, hypothese}]}` ; zones contiguës de même type
+    et de mêmes locuteurs fusionnées pour l'affichage ; noms d'origine des locuteurs.
+    """
+    from pyannote.metrics.diarization import DiarizationErrorRate
+    from pyannote.metrics.errors.identification import IdentificationErrorAnalysis
+
+    reference, uem = _evaluation_inputs(reference, hypothesis, duration_s)
+    metric = DiarizationErrorRate(collar=0.0, skip_overlap=False)
+    reference, hypothesis, uem = metric.uemify(reference, hypothesis, uem=uem, collar=0.0,
+                                               skip_overlap=False, returns_uem=True)
+    ref_names = {}
+    renamed_ref = reference.rename_labels(generator="string")
+    for (segment, track, label), (_, _, new) in zip(reference.itertracks(yield_label=True),
+                                                    renamed_ref.itertracks(yield_label=True)):
+        ref_names[new] = label
+    hyp_names = {}
+    renamed_hyp = hypothesis.rename_labels(generator="int")
+    for (_, _, label), (_, _, new) in zip(hypothesis.itertracks(yield_label=True),
+                                          renamed_hyp.itertracks(yield_label=True)):
+        hyp_names[new] = label
+    mapping = metric.optimal_mapping(renamed_ref, renamed_hyp)
+    mapped = renamed_hyp.rename_labels(mapping=mapping)
+    errors = IdentificationErrorAnalysis(collar=0.0, skip_overlap=False).difference(renamed_ref, mapped, uem=uem)
+
+    # Étiquette de l'hypothèse appariée -> nom d'origine (appariée : étiquette de référence).
+    inverse = {ref: hyp for hyp, ref in mapping.items()}
+
+    def hyp_name(label):
+        if label is None:
+            return None
+        return hyp_names.get(inverse.get(label, label), str(label))
+
+    totals = {"manquee": 0.0, "fausse_alarme": 0.0, "confusion": 0.0}
+    counts: dict[Segment, dict[str, int]] = {}
+    zones: list[dict] = []
+    for segment, _, (status, ref, hyp) in errors.itertracks(yield_label=True):
+        kind = ERROR_TYPES.get(status)
+        if kind is None:
+            continue
+        counts.setdefault(segment, {}).setdefault(kind, 0)
+        counts[segment][kind] += 1
+        zone = {"type": kind, "debut": segment.start, "fin": segment.end,
+                "reference": ref_names.get(ref) if ref is not None else None, "hypothese": hyp_name(hyp)}
+        previous = next((z for z in reversed(zones) if z["type"] == kind
+                         and z["reference"] == zone["reference"] and z["hypothese"] == zone["hypothese"]), None)
+        if previous is not None and abs(previous["fin"] - zone["debut"]) < 1e-9:
+            previous["fin"] = zone["fin"]
+        else:
+            zones.append(zone)
+    for segment, by_kind in counts.items():
+        for kind, count in by_kind.items():
+            totals[kind] += segment.duration * count
+    totals["reference"] = metric(reference, hypothesis, uem=uem, detailed=True)["total"]
+    for zone in zones:
+        zone["debut"], zone["fin"] = round(zone["debut"], 3), round(zone["fin"], 3)
+    return {"totaux": totals, "zones": sorted(zones, key=lambda z: (z["debut"], z["type"]))}
 
 
 def write_exports(directory: Path, stem: str, rttm: str, json_text: str) -> tuple[Path, Path]:
