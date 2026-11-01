@@ -389,3 +389,16 @@ Résultats : aucune expérience.
 Décisions : aucune.
 Problèmes : les amendements sans ligne `Statut :` propre (D18 du 28/10, D19, D20, D22) s'affichent « statut non indiqué ». `docs/planning.md` n'est pas encore versionné dans le dépôt principal : l'onglet le lit tel qu'il est sur disque.
 Suite : en-têtes des `notes.md` par le cockpit ; chantier I3 (glossaire intégré).
+
+## 2026-11-01 — D26 : glossaire intégré (chantier I3), branche `interface` (Claude Code)
+
+Objectif : chantier I3 de D26 (onglet Glossaire, renvois des termes depuis les autres onglets), mêmes règles qu'I1 et I2.
+Réalisé :
+- `app/glossaire.py` : lecture de `docs/glossaire.md` (termes `###`, champs, parties `##`, introduction ; une ligne `---` clôt la partie en cours) ; onglet Glossaire avec index, une ancre par terme et renvois entre définitions (jamais vers soi-même).
+- Renvois automatiques dans les onglets Analyse (titres, avancement, tableaux des locuteurs, des temps et du DER), Pipeline et Avancement : première occurrence par bloc (paragraphe, cellule, élément de liste, titre) ; jamais dans du code, un bouton, un lien ni un attribut. Variantes tirées des titres du glossaire (terme français, termes anglais en italique, éléments entre parenthèses contenant une majuscule ; un qualificatif comme « (système) » écarté). Mot entier seulement, y compris face aux identifiants et expressions (`der_c0`, `clustering.threshold`, `VBxClustering`, `collar=0.5`) ; pluriel accepté ; variante la plus longue d'abord ; sigles sensibles à la casse. `app/static/glossaire.js` : un clic ouvre l'onglet Glossaire sur la définition, mise en évidence.
+- 12 tests sur un glossaire fabriqué (lecture, variantes, sous-chaînes, casse, pluriels, priorité au plus long, blocs, zones exclues, HTML préservé, ancres) et sur le glossaire du dépôt. Suite sans les trois fichiers qui chargent des modèles : 217 réussis, 1 ignoré.
+- Vérifié dans le navigateur avec `--depot ~/Dev/Who-Spoke` : 23 termes ; 22 renvois dans l'onglet Analyse après une analyse avec référence, 33 dans Pipeline, 40 dans Avancement, aucun dans du code ou un bouton ; saut vers « Fausse alarme » depuis le tableau du DER. Corrigé pendant la vérification : marge intérieure que Gradio impose aux liens. Toutes les requêtes vers 127.0.0.1.
+Résultats : aucune expérience.
+Décisions : aucune.
+Problèmes : les formes abrégées ne sont pas reconnues (« Confusion » seul, en-tête du tableau du DER, ne renvoie pas à « Confusion de locuteur » ; « Détection de parole » pas à « Détection d'activité vocale ») ; les libellés des composants Gradio et la timeline n'ont pas de renvois.
+Suite : chantier I4 (carte des erreurs).

@@ -61,6 +61,23 @@ Récapitulatif de la conduite du projet, régénéré à chaque ouverture de l'o
 
 Un `notes.md` sans en-tête s'affiche « en-tête manquant », un en-tête mal formé « en-tête illisible » ; un `id` qui ne correspond pas au dossier ou un verdict hors de la liste de D26 §2 sont signalés à côté de la question. Un résultat portant un bloc `invalidee` est marqué « invalidée ». Au 01/11, sur le dépôt principal, les 16 `notes.md` sont sans en-tête.
 
+## Glossaire intégré (D26, chantier I3)
+
+Onglet Glossaire généré depuis `docs/glossaire.md` de la racine `--depot` (`app/glossaire.py`) : introduction, index des termes, parties, une ancre par terme (`gl-<terme sans accents>`, par exemple `gl-parole-manquee`) ; les définitions renvoient entre elles, jamais à elles-mêmes.
+
+Renvois dans les onglets Analyse (titres, panneau d'avancement, tableaux des locuteurs, des temps et du DER), Pipeline et Avancement : chaque terme du glossaire est lié à sa définition, à sa première occurrence dans chaque bloc (paragraphe, cellule, élément de liste, titre). Un clic ouvre l'onglet Glossaire sur la définition (`app/static/glossaire.js`) ; le survol l'affiche en infobulle. Correspondance automatique, sans liste tenue à la main :
+
+| Règle | Exemple |
+|---|---|
+| Variantes d'un terme : terme français, termes anglais en italique, éléments entre parenthèses contenant une majuscule | « VAD » renvoie à « Détection d'activité vocale », « Sortformer » à « Bout en bout » ; « (système) » dans « Hybride (système) » n'est pas une variante |
+| Mot entier seulement, jamais dans un identifiant ou une expression | rien dans `der_c0`, `clustering.threshold`, `VBxClustering`, `collar=0.5` ; « DER sans collar » donne deux liens, DER et collar |
+| Pluriel accepté mot à mot | « Empreintes vocales », « chevauchements » |
+| Plus long d'abord à une même position | « Parole manquée » plutôt que « Parole » si les deux sont des termes |
+| Sigles sensibles à la casse, autres termes non | « DER » oui, « der » non ; « Regroupement » et « regroupement » oui |
+| Jamais dans du code, un bouton, un lien ni un attribut | les boutons d'étape de l'onglet Pipeline et les libellés des composants Gradio (listes, cases) ne sont pas liés |
+
+Limites. Les libellés des composants Gradio (« Moteur », « Nombre de locuteurs »…) et la timeline dessinée en JavaScript ne portent pas de renvois. Un terme qui n'apparaît dans l'interface que sous une forme abrégée n'est pas reconnu : « Confusion » seul (en-tête du tableau du DER) ne renvoie pas à « Confusion de locuteur », « Détection de parole » ne renvoie pas à « Détection d'activité vocale ».
+
 ## Fonctionnement hors ligne et dossiers temporaires (D17, amendement 1)
 
 | Point | Comportement | Où |
@@ -80,6 +97,7 @@ Un `notes.md` sans en-tête s'affiche « en-tête manquant », un en-tête mal f
 | Thème (teintes neutres, polices système) et feuille de style | `app/theme.py`, `app/static/interface.css` |
 | Onglet Pipeline | `app/pipeline.py`, `app/static/pipeline.js` |
 | Onglet Avancement | `app/avancement.py` |
+| Onglet Glossaire et renvois | `app/glossaire.py`, `app/static/glossaire.js` |
 
 ## Principes d'affichage
 
