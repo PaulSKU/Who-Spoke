@@ -81,7 +81,8 @@ def test_message_si_modele_absent_du_cache():
             raise RuntimeError("chargement impossible") from cause
     except RuntimeError as error:
         message = moteurs.missing_model_message(error, spec)
-    assert "absent du cache local" in message and "HF_HUB_OFFLINE=1" in message and "EXP-0007" in message
+    assert "absent du cache local" in message and "HF_HUB_OFFLINE=1" in message
+    assert "scripts/prefetch_models.py" in message
     assert moteurs.missing_model_message(ValueError("autre"), spec) is None
 
 

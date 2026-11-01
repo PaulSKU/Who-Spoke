@@ -35,6 +35,7 @@ from whospoke.experiment import REPO_ROOT, load_rttm
 from whospoke.pipelines.base import Engine, Progress, Resultat, Setting
 
 EXPERIMENTS_DIR = REPO_ROOT / "experiments"
+PREFETCH_COMMAND = "uv run python scripts/prefetch_models.py"
 
 BASELINE_STEPS = (
     "analyse", "normalisation_cepstrale", "detection", "segmentation",
@@ -143,7 +144,7 @@ def missing_model_message(error: BaseException, spec: EngineSpec) -> str | None:
             return (
                 f"Modèle de {spec.label} absent du cache local. L'application fonctionne hors ligne "
                 "(HF_HUB_OFFLINE=1) et ne télécharge rien. Remplissez le cache une fois, avec accès "
-                f"réseau et HF_TOKEN dans .env (par exemple en exécutant {spec.source_exp}), puis relancez."
+                f"réseau et HF_TOKEN dans .env : {PREFETCH_COMMAND}, puis relancez l'application."
             )
         current = current.__cause__ or current.__context__
     return None
