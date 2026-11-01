@@ -21,7 +21,9 @@ les paquets installés par uv.lock) :
   pyannoteai (client du service payant de pyannote) n'est jamais appelé.
 
 Tout moteur ajouté (D23) complète cette liste avant son intégration, ainsi que
-`docs/methode.md` §7.
+`docs/methode.md` §7. Les moteurs en environnement séparé (Nemotron 3, DiariZen ;
+inventaire du 01/11/2026, chantier E4) reçoivent en plus les variables de
+`whospoke.pipelines.externe.CHILD_ENV`.
 """
 
 from __future__ import annotations

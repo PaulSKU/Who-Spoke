@@ -319,6 +319,125 @@ moteurs:
       composantes: [parole manquée]
       decision: D19
 
+  # Moteurs externes, en sous-processus dans un environnement séparé (D23 §1 ; chantier E4).
+  nemotron3-diarization:
+    nemotron.modele:
+      libelle: Modèle
+      etape: detection
+      effet: "Un seul réseau de bout en bout (Sortformer) détecte la parole et attribue chaque trame à une sortie de locuteur, chevauchements compris ; aucune étape d'empreintes ni de regroupement séparée."
+      composantes: [parole manquée, fausse alarme, confusion]
+      decision: D23
+    nemotron.seuil:
+      libelle: Seuil d'activité
+      etape: detection
+      effet: "Une trame est attribuée à un locuteur si sa probabilité dépasse ce seuil : plus haut, moins de fausse alarme et plus de parole manquée."
+      composantes: [parole manquée, fausse alarme]
+      decision: D23
+    nemotron.trame_s:
+      libelle: Durée d'une trame
+      etape: detection
+      effet: "Résolution temporelle des décisions ; borne la précision des frontières."
+      composantes: [frontières]
+      decision: D23
+    nemotron.locuteurs_max:
+      libelle: Nombre maximal de locuteurs
+      etape: regroupement
+      effet: "Le modèle a 8 sorties : au-delà de 8 personnes, des locuteurs sont fusionnés."
+      composantes: [nb de locuteurs, confusion]
+      decision: D23
+    nemotron.n_locuteurs:
+      libelle: Nombre de locuteurs
+      etape: regroupement
+      effet: "Estimé par le modèle (sorties actives) ; il ne peut être ni imposé ni borné, donc pas d'expérience oracle pour ce moteur."
+      composantes: [nb de locuteurs]
+      decision: D23
+    nemotron.mode:
+      libelle: Mode d'inférence
+      etape: sortie
+      effet: "Hors ligne : le fichier entier est traité, avec le cache de locuteurs par ordre d'arrivée ; le mode en flux n'est pas évalué."
+      composantes: [aucun effet sur le DER]
+      decision: D23
+    nemotron.environnement:
+      libelle: Environnement d'exécution
+      etape: sortie
+      effet: "Environnement séparé et versions des bibliothèques ; le périphérique change le temps, pas le résultat attendu."
+      composantes: [temps]
+      decision: D23
+
+  diarizen:
+    diarizen.modele:
+      libelle: Modèle de segmentation
+      etape: segmentation
+      effet: "WavLM Large élagué et Conformer : repère sur chaque fenêtre jusqu'à 4 locuteurs simultanés et la parole ; remplace la segmentation de pyannote 3.1."
+      composantes: [parole manquée, fausse alarme]
+      decision: D23
+    diarizen.code:
+      libelle: Version du code
+      etape: segmentation
+      effet: "Commit figé du dépôt DiariZen (et de son fork de pyannote 3.1) : le résultat dépend aussi du code d'inférence."
+      composantes: [aucun effet sur le DER]
+      decision: D23
+    diarizen.duree_fenetre_s:
+      libelle: Durée des fenêtres
+      etape: segmentation
+      effet: "Fenêtres glissantes analysées par le réseau ; dans chacune, les locuteurs sont locaux et reliés ensuite par les empreintes."
+      composantes: [confusion]
+      decision: D23
+    diarizen.pas_fenetre:
+      libelle: Pas des fenêtres
+      etape: segmentation
+      effet: "Fraction de fenêtre entre deux analyses ; plus petit, plus de recouvrement et plus de calcul."
+      composantes: [frontières, temps]
+      decision: D23
+    diarizen.filtre_median:
+      libelle: Filtre médian
+      etape: segmentation
+      effet: "Lisse les décisions trame par trame avant le regroupement : supprime les changements de très courte durée."
+      composantes: [frontières]
+      decision: D23
+    diarizen.empreintes:
+      libelle: Modèle d'empreintes
+      etape: empreintes
+      effet: "WeSpeaker ResNet34 (le même que pyannote 3.1) : un vecteur par locuteur local et par fenêtre."
+      composantes: [confusion]
+      decision: D23
+    diarizen.empreintes_hors_chevauchement:
+      libelle: Empreintes hors chevauchement
+      etape: empreintes
+      effet: "Les empreintes ne sont calculées que sur la parole d'un seul locuteur, pour ne pas mélanger deux voix."
+      composantes: [confusion]
+      decision: D23
+    diarizen.regroupement:
+      libelle: Méthode de regroupement
+      etape: regroupement
+      effet: "VBx avec PLDA, initialisé par un regroupement hiérarchique, comme dans pyannote 3.1."
+      composantes: [confusion, nb de locuteurs]
+      decision: D23
+    diarizen.seuil_ahc:
+      libelle: Seuil du regroupement initial
+      etape: regroupement
+      effet: "Distance sous laquelle deux groupes sont réunis avant VBx : plus haut, moins de locuteurs."
+      composantes: [nb de locuteurs, confusion]
+      decision: D23
+    diarizen.vbx_fa_fb:
+      libelle: Paramètres de VBx (Fa, Fb)
+      etape: regroupement
+      effet: "Poids des empreintes (Fa) et pénalité sur le nombre de locuteurs (Fb) ; Fb plus haut, moins de locuteurs."
+      composantes: [nb de locuteurs, confusion]
+      decision: D23
+    diarizen.n_locuteurs:
+      libelle: Nombre de locuteurs
+      etape: regroupement
+      effet: "Estimé entre les bornes de la configuration, borné, ou imposé par fichier (expérience oracle)."
+      composantes: [nb de locuteurs]
+      decision: D23
+    diarizen.environnement:
+      libelle: Environnement d'exécution
+      etape: sortie
+      effet: "Environnement séparé et versions des bibliothèques ; le périphérique change le temps, pas le résultat attendu."
+      composantes: [temps]
+      decision: D23
+
 # Réglages communs à tous les moteurs, décrits par le code hors des moteurs
 # (`whospoke.audio.describe_normalisation`) : étape Normalisation de la page Pipeline
 # (D26, amendement du 01/11).
