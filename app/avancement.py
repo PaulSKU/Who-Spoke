@@ -429,6 +429,10 @@ def _queue_html(queue: list[QueueRow]) -> str:
             'dossiers d\'expériences et les fiches présentes.</p>')
 
 
+def _count(n: int, word: str) -> str:
+    return f"{n} {word}{'s' if n > 1 else ''}"
+
+
 def render(root: Path) -> dict[str, str]:
     """Sections HTML de l'onglet, chacune autonome."""
     items = read_items(root)
@@ -436,8 +440,9 @@ def render(root: Path) -> dict[str, str]:
     queue = read_queue(root, items)
     experiments = [i for i in items if i.kind == "experience"]
     missing = [i.id for i in items if i.header.status != "ok"]
-    summary = (f"{len(experiments)} expériences, {len(items) - len(experiments)} analyses, "
-               f"{len(decisions)} décisions. En-têtes de notes.md manquants ou illisibles : "
+    analyses = len(items) - len(experiments)
+    summary = (f"{_count(len(experiments), 'expérience')}, {_count(analyses, 'analyse')}, "
+               f"{_count(len(decisions), 'décision')}. En-têtes de notes.md manquants ou illisibles : "
                f"{len(missing)} sur {len(items)}.")
     return {
         "resume": f'<p class="pl-meta">{escape(summary)} Lu dans <code>{escape(str(root))}</code>.</p>',

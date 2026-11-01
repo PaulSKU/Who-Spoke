@@ -166,3 +166,23 @@ def test_lecture_seule(depot):
     av.render(depot)
     av.notes_markdown(depot, "EXP-0002")
     assert sorted((str(p), p.stat().st_mtime_ns) for p in depot.rglob("*")) == before
+
+
+def test_resume_accorde(depot):
+    resume = av.render(depot)["resume"]
+    assert "5 expériences, 1 analyse, 5 décisions" in resume
+
+
+def test_depot_principal_complet_si_present():
+    """Avec les en-têtes et les statuts ajoutés au dépôt principal (D26, amendement du
+    01/11), plus aucun « en-tête manquant » ni « statut non indiqué »."""
+    from whospoke.experiment import REPO_ROOT
+
+    main = REPO_ROOT.parent / "Who-Spoke"
+    if not (main / "experiments").is_dir():
+        pytest.skip("dépôt principal absent")
+    items = av.read_items(main)
+    if not any(i.header.status == "ok" for i in items):
+        pytest.skip("en-têtes pas encore ajoutés dans ce dépôt")
+    assert [i.id for i in items if i.header.status != "ok" or i.header.problems] == []
+    assert [(d.number, t) for d in av.read_decisions(main) for t, s in d.amendments if s == "statut non indiqué"] == []
