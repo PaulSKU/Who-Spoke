@@ -24,8 +24,7 @@ uv run python scripts/prefetch_models.py --verifier   # vérification hors ligne
 
 | Dépôt | Révision | Moteurs |
 |---|---|---|
-| `pyannote/speaker-diarization-community-1` | `main` | pyannote community-1 (segmentation, empreintes, PLDA) |
-| `pyannote/speaker-diarization-community-1` | `3533c8c…` (figée) | baseline WeSpeaker : WeSpeakerResNet34 est le sous-dossier `embedding` de community-1, pas un dépôt séparé |
+| `pyannote/speaker-diarization-community-1` | `3533c8c…` (figée, D18 amendement du 01/11) | pyannote community-1 (segmentation, empreintes, PLDA) et baseline WeSpeaker : WeSpeakerResNet34 est le sous-dossier `embedding` de community-1, pas un dépôt séparé |
 | `speechbrain/spkrec-ecapa-voxceleb` | `0f99f2d…` (figée) | baseline ECAPA |
 
 La baseline MFCC n'utilise aucun modèle. Le script vérifie ensuite, dans un processus séparé avec `HF_HUB_OFFLINE=1` et un dossier courant vide, que chaque modèle se charge sans réseau et que rien n'est écrit dans le dossier de lancement. Les fichiers d'ECAPA sont lus en place dans le cache, jamais copiés dans un `pretrained_models/` du dossier courant (`whospoke.embeddings.ecapa_load_options`).
@@ -163,15 +162,23 @@ Contrôle refait après la refonte visuelle du même jour : 88 requêtes, toutes
 | Navigateur | Liste des requêtes de la page (outil réseau du navigateur et `performance.getEntriesByType`) pendant un parcours complet : chargement, dépôt d'un mp3 et d'une référence, analyse, écoute de segments, renommage, exports | Plus d'une centaine de requêtes, toutes vers `http://127.0.0.1:7860`. Polices du thème (Source Sans Pro, IBM Plex Mono) servies par Gradio depuis `/static/fonts/` ; wavesurfer.js depuis `app/static/` ; audio lu par requêtes partielles (206) |
 | Serveur | Hook d'audit Python (`sys.addaudithook`) sur `socket.connect`, `socket.getaddrinfo`, `socket.sendto`, `socket.gethostbyname`, sur trois sessions de l'application | Seules connexions : `127.0.0.1:7860` (vérification de démarrage de Gradio), deux par session |
 
-Réglages qui y contribuent : `GRADIO_ANALYTICS_ENABLED=False` posé avant l'import de Gradio, thème à polices système uniquement (`app/theme.py`), `share=False`, `ssr_mode=False`, `mcp_server=False`.
+Réglages qui y contribuent : `PYANNOTE_METRICS_ENABLED=false` (télémétrie de pyannote.audio, constatée au chantier V), `GRADIO_ANALYTICS_ENABLED=False` posé avant l'import de Gradio, thème à polices système uniquement (`app/theme.py`), `share=False`, `ssr_mode=False`, `mcp_server=False`.
 
-## Reste à vérifier avec les vrais moteurs
+## Vérification avec les vrais moteurs (chantier V de D26, 01/11/2026)
 
-Aucun modèle neuronal n'a été chargé pendant le développement (lot d'expériences EXP-0013 à EXP-0015 en cours). Après le lot :
+Branche `interface` fusionnée dans `main` ; `uv run pytest` complet : 258 réussis, plus le test lent de reproduction d'EXP-0001, réussi avant et après le figeage de pyannote. Machine sur secteur, aucune expérience en cours. Application réelle lancée par `uv run python -m app.app`, sous relevé d'audit Python des connexions (`socket.connect`, `socket.getaddrinfo`), navigateur contrôlé par `performance.getEntriesByType`.
 
-1. Suite de tests complète (`uv run pytest`), dont les fichiers qui chargent ECAPA, WeSpeaker et pyannote.
-2. `uv run python scripts/prefetch_models.py` : téléchargement réel puis vérification hors ligne des trois chargements (le script n'a été testé qu'avec des téléchargements et chargements simulés).
-3. Analyse réelle de l'extrait de 3 min avec chacun des moteurs, sous relevé d'audit réseau : aucune connexion hors `127.0.0.1` avec `HF_HUB_OFFLINE=1` ; durée de chargement des modèles ; temps restant annoncé face au temps réel.
-4. Modèle absent du cache : vider ou renommer temporairement le cache d'un modèle et vérifier que l'erreur levée est bien reconnue (`LocalEntryNotFoundError` ou `OfflineModeIsEnabled` dans la chaîne des causes) et affichée telle quelle. Point d'incertitude : pyannote peut renvoyer `None` au lieu de lever **[incertain]**. Le cas speechbrain (`pretrained_models/` du dossier courant) est écarté par `ecapa_load_options`.
-5. Fourchette min–max de pyannote et nombre imposé pour la baseline sur un vrai moteur (le moteur factice les ignore).
-6. Zoom au maximal sur une réunion de 30 min : fluidité et mémoire.
+| Contrôle | Résultat |
+|---|---|
+| Révisions | Un seul instantané de community-1 dans le cache (`3533c8c…`, `refs/main` y pointe) ; pyannote figé à ce commit ; `configuration_effective` consigne `…@3533c8c…` pour la segmentation, les empreintes et la PLDA de pyannote et pour WeSpeaker, `…@0f99f2d…` pour ECAPA. Les exécutions antérieures (EXP-0001, EXP-0007) ne consignent pas de révision : l'onglet Pipeline affiche pour pyannote « révision non consignée » jusqu'à la prochaine expérience |
+| `scripts/prefetch_models.py` | Réussi : deux dépôts aux révisions figées, puis chargement des trois modèles hors ligne depuis un dossier vide, sans `pretrained_models/` |
+| Réseau, première séance | **Une connexion sortante** : `otel.pyannote.ai:443` (51.45.22.112), télémétrie OpenTelemetry de pyannote.audio 4, active par défaut (chargement des modèles et pipelines, durée des fichiers, nombre de locuteurs demandé ; pas d'audio). `HF_HUB_OFFLINE=1` ne la coupe pas. Corrigé : `PYANNOTE_METRICS_ENABLED=false` posé au lancement (`app/travail.py`) et dans la vérification du préchargement |
+| Réseau, après correction | Quatre séances (pyannote, WeSpeaker, modèles absents, réunion de 27 min) : aucune connexion hors `127.0.0.1` côté serveur ; navigateur : toutes les requêtes vers `127.0.0.1:7860` |
+| Temps restant, extrait de 3 min | pyannote (MPS) : annoncé 9 s, réel 12,4 s à froid, 11,1 s à chaud ; MFCC : 0,2 s, réel 2,4 s au premier appel puis 0,13 s ; ECAPA : 2,9 s, réel 3,2 puis 3,8 s ; WeSpeaker : 3,5 s, réel 4,3 puis 4,5 s. Le RTF des expériences exclut un préchauffage et porte sur des fichiers longs : sur 3 min, l'annonce sous-estime de 20 à 30 % (et beaucoup plus au tout premier appel de la baseline MFCC) |
+| Temps restant, réunion de 26 min 48 s (pyannote, MPS) | Annoncé 82 s, réel 95 s (RTF 0,0591 contre 0,0512 mesuré) |
+| Fourchette de pyannote | Automatique : 3 locuteurs (4 dans la référence) ; fourchette 4–6 : 4 locuteurs ; DER sans collar 11,63 → 14,06 %, JER 34,70 → 27,93 % |
+| Nombre imposé de la baseline MFCC | Automatique : 2 locuteurs ; imposé 4 : 4 locuteurs |
+| Modèle absent du cache | Cache d'ECAPA, puis de community-1, renommés temporairement : dans les deux cas, message « Modèle de … absent du cache local … uv run python scripts/prefetch_models.py » ; pyannote lève bien une erreur reconnue (l'incertitude est levée). Caches restaurés, préchargement revérifié hors ligne |
+| Zoom maximal, réunion de 26 min 48 s, avec référence | 3 181 segments dont 1 678 zones d'erreur ; largeur 96 465 px (60 px/s), 4 canevas seulement (rendu paresseux de wavesurfer) ; passage au zoom maximal en 66 ms ; défilement de bout en bout en 120 pas : 11,4 ms par image en médiane, 16,7 ms au 95e centile, 42,7 ms au plus ; lecture avec suivi : 12,6 ms en médiane, 18,7 ms au 95e centile ; tas JavaScript stable autour de 28 Mo ; pistes et forme d'onde restent alignées |
+
+Points relevés pendant la vérification : après une erreur (modèle absent), le panneau d'avancement reste sur l'étape en cours au lieu d'indiquer l'échec ; l'erreur s'affiche dans une notification.

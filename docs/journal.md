@@ -501,3 +501,18 @@ Résultats : ECAPA et WeSpeaker réduisent fortement la confusion de la baseline
 Décisions : verdicts — EXP-0010 et 0012 retenues (ECAPA, représentation de la baseline), EXP-0013 et 0015 écartées, EXP-0011 et 0014 informatives. Aucune nouvelle fiche.
 Problèmes : temps d'EXP-0012 non conforme (batterie), non exploité.
 Suite : chantier V (fusion de l'interface, révision figée de pyannote), puis rang 1 de D23 (NeMo Sortformer v2).
+
+## 2026-11-01 — Chantier V de D26 : fusion de l'interface, révision figée, essai avec les vrais moteurs (Claude Code)
+
+Objectif : chantier V de D26 après la fin du lot WeSpeaker, sans expérience en cours.
+Réalisé :
+- Commit `docs:` des documents du cockpit restés non commités (interprétation d'EXP-0010 à EXP-0015, en-têtes, journal) ; le reste avait déjà été commité par la session des expériences. `README.md` (état d'avancement, modifié par le cockpit) laissé non commité : hors de la liste demandée.
+- Révisions (D18, amendement du 01/11) : un seul instantané de community-1 dans le cache, `3533c8cf8e369892e6b79ff1bf80f7b0286a54ee` (`refs/main` y pointe, créé le 27/10) ; ECAPA : `0f99f2d…`, seul instantané. pyannote figé à `3533c8c` (`MODEL_REVISION`, transmis par pyannote à la segmentation, aux empreintes et à la PLDA) ; `configuration_effective` consigne désormais `…@commit` pour chaque modèle des trois moteurs neuronaux ; `prefetch_models.py` ne télécharge plus `main`. Test lent de reproduction d'EXP-0001 réussi avant et après (RTTM identique à l'octet près). 3 tests.
+- Fusion de `interface` dans `main` ; conflit sur `docs/journal.md` résolu en gardant les 33 entrées : ordre interne de chaque côté préservé, entrées du cockpit placées après le rapport auquel elles répondent (place de la « Veille » non déterminable, mise en tête du 01/11). `uv sync` ; `uv run pytest` complet : 255 réussis, puis 258.
+- Étape Normalisation de la page Pipeline : valeurs lues dans `whospoke.audio` (constantes `CHANNELS`, `CODEC`, `SAMPLE_DTYPE` désormais utilisées par `normalize` et `load_waveform`, comportement inchangé ; `describe_normalisation()`), textes dans la section `communs` du catalogue ; plus rien d'écrit à la main dans `app/pipeline.py` pour cette étape. 3 tests.
+- `scripts/prefetch_models.py` exécuté : réussi (téléchargement aux révisions figées, chargement hors ligne des trois modèles depuis un dossier vide).
+- Essai réel sous relevé réseau (détail dans `app/README.md`) : télémétrie de pyannote.audio vers `otel.pyannote.ai` découverte à la première séance et coupée (`PYANNOTE_METRICS_ENABLED=false`) ; ensuite aucune connexion hors `127.0.0.1`. Temps restant : sous-estimé de 20 à 30 % sur 3 min (préchauffage et coût fixe exclus du RTF des expériences), de 16 % sur 27 min (pyannote : 82 s annoncées, 95 s réelles). Fourchette 4–6 de pyannote : 4 locuteurs au lieu de 3. Nombre imposé 4 de la baseline MFCC : 4 au lieu de 2. Modèle absent du cache (ECAPA, puis community-1, retirés temporairement puis restaurés) : message attendu dans les deux cas. Zoom maximal sur 26 min 48 s avec référence : 96 465 px, 3 181 segments, 66 ms pour zoomer, défilement à 11,4 ms par image en médiane (95e centile 16,7 ms), tas JavaScript stable vers 28 Mo.
+Résultats : aucune expérience.
+Décisions : aucune.
+Problèmes : la télémétrie de pyannote.audio est active par défaut et n'est pas coupée par `scripts/run_experiment.py` : les exécutions de pyannote (et des empreintes WeSpeaker, chargées par pyannote.audio) ont probablement envoyé ces métadonnées **[probable]**, non vérifiable après coup. Après une erreur, le panneau d'avancement reste sur l'étape en cours.
+Suite : décider de couper la télémétrie aussi dans les expériences ; rang 1 de D23 (NeMo Sortformer v2).
