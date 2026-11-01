@@ -312,6 +312,34 @@ Décisions : D23 — tous les moteurs sont testés, l'un après l'autre, selon u
 Problèmes : les publications sur X ne sont pas lisibles automatiquement ; les informations sur Voxtral viennent d'une source secondaire, à confirmer.
 Suite : interprétation d'EXP-0013 à EXP-0015 ; prompt du rang 1 (NeMo Sortformer v2). Rangs 6 et 7 en attente d'une décision de la candidate (clé d'API et coût ; location d'un GPU).
 
+## 2026-11-01 — D17 : onglet « Analyse » de l'application, branche `interface` (Claude Code)
+
+Objectif : premier prototype de l'onglet « Analyse » (D17), développé sur la branche `interface` avec un moteur factice, sans inférence réelle pendant le lot d'expériences en cours sur `main`.
+Réalisé :
+- `uv add gradio` : Gradio 6.31.0 (figé par uv.lock) ; dépendances transitives dont fastapi, uvicorn, pydantic, httpx.
+- `app/sortie.py` (statistiques par locuteur, renommage, exports RTTM et JSON, enveloppe de la forme d'onde, DER décomposé face à une référence déposée, deux collars) ; `app/temps.py` (RTF mesuré lu dans le leaderboard, temps restant) ; `app/moteurs.py` (quatre moteurs repris d'une expérience source : EXP-0009, EXP-0012, EXP-0013, EXP-0007 ; moteur factice au contrat de base.py) ; `app/app.py` (onglet « Analyse ») ; `app/static/` (wavesurfer.js 7.12.12 embarqué, visualiseur) ; `app/README.md`.
+- 32 tests (`tests/test_app_*.py`) ; racine du dépôt ajoutée au `pythonpath` de pytest.
+- Parcours complet en mode factice sur un extrait de 3 min de SUMM-RE 007a_ECRH converti en mp3 stéréo 44,1 kHz (hors dépôt) : normalisation, progression, timeline, écoute au clic, renommage, exports, DER face à la référence (RTTM d'EXP-0007 : 12,81 % sans collar sur l'extrait).
+- Contrôle hors ligne (app/README.md) : toutes les requêtes du navigateur vont vers 127.0.0.1, polices comprises ; côté serveur, aucune connexion hors 127.0.0.1.
+Résultats : aucune expérience.
+Décisions : aucune ; points soumis à la candidate dans le compte rendu (expériences sources des moteurs, fourchette pour la baseline, RTF retenu, noms dans le RTTM exporté).
+Problèmes : la suite complète de tests n'a pas été lancée, car `test_embeddings_baseline.py` et `test_catalogue.py` exécutent ECAPA et WeSpeaker ; suite lancée sans ces deux fichiers ni `test_pipeline_pyannote.py` (162 réussis, 1 ignoré). Baseline WeSpeaker indisponible tant qu'EXP-0013 n'est pas exécutée (θ inconnu, aucun RTTM). Chargement des modèles réels et mode réel non testés.
+Suite : après le lot, suite de tests complète et essai en mode réel (dont `HF_HUB_OFFLINE=1`) ; fusion de `interface` dans `main` ; page Pipeline.
+
+## 2026-11-01 — Refonte visuelle de l'onglet « Analyse », branche `interface` (Claude Code)
+
+Objectif : rendre l'interface propre, professionnelle et moderne, en s'inspirant des skills d'interface proposés par la candidate.
+Réalisé :
+- Lecture en ligne de frontend-design, better-interface, beautiful-shadows, emil-design-eng, apple-design, interaction-design, accessibility, unslop et stageshow, sans les installer (`npx skills add` non lancé). Stageshow (maquettes produit en React) est hors sujet ici.
+- `app/theme.py` : thème Gradio monochrome, cinq teintes neutres nommées en clair et en sombre, polices système ; `app/static/interface.css` : cartes à ombres en couches, tableaux, panneau d'avancement, focus visible, retour d'appui, `prefers-reduced-motion`, affichage étroit.
+- `app/app.py` : en-tête, une carte par section (réglages, avancement, timeline, locuteurs, évaluation, temps, exports), tableaux HTML à la place des tableaux Markdown et du tableau de statistiques, noms saisis échappés, états vides explicites, renommage et exports masqués avant résultat, indicateurs de chargement de Gradio masqués, messages d'erreur qui disent quoi faire.
+- Visualiseur : pistes sur fond doux, zones de clic de 24 px, libellés accessibles, graduations adaptées à la largeur ; zones colorées de la forme d'onde dessinées une seule fois (elles l'étaient deux fois).
+- Vérifié en mode factice, en clair, en sombre et à 375 px de large. Contrôle hors ligne refait (app/README.md) : 88 requêtes vers 127.0.0.1, une icône en `data:`, aucune police chargée ; côté serveur, aucune connexion hors 127.0.0.1.
+Résultats : aucune expérience.
+Décisions : aucune.
+Problèmes : suite de tests toujours lancée sans les trois fichiers qui chargent des modèles (163 réussis, 1 ignoré). Les couleurs de la forme d'onde suivent le thème actif à la création du lecteur, pas un changement de thème ultérieur.
+Suite : inchangée (suite complète et mode réel après le lot, fusion, page Pipeline).
+
 ## 2026-11-01 — Prototype de l'onglet Analyse : arbitrages (cockpit)
 
 Objectif : trancher les points ouverts du rapport de la session interface.
@@ -321,12 +349,42 @@ Décisions : voir l'amendement 1 de D17, en attente de validation par la candida
 Problèmes : vrais moteurs non essayés ; accès éventuel à Hugging Face au chargement des modèles.
 Suite : fusion après le lot WeSpeaker, suite de tests complète, essai avec les vrais moteurs, puis rang 1 de D23.
 
+## 2026-11-01 — Amendement 1 de D17 sur la branche `interface` (Claude Code)
+
+Objectif : appliquer l'amendement 1 de D17 (lu dans `~/Dev/Who-Spoke`, statut « proposée » dans la fiche) sans fusionner et sans charger de modèle neuronal pendant le lot EXP-0013 à EXP-0015.
+Réalisé :
+- `app/moteurs.py` : WeSpeaker reprend EXP-0015 (indisponible tant qu'elle n'existe pas dans la branche) ; message explicite quand un modèle manque du cache local (`LocalEntryNotFoundError` ou `OfflineModeIsEnabled` dans la chaîne des causes). `app/temps.py` : RTF lu dans la colonne du périphérique choisi (`rtf_cpu` en CPU, `rtf` sur le périphérique de l'expérience, repli sur `rtf` pour une expérience exécutée en CPU sans `rtf_cpu`), plus grande valeur entre dev et test.
+- `app/travail.py` (nouveau) : au lancement par `python -m app.app`, hors mode factice, `HF_HUB_OFFLINE=1` avant tout import de huggingface_hub, pyannote ou speechbrain ; dossier `run-<pid>` par lancement, `GRADIO_TEMP_DIR` compris, supprimé à la fermeture (atexit, Ctrl+C, SIGTERM) ; dossiers des lancements tués supprimés au lancement suivant.
+- DER : mention « Durée entière du fichier, sans UEM : non comparable aux résultats sur corpus. » au-dessus du tableau des deux conditions de collar.
+- Zoom de la timeline : zoom natif de wavesurfer (rendu paresseux, contrairement à un élargissement du conteneur qui aurait dessiné plus de 200 Mo de canevas pour 30 min), pistes, axe et tête de lecture synchronisés sur son défilement ; curseur, boutons, Ctrl + molette ; zoom et position conservés au renommage ; commandes par délégation d'événements, le gabarit étant redessiné par Gradio.
+- 12 tests nouveaux ou modifiés, sans modèle : source WeSpeaker, règle du RTF, message de cache, variable posée avant l'import du Hub (sous-processus, `--help`), suppression des dossiers, lancements interrompus, mention du DER, présence du zoom. Suite sans les trois fichiers qui chargent des modèles : 174 réussis, 1 ignoré.
+- Vérifié dans le navigateur (mode factice) : zoom ×5,8 avec défilement synchronisé (canevas des pistes 3 327 px, forme d'onde 3 328 px), suivi de la lecture, renommage avec zoom conservé, « Tout afficher ». Dossier de lancement supprimé après SIGTERM et après Ctrl+C (code 0). Mode réel : démarrage et requête de la page sans connexion hors 127.0.0.1, sans analyse.
+- Nettoyage des dossiers `analyse-*` laissés par les essais précédents dans le dossier temporaire.
+Résultats : aucune expérience.
+Décisions : aucune ; amendement 1 de D17 appliqué tel que rédigé.
+Problèmes : SIGINT est ignoré par un processus lancé en arrière-plan depuis un shell non interactif (artefact de test, pas de l'application) ; vérifié dans les conditions d'un terminal. Le message de cache manquant n'a pas pu être vérifié sur un vrai chargement.
+Suite : après le lot, suite de tests complète et essai réel des quatre moteurs (liste dans `app/README.md`, « Reste à vérifier avec les vrais moteurs ») ; `configs/demo.yaml` au gel.
+
 ## 2026-11-01 — Pages supplémentaires de l'interface (cockpit)
 
 Objectif : planifier les pages Pipeline et Avancement, et les fonctionnalités retenues par la candidate.
 Réalisé : fiche D26 (actée) ; maquette de la page Pipeline versionnée dans `docs/maquettes/`.
 Décisions : D26 — onglets Pipeline, Avancement et Glossaire ; carte des erreurs et comparaison de deux moteurs dans l'onglet Analyse ; en-tête YAML dans chaque `notes.md` ; ni enregistrement au micro, ni modification de réglage depuis l'interface. Les numéros D24 et D25 restent réservés à la robustesse et au faux chevauchement (D23).
 Suite : chantiers I1 à I5 dans la branche `interface`, puis vérification V après le lot WeSpeaker ; en-têtes des `notes.md` existants à l'interprétation du lot.
+
+## 2026-11-01 — Amendement 1 de D17, lignes ajoutées : préchargement, ECAPA, palette (Claude Code)
+
+Objectif : appliquer les deux lignes ajoutées à l'amendement 1 de D17 (préchargement des modèles, emplacement des fichiers d'ECAPA) et vérifier la palette des locuteurs, sur la branche `interface`, sans charger de modèle pendant le lot EXP-0014/0015.
+Réalisé :
+- Vérification que WeSpeaker est inclus dans community-1 : dans le cache, `models--pyannote--speaker-diarization-community-1/snapshots/3533c8c…/` contient `embedding/pytorch_model.bin`, et son `config.yaml` y renvoie (`embedding: $model/embedding`) ; `refs/main` pointe sur la même révision que celle figée pour la baseline WeSpeaker. Lecture de fichiers seulement, aucun modèle chargé.
+- `scripts/prefetch_models.py` : télécharge community-1 (`main` et révision figée de WeSpeaker) et ECAPA (révision figée) avec `HF_TOKEN` lu dans `.env` (jamais affiché), puis vérifie les trois chargements dans un processus enfant avec `HF_HUB_OFFLINE=1` et un dossier courant vide, en contrôlant que rien n'y est écrit. 8 tests sans réseau (téléchargements et chargements simulés, dont un processus enfant réel). Non exécuté pour de vrai. Le message « modèle absent du cache » et `app/README.md` renvoient au script.
+- `src/whospoke/embeddings.py`, chargement d'ECAPA seulement : `ecapa_load_options()` impose `savedir=None` et `LocalStrategy.NO_LINK`, donc une lecture en place dans le cache Hugging Face (`HF_HUB_CACHE`, `$HF_HOME/hub`). C'était déjà le comportement de speechbrain 1.1.2 sans `savedir` (aucun `pretrained_models/` dans `~/Dev/Who-Spoke`) ; il est rendu explicite, indépendant du dossier courant et de la version. Mêmes fichiers lus, calculs inchangés. 3 tests sans modèle.
+- Palette des locuteurs : validateur de la skill dataviz (OKLab ΔE × 100, simulation de Machado 2009) sur le fond des pistes, plus une planche visuelle simulée. Paires adjacentes : réussi en clair (CVD 9,1 ; normal 19,6) et en sombre (8,4 ; 19,3). Toutes paires, deutéranopie : pire 4,5 en clair (1↔7), 1,6 en sombre (3↔5) ; vision normale : 7,1 (2↔8) dans les deux modes. La couleur seule ne sépare toutes les paires que jusqu'à 3 locuteurs ; au-delà, l'identité repose sur la piste nommée, le tableau et le survol, sauf pour les teintes de la forme d'onde. Au-delà de 8 locuteurs, un gris unique. Consigné dans `app/README.md`.
+- Suite de tests sans les trois fichiers qui chargent des modèles : 185 réussis, 1 ignoré.
+Résultats : aucune expérience.
+Décisions : aucune. Proposition : ne pas compter sur les teintes de la forme d'onde pour identifier un locuteur (les retirer, ou y ajouter le nom au survol).
+Problèmes : aucun.
+Suite : après le lot, `uv run python scripts/prefetch_models.py`, puis la liste « Reste à vérifier avec les vrais moteurs » de `app/README.md`.
 
 ## 2026-11-01 — Retour du chantier I0 (cockpit)
 
@@ -336,12 +394,95 @@ Résultats : préchargement et lecture d'ECAPA dans le cache faits et testés sa
 Décisions : forme d'onde neutre (D26) ; tout modèle figé à un commit et consigné dans `configuration_effective` (D18, amendement du 01/11).
 Suite : figer pyannote au chantier V, après le lot ; neutralisation de la forme d'onde en début d'I1.
 
+## 2026-11-01 — D26 : forme d'onde neutre et onglet Pipeline (chantier I1), branche `interface` (Claude Code)
+
+Objectif : appliquer le paragraphe « Couleurs » de D26, puis le chantier I1 (onglet Pipeline), sur la branche `interface`, sans fusion ni modèle chargé. D26, D17 et son amendement 1 lus dans `~/Dev/Who-Spoke`, en lecture seule.
+Réalisé :
+- Couleurs (D26) : forme d'onde neutre ; le segment cliqué y est marqué par une bande d'encre et entouré sur sa piste (`aria-pressed`). Vérifié dans le navigateur : aucune bande avant sélection, une seule après. Test : un seul `addRegion`, sans couleur de locuteur.
+- `app/pipeline.py` et `app/static/pipeline.js` : onglet Pipeline en lecture seule, généré depuis `configuration_effective` de l'exécution principale de l'expérience source (EXP-0009, EXP-0012, EXP-0015, EXP-0007) et depuis `catalogue.yaml` ; sélecteur de moteur, enchaînement des étapes, fiche par étape (rôle, modèle et révision, erreurs produites, fichier de définition, tableau réglage, valeur, origine, effet, composantes du DER), étape Évaluation séparée (collars et `skip_overlap` lus sur les métriques instanciées, références lues dans config.yaml), étape Normalisation commune (fréquence lue dans `whospoke.audio`). Contenu repris de la maquette du 27/10, sans son style ni ses polices distantes.
+- Révisions : lues dans la valeur `dépôt@commit` d'un réglage `*.modele` ou dans un réglage `*.revision`, sinon « révision non consignée ». Constat : ECAPA affiche `0f99f2d` ; les trois modèles de pyannote (segmentation, empreintes, PLDA) sont « révision non consignée ».
+- Écarts entre configuration et catalogue, sur le dépôt principal : aucun pour EXP-0007 et EXP-0012 ; pour EXP-0009 (MFCC), cinq entrées du catalogue absentes de la configuration (`empreintes.dimension`, `empreintes.duree_min_s`, `empreintes.modele`, `empreintes.peripherique`, `normalisation`), propres aux variantes neuronales. Aucun réglage hors catalogue, aucune étape différente. WeSpeaker : page indisponible, EXP-0015 n'étant pas exécutée.
+- Option `--depot` de l'application : expériences, `results/leaderboard.csv` et catalogue lus sous une autre racine, pour l'onglet Pipeline comme pour l'onglet Analyse (moteurs disponibles, θ, RTF, RTTM du moteur factice). Lancement de développement : `--factice --depot ~/Dev/Who-Spoke`. Aucune écriture dans le dépôt principal (vérifié par `git status` et par un test d'instantané).
+- 11 tests sans modèle (10 pour l'onglet Pipeline, dont trois sur les expériences réelles de la branche ; 1 pour la forme d'onde neutre). Suite sans les trois fichiers qui chargent des modèles : 196 réussis, 1 ignoré.
+- Contrôle hors ligne : 86 requêtes du navigateur, toutes vers 127.0.0.1 ; côté serveur, aucune connexion hors 127.0.0.1.
+Résultats : aucune expérience.
+Décisions : aucune. Points soumis : les textes et trois valeurs de l'étape Normalisation (canaux, format, entrée en mémoire) sont dans `app/pipeline.py`, faute de constantes exposées par `whospoke.audio` et d'entrée au catalogue ; les déplacer dans le catalogue au gel ?
+Problèmes : pendant la vérification, le zoom de la timeline s'est trouvé au maximum après une interaction dans la page ; l'alignement des pistes est resté exact (10 800 px des deux côtés).
+Suite : I2 (onglet Avancement), après les en-têtes YAML des `notes.md`.
+
+## 2026-11-01 — D26 : onglet Avancement (chantier I2), branche `interface` (Claude Code)
+
+Objectif : chantier I2 de D26, onglet Avancement généré depuis le dépôt, mêmes règles qu'I1 (branche `interface`, racine de dépôt configurable en lecture seule, aucun modèle).
+Réalisé :
+- `app/avancement.py` : frise des expériences et analyses (ordre chronologique ; question, verdict et décisions lus dans l'en-tête YAML de `notes.md`, D26 §2 ; corpus et DER des `results_*.json`, partition test puis dev, collar 0 puis 0,25 s ; résultats invalidés marqués) ; décomposition de l'erreur par les oracles (EXP-0002 à EXP-0006, EXP-0010, EXP-0011 : DER test, parole manquée, fausse alarme, confusion, écart avec la référence) ; décisions (D1 à D15 depuis le tableau et la phrase « Statut » de `cadrage.md`, points ouverts compris ; D16 et suivantes depuis la ligne `Statut :` des fiches et de leurs amendements) ; file d'attente de D23 depuis `planning.md`, complétée d'un état constaté (expériences citées créées ou avec résultats, fiches citées présentes ou absentes).
+- Onglet dans `app/app.py`, régénéré à chaque ouverture ; un bouton « notes.md » par ligne affiche les notes, sans leur en-tête, dans la page.
+- En-têtes absents (« en-tête manquant »), mal formés (« en-tête illisible »), `id` incohérent ou verdict hors liste : affichés sans erreur. 9 tests sur un dépôt fabriqué dans un dossier temporaire (en-têtes complets, absents, cassés, incohérents ; décisions ; file ; lecture seule). Suite sans les trois fichiers qui chargent des modèles : 205 réussis, 1 ignoré.
+- Vérifié dans le navigateur avec `--depot ~/Dev/Who-Spoke` : 15 expériences, 1 analyse, 24 décisions ; les 16 `notes.md` sont « en-tête manquant » ; file : rang 0 « 2/3 avec résultats, 3/3 créées », rangs 4 et 5 « fiche D24 absente », « fiche D25 absente ». Toutes les requêtes du navigateur vers 127.0.0.1 ; aucune connexion serveur hors 127.0.0.1.
+Résultats : aucune expérience.
+Décisions : aucune.
+Problèmes : les amendements sans ligne `Statut :` propre (D18 du 28/10, D19, D20, D22) s'affichent « statut non indiqué ». `docs/planning.md` n'est pas encore versionné dans le dépôt principal : l'onglet le lit tel qu'il est sur disque.
+Suite : en-têtes des `notes.md` par le cockpit ; chantier I3 (glossaire intégré).
+
+## 2026-11-01 — D26 : glossaire intégré (chantier I3), branche `interface` (Claude Code)
+
+Objectif : chantier I3 de D26 (onglet Glossaire, renvois des termes depuis les autres onglets), mêmes règles qu'I1 et I2.
+Réalisé :
+- `app/glossaire.py` : lecture de `docs/glossaire.md` (termes `###`, champs, parties `##`, introduction ; une ligne `---` clôt la partie en cours) ; onglet Glossaire avec index, une ancre par terme et renvois entre définitions (jamais vers soi-même).
+- Renvois automatiques dans les onglets Analyse (titres, avancement, tableaux des locuteurs, des temps et du DER), Pipeline et Avancement : première occurrence par bloc (paragraphe, cellule, élément de liste, titre) ; jamais dans du code, un bouton, un lien ni un attribut. Variantes tirées des titres du glossaire (terme français, termes anglais en italique, éléments entre parenthèses contenant une majuscule ; un qualificatif comme « (système) » écarté). Mot entier seulement, y compris face aux identifiants et expressions (`der_c0`, `clustering.threshold`, `VBxClustering`, `collar=0.5`) ; pluriel accepté ; variante la plus longue d'abord ; sigles sensibles à la casse. `app/static/glossaire.js` : un clic ouvre l'onglet Glossaire sur la définition, mise en évidence.
+- 12 tests sur un glossaire fabriqué (lecture, variantes, sous-chaînes, casse, pluriels, priorité au plus long, blocs, zones exclues, HTML préservé, ancres) et sur le glossaire du dépôt. Suite sans les trois fichiers qui chargent des modèles : 217 réussis, 1 ignoré.
+- Vérifié dans le navigateur avec `--depot ~/Dev/Who-Spoke` : 23 termes ; 22 renvois dans l'onglet Analyse après une analyse avec référence, 33 dans Pipeline, 40 dans Avancement, aucun dans du code ou un bouton ; saut vers « Fausse alarme » depuis le tableau du DER. Corrigé pendant la vérification : marge intérieure que Gradio impose aux liens. Toutes les requêtes vers 127.0.0.1.
+Résultats : aucune expérience.
+Décisions : aucune.
+Problèmes : les formes abrégées ne sont pas reconnues (« Confusion » seul, en-tête du tableau du DER, ne renvoie pas à « Confusion de locuteur » ; « Détection de parole » pas à « Détection d'activité vocale ») ; les libellés des composants Gradio et la timeline n'ont pas de renvois.
+Suite : chantier I4 (carte des erreurs).
+
+## 2026-11-01 — D26 : carte des erreurs (chantier I4), branche `interface` (Claude Code)
+
+Objectif : chantier I4 de D26, piste des erreurs sous la timeline quand une référence est déposée, mêmes règles (moteur factice, aucun modèle).
+Réalisé :
+- Examen de pyannote.metrics : `IdentificationErrorAnalysis.difference` donne le statut de chaque segment (correct, confusion, parole manquée, fausse alarme) mais compare les étiquettes telles quelles ; l'appariement vient de `DiarizationErrorRate.optimal_mapping` (hongrois). `sortie.error_map` reprend les étapes de `DiarizationErrorRate.compute_components` dans le même ordre (UEM, étiquettes renommées, appariement), puis `difference` sur l'hypothèse appariée ; durées cumulées segment par segment comme le DER. Aucun appariement recodé.
+- Égalité stricte (`==`) des trois durées et de la parole de référence avec les composantes du DER sans collar : cas construit avec chevauchement, hypothèse parfaite, 25 paires d'annotations aléatoires ; parts affichées égales aux cellules du tableau du DER. Sur l'extrait de 3 min (EXP-0007 face à la référence SUMM-RE) : 5,557 s de parole manquée, 10,163 s de fausse alarme, 3,779 s de confusion, égales au bit près.
+- Visualiseur : trois rangées nommées (encre pleine, hachures, contour) dans le canevas des pistes, donc soumises au zoom ; zones écoutables au clic et repérées sur la forme d'onde ; infobulle avec locuteur de référence et locuteur attribué ; ligne de totaux. Carte calculée à l'analyse ou au dépôt ultérieur de la référence. Corrigé pendant la vérification : la zone d'erreur sélectionnée n'était pas repérée sur la forme d'onde.
+- Vérifié dans le navigateur : 123 zones (36 manquées, 70 fausses alarmes, 17 confusions) ; parts 3,65 %, 6,67 %, 2,48 % identiques au tableau ; zoom × 5,8 avec pistes et erreurs alignées sur la forme d'onde (3 327 et 3 328 px). Toutes les requêtes vers 127.0.0.1.
+- Suite sans les trois fichiers qui chargent des modèles : 221 réussis, 1 ignoré.
+Résultats : aucune expérience.
+Décisions : aucune.
+Problèmes : la carte est sans collar seulement ; les identifiants de référence de SUMM-RE sont des numéros (« 023 »), affichés tels quels.
+Suite : chantier I5 (comparaison de deux moteurs).
+
+## 2026-11-01 — D26 : comparaison de deux moteurs (chantier I5), branche `interface` (Claude Code)
+
+Objectif : chantier I5 de D26, option « comparer avec un second moteur » de l'onglet Analyse, mêmes règles (moteur factice, aucun modèle).
+Réalisé :
+- `temps.cumulative_remaining_s` : temps restant de moteurs exécutés l'un après l'autre (reste du moteur en cours, estimation complète des suivants, inconnu si un RTF manque). 1 test.
+- `app/app.py` : analyse en une ou deux passes sur le même fichier normalisé, avancement commun (étapes préfixées par le moteur) ; nombre de locuteurs et périphérique communs, fourchette refusée si l'un des moteurs ne la prend pas en charge. Résultat principal (statistiques, renommage) et second résultat ; référence et cartes des erreurs des deux moteurs calculées à l'analyse ou au dépôt ultérieur de la référence. Carte « Comparaison » : locuteurs, DER dans les deux conditions de collar, temps de calcul, RTF. Temps de traitement et DER par moteur. Exports des deux résultats, suffixés par moteur.
+- Visualiseur : groupes superposés dans le même canevas (premier moteur en couleurs ; second moteur et référence en gris neutre ; cartes des erreurs des deux moteurs), alignés et zoomés ensemble, avec une légende par groupe ; clés de sélection propres à chaque groupe. La référence est aussi affichée en analyse simple.
+- 5 tests de la comparaison sur des résultats fabriqués (groupes, couleurs, cartes égales aux composantes du DER de chaque moteur, tableau, exports, avancement, temps et DER par moteur). Suite sans les trois fichiers qui chargent des modèles : 227 réussis, 1 ignoré.
+- Vérifié dans le navigateur (pyannote community-1 puis baseline ECAPA, extrait de 3 min, avec référence) : temps restant « pour les deux moteurs » pendant le premier ; 23 libellés et 23 pistes alignés ; tableau 12,81 % / 4,62 % (pyannote) et 16,71 % / 8,38 % (ECAPA) ; zoom × 5,8 commun ; segment du second moteur sélectionné et repéré sur la forme d'onde ; 4 fichiers d'export. Mode simple inchangé. Corrigé pendant la vérification : légendes de groupe tronquées. Toutes les requêtes vers 127.0.0.1.
+Résultats : aucune expérience.
+Décisions : aucune ; choix soumis au cockpit : second moteur et référence en gris neutre, référence affichée aussi en analyse simple, statistiques et renommage limités au premier moteur.
+Problèmes : aucun.
+Suite : vérification V (fusion dans `main`, suite complète, préchargement réel, essai avec les vrais moteurs).
+
 ## 2026-11-01 — Bilan de la branche interface, chantiers I1 à I5 (cockpit)
 
 Objectif : trancher les points ouverts du récapitulatif de la branche `interface`.
 Réalisé : en-têtes YAML ajoutés aux 16 `notes.md` (15 expériences, A-0001) ; méthode §4.2 mise à jour ; lignes « Statut » ajoutées aux amendements de D18, D19, D20 et D22 ; « Formes courtes » ajoutées à 7 entrées du glossaire ; amendement de D26.
 Décisions : voir l'amendement du 01/11 de D26.
 Suite : petit chantier I6 dans `interface` (formes courtes, mention « sans collar ») ; chantier V à la fin d'EXP-0015.
+
+## 2026-11-01 — D26, amendement du 01/11 : chantier I6, branche `interface` (Claude Code)
+
+Objectif : appliquer l'amendement du 01/11 de D26 (lu dans `~/Dev/Who-Spoke`, en lecture seule), sans fusion ni modèle.
+Réalisé :
+- Glossaire : ligne facultative « Formes courtes : a, b, c. » lue sous le titre d'une entrée (point final facultatif), non affichée comme champ mais sous le titre ; chaque forme renvoie à l'entrée avec les mêmes règles (mot entier, pluriel, plus long d'abord) ; une forme revendiquée par deux entrées renvoie à la première et est signalée (`Linker.conflicts`). Glossaire du dépôt principal : 7 entrées portent des formes courtes, aucun conflit ; « Confusion » (en-tête du tableau du DER) renvoie désormais à « Confusion de locuteur », « Détection de parole » à « Détection d'activité vocale ».
+- Carte des erreurs : légende « Erreurs sans collar » (« Erreurs sans collar, <moteur> » en comparaison) et ligne des totaux qui le répète.
+- Onglet Avancement contrôlé sur le dépôt principal avec les vrais en-têtes et statuts : 16 en-têtes lus sans problème (id, verdict, décisions), 0 « en-tête manquant » ou « illisible », 0 « statut non indiqué » (7 amendements, tous « actée »), 0 verdict inconnu. Restent affichés, à juste titre : « fiche D24 absente » et « fiche D25 absente » (file D23, rangs 4 et 5), DER « — » pour EXP-0015 (non exécutée). Corrigé : accord du résumé (« 1 analyse »).
+- 8 tests (formes courtes, conflits, mention sans collar, résumé, dépôt principal). Suite sans les trois fichiers qui chargent des modèles : 233 réussis, 1 ignoré. Toutes les requêtes du navigateur vers 127.0.0.1.
+Résultats : aucune expérience.
+Décisions : aucune.
+Problèmes : deux tests lisent le dépôt principal voisin (`../Who-Spoke`) s'il existe et sont ignorés sinon.
+Suite : vérification V ; déplacement de l'étape Normalisation dans `catalogue.yaml` au chantier V (amendement du 01/11 de D26).
 
 ## 2026-11-01 — Empreintes neuronales dans la baseline, EXP-0010 à EXP-0015 (Claude Code, session commencée le 31/10)
 

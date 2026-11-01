@@ -7,6 +7,7 @@ authors = [
 ]
 requires-python = ">=3.11,<3.12"
 dependencies = [
+    "gradio>=6.31.0",
     "librosa>=0.11.0",
     "numpy>=2.4.6",
     "pandas>=3.1.0",
@@ -35,3 +36,5 @@ markers = [
     "lent: test lent (modèle complet sur un fichier réel), exclu par défaut",
 ]
 addopts = "-m 'not lent'"
+# Racine du dépôt importable, pour les tests de l'application (paquet `app`, D17).
+pythonpath = ["."]

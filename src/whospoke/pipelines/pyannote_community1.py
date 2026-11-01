@@ -21,6 +21,10 @@ from whospoke.device import select_device
 from whospoke.pipelines.base import Engine, Progress, Resultat, Setting
 
 MODEL_ID = "pyannote/speaker-diarization-community-1"
+# Révision figée (D18, amendement du 01/11) : seul instantané du cache local, celui
+# d'EXP-0001 et d'EXP-0007 et de la baseline WeSpeaker. pyannote la transmet à chaque
+# sous-modèle (segmentation, empreintes, PLDA), consignée dans describe() en `…@commit`.
+MODEL_REVISION = "3533c8cf8e369892e6b79ff1bf80f7b0286a54ee"
 REPO_ROOT = Path(__file__).resolve().parents[3]
 
 # Étape du contrat atteinte quand pyannote appelle son hook avec un artefact non nul.
@@ -71,7 +75,7 @@ class PyannoteCommunity1(Engine):
         self.num_speakers = num_speakers
         self.min_speakers = min_speakers
         self.max_speakers = max_speakers
-        pipeline = Pipeline.from_pretrained(MODEL_ID, token=_hf_token())
+        pipeline = Pipeline.from_pretrained(MODEL_ID, revision=MODEL_REVISION, token=_hf_token())
         if pipeline is None:
             raise RuntimeError(f"Chargement de {MODEL_ID} impossible (accès au modèle ?)")
         pipeline.to(self.device)

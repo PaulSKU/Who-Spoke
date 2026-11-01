@@ -1,0 +1,177 @@
+# Application de démonstration (D17)
+
+## Lancement
+
+```bash
+uv run python -m app.app             # moteurs réels (modèles chargés au premier usage)
+uv run python -m app.app --factice   # moteur factice : aucune inférence
+```
+
+Puis ouvrir http://127.0.0.1:7860 (serveur local uniquement, pas de lien public). Options : `--port`, `--factice-max-s` (durée maximale simulée d'une analyse en mode factice), `--depot` (racine du dépôt dont sont lus, en lecture seule, les expériences, les analyses, `results/leaderboard.csv`, le catalogue et les documents de `docs/` ; par défaut ce dépôt). Pendant le développement sur la branche `interface`, qui n'a pas toutes les expériences :
+
+```bash
+uv run python -m app.app --factice --depot ~/Dev/Who-Spoke
+``` Lancer par `python -m app.app` (ou `python app/app.py`) : c'est ce point d'entrée qui fixe l'environnement ci-dessous avant tout import.
+
+## Installation des modèles (D15 ; D17, amendement 1)
+
+```bash
+uv run python scripts/prefetch_models.py              # téléchargement, puis vérification hors ligne
+uv run python scripts/prefetch_models.py --verifier   # vérification hors ligne seule
+```
+
+À lancer une fois, avec accès réseau et `HF_TOKEN` dans `.env` (le modèle pyannote est à accès restreint : accepter ses conditions sur le Hub au préalable). Le script place dans le cache Hugging Face (`~/.cache/huggingface/hub`, ou `$HF_HOME/hub`) :
+
+| Dépôt | Révision | Moteurs |
+|---|---|---|
+| `pyannote/speaker-diarization-community-1` | `main` | pyannote community-1 (segmentation, empreintes, PLDA) |
+| `pyannote/speaker-diarization-community-1` | `3533c8c…` (figée) | baseline WeSpeaker : WeSpeakerResNet34 est le sous-dossier `embedding` de community-1, pas un dépôt séparé |
+| `speechbrain/spkrec-ecapa-voxceleb` | `0f99f2d…` (figée) | baseline ECAPA |
+
+La baseline MFCC n'utilise aucun modèle. Le script vérifie ensuite, dans un processus séparé avec `HF_HUB_OFFLINE=1` et un dossier courant vide, que chaque modèle se charge sans réseau et que rien n'est écrit dans le dossier de lancement. Les fichiers d'ECAPA sont lus en place dans le cache, jamais copiés dans un `pretrained_models/` du dossier courant (`whospoke.embeddings.ecapa_load_options`).
+
+## Carte des erreurs (D26, chantier I4)
+
+Quand une référence RTTM est déposée, avant ou après l'analyse, trois rangées, légendées « Erreurs sans collar », s'ajoutent sous les pistes des locuteurs : parole manquée (encre pleine), fausse alarme (hachures), confusion (contour). La rangée nommée porte l'identité, le motif la double. Chaque zone s'écoute au clic et se repère sur la forme d'onde, comme un segment ; l'infobulle donne le locuteur de référence et, pour une confusion, le locuteur auquel la parole a été attribuée. Les rangées sont dans le même canevas que les pistes : elles suivent le zoom. Une ligne donne la durée totale et la part de chaque type.
+
+Calcul (`sortie.error_map`), sans collar, chevauchements comptés, sur toute la durée du fichier comme le DER affiché : rien n'est recodé. Les étapes de `DiarizationErrorRate.compute_components` de pyannote.metrics sont reprises dans le même ordre (restriction à l'UEM, étiquettes renommées, appariement hongrois `optimal_mapping`), puis `IdentificationErrorAnalysis.difference` donne le statut de chaque segment sur l'hypothèse appariée. Les durées sont cumulées comme le fait le DER (durée × nombre d'erreurs du segment). Les tests exigent l'égalité stricte (`==`, sans tolérance) des trois durées et de la parole de référence avec les composantes du DER sans collar, sur des cas construits et sur 25 paires d'annotations aléatoires, ainsi que l'égalité des parts affichées avec les cellules du tableau du DER.
+
+## Comparaison de deux moteurs (D26, chantier I5)
+
+Case « Comparer avec un second moteur » dans les réglages de l'onglet Analyse. Le nombre de locuteurs et le périphérique sont communs aux deux moteurs (une fourchette est refusée si l'un des deux ne la prend pas en charge ; ECAPA et WeSpeaker restent en CPU). Les deux moteurs tournent l'un après l'autre sur le même fichier normalisé :
+
+| Élément | Comportement |
+|---|---|
+| Avancement | Étapes des deux moteurs, préfixées par leur nom ; temps restant cumulé (`temps.cumulative_remaining_s`) : reste du moteur en cours plus estimation complète du suivant, d'après leurs RTF mesurés ; inconnu si un RTF manque |
+| Timeline | Groupes superposés dans le même canevas, donc alignés et zoomés ensemble : premier moteur (couleurs des locuteurs), second moteur et référence (gris neutre : la même couleur dans deux groupes laisserait croire au même locuteur), puis la carte des erreurs de chaque moteur. Chaque segment ou zone s'écoute et se repère sur la forme d'onde |
+| Comparaison | Tableau côte à côte : nombre de locuteurs (et celui de la référence), DER sans collar et avec collar de 0,25 s si une référence est déposée, temps de calcul, RTF |
+| Temps de traitement, DER | Un bloc par moteur |
+| Exports | RTTM et JSON des deux moteurs, suffixés par le moteur (`007a_ECRH_pyannote-community-1.rttm`…) ; hors comparaison, au nom du fichier seul |
+| Statistiques et renommage | Premier moteur seulement |
+
+La référence, quand elle est déposée, est aussi affichée comme groupe de la timeline en analyse simple.
+
+## Onglet « Pipeline » (D17, D26 chantier I1)
+
+Consultation en lecture seule de la configuration de chaque moteur, générée à l'ouverture, jamais rédigée à la main (`app/pipeline.py`, `app/static/pipeline.js`) :
+
+| Contenu | Source |
+|---|---|
+| Réglages, valeurs, origine (expérience, défaut du moteur, modèle pré-entraîné, code), par étape | `configuration_effective` de `execution_<périphérique>.json` de l'expérience source du moteur (exécution principale) |
+| Libellé, rôle de l'étape, effet, composantes du DER, décision | `src/whospoke/pipelines/catalogue.yaml` de la même racine de dépôt |
+| Étape Normalisation, commune | `whospoke.audio` (fréquence d'échantillonnage) ; canaux, format et entrée en mémoire : propriétés du code de `normalize` (D15, D16) |
+| Étape Évaluation, séparée et marquée « mesure seulement » | `whospoke.evaluation.metrics` (collars et `skip_overlap` lus sur les métriques instanciées), `evaluation.references` du config.yaml de l'expérience, protocole §2 et §4 |
+| En-tête | expérience, périphérique, date, commit et versions de l'exécution |
+
+Révision des modèles : lue dans la valeur d'un réglage `*.modele` au format `dépôt@commit (architecture)`, ou dans un réglage `*.revision` ; à défaut, « révision non consignée » (cas de pyannote jusqu'au chantier V, D18 amendement du 01/11). ECAPA l'affiche déjà (`0f99f2d`).
+
+Écarts signalés en tête de page : réglages de la configuration absents du catalogue, entrées du catalogue absentes de la configuration, étapes différentes. Constat au 01/11 (dépôt principal) : aucun pour pyannote (EXP-0007) ni ECAPA (EXP-0012) ; pour la baseline MFCC (EXP-0009), les cinq réglages des empreintes neuronales (`empreintes.*`, `normalisation`), que le catalogue du moteur « baseline » décrit pour ses variantes ECAPA et WeSpeaker. WeSpeaker : page indisponible tant qu'EXP-0015 n'a pas été exécutée.
+
+La maquette du 27/10 (`docs/maquettes/pipeline-maquette-2026-10-27.html`) a servi pour le contenu ; son style et ses polices distantes ne sont pas repris.
+
+## Onglet « Avancement » (D26, chantier I2)
+
+Récapitulatif de la conduite du projet, régénéré à chaque ouverture de l'onglet, en lecture seule sous la racine `--depot` (`app/avancement.py`) :
+
+| Section | Source |
+|---|---|
+| Frise des expériences et analyses, dans l'ordre chronologique (date de `results_*.json` ou d'`execution.json`) : identifiant, question, corpus, DER test puis dev dans les deux conditions de collar, verdict, décisions, bouton « notes.md » qui affiche les notes dans la page | En-tête YAML de `notes.md` (D26 §2 : `id`, `question`, `verdict`, `decisions`), `results_<corpus>_<partition>.json` |
+| Décomposition de l'erreur par les oracles : EXP-0002 à EXP-0006, puis EXP-0010 et EXP-0011 ; DER test et ses trois composantes, écart avec l'expérience de référence | `results_*.json` (`reference`, `variable_modifiee`, `systeme`) |
+| Décisions et statuts, amendements compris | D1 à D15 : tableau du §0 et phrase « Statut » de `docs/cadrage.md` (points restés ouverts compris) ; D16 et suivantes : ligne `Statut :` de chaque fiche et de ses amendements (« statut non indiqué » à défaut) |
+| File d'attente de D23, avec un « État constaté » calculé : expériences citées créées ou ayant des résultats, fiches citées présentes ou absentes | Tableau « File d'attente » de `docs/planning.md`, dossiers d'expériences, fiches |
+
+Contrôle du 01/11 sur le dépôt principal, après l'ajout des en-têtes et des lignes « Statut » d'amendement : 16 en-têtes lus sans problème, aucun « en-tête manquant », aucun « statut non indiqué » ; restent signalés les fiches D24 et D25 absentes (file D23) et l'absence de DER pour EXP-0015, non exécutée. Un `notes.md` sans en-tête s'affiche « en-tête manquant », un en-tête mal formé « en-tête illisible » ; un `id` qui ne correspond pas au dossier ou un verdict hors de la liste de D26 §2 sont signalés à côté de la question. Un résultat portant un bloc `invalidee` est marqué « invalidée ». 
+
+## Glossaire intégré (D26, chantier I3)
+
+Onglet Glossaire généré depuis `docs/glossaire.md` de la racine `--depot` (`app/glossaire.py`) : introduction, index des termes, parties, une ancre par terme (`gl-<terme sans accents>`, par exemple `gl-parole-manquee`) ; les définitions renvoient entre elles, jamais à elles-mêmes.
+
+Renvois dans les onglets Analyse (titres, panneau d'avancement, tableaux des locuteurs, des temps et du DER), Pipeline et Avancement : chaque terme du glossaire est lié à sa définition, à sa première occurrence dans chaque bloc (paragraphe, cellule, élément de liste, titre). Un clic ouvre l'onglet Glossaire sur la définition (`app/static/glossaire.js`) ; le survol l'affiche en infobulle. Correspondance automatique, sans liste tenue à la main :
+
+| Règle | Exemple |
+|---|---|
+| Variantes d'un terme : terme français, termes anglais en italique, éléments entre parenthèses contenant une majuscule, formes de la ligne facultative « Formes courtes : a, b, c. » sous le titre de l'entrée (D26, amendement du 01/11) | « VAD » renvoie à « Détection d'activité vocale », « Sortformer » à « Bout en bout », « Confusion » à « Confusion de locuteur » ; « (système) » dans « Hybride (système) » n'est pas une variante ; une forme revendiquée par deux entrées renvoie à la première et est signalée (`Linker.conflicts`) |
+| Mot entier seulement, jamais dans un identifiant ou une expression | rien dans `der_c0`, `clustering.threshold`, `VBxClustering`, `collar=0.5` ; « DER sans collar » donne deux liens, DER et collar |
+| Pluriel accepté mot à mot | « Empreintes vocales », « chevauchements » |
+| Plus long d'abord à une même position | « Parole manquée » plutôt que « Parole » si les deux sont des termes |
+| Sigles sensibles à la casse, autres termes non | « DER » oui, « der » non ; « Regroupement » et « regroupement » oui |
+| Jamais dans du code, un bouton, un lien ni un attribut | les boutons d'étape de l'onglet Pipeline et les libellés des composants Gradio (listes, cases) ne sont pas liés |
+
+Limites. Les libellés des composants Gradio (« Moteur », « Nombre de locuteurs »…) et la timeline dessinée en JavaScript ne portent pas de renvois. Une forme abrégée n'est reconnue que si elle figure dans la ligne « Formes courtes » de son entrée.
+
+## Fonctionnement hors ligne et dossiers temporaires (D17, amendement 1)
+
+| Point | Comportement | Où |
+|---|---|---|
+| Modèles | Hors mode factice, `HF_HUB_OFFLINE=1` est fixé au démarrage, avant tout import de huggingface_hub, pyannote ou speechbrain : les modèles sont lus dans le cache local, sans requête au Hub. Le cache doit donc être rempli au préalable, une fois, avec accès réseau et `HF_TOKEN` dans `.env` : `uv run python scripts/prefetch_models.py` (voir ci-dessous). Si un modèle manque, l'analyse s'arrête sur un message qui renvoie à ce script | `app/travail.py`, `moteurs.missing_model_message` |
+| Dossiers temporaires | Chaque lancement travaille dans `<tmp>/whospoke-app/run-<pid>/` : audio normalisé, exports, et fichiers déposés ou servis par Gradio (`GRADIO_TEMP_DIR`). Le dossier est supprimé à la fermeture (sortie normale, Ctrl+C, SIGTERM). Ceux d'un lancement tué brutalement sont supprimés au lancement suivant | `app/travail.py`, `app.main` |
+
+## Onglet « Analyse »
+
+| Élément | Où |
+|---|---|
+| Normalisation de tout audio déposé en WAV 16 kHz mono (D15, D16) | `whospoke.audio.normalize`, dans un dossier de travail temporaire hors du dépôt |
+| Moteurs et expérience source de chaque moteur (paramètres, θ retenu, RTF) : EXP-0009 (MFCC), EXP-0012 (ECAPA), EXP-0007 (pyannote), EXP-0015 (WeSpeaker, indisponible tant qu'elle n'existe pas ou n'a pas tourné) ; `configs/demo.yaml` au gel | `app/moteurs.py` |
+| Temps restant estimé à partir du RTF mesuré (`results/leaderboard.csv`) : colonne du périphérique choisi (`rtf_cpu` en CPU, `rtf` sur le périphérique de l'expérience), plus grande valeur entre dev et test. Affichage seulement, pas une mesure au sens de D21 | `app/temps.py` |
+| Statistiques par locuteur, renommage, exports RTTM et JSON, DER face à une référence (deux conditions de collar, sur toute la durée du fichier, référence coupée à cette durée ; mention « durée entière du fichier, sans UEM : non comparable aux résultats sur corpus ») | `app/sortie.py`, `app/app.py` |
+| Forme d'onde neutre (D26) : seul le segment sélectionné, dernier cliqué, y est mis en évidence par une bande d'encre et entouré sur sa piste ; timeline par locuteur, écoute d'un segment au clic, zoom (curseur, boutons, Ctrl + molette ; jusqu'à 60 px par seconde) | `app/static/visualiseur.js` et `.css` |
+| Thème (teintes neutres, polices système) et feuille de style | `app/theme.py`, `app/static/interface.css` |
+| Onglet Pipeline | `app/pipeline.py`, `app/static/pipeline.js` |
+| Onglet Avancement | `app/avancement.py` |
+| Onglet Glossaire et renvois | `app/glossaire.py`, `app/static/glossaire.js` |
+
+## Principes d'affichage
+
+L'interface est monochrome : la couleur est réservée aux locuteurs (palette catégorielle à huit teintes en ordre fixe, gris au-delà). Les polices sont celles du système, aucun fichier de police n'est chargé. Les ombres sont en couches légères. Le mouvement se limite au retour d'appui des boutons, à la barre d'avancement et à l'indicateur de l'étape en cours, et il est coupé avec `prefers-reduced-motion`. L'état de chaque étape est écrit en toutes lettres (« terminé », « 45 % », « en attente »), le focus clavier est visible partout, et les noms saisis sont échappés avant affichage. Ces principes sont tirés des skills frontend-design, beautiful-shadows, emil-design-eng, apple-design, interaction-design, accessibility et unslop, lus et non installés.
+
+### Palette des locuteurs : vérification (01/11/2026)
+
+Huit teintes en ordre fixe (palette validée de la skill dataviz), une variante par mode ; à partir du 9e locuteur, un gris neutre unique. Les couleurs sont attribuées dans l'ordre de première prise de parole. Écarts mesurés par le validateur de la skill (OKLab ΔE × 100, simulation de Machado 2009 à sévérité 1), sur le fond des pistes (`#f0f0ed` en clair, `#232428` en sombre) :
+
+| Condition | Clair | Sombre |
+|---|---|---|
+| Paires adjacentes (pistes voisines), daltonisme rouge-vert | pire ΔE 9,1 : réussi (cible ≥ 8) | pire ΔE 8,4 : réussi |
+| Paires adjacentes, vision normale | pire ΔE 19,6 : réussi (plancher 15) | pire ΔE 19,3 : réussi |
+| Toutes les paires, deutéranopie | pire ΔE 4,5 (1↔7) ; sous 8 : 1↔7, 2↔8, 3↔5, 3↔8 | pire ΔE 1,6 (3↔5, quasi identiques) ; sous 8 : 7 paires |
+| Toutes les paires, vision normale | pire ΔE 7,1 (2↔8, orange et rouge) | pire ΔE 7,1 (2↔8) |
+| Contraste sur la piste | 4 teintes sous 3:1 (2, 3, 4, 5) : étiquettes requises | toutes ≥ 3:1 |
+
+Pire paire en deutéranopie selon le nombre de locuteurs (toutes paires) : clair 31,7 (2), 9,2 (3 et 4), 6,1 (5 et 6), 4,5 (7 et 8) ; sombre 28,6 (2), 9,4 (3), 4,8 (4), 1,6 (5 à 8).
+
+Conclusion. La couleur seule ne distingue toutes les paires que **jusqu'à 3 locuteurs** (deutéranopie comprise) ; au-delà, l'identité repose sur l'encodage secondaire : une piste par locuteur, toujours dans le même ordre et étiquetée par son nom (les pistes voisines restent distinguables, c'est le cas que la palette garantit), pastille accompagnée du nom dans le tableau, nom et horaires au survol de chaque segment. En conséquence (D26, « Couleurs »), la forme d'onde est neutre : les teintes par locuteur qu'elle portait, qui ne reposaient que sur la couleur, sont retirées ; seul le segment sélectionné y est mis en évidence.
+
+Au-delà de 8 locuteurs : tous les suivants reçoivent le même gris (`#8a8985` en clair, `#a3a29c` en sombre). Ils sont indiscernables entre eux par la couleur et ne se distinguent que par leur piste, leur nom et le survol ; en deutéranopie, ce gris est en outre proche de l'aqua (3) en clair (ΔE 4,8). Aucune teinte n'est générée en plus, conformément à la règle de la palette (pas de 9e teinte inventée).
+
+Moteur factice : il respecte le contrat de `src/whospoke/pipelines/base.py`, simule les étapes du moteur choisi, puis renvoie le RTTM produit par l'expérience source pour le fichier déposé, reconnu à son nom (`007a_ECRH.mp3` ou `summre__007a_ECRH.wav` pour `summre__007a_ECRH`), coupé à la durée de l'audio. La contrainte sur le nombre de locuteurs est ignorée, et l'interface le signale.
+
+## Bibliothèques JavaScript embarquées
+
+| Bibliothèque | Version | Fichiers | Source et contrôle |
+|---|---|---|---|
+| wavesurfer.js (BSD-3-Clause) | 7.12.12 (publiée le 10/09/2026) | `static/wavesurfer-7.12.12/wavesurfer.min.js`, `regions.min.js`, `LICENSE` | Archive npm `wavesurfer.js-7.12.12.tgz`, intégrité sha512 vérifiée contre le registre ; aucune URL dans les fichiers copiés |
+
+SHA-256 : `wavesurfer.min.js` cb9fff59e7ce18932fab801771589ca48bc0362db82218d86cf05f5b60f0bc5e ; `regions.min.js` fa36e84bd0f22e332e5ac4d0264967e350375fa00418bc18d095bb0e0116e16d.
+
+## Contrôle hors ligne (01/11/2026, Gradio 6.31.0)
+
+Amendement 1 (même jour) : en mode réel, démarrage du serveur et requête de la page sous relevé d’audit, sans lancer d'analyse (aucun modèle chargé) : seules connexions vers `127.0.0.1`. En mode factice, parcours complet avec zoom : idem. Le chargement des modèles réels sous `HF_HUB_OFFLINE=1` reste à contrôler (voir plus bas).
+
+Contrôle refait après la refonte visuelle du même jour : 88 requêtes, toutes vers `http://127.0.0.1:7860`, plus une icône SVG intégrée en `data:` (sans réseau) ; aucun fichier de police chargé (polices système). Côté serveur, relevés identiques à ceux du tableau ci-dessous, sur neuf sessions.
+
+| Côté | Méthode | Résultat |
+|---|---|---|
+| Navigateur | Liste des requêtes de la page (outil réseau du navigateur et `performance.getEntriesByType`) pendant un parcours complet : chargement, dépôt d'un mp3 et d'une référence, analyse, écoute de segments, renommage, exports | Plus d'une centaine de requêtes, toutes vers `http://127.0.0.1:7860`. Polices du thème (Source Sans Pro, IBM Plex Mono) servies par Gradio depuis `/static/fonts/` ; wavesurfer.js depuis `app/static/` ; audio lu par requêtes partielles (206) |
+| Serveur | Hook d'audit Python (`sys.addaudithook`) sur `socket.connect`, `socket.getaddrinfo`, `socket.sendto`, `socket.gethostbyname`, sur trois sessions de l'application | Seules connexions : `127.0.0.1:7860` (vérification de démarrage de Gradio), deux par session |
+
+Réglages qui y contribuent : `GRADIO_ANALYTICS_ENABLED=False` posé avant l'import de Gradio, thème à polices système uniquement (`app/theme.py`), `share=False`, `ssr_mode=False`, `mcp_server=False`.
+
+## Reste à vérifier avec les vrais moteurs
+
+Aucun modèle neuronal n'a été chargé pendant le développement (lot d'expériences EXP-0013 à EXP-0015 en cours). Après le lot :
+
+1. Suite de tests complète (`uv run pytest`), dont les fichiers qui chargent ECAPA, WeSpeaker et pyannote.
+2. `uv run python scripts/prefetch_models.py` : téléchargement réel puis vérification hors ligne des trois chargements (le script n'a été testé qu'avec des téléchargements et chargements simulés).
+3. Analyse réelle de l'extrait de 3 min avec chacun des moteurs, sous relevé d'audit réseau : aucune connexion hors `127.0.0.1` avec `HF_HUB_OFFLINE=1` ; durée de chargement des modèles ; temps restant annoncé face au temps réel.
+4. Modèle absent du cache : vider ou renommer temporairement le cache d'un modèle et vérifier que l'erreur levée est bien reconnue (`LocalEntryNotFoundError` ou `OfflineModeIsEnabled` dans la chaîne des causes) et affichée telle quelle. Point d'incertitude : pyannote peut renvoyer `None` au lieu de lever **[incertain]**. Le cas speechbrain (`pretrained_models/` du dossier courant) est écarté par `ecapa_load_options`.
+5. Fourchette min–max de pyannote et nombre imposé pour la baseline sur un vrai moteur (le moteur factice les ignore).
+6. Zoom au maximal sur une réunion de 30 min : fluidité et mémoire.
