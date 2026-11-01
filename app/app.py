@@ -34,12 +34,14 @@ import json
 import signal
 import threading
 import time
+from dataclasses import dataclass, field
 from datetime import datetime
 from html import escape
 
 import gradio as gr
 
 from app import avancement, glossaire, moteurs, pipeline, sortie, temps, theme
+from app.cache import ResultCache, annotation_from_tracks, annotation_tracks, audio_fingerprint, code_version, result_key
 from whospoke.audio import AudioError, load_waveform, normalize
 from whospoke.device import select_device
 from whospoke.experiment import REPO_ROOT
@@ -55,6 +57,7 @@ PALETTE_DARK = ("#3987e5", "#d95926", "#199e70", "#c98500", "#d55181", "#008300"
 OTHER_LIGHT, OTHER_DARK = "#8a8985", "#a3a29c"
 
 SPEAKER_MODES = ("Automatique", "Imposé", "Fourchette")
+DEFAULT_ENGINE = "pyannote-community-1"
 DEVICES = ("auto", "cpu", "mps", "cuda")
 PRE_STEPS = ("normalisation_audio", "chargement")
 PRE_LABELS = {"normalisation_audio": "Normalisation audio (ffmpeg)", "chargement": "Chargement du modèle"}
@@ -88,15 +91,84 @@ class ModelMissing(RuntimeError):
     """Modèle absent du cache local, en fonctionnement hors ligne."""
 
 
+WARMUP_S = 20.0           # durée du signal synthétique de l'appel à blanc
+FAKE_WARMUP_PAUSE_S = 0.8  # préchauffage simulé d'un moteur en mode factice
+
+
+def warmup_signal(duration_s: float = WARMUP_S, sample_rate: int = 16000):
+    """Signal synthétique à allure de parole pour l'appel à blanc : deux voix harmoniques
+    (120 et 210 Hz) qui alternent toutes les 2 s, modulées à 4 Hz, sur un bruit faible.
+    Aucun fichier audio n'est lu : le préchauffage fonctionne sur une machine vierge."""
+    import numpy as np
+    import torch
+
+    t = np.arange(int(duration_s * sample_rate)) / sample_rate
+    f0 = np.where((t // 2.0) % 2 == 0, 120.0, 210.0)
+    phase = 2 * np.pi * np.cumsum(f0) / sample_rate
+    voice = sum(np.sin(k * phase) / k for k in range(1, 8))
+    envelope = 0.5 * (1 + np.sin(2 * np.pi * 4.0 * t)) * ((t % 2.0) < 1.7)
+    noise = np.random.default_rng(0).normal(0.0, 0.003, t.size)
+    signal = (0.1 * voice * envelope + noise).astype(np.float32)
+    return torch.from_numpy(signal).unsqueeze(0), sample_rate
+
+
+@dataclass
+class WarmupStatus:
+    """État du préchauffage, lu par l'indicateur « moteurs prêts » de l'en-tête."""
+
+    enabled: bool = False
+    total: int = 0
+    done: int = 0
+    current: str | None = None
+    finished: bool = False
+    failures: dict[str, str] = field(default_factory=dict)
+
+
 class EngineCache:
-    """Moteurs chargés une seule fois par (moteur, périphérique), comme dans les expériences."""
+    """Moteurs chargés une seule fois par (moteur, périphérique), comme dans les expériences.
+
+    Un moteur est « chaud » (`is_warm`) quand il est chargé et qu'il a déjà fait un appel :
+    l'appel à blanc du préchauffage ou une analyse. Le surcoût fixe du premier appel n'est
+    alors plus compté dans le temps annoncé (D17, amendement 2).
+    """
 
     def __init__(self, fake: bool, fake_max_s: float, experiments: Path = moteurs.EXPERIMENTS_DIR) -> None:
         self.fake = fake
         self.experiments = experiments
         self.fake_max_s = fake_max_s
         self._engines: dict[tuple[str, str], object] = {}
+        self._warm: set[tuple[str, str]] = set()
         self.lock = threading.Lock()
+        self.warmup = WarmupStatus()
+
+    def is_warm(self, key: str, device: str) -> bool:
+        return (key, device) in self._warm
+
+    def mark_warm(self, key: str, device: str) -> None:
+        self._warm.add((key, device))
+
+    def warm_up(self, targets: list[tuple[moteurs.EngineSpec, str]]) -> None:
+        """Charge chaque moteur et fait un appel à blanc (R-D2) ; un échec est consigné
+        dans `warmup.failures` sans arrêter les autres. Tient le verrou moteur par moteur :
+        une analyse lancée pendant le préchauffage attend le moteur en cours."""
+        status = self.warmup
+        status.enabled, status.total, status.done, status.finished = True, len(targets), 0, False
+        for spec, device in targets:
+            status.current = spec.label
+            with self.lock:
+                try:
+                    engine, _ = self.get(spec, device)
+                    if not self.is_warm(spec.key, device):
+                        if self.fake:
+                            time.sleep(FAKE_WARMUP_PAUSE_S)
+                        else:
+                            waveform, sample_rate = warmup_signal()
+                            engine.run(waveform, sample_rate, uri="prechauffage")
+                        self.mark_warm(spec.key, device)
+                except Exception as error:  # consigné, affiché par l'indicateur
+                    status.failures[spec.label] = str(error).splitlines()[0][:200] if str(error) else type(error).__name__
+            status.done += 1
+        status.current, status.finished = None, True
 
     def get(self, spec: moteurs.EngineSpec, device: str) -> tuple[object, float | None]:
         """(moteur, durée de chargement en s, None s'il était déjà chargé)."""
@@ -168,13 +240,42 @@ def _status_html(steps: list[str], state: dict[str, float], title: str, detail: 
 
 
 def _estimate_source(run: dict, fake: bool) -> str:
-    """Provenance de l'estimation du temps restant : RTF mesuré et surcoût fixe daté."""
+    """Provenance de l'estimation du temps restant : RTF mesuré et surcoût fixe daté,
+    compté seulement pour un moteur froid (D17, amendement 2)."""
     text = f"RTF {_num(run['rtf'], 4)} mesuré par {run['measured'].exp_id}"
+    if run.get("warm"):
+        return f"{text}, moteur préchauffé : surcoût fixe non compté"
     overhead = run.get("overhead")
     if overhead is not None:
         day = datetime.strptime(overhead.measured_on, "%Y-%m-%d").strftime("%d/%m/%Y")
         return f"{text}, surcoût fixe {_num(overhead.seconds, 1)} s mesuré le {day}"
     return text if fake else f"{text}, surcoût fixe non mesuré"
+
+
+def _remaining_text(span: tuple[float, float] | None, recalibrated: bool, scope: str = "") -> str:
+    """Temps restant affiché pendant l'analyse : fourchette, ou valeur recalée."""
+    if span is None:
+        return "temps restant inconnu (RTF non mesuré sur ce périphérique)"
+    if span[1] <= 0:
+        return "estimation dépassée, calcul en cours"
+    if recalibrated:
+        return f"reste environ {temps.format_duration(span[1])}{scope}, recalé sur la vitesse observée"
+    if span[0] <= 0:
+        return f"reste au plus {temps.format_duration(span[1])}{scope}"
+    return f"reste {temps.format_range(span)}{scope}"
+
+
+def _longest_started_s(steps: tuple[str, ...], longest: str | None, state: dict[str, float],
+                       ends: dict[str, float], t0: float, now: float) -> float | None:
+    """Temps écoulé depuis le début de l'étape la plus longue, ou None si elle n'a pas
+    commencé. Son début est la fin de l'étape qui la précède (le lancement à défaut)."""
+    if longest is None:
+        return None
+    before = steps[:steps.index(longest)]
+    if state.get(longest, 0.0) <= 0.0 and not all(step in ends for step in before):
+        return None
+    start = max([ends[step] for step in before if step in ends], default=t0)
+    return max(0.0, now - start)
 
 
 def _step_fraction(steps: list[str], state: dict[str, float]) -> float:
@@ -394,12 +495,23 @@ def _comparison_html(result: dict | None) -> str:
             'résultats sur corpus. Temps de calcul sans le chargement du modèle.</p>')
 
 
+def _cache_date(iso: str) -> str:
+    """« 01/11/2026 à 21:04 » pour la date ISO d'une entrée du cache."""
+    try:
+        return datetime.fromisoformat(iso).strftime("%d/%m/%Y à %H:%M")
+    except (TypeError, ValueError):
+        return str(iso)
+
+
 def _times_html(result: dict | None) -> str:
     if result is None:
         return _empty("Les durées de chaque étape s'afficheront après l'analyse.")
     rows = [("Normalisation audio (ffmpeg)", f"{_num(result['normalisation_s'], 2)} s")]
-    rows.append(("Chargement du modèle", "déjà chargé" if result["chargement_s"] is None
-                 else f"{_num(result['chargement_s'], 2)} s"))
+    if result.get("cache"):
+        loading = "aucun (cache)"
+    else:
+        loading = "déjà chargé" if result["chargement_s"] is None else f"{_num(result['chargement_s'], 2)} s"
+    rows.append(("Chargement du modèle", loading))
     rows += [(STEP_LABELS.get(step, step), f"{_num(seconds, 2)} s")
              for step, seconds in result["durees_etapes"].items()]
     body = "".join(f'<tr><td>{escape(label)}</td><td class="num">{value}</td></tr>' for label, value in rows)
@@ -411,9 +523,12 @@ def _times_html(result: dict | None) -> str:
                + (f", RTF mesuré {_num(measured['rtf'], 4)} ({escape(measured['source'])})" if measured else "")
                + ". Le chargement du modèle n'entre pas dans le RTF.")
     callout = ""
+    if result.get("cache"):
+        callout += ('<div class="ws-callout">Résultat réaffiché depuis le cache, sans calcul : durées de '
+                    f'l\'analyse d\'origine, du {_cache_date(result["cache"])}.</div>')
     if result["factice"]:
         ignored = result["configuration"]["nombre_locuteurs"]["mode"] != "automatique"
-        callout = ('<div class="ws-callout">Moteur factice : aucune inférence. Segments repris de '
+        callout += ('<div class="ws-callout">Moteur factice : aucune inférence. Segments repris de '
                    f'<code>{escape(result["rttm_source"] or "")}</code>, temps de calcul simulé'
                    + (", contrainte sur le nombre de locuteurs ignorée." if ignored else ".") + "</div>")
     return (f'{callout}<div class="ws-table-wrap"><table class="ws-table"><thead><tr><th scope="col">Étape</th>'
@@ -471,11 +586,57 @@ element.addEventListener('click', (event) => {
 DER_SCOPE = "Durée entière du fichier, sans UEM : non comparable aux résultats sur corpus."
 
 
-def _header_html(fake: bool) -> str:
-    badge = '<span class="ws-badge">Moteur factice : aucune inférence</span>' if fake else ""
+def _engines_badge(status: WarmupStatus) -> str:
+    """Indicateur « moteurs prêts » (R-D2) : état écrit en toutes lettres, pas seulement dessiné."""
+    if not status.enabled:
+        return ('<span class="ws-badge ws-engines" data-state="off">Préchauffage désactivé : '
+                'moteurs chargés au premier usage</span>')
+    if not status.finished:
+        current = f" : {escape(status.current)}" if status.current else ""
+        return (f'<span class="ws-badge ws-engines" data-state="run" role="status">Préchauffage des moteurs '
+                f'({status.done}/{status.total}){current}…</span>')
+    if status.failures:
+        names = ", ".join(escape(name) for name in status.failures)
+        detail = escape(" ; ".join(f"{name} : {reason}" for name, reason in status.failures.items()))
+        return (f'<span class="ws-badge ws-engines" data-state="warn" role="status" title="{detail}">'
+                f'Moteurs prêts, sauf {names} (chargé au premier usage)</span>')
+    return '<span class="ws-badge ws-engines" data-state="ready" role="status">Moteurs prêts</span>'
+
+
+def _header_html(fake: bool, status: WarmupStatus | None = None) -> str:
+    badges = _engines_badge(status or WarmupStatus())
+    if fake:
+        badges += '<span class="ws-badge">Moteur factice : aucune inférence</span>'
     return ('<header class="ws-header"><div><h1>Who Spoke?</h1>'
             "<p>Qui parle, et quand. L'analyse tourne sur cette machine : l'audio ne la quitte pas.</p>"
-            f"</div>{badge}</header>")
+            f'</div><div class="ws-badges">{badges}</div></header>')
+
+
+def _shown_path(path: Path) -> str:
+    """Chemin affiché, avec ~ pour le dossier personnel."""
+    home = Path.home()
+    return f"~/{path.relative_to(home)}" if path.is_relative_to(home) else str(path)
+
+
+def _cache_info_html(store: ResultCache) -> str:
+    count, size = store.stats()
+    amount = "aucun résultat" if not count else f"{count} résultat{'s' if count > 1 else ''}, {_num(size / 1024, 0)} Ko"
+    return (f'<p class="ws-caption">Cache : {amount}, dans <code>{escape(_shown_path(store.directory))}</code>. '
+            "Ni audio ni nom de fichier : segments, durées et réglages seulement.</p>")
+
+
+def _band_html(prepared: dict, results: list[dict]) -> str:
+    """Bandeau des réglages repliés (R-U1) : fichier, durée, moteurs et réglages de l'analyse."""
+    engines = " puis ".join(escape(item["libelle"]) for item in results)
+    first = results[0]["configuration"]
+    speakers = first["nombre_locuteurs"]
+    count = {"automatique": "nombre de locuteurs automatique",
+             "impose": f"{speakers.get('valeur')} locuteurs imposés",
+             "fourchette": f"entre {speakers.get('min')} et {speakers.get('max')} locuteurs"}[speakers["mode"]]
+    devices = ", ".join(dict.fromkeys(item["device"] for item in results))
+    return (f'<p class="ws-band-text"><span class="strong">{escape(prepared["nom"])}</span>'
+            f'<span>{temps.format_duration(prepared["duree_s"])}</span><span>{engines}</span>'
+            f'<span>{escape(count)}</span><span>{escape(devices)}</span></p>')
 
 
 VIEWER_TEMPLATE = (
@@ -517,8 +678,12 @@ def _linked(linker: glossaire.Linker) -> tuple:
     return tuple(wrap(globals()[name]) for name in LINKED_RENDERERS)
 
 
-def build_app(fake: bool = False, fake_max_s: float = 20.0, repo_root: Path = REPO_ROOT) -> gr.Blocks:
-    """Application ; expériences, résultats, catalogue et documents lus sous `repo_root` (lecture seule)."""
+def build_app(fake: bool = False, fake_max_s: float = 20.0, repo_root: Path = REPO_ROOT,
+              warm_up: bool = False, cache_dir: Path | None = None) -> gr.Blocks:
+    """Application ; expériences, résultats, catalogue et documents lus sous `repo_root` (lecture seule).
+
+    `warm_up` : préchauffage des moteurs disponibles dans un fil dédié (R-D2) ; `cache_dir` :
+    dossier du cache des résultats (`app.cache.default_dir()` par défaut, R-D3)."""
     glossary = glossaire.read_glossary(repo_root / glossaire.GLOSSARY_RELATIVE)
     linker = glossaire.Linker(glossary)
     _title, _status_html, _stats_html, _times_html, _der_html = _linked(linker)
@@ -530,7 +695,9 @@ def build_app(fake: bool = False, fake_max_s: float = 20.0, repo_root: Path = RE
         return _der_all_html(_der_html, result, reference_path)
     experiments = repo_root / "experiments"
     leaderboard = repo_root / "results" / "leaderboard.csv"
-    cache = EngineCache(fake, fake_max_s, experiments)
+    engines = EngineCache(fake, fake_max_s, experiments)
+    store = ResultCache(cache_dir)
+    code = code_version(REPO_ROOT)   # commit du code des moteurs et de l'application
     availability = _availability(fake, experiments)
     choices = [
         (spec.label + ("" if availability[key] is None else " (indisponible)"), key)
@@ -538,6 +705,15 @@ def build_app(fake: bool = False, fake_max_s: float = 20.0, repo_root: Path = RE
     ]
     head = "".join(f'<script src="{_file_url(WAVESURFER_DIR / name)}"></script>'
                    for name in ("wavesurfer.min.js", "regions.min.js"))
+
+    if warm_up:
+        # Moteur proposé par défaut en premier, sur le périphérique de « auto ».
+        default_device = select_device("auto").type
+        targets = sorted(((spec, "cpu" if spec.cpu_only else default_device)
+                          for key, spec in moteurs.SPECS.items() if availability[key] is None),
+                         key=lambda target: target[0].key != DEFAULT_ENGINE)
+        engines.warmup.enabled, engines.warmup.total = True, len(targets)
+        threading.Thread(target=engines.warm_up, args=(targets,), daemon=True, name="prechauffage").start()
 
     def pipeline_page(key: str) -> str:
         try:
@@ -577,13 +753,12 @@ def build_app(fake: bool = False, fake_max_s: float = 20.0, repo_root: Path = RE
             return None, {"mode": "fourchette", "min": int(k_min), "max": int(k_max)}
         return None, {"mode": "automatique"}
 
-    def analyse(audio_path, key, compare, key2, mode, k, k_min, k_max, device_choice, reference_path):
-        if not audio_path:
-            raise gr.Error("Aucun fichier audio : déposez-en un dans les réglages, puis relancez.")
+    def plan_runs(key, compare, key2, mode, k, k_min, k_max, device_choice) -> list[dict]:
+        """Un dictionnaire par moteur, dans l'ordre d'exécution ; gr.Error si un réglage est refusé."""
         keys = [key] + ([key2] if compare and key2 else [])
         if len(keys) == 2 and key2 == key:
             raise gr.Error("Choisissez un second moteur différent du premier.")
-        runs = []   # un dictionnaire par moteur, dans l'ordre d'exécution
+        runs = []
         for index, engine_key in enumerate(keys, start=1):
             spec = moteurs.SPECS[engine_key]
             if availability[engine_key] is not None:
@@ -595,8 +770,121 @@ def build_app(fake: bool = False, fake_max_s: float = 20.0, repo_root: Path = RE
             except (RuntimeError, ValueError) as error:
                 raise gr.Error(f"{error}. Choisissez « auto » ou « cpu ».") from error
             runs.append({"index": index, "spec": spec, "device": device, "num_speakers": num_speakers,
-                         "speaker_conf": speaker_conf, "elapsed": None, "done": False})
+                         "speaker_conf": speaker_conf, "elapsed": None, "done": False, "recal": None})
+        return runs
 
+    def timing(run: dict) -> None:
+        """RTF mesuré, état chaud ou froid, surcoût compté et parts des étapes d'un moteur."""
+        spec = run["spec"]
+        source_device = moteurs.source_device(spec, experiments)
+        run["measured"] = temps.measured_rtf(spec.source_exp, run["device"], source_device, leaderboard)
+        run["rtf"] = run["measured"].rtf if run["measured"] else None
+        run["warm"] = engines.is_warm(spec.key, run["device"])
+        run["overhead"] = None if fake else moteurs.fixed_overhead(spec.key, run["device"])
+        # Surcoût fixe compté seulement pour un moteur froid (D17, amendement 2).
+        run["overhead_s"] = 0.0 if run["warm"] or run["overhead"] is None else run["overhead"].seconds
+        run["shares"] = temps.step_shares(moteurs.experiment_dir(spec.source_exp, experiments)
+                                          / f"execution_{source_device}.json")
+
+    def cache_key(run: dict, prepared: dict) -> str:
+        settings = {"peripherique": run["device"], "nombre_locuteurs": run["speaker_conf"],
+                    "parametres": moteurs.engine_params(run["spec"], experiments)}
+        return result_key(prepared["empreinte"], run["spec"].key, fake, settings, code)
+
+    def prepare(audio_path: str) -> dict:
+        """Audio normalisé (D15, D16) dans le dossier de travail, durée et empreinte."""
+        uri = Path(audio_path).stem
+        work = sortie.new_work_dir(RUN_DIR)
+        start = time.perf_counter()
+        try:
+            wav = normalize(audio_path, work / f"{sortie.rttm_name(uri)}.wav")
+        except AudioError as error:
+            raise gr.Error(f"Ce fichier n'a pas pu être lu comme de l'audio. Détail : {error}") from error
+        normalisation_s = time.perf_counter() - start
+        waveform, sample_rate = load_waveform(wav)
+        return {"source": audio_path, "nom": Path(audio_path).name, "uri": uri, "dir": work, "wav": wav,
+                "duree_s": waveform.shape[1] / sample_rate, "normalisation_s": normalisation_s,
+                "empreinte": audio_fingerprint(waveform[0].numpy())}
+
+    def estimate_html(prepared, key, compare, key2, mode, k, k_min, k_max, device_choice, use_cache) -> str:
+        """Durée annoncée avant le lancement (R-D2 ; D17, amendement 2)."""
+        if not prepared:
+            return '<div class="ws-estimate"><p class="ws-estimate-head">La durée estimée s\'affichera une fois le fichier déposé.</p></div>'
+        try:
+            runs = plan_runs(key, compare, key2, mode, k, k_min, k_max, device_choice)
+        except gr.Error as error:
+            return f'<div class="ws-estimate" data-state="warn"><p class="ws-estimate-head">{escape(error.message)}</p></div>'
+        low = high = 0.0
+        unknown, computed, lines = False, 0, []
+        for run in runs:
+            timing(run)
+            spec, where = run["spec"], f"{run['spec'].label} sur {run['device']}"
+            if use_cache and store.get(cache_key(run, prepared)):
+                lines.append(f"{where} : résultat en cache, réaffichage immédiat")
+                continue
+            computed += 1
+            span = temps.announced_range_s(run["rtf"], prepared["duree_s"], run["overhead_s"])
+            if span is None:
+                unknown = True
+                lines.append(f"{where} : RTF non mesuré sur ce périphérique, durée inconnue")
+                continue
+            low, high = low + span[0], high + span[1]
+            if run["warm"]:
+                state = "moteur prêt, surcoût fixe non compté"
+            elif run["overhead_s"]:
+                state = f"moteur froid, surcoût fixe de {_num(run['overhead_s'], 1)} s compté"
+            else:
+                state = "moteur froid"
+            lines.append(f"{where} : {state} ; RTF {_num(run['rtf'], 4)} ({run['measured'].exp_id})")
+        audio = f"pour {temps.format_duration(prepared['duree_s'])} d'audio"
+        if not computed:
+            head = f"Résultat déjà calculé {audio} : réaffichage immédiat, sans calcul."
+        elif unknown:
+            head = f"Durée estimée du calcul {audio} : inconnue."
+        else:
+            head = f"Durée estimée du calcul : {temps.format_range((low, high))} {audio}."
+        items = "".join(f"<li>{escape(line)}</li>" for line in lines)
+        note = (f'<p class="ws-caption">Moteur factice : calcul simulé, {_num(fake_max_s, 0)} s au plus.</p>'
+                if fake and computed else "")
+        return linker.link(f'<div class="ws-estimate"><p class="ws-estimate-head">{escape(head)}</p>'
+                           f'<ul class="ws-estimate-list">{items}</ul>{note}</div>')
+
+    def audio_changed(audio_path, *settings):
+        if not audio_path:
+            yield None, estimate_html(None, *settings)
+            return
+        yield gr.skip(), ('<div class="ws-estimate"><p class="ws-estimate-head">Préparation du fichier '
+                          '(normalisation en WAV 16 kHz mono)…</p></div>')
+        try:
+            prepared = prepare(audio_path)
+        except gr.Error as error:
+            yield None, f'<div class="ws-estimate" data-state="warn"><p class="ws-estimate-head">{escape(error.message)}</p></div>'
+            raise
+        yield prepared, estimate_html(prepared, *settings)
+
+    def result_item(run: dict, prepared: dict, annotation, durations: dict, calcul_s: float,
+                    loading_s: float | None, settings: dict, rttm_source: str | None,
+                    cached: str | None = None) -> dict:
+        spec, measured = run["spec"], run["measured"]
+        return {
+            "uri": prepared["uri"], "dir": prepared["dir"], "wav": prepared["wav"], "duree_s": prepared["duree_s"],
+            "libelle": spec.label, "moteur_cle": spec.key, "annotation": annotation, "names": {},
+            "moteur": f"factice ({spec.key})" if fake else spec.key,
+            "configuration": {
+                "experience_source": spec.source_exp, "peripherique": run["device"],
+                "nombre_locuteurs": run["speaker_conf"], "moteur_factice": fake, "reglages": settings,
+            },
+            "calcul_s": calcul_s, "normalisation_s": prepared["normalisation_s"], "chargement_s": loading_s,
+            "durees_etapes": durations, "device": run["device"], "factice": fake, "rttm_source": rttm_source,
+            "rtf_mesure": {"rtf": measured.rtf, "source": measured.source()} if measured else None,
+            "cache": cached,
+        }
+
+    def analyse(prepared, audio_path, key, compare, key2, mode, k, k_min, k_max, device_choice,
+                reference_path, use_cache):
+        if not audio_path:
+            raise gr.Error("Aucun fichier audio : déposez-en un dans les réglages, puis relancez.")
+        runs = plan_runs(key, compare, key2, mode, k, k_min, k_max, device_choice)
         prefix = len(runs) > 1
         steps, labels = list(PRE_STEPS[:1]), {}
         for run in runs:
@@ -610,48 +898,54 @@ def build_app(fake: bool = False, fake_max_s: float = 20.0, repo_root: Path = RE
         def status(title, detail="", fraction=None):
             return _status_html(steps, state, title, detail, fraction, labels=labels)
 
-        skip = (gr.skip(),) * 10
-        empty = (None, _stats_html(None), gr.update(value=[], visible=False), _times_html(None),
-                 _der_html(None, reference_path), gr.update(value=None, visible=False),
-                 gr.update(visible=True), "", gr.update(visible=False), None)
-        yield (status("Normalisation de l'audio", fraction=0.0), *empty)
+        yield {status_box: status("Normalisation de l'audio", fraction=0.0), viewer: None,
+               stats: _stats_html(None), names: gr.update(value=[], visible=False), times: _times_html(None),
+               der: _der_html(None, reference_path), exports: gr.update(value=None, visible=False),
+               exports_empty: gr.update(visible=True), comparison: "", comparison_card: gr.update(visible=False),
+               result_state: None}
 
         try:
-            uri = Path(audio_path).stem
-            work = sortie.new_work_dir(RUN_DIR)
-            start = time.perf_counter()
-            try:
-                wav = normalize(audio_path, work / f"{sortie.rttm_name(uri)}.wav")
-            except AudioError as error:
-                raise gr.Error(f"Ce fichier n'a pas pu être lu comme de l'audio. Détail : {error}") from error
-            normalisation_s = time.perf_counter() - start
+            if not prepared or prepared.get("source") != audio_path:
+                prepared = prepare(audio_path)
             state["normalisation_audio"] = 1.0
-            waveform, sample_rate = load_waveform(wav)
-            duration_s = waveform.shape[1] / sample_rate
+            waveform, sample_rate = load_waveform(prepared["wav"])
+            duration_s = prepared["duree_s"]
             for run in runs:
-                run["measured"] = temps.measured_rtf(run["spec"].source_exp, run["device"],
-                                                     moteurs.source_device(run["spec"], experiments), leaderboard)
-                run["rtf"] = run["measured"].rtf if run["measured"] else None
-                run["overhead"] = None if fake else moteurs.fixed_overhead(run["spec"].key, run["device"])
+                timing(run)
+                run["cle"] = cache_key(run, prepared)
+                run["cached"] = store.get(run["cle"]) if use_cache else None
+                if run["cached"]:
+                    run["done"] = True
+                    for step in ("chargement", *run["spec"].steps):
+                        state[f"{run['index']}:{step}"] = 1.0
 
             def remaining_text() -> str:
-                remaining = temps.cumulative_remaining_s(
-                    [(run["rtf"], run["overhead"].seconds if run["overhead"] else 0.0, run["elapsed"], run["done"])
-                     for run in runs], duration_s)
+                span = temps.cumulative_remaining_s(
+                    [(run["rtf"], run["overhead_s"], run["elapsed"], run["done"]) for run in runs], duration_s,
+                    [run["recal"] for run in runs])
                 scope = " pour les deux moteurs" if prefix and not runs[0]["done"] else ""
-                if remaining is None:
-                    return "temps restant inconnu (RTF non mesuré sur ce périphérique)"
-                if remaining > 0:
-                    return f"environ {temps.format_duration(remaining)} restantes{scope}"
-                return "estimation dépassée, calcul en cours"
+                recalibrated = any(run["recal"] is not None and not run["done"] for run in runs)
+                if recalibrated and span is not None and span[1] - span[0] >= 0.5:
+                    recalibrated = False   # un moteur à venir garde sa fourchette
+                return _remaining_text(span, recalibrated, scope)
 
             results = []
-            with cache.lock:
+            if engines.lock.locked():
+                yield {status_box: status("En attente de la fin du préchauffage des moteurs",
+                                          fraction=_step_fraction(steps, state))}
+            with engines.lock:
                 for run in runs:
                     spec, index = run["spec"], run["index"]
-                    yield (status(f"Chargement de {spec.label}", fraction=_step_fraction(steps, state)), *skip)
+                    if run["cached"]:
+                        entry = run["cached"]
+                        results.append(result_item(
+                            run, prepared, annotation_from_tracks(entry["pistes"], prepared["uri"]),
+                            entry["durees_etapes"], entry["calcul_s"], None, entry["reglages"],
+                            entry.get("rttm_source"), cached=entry["date"]))
+                        continue
+                    yield {status_box: status(f"Chargement de {spec.label}", fraction=_step_fraction(steps, state))}
                     try:
-                        engine, loading_s = cache.get(spec, run["device"])
+                        engine, loading_s = engines.get(spec, run["device"])
                     except ModelMissing as error:
                         raise gr.Error(str(error), duration=None) from error
                     except Exception as error:  # chargement des modèles : message affiché tel quel
@@ -663,51 +957,58 @@ def build_app(fake: bool = False, fake_max_s: float = 20.0, repo_root: Path = RE
                         engine.min_speakers = run["speaker_conf"].get("min")
                         engine.max_speakers = run["speaker_conf"].get("max")
                     outcome: dict = {}
+                    ends: dict[str, float] = {}
 
-                    def progress(step: str, fraction: float, index=index) -> None:
+                    def progress(step: str, fraction: float, index=index, ends=ends) -> None:
                         step_id = f"{index}:{step}"
                         state[step_id] = max(state.get(step_id, 0.0), fraction)
+                        if fraction >= 1.0:
+                            ends.setdefault(step, time.perf_counter())
 
                     def work_thread(engine=engine, run=run, progress=progress, outcome=outcome) -> None:
                         try:
-                            outcome["result"] = engine.run(waveform, sample_rate, uri=uri,
+                            outcome["result"] = engine.run(waveform, sample_rate, uri=prepared["uri"],
                                                            num_speakers=run["num_speakers"], progress=progress)
                         except Exception as error:  # remonté à l'interface ci-dessous
                             outcome["error"] = error
 
+                    longest = temps.longest_step(spec.steps, run["shares"])
                     t0 = time.perf_counter()
                     thread = threading.Thread(target=work_thread, daemon=True)
                     thread.start()
                     while thread.is_alive():
-                        run["elapsed"] = time.perf_counter() - t0
-                        measured = run["measured"]
+                        now = time.perf_counter()
+                        run["elapsed"] = now - t0
+                        fractions = {step: state.get(f"{index}:{step}", 0.0) for step in spec.steps}
+                        run["recal"] = temps.recalibrated_remaining_s(
+                            spec.steps, run["shares"], fractions,
+                            _longest_started_s(spec.steps, longest, fractions, ends, t0, now))
                         detail = (f"{temps.format_duration(run['elapsed'])} écoulées, {remaining_text()}"
-                                  + (f" ({_estimate_source(run, fake)})" if measured else ""))
-                        title = f"Analyse de {Path(audio_path).name} avec {spec.label}"
+                                  + (f" ({_estimate_source(run, fake)})" if run["measured"] else ""))
+                        title = f"Analyse de {prepared['nom']} avec {spec.label}"
                         if prefix:
                             title += f" ({index}/{len(runs)})"
-                        yield (status(title, detail, _step_fraction(steps, state)), *skip)
+                        yield {status_box: status(title, detail, _step_fraction(steps, state))}
                         thread.join(0.3)
                     calcul_s = time.perf_counter() - t0
-                    run["elapsed"], run["done"] = calcul_s, True
+                    run["elapsed"], run["done"], run["recal"] = calcul_s, True, None
                     if "error" in outcome:
                         raise gr.Error(f"L'analyse avec {spec.label} a échoué. Détail : {outcome['error']}")
+                    engines.mark_warm(spec.key, run["device"])
                     resultat = outcome["result"]
-                    measured = run["measured"]
-                    results.append({
-                        "uri": uri, "dir": work, "wav": wav, "duree_s": duration_s, "libelle": spec.label,
-                        "moteur_cle": spec.key, "annotation": resultat.annotation, "names": {},
-                        "moteur": f"factice ({spec.key})" if fake else spec.key,
-                        "configuration": {
-                            "experience_source": spec.source_exp, "peripherique": run["device"],
-                            "nombre_locuteurs": run["speaker_conf"], "moteur_factice": fake,
-                            "reglages": engine.describe_dict(),
-                        },
-                        "calcul_s": calcul_s, "normalisation_s": normalisation_s, "chargement_s": loading_s,
-                        "durees_etapes": resultat.durees_etapes, "device": run["device"], "factice": fake,
-                        "rttm_source": resultat.infos.get("rttm_source"),
-                        "rtf_mesure": {"rtf": measured.rtf, "source": measured.source()} if measured else None,
-                    })
+                    item = result_item(run, prepared, resultat.annotation, resultat.durees_etapes, calcul_s,
+                                       loading_s, engine.describe_dict(), resultat.infos.get("rttm_source"))
+                    results.append(item)
+                    try:
+                        store.put(run["cle"], {
+                            "moteur": spec.key, "factice": fake, "peripherique": run["device"],
+                            "nombre_locuteurs": run["speaker_conf"], "code": code,
+                            "pistes": annotation_tracks(item["annotation"]), "durees_etapes": item["durees_etapes"],
+                            "calcul_s": calcul_s, "reglages": item["configuration"]["reglages"],
+                            "rttm_source": item["rttm_source"],
+                        })
+                    except OSError as error:   # le cache est un plan de repli : jamais bloquant
+                        gr.Warning(f"Résultat non enregistré dans le cache : {error}")
 
             result = dict(results[0], peaks=sortie.peaks(waveform[0].numpy(),
                                                         n_points=max(4000, int(PEAKS_PER_S * duration_s))))
@@ -715,30 +1016,43 @@ def build_app(fake: bool = False, fake_max_s: float = 20.0, repo_root: Path = RE
                 result["comparaison"] = results[1]
             result = _with_reference(result, reference_path)
             summary = ", ".join(
-                f"{item['libelle']} : {len(sortie.speaker_labels(item['annotation']))} locuteur(s) en "
-                f"{temps.format_duration(item['calcul_s'])}" for item in results)
+                f"{item['libelle']} : {len(sortie.speaker_labels(item['annotation']))} locuteur(s) "
+                + ("en cache" if item["cache"] else f"en {temps.format_duration(item['calcul_s'])}")
+                for item in results)
             total_s = sum(item["calcul_s"] for item in results)
-            done = _status_html(
-                steps, {step: 1.0 for step in steps},
-                summary if prefix else
-                f"{len(sortie.speaker_labels(result['annotation']))} locuteur(s) en {temps.format_duration(total_s)}",
-                f"{Path(audio_path).name}, {temps.format_duration(duration_s)} d'audio"
-                + ("" if prefix else f", {result['libelle']}, RTF {_num(total_s / duration_s, 4)}"),
-                1.0, labels=labels)
+            n_speakers = len(sortie.speaker_labels(result["annotation"]))
+            if prefix:
+                title = summary
+            elif result["cache"]:
+                title = f"{n_speakers} locuteur(s), résultat réaffiché depuis le cache"
+            else:
+                title = f"{n_speakers} locuteur(s) en {temps.format_duration(total_s)}"
+            detail = f"{prepared['nom']}, {temps.format_duration(duration_s)} d'audio"
+            if not prefix:
+                detail += f", {result['libelle']}, RTF {_num(total_s / duration_s, 4)}"
+                if result["cache"]:
+                    detail += f", calculé le {_cache_date(result['cache'])}"
+            done = _status_html(steps, {step: 1.0 for step in steps}, title, detail, 1.0, labels=labels)
             names_rows = [[label, ""] for label in sortie.speaker_labels(result["annotation"])]
-            yield (done, _viewer_value(result), _stats_html(result),
-                   gr.update(value=names_rows, visible=True, row_limits=(len(names_rows), len(names_rows))),
-                   _times_all(result), _der_all(result, reference_path),
-                   gr.update(value=_exports(result), visible=True), gr.update(visible=False),
-                   _comparison_html(result), gr.update(visible=bool(result.get("comparaison"))), result)
+            yield {status_box: done, viewer: _viewer_value(result), stats: _stats_html(result),
+                   names: gr.update(value=names_rows, visible=True, row_limits=(len(names_rows), len(names_rows))),
+                   times: _times_all(result), der: _der_all(result, reference_path),
+                   exports: gr.update(value=_exports(result), visible=True), exports_empty: gr.update(visible=False),
+                   comparison: _comparison_html(result), comparison_card: gr.update(visible=bool(result.get("comparaison"))),
+                   result_state: result, prepared_state: prepared,
+                   # Réglages repliés, timeline en pleine largeur (R-U1).
+                   settings_col: gr.update(visible=False), band: gr.update(visible=True),
+                   band_text: _band_html(prepared, results), cache_info: _cache_info_html(store),
+                   estimate: estimate_html(prepared, key, compare, key2, mode, k, k_min, k_max, device_choice,
+                                           use_cache)}
         except Exception as error:
             # Le panneau passe à l'état « échec » sur l'étape en cause, message visible dans la page ;
             # la notification de Gradio est conservée.
             failed = _failed_step(steps, state)
             message = error.message if isinstance(error, gr.Error) else f"{type(error).__name__}: {error}"
             label = labels.get(failed) or PRE_LABELS.get(failed) or STEP_LABELS.get(failed, failed)
-            yield (_status_html(steps, state, f"Échec : {label}", fraction=_step_fraction(steps, state),
-                                labels=labels, failed=failed, error=str(message)), *skip)
+            yield {status_box: _status_html(steps, state, f"Échec : {label}", fraction=_step_fraction(steps, state),
+                                            labels=labels, failed=failed, error=str(message))}
             if isinstance(error, gr.Error):
                 raise
             raise gr.Error(f"L'analyse a échoué. Détail : {message}") from error
@@ -757,17 +1071,24 @@ def build_app(fake: bool = False, fake_max_s: float = 20.0, repo_root: Path = RE
 
     with gr.Blocks(title="Who Spoke?") as app:
         result_state = gr.State(None)
-        gr.HTML(_header_html(fake), js_on_load=None)
+        prepared_state = gr.State(None)
+        header = gr.HTML(_header_html(fake, engines.warmup), js_on_load=None)
+        timer = gr.Timer(1.0, active=warm_up)
         with gr.Tabs():
             with gr.Tab("Analyse"):
+                # Bandeau des réglages repliés après l'analyse (R-U1).
+                with gr.Row(visible=False, equal_height=True, elem_classes="ws-band") as band:
+                    band_text = gr.HTML("", js_on_load=None, elem_classes="ws-band-info")
+                    new_analysis = gr.Button("Nouvelle analyse", variant="secondary", scale=0, min_width=170,
+                                             elem_classes="ws-band-button")
                 with gr.Row(equal_height=False):
-                    with gr.Column(scale=4, min_width=300, elem_classes="ws-card"):
+                    with gr.Column(scale=4, min_width=300, elem_classes="ws-card") as settings_col:
                         gr.HTML(_title("Nouvelle analyse",
                                        "Tout format audio ou vidéo, normalisé en WAV 16 kHz mono."),
                                 js_on_load=None)
                         audio = gr.File(label="Fichier audio", file_count="single", type="filepath", height=150)
-                        engine = gr.Dropdown(choices, value="pyannote-community-1", label="Moteur",
-                                             info=engine_info("pyannote-community-1"))
+                        engine = gr.Dropdown(choices, value=DEFAULT_ENGINE, label="Moteur",
+                                             info=engine_info(DEFAULT_ENGINE))
                         compare = gr.Checkbox(value=False, label="Comparer avec un second moteur",
                                               info="Les deux moteurs tournent l'un après l'autre sur le même fichier.")
                         engine2 = gr.Dropdown(choices, value="baseline-ecapa", label="Second moteur",
@@ -780,11 +1101,21 @@ def build_app(fake: bool = False, fake_max_s: float = 20.0, repo_root: Path = RE
                         device = gr.Dropdown(list(DEVICES), value="auto", label="Périphérique",
                                              info=ENGINE_INFO_DEVICE)
                         reference = gr.File(label="Référence RTTM (facultative, pour le DER)",
-                                            file_types=[".rttm"], type="filepath", height=96)
+                                            file_types=[".rttm"], type="filepath", height=150,
+                                            elem_classes="ws-reference")
+                        estimate = gr.HTML(estimate_html(None, *[None] * 9), js_on_load=None)
                         run = gr.Button("Analyser", variant="primary", size="lg", elem_classes="ws-run")
+                        with gr.Accordion("Cache des résultats (plan de repli)", open=False,
+                                          elem_classes="ws-cache"):
+                            use_cache = gr.Checkbox(
+                                value=True, label="Réafficher un résultat déjà calculé",
+                                info="Même audio normalisé, même moteur, mêmes réglages et même commit : "
+                                     "réaffichage immédiat, sans calcul.")
+                            cache_info = gr.HTML(_cache_info_html(store), js_on_load=None)
+                            clear_cache = gr.Button("Vider le cache", variant="secondary", size="sm")
                     with gr.Column(scale=8, min_width=360):
                         with gr.Column(elem_classes="ws-card"):
-                            status = gr.HTML(
+                            status_box = gr.HTML(
                                 _status_html([], {}, "Prêt", "Déposez un fichier audio, choisissez un "
                                              "moteur, puis lancez l'analyse."),
                                 js_on_load=None)
@@ -829,9 +1160,9 @@ def build_app(fake: bool = False, fake_max_s: float = 20.0, repo_root: Path = RE
                             js_on_load=None)
                     pipeline_engine = gr.Dropdown(
                         [(spec.label, key) for key, spec in moteurs.SPECS.items()],
-                        value="pyannote-community-1", label="Moteur", elem_classes="pl-engine")
+                        value=DEFAULT_ENGINE, label="Moteur", elem_classes="pl-engine")
                     pipeline_view = gr.HTML(
-                        pipeline_page("pyannote-community-1"),
+                        pipeline_page(DEFAULT_ENGINE),
                         js_on_load=(STATIC_DIR / "pipeline.js").read_text(), elem_classes="pl-view")
 
             with gr.Tab("Avancement") as progress_tab:
@@ -856,7 +1187,8 @@ def build_app(fake: bool = False, fake_max_s: float = 20.0, repo_root: Path = RE
                     gr.HTML(_title("Décisions"), js_on_load=None)
                     progress_decisions = gr.HTML(sections["decisions"], js_on_load=None)
                 with gr.Column(elem_classes="ws-card"):
-                    gr.HTML(_title("File d'attente (D23)"), js_on_load=None)
+                    gr.HTML(_title("File d'attente de la piste A (D23)",
+                                   "Expériences à venir, dans l'ordre de docs/planning.md."), js_on_load=None)
                     progress_queue = gr.HTML(sections["file"], js_on_load=None)
 
             with gr.Tab(glossaire.TAB_LABEL):
@@ -883,10 +1215,38 @@ def build_app(fake: bool = False, fake_max_s: float = 20.0, repo_root: Path = RE
                                                      progress_decisions, progress_queue])
         progress_timeline.click(show_notes, None, [notes_view, notes_card])
         mode.change(mode_changed, mode, [k, range_row])
+
+        # Durée annoncée : recalculée à chaque changement de fichier ou de réglage.
+        settings_inputs = [engine, compare, engine2, mode, k, k_min, k_max, device, use_cache]
+        estimate_inputs = [prepared_state, *settings_inputs]
+        audio.change(audio_changed, [audio, *settings_inputs], [prepared_state, estimate])
+        for component in settings_inputs:
+            component.change(estimate_html, estimate_inputs, estimate, show_progress="hidden")
+
+        def warmup_tick(*inputs):
+            # Indicateur « moteurs prêts » et durée annoncée suivent le préchauffage ; la
+            # minuterie s'arrête quand il est fini.
+            status = engines.warmup
+            return (_header_html(fake, status), estimate_html(*inputs),
+                    gr.Timer(active=status.enabled and not status.finished))
+
+        timer.tick(warmup_tick, estimate_inputs, [header, estimate, timer], show_progress="hidden")
+
+        def clear_cache_click(*inputs):
+            removed = store.clear()
+            gr.Info(f"Cache vidé : {removed} résultat{'s' if removed > 1 else ''} supprimé{'s' if removed > 1 else ''}.")
+            return _cache_info_html(store), estimate_html(*inputs)
+
+        clear_cache.click(clear_cache_click, estimate_inputs, [cache_info, estimate])
+        def reopen_settings(*inputs):
+            return gr.update(visible=True), gr.update(visible=False), estimate_html(*inputs)
+
+        new_analysis.click(reopen_settings, estimate_inputs, [settings_col, band, estimate])
         run.click(
-            analyse, [audio, engine, compare, engine2, mode, k, k_min, k_max, device, reference],
-            [status, viewer, stats, names, times, der, exports, exports_empty, comparison, comparison_card,
-             result_state],
+            analyse, [prepared_state, audio, engine, compare, engine2, mode, k, k_min, k_max, device, reference,
+                      use_cache],
+            [status_box, viewer, stats, names, times, der, exports, exports_empty, comparison, comparison_card,
+             result_state, prepared_state, settings_col, band, band_text, cache_info, estimate],
             concurrency_limit=1, show_progress="hidden",  # l'avancement est dans le panneau d'état
         )
         names.input(rename, [names, result_state], [viewer, stats, exports, result_state])
@@ -911,9 +1271,16 @@ def main(argv: list[str] | None = None) -> None:
     parser.add_argument("--depot", type=Path, default=REPO_ROOT,
                         help="racine du dépôt dont sont lus expériences, résultats et catalogue, en lecture "
                              "seule (défaut : ce dépôt ; en développement : ~/Dev/Who-Spoke)")
+    parser.add_argument("--sans-prechauffage", action="store_true",
+                        help="ne pas charger ni préchauffer les moteurs au démarrage (chargés au premier usage)")
+    parser.add_argument("--vider-cache", action="store_true",
+                        help="vider le cache des résultats (~/.cache/whospoke/resultats) avant le lancement")
     args = parser.parse_args(argv)
     for stale in travail.remove_stale():
         print(f"Dossier temporaire d'un lancement interrompu supprimé : {stale}")
+    if args.vider_cache:
+        store = ResultCache()
+        print(f"Cache des résultats vidé ({store.directory}) : {store.clear()} résultat(s) supprimé(s).")
     RUN_DIR.mkdir(parents=True, exist_ok=True)
     # Suppression à la fermeture : sortie normale, Ctrl+C ou SIGTERM.
     atexit.register(travail.cleanup, RUN_DIR)
@@ -922,12 +1289,15 @@ def main(argv: list[str] | None = None) -> None:
     depot = args.depot.expanduser().resolve()
     if not (depot / "experiments").is_dir():
         parser.error(f"--depot : {depot} ne contient pas de dossier experiments/")
-    app = build_app(fake=args.factice, fake_max_s=args.factice_max_s, repo_root=depot)
+    app = build_app(fake=args.factice, fake_max_s=args.factice_max_s, repo_root=depot,
+                    warm_up=not args.sans_prechauffage)
     app.launch(
         server_name="127.0.0.1", server_port=args.port, share=False,
         allowed_paths=[str(RUN_DIR)], theme=theme.build_theme(), css=theme.css(),
         head=f"<script>{(STATIC_DIR / 'glossaire.js').read_text()}</script>",
-        footer_links=["settings"], mcp_server=False, ssr_mode=False,
+        # Pied de page de Gradio masqué (R-U5) ; zones de dépôt en français quelle que soit
+        # la langue du navigateur.
+        footer_links=[], i18n=gr.I18n(**theme.UPLOAD_TEXT), mcp_server=False, ssr_mode=False,
     )
 
 
