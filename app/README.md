@@ -7,7 +7,11 @@ uv run python -m app.app             # moteurs réels (modèles chargés au prem
 uv run python -m app.app --factice   # moteur factice : aucune inférence
 ```
 
-Puis ouvrir http://127.0.0.1:7860 (serveur local uniquement, pas de lien public). Options : `--port`, `--factice-max-s` (durée maximale simulée d'une analyse en mode factice). Lancer par `python -m app.app` (ou `python app/app.py`) : c'est ce point d'entrée qui fixe l'environnement ci-dessous avant tout import.
+Puis ouvrir http://127.0.0.1:7860 (serveur local uniquement, pas de lien public). Options : `--port`, `--factice-max-s` (durée maximale simulée d'une analyse en mode factice), `--depot` (racine du dépôt dont sont lus, en lecture seule, les expériences, `results/leaderboard.csv` et le catalogue ; par défaut ce dépôt). Pendant le développement sur la branche `interface`, qui n'a pas toutes les expériences :
+
+```bash
+uv run python -m app.app --factice --depot ~/Dev/Who-Spoke
+``` Lancer par `python -m app.app` (ou `python app/app.py`) : c'est ce point d'entrée qui fixe l'environnement ci-dessous avant tout import.
 
 ## Installation des modèles (D15 ; D17, amendement 1)
 
@@ -26,6 +30,24 @@ uv run python scripts/prefetch_models.py --verifier   # vérification hors ligne
 
 La baseline MFCC n'utilise aucun modèle. Le script vérifie ensuite, dans un processus séparé avec `HF_HUB_OFFLINE=1` et un dossier courant vide, que chaque modèle se charge sans réseau et que rien n'est écrit dans le dossier de lancement. Les fichiers d'ECAPA sont lus en place dans le cache, jamais copiés dans un `pretrained_models/` du dossier courant (`whospoke.embeddings.ecapa_load_options`).
 
+## Onglet « Pipeline » (D17, D26 chantier I1)
+
+Consultation en lecture seule de la configuration de chaque moteur, générée à l'ouverture, jamais rédigée à la main (`app/pipeline.py`, `app/static/pipeline.js`) :
+
+| Contenu | Source |
+|---|---|
+| Réglages, valeurs, origine (expérience, défaut du moteur, modèle pré-entraîné, code), par étape | `configuration_effective` de `execution_<périphérique>.json` de l'expérience source du moteur (exécution principale) |
+| Libellé, rôle de l'étape, effet, composantes du DER, décision | `src/whospoke/pipelines/catalogue.yaml` de la même racine de dépôt |
+| Étape Normalisation, commune | `whospoke.audio` (fréquence d'échantillonnage) ; canaux, format et entrée en mémoire : propriétés du code de `normalize` (D15, D16) |
+| Étape Évaluation, séparée et marquée « mesure seulement » | `whospoke.evaluation.metrics` (collars et `skip_overlap` lus sur les métriques instanciées), `evaluation.references` du config.yaml de l'expérience, protocole §2 et §4 |
+| En-tête | expérience, périphérique, date, commit et versions de l'exécution |
+
+Révision des modèles : lue dans la valeur d'un réglage `*.modele` au format `dépôt@commit (architecture)`, ou dans un réglage `*.revision` ; à défaut, « révision non consignée » (cas de pyannote jusqu'au chantier V, D18 amendement du 01/11). ECAPA l'affiche déjà (`0f99f2d`).
+
+Écarts signalés en tête de page : réglages de la configuration absents du catalogue, entrées du catalogue absentes de la configuration, étapes différentes. Constat au 01/11 (dépôt principal) : aucun pour pyannote (EXP-0007) ni ECAPA (EXP-0012) ; pour la baseline MFCC (EXP-0009), les cinq réglages des empreintes neuronales (`empreintes.*`, `normalisation`), que le catalogue du moteur « baseline » décrit pour ses variantes ECAPA et WeSpeaker. WeSpeaker : page indisponible tant qu'EXP-0015 n'a pas été exécutée.
+
+La maquette du 27/10 (`docs/maquettes/pipeline-maquette-2026-10-27.html`) a servi pour le contenu ; son style et ses polices distantes ne sont pas repris.
+
 ## Fonctionnement hors ligne et dossiers temporaires (D17, amendement 1)
 
 | Point | Comportement | Où |
@@ -41,8 +63,9 @@ La baseline MFCC n'utilise aucun modèle. Le script vérifie ensuite, dans un pr
 | Moteurs et expérience source de chaque moteur (paramètres, θ retenu, RTF) : EXP-0009 (MFCC), EXP-0012 (ECAPA), EXP-0007 (pyannote), EXP-0015 (WeSpeaker, indisponible tant qu'elle n'existe pas ou n'a pas tourné) ; `configs/demo.yaml` au gel | `app/moteurs.py` |
 | Temps restant estimé à partir du RTF mesuré (`results/leaderboard.csv`) : colonne du périphérique choisi (`rtf_cpu` en CPU, `rtf` sur le périphérique de l'expérience), plus grande valeur entre dev et test. Affichage seulement, pas une mesure au sens de D21 | `app/temps.py` |
 | Statistiques par locuteur, renommage, exports RTTM et JSON, DER face à une référence (deux conditions de collar, sur toute la durée du fichier, référence coupée à cette durée ; mention « durée entière du fichier, sans UEM : non comparable aux résultats sur corpus ») | `app/sortie.py`, `app/app.py` |
-| Forme d'onde, timeline par locuteur, écoute d'un segment au clic, zoom (curseur, boutons, Ctrl + molette ; jusqu'à 60 px par seconde) | `app/static/visualiseur.js` et `.css` |
+| Forme d'onde neutre (D26) : seul le segment sélectionné, dernier cliqué, y est mis en évidence par une bande d'encre et entouré sur sa piste ; timeline par locuteur, écoute d'un segment au clic, zoom (curseur, boutons, Ctrl + molette ; jusqu'à 60 px par seconde) | `app/static/visualiseur.js` et `.css` |
 | Thème (teintes neutres, polices système) et feuille de style | `app/theme.py`, `app/static/interface.css` |
+| Onglet Pipeline | `app/pipeline.py`, `app/static/pipeline.js` |
 
 ## Principes d'affichage
 
@@ -62,7 +85,7 @@ Huit teintes en ordre fixe (palette validée de la skill dataviz), une variante 
 
 Pire paire en deutéranopie selon le nombre de locuteurs (toutes paires) : clair 31,7 (2), 9,2 (3 et 4), 6,1 (5 et 6), 4,5 (7 et 8) ; sombre 28,6 (2), 9,4 (3), 4,8 (4), 1,6 (5 à 8).
 
-Conclusion. La couleur seule ne distingue toutes les paires que **jusqu'à 3 locuteurs** (deutéranopie comprise) ; au-delà, l'identité repose sur l'encodage secondaire, qui est présent partout sauf sur la forme d'onde : une piste par locuteur, toujours dans le même ordre et étiquetée par son nom (les pistes voisines restent distinguables, c'est le cas que la palette garantit), pastille accompagnée du nom dans le tableau, nom et horaires au survol de chaque segment. Les teintes posées sur la forme d'onde, elles, ne portent que la couleur : elles doublent la timeline alignée juste dessous.
+Conclusion. La couleur seule ne distingue toutes les paires que **jusqu'à 3 locuteurs** (deutéranopie comprise) ; au-delà, l'identité repose sur l'encodage secondaire : une piste par locuteur, toujours dans le même ordre et étiquetée par son nom (les pistes voisines restent distinguables, c'est le cas que la palette garantit), pastille accompagnée du nom dans le tableau, nom et horaires au survol de chaque segment. En conséquence (D26, « Couleurs »), la forme d'onde est neutre : les teintes par locuteur qu'elle portait, qui ne reposaient que sur la couleur, sont retirées ; seul le segment sélectionné y est mis en évidence.
 
 Au-delà de 8 locuteurs : tous les suivants reçoivent le même gris (`#8a8985` en clair, `#a3a29c` en sombre). Ils sont indiscernables entre eux par la couleur et ne se distinguent que par leur piste, leur nom et le survol ; en deutéranopie, ce gris est en outre proche de l'aqua (3) en clair (ΔE 4,8). Aucune teinte n'est générée en plus, conformément à la règle de la palette (pas de 9e teinte inventée).
 

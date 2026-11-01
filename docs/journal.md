@@ -360,3 +360,19 @@ Résultats : aucune expérience.
 Décisions : aucune. Proposition : ne pas compter sur les teintes de la forme d'onde pour identifier un locuteur (les retirer, ou y ajouter le nom au survol).
 Problèmes : aucun.
 Suite : après le lot, `uv run python scripts/prefetch_models.py`, puis la liste « Reste à vérifier avec les vrais moteurs » de `app/README.md`.
+
+## 2026-11-01 — D26 : forme d'onde neutre et onglet Pipeline (chantier I1), branche `interface` (Claude Code)
+
+Objectif : appliquer le paragraphe « Couleurs » de D26, puis le chantier I1 (onglet Pipeline), sur la branche `interface`, sans fusion ni modèle chargé. D26, D17 et son amendement 1 lus dans `~/Dev/Who-Spoke`, en lecture seule.
+Réalisé :
+- Couleurs (D26) : forme d'onde neutre ; le segment cliqué y est marqué par une bande d'encre et entouré sur sa piste (`aria-pressed`). Vérifié dans le navigateur : aucune bande avant sélection, une seule après. Test : un seul `addRegion`, sans couleur de locuteur.
+- `app/pipeline.py` et `app/static/pipeline.js` : onglet Pipeline en lecture seule, généré depuis `configuration_effective` de l'exécution principale de l'expérience source (EXP-0009, EXP-0012, EXP-0015, EXP-0007) et depuis `catalogue.yaml` ; sélecteur de moteur, enchaînement des étapes, fiche par étape (rôle, modèle et révision, erreurs produites, fichier de définition, tableau réglage, valeur, origine, effet, composantes du DER), étape Évaluation séparée (collars et `skip_overlap` lus sur les métriques instanciées, références lues dans config.yaml), étape Normalisation commune (fréquence lue dans `whospoke.audio`). Contenu repris de la maquette du 27/10, sans son style ni ses polices distantes.
+- Révisions : lues dans la valeur `dépôt@commit` d'un réglage `*.modele` ou dans un réglage `*.revision`, sinon « révision non consignée ». Constat : ECAPA affiche `0f99f2d` ; les trois modèles de pyannote (segmentation, empreintes, PLDA) sont « révision non consignée ».
+- Écarts entre configuration et catalogue, sur le dépôt principal : aucun pour EXP-0007 et EXP-0012 ; pour EXP-0009 (MFCC), cinq entrées du catalogue absentes de la configuration (`empreintes.dimension`, `empreintes.duree_min_s`, `empreintes.modele`, `empreintes.peripherique`, `normalisation`), propres aux variantes neuronales. Aucun réglage hors catalogue, aucune étape différente. WeSpeaker : page indisponible, EXP-0015 n'étant pas exécutée.
+- Option `--depot` de l'application : expériences, `results/leaderboard.csv` et catalogue lus sous une autre racine, pour l'onglet Pipeline comme pour l'onglet Analyse (moteurs disponibles, θ, RTF, RTTM du moteur factice). Lancement de développement : `--factice --depot ~/Dev/Who-Spoke`. Aucune écriture dans le dépôt principal (vérifié par `git status` et par un test d'instantané).
+- 11 tests sans modèle (10 pour l'onglet Pipeline, dont trois sur les expériences réelles de la branche ; 1 pour la forme d'onde neutre). Suite sans les trois fichiers qui chargent des modèles : 196 réussis, 1 ignoré.
+- Contrôle hors ligne : 86 requêtes du navigateur, toutes vers 127.0.0.1 ; côté serveur, aucune connexion hors 127.0.0.1.
+Résultats : aucune expérience.
+Décisions : aucune. Points soumis : les textes et trois valeurs de l'étape Normalisation (canaux, format, entrée en mémoire) sont dans `app/pipeline.py`, faute de constantes exposées par `whospoke.audio` et d'entrée au catalogue ; les déplacer dans le catalogue au gel ?
+Problèmes : pendant la vérification, le zoom de la timeline s'est trouvé au maximum après une interaction dans la page ; l'alignement des pistes est resté exact (10 800 px des deux côtés).
+Suite : I2 (onglet Avancement), après les en-têtes YAML des `notes.md`.
