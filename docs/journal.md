@@ -330,3 +330,19 @@ Résultats : aucune expérience.
 Décisions : aucune.
 Problèmes : suite de tests toujours lancée sans les trois fichiers qui chargent des modèles (163 réussis, 1 ignoré). Les couleurs de la forme d'onde suivent le thème actif à la création du lecteur, pas un changement de thème ultérieur.
 Suite : inchangée (suite complète et mode réel après le lot, fusion, page Pipeline).
+
+## 2026-11-01 — Amendement 1 de D17 sur la branche `interface` (Claude Code)
+
+Objectif : appliquer l'amendement 1 de D17 (lu dans `~/Dev/Who-Spoke`, statut « proposée » dans la fiche) sans fusionner et sans charger de modèle neuronal pendant le lot EXP-0013 à EXP-0015.
+Réalisé :
+- `app/moteurs.py` : WeSpeaker reprend EXP-0015 (indisponible tant qu'elle n'existe pas dans la branche) ; message explicite quand un modèle manque du cache local (`LocalEntryNotFoundError` ou `OfflineModeIsEnabled` dans la chaîne des causes). `app/temps.py` : RTF lu dans la colonne du périphérique choisi (`rtf_cpu` en CPU, `rtf` sur le périphérique de l'expérience, repli sur `rtf` pour une expérience exécutée en CPU sans `rtf_cpu`), plus grande valeur entre dev et test.
+- `app/travail.py` (nouveau) : au lancement par `python -m app.app`, hors mode factice, `HF_HUB_OFFLINE=1` avant tout import de huggingface_hub, pyannote ou speechbrain ; dossier `run-<pid>` par lancement, `GRADIO_TEMP_DIR` compris, supprimé à la fermeture (atexit, Ctrl+C, SIGTERM) ; dossiers des lancements tués supprimés au lancement suivant.
+- DER : mention « Durée entière du fichier, sans UEM : non comparable aux résultats sur corpus. » au-dessus du tableau des deux conditions de collar.
+- Zoom de la timeline : zoom natif de wavesurfer (rendu paresseux, contrairement à un élargissement du conteneur qui aurait dessiné plus de 200 Mo de canevas pour 30 min), pistes, axe et tête de lecture synchronisés sur son défilement ; curseur, boutons, Ctrl + molette ; zoom et position conservés au renommage ; commandes par délégation d'événements, le gabarit étant redessiné par Gradio.
+- 12 tests nouveaux ou modifiés, sans modèle : source WeSpeaker, règle du RTF, message de cache, variable posée avant l'import du Hub (sous-processus, `--help`), suppression des dossiers, lancements interrompus, mention du DER, présence du zoom. Suite sans les trois fichiers qui chargent des modèles : 174 réussis, 1 ignoré.
+- Vérifié dans le navigateur (mode factice) : zoom ×5,8 avec défilement synchronisé (canevas des pistes 3 327 px, forme d'onde 3 328 px), suivi de la lecture, renommage avec zoom conservé, « Tout afficher ». Dossier de lancement supprimé après SIGTERM et après Ctrl+C (code 0). Mode réel : démarrage et requête de la page sans connexion hors 127.0.0.1, sans analyse.
+- Nettoyage des dossiers `analyse-*` laissés par les essais précédents dans le dossier temporaire.
+Résultats : aucune expérience.
+Décisions : aucune ; amendement 1 de D17 appliqué tel que rédigé.
+Problèmes : SIGINT est ignoré par un processus lancé en arrière-plan depuis un shell non interactif (artefact de test, pas de l'application) ; vérifié dans les conditions d'un terminal. Le message de cache manquant n'a pas pu être vérifié sur un vrai chargement.
+Suite : après le lot, suite de tests complète et essai réel des quatre moteurs (liste dans `app/README.md`, « Reste à vérifier avec les vrais moteurs ») ; `configs/demo.yaml` au gel.
