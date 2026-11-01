@@ -1,0 +1,64 @@
+# Licences
+
+Version du 1er novembre 2026 (chantier E1, audit du 01/11, R-R1).
+
+**Légende de confiance.** **[certain]** : lu sur la source primaire à la date indiquée. **[probable]** : non revérifié.
+
+## 1. Ce dépôt
+
+Le code et la documentation de ce dépôt sont publiés sous **licence MIT** (fichier `LICENSE` à la racine ; titulaire : l'auteur déclaré dans `pyproject.toml`). Les fichiers de tiers inclus dans le dépôt gardent leur propre licence (section 3).
+
+Le dépôt ne contient **aucun poids de modèle ni aucun audio**. Les modèles sont téléchargés par chaque utilisateur depuis le Hub Hugging Face (`scripts/prefetch_models.py`), sous les conditions de leurs auteurs. Les corpus sont reconstruits par les scripts de `scripts/data/` (`docs/corpus.md`).
+
+## 2. Modèles pré-entraînés
+
+| Composant | Usage dans le projet | Révision figée | Licence | Vérification |
+|---|---|---|---|---|
+| `pyannote/speaker-diarization-community-1` | Moteur pyannote (segmentation, empreintes WeSpeaker ResNet34, regroupement) ; empreintes WeSpeaker de la baseline | `3533c8cf8e36` | **CC-BY-4.0** ; modèle à accès restreint (conditions à accepter sur le Hub) | Fiche et API du Hub, 01/11/2026 **[certain]** |
+| `speechbrain/spkrec-ecapa-voxceleb` | Empreintes ECAPA-TDNN de la baseline (D22) | `0f99f2d0ebe8` | **Apache-2.0** | Fiche et API du Hub, 01/11/2026 **[certain]** |
+| DiariZen (BUT Speech@FIT) | Non intégré ; essai prévu (D23, rang A5) | — | **CC BY-NC 4.0** pour les poids d'après l'audit du 01/11 ; usage non commercial seulement | À revérifier avant intégration **[probable]** |
+| Nemotron 3 Diarization (NVIDIA) | Non intégré ; essai prévu (D23, rang A4) | — | À consigner avant intégration (`docs/corpus.md` §9) | — |
+
+CC-BY-4.0 impose de citer l'auteur, de donner un lien vers la licence et d'indiquer les modifications, en cas de partage du modèle ou d'une œuvre adaptée. Le projet ne redistribue pas les poids et ne les modifie pas. L'attribution est faite par ce tableau, auquel renvoie le README : auteur, identifiant, révision et licence de chaque modèle.
+
+## 3. Fichiers de tiers inclus dans le dépôt
+
+| Composant | Emplacement | Version | Licence | Vérification |
+|---|---|---|---|---|
+| wavesurfer.js et son greffon `regions` | `app/static/wavesurfer-7.12.12/` | 7.12.12 | **BSD-3-Clause** (texte joint dans le dossier) | Fichier `LICENSE` du paquet, 01/11/2026 **[certain]** |
+
+## 4. Dépendances Python principales
+
+Versions figées par `uv.lock`, licences lues dans les métadonnées des paquets installés le 01/11/2026 **[certain]**. Les dépendances indirectes ne sont pas listées ; `uv tree` les affiche.
+
+| Paquet | Version | Licence |
+|---|---|---|
+| pyannote.audio | 4.0.7 | MIT |
+| pyannote.core | 6.1.0 | MIT |
+| pyannote.metrics | 4.2.0 | MIT |
+| speechbrain | 1.1.2 | Apache-2.0 |
+| torch | 2.14.1 | BSD-3-Clause pour l'essentiel (expression complète : Apache-2.0, BSD-2-Clause, BSD-3-Clause, BSL-1.0, MIT) |
+| torchaudio | 2.11.0 | BSD-2-Clause |
+| gradio | 6.31.0 | Apache-2.0 |
+| huggingface_hub | 2.3.0 | Apache-2.0 |
+| numpy | 2.4.6 | BSD-3-Clause (avec des parties 0BSD, MIT, Zlib, CC0-1.0) |
+| scipy | 1.17.1 | BSD-3-Clause |
+| scikit-learn | 1.9.1 | BSD-3-Clause |
+| pandas | 3.1.0 | BSD-3-Clause |
+| pyarrow | 26.0.0 | Apache-2.0 |
+| librosa | 0.11.0 | ISC |
+| PyYAML | 6.0.3 | MIT |
+| python-dotenv | 1.2.4 | BSD-3-Clause |
+| pytest (développement) | 9.1.1 | MIT |
+
+Aucune de ces licences n'empêche la publication du dépôt sous MIT : aucune n'est copyleft.
+
+## 5. Corpus
+
+Détail dans `docs/corpus.md` ; rien n'est redistribué par le dépôt, sauf les listes de partition, les UEM et les manifestes (`data/splits/`, `data/manifests/`).
+
+| Corpus | Licence |
+|---|---|
+| AMI | CC BY 4.0 (site d'Édimbourg) |
+| SUMM-RE | CC BY-SA 4.0 |
+| Corpus maison | Aucune diffusion : enregistrements traités uniquement en local, selon le consentement des participants (`docs/corpus-maison/`) |

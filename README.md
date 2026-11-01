@@ -57,6 +57,7 @@ Pour une réunion de 30 min, l'analyse prend environ 1 min 30 s avec pyannote en
 | `docs/recherche/` | Recherche documentaire (corpus, veille sur les modèles) |
 | `docs/maquettes/` | Maquettes de l'interface |
 | `app/README.md` | Application de démonstration : fonctionnement, vérifications, limites |
+| [`docs/licences.md`](docs/licences.md) | Licences des modèles, des fichiers de tiers, des dépendances et des corpus |
 | `experiments/`, `analyses/` | Expériences et analyses a posteriori, avec leur interprétation (`notes.md`) |
 | `docs/journal.md` | Journal de bord |
 | `results/leaderboard.csv` | Une ligne par expérience et par jeu évalué |
