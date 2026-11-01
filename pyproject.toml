@@ -36,3 +36,5 @@ markers = [
     "lent: test lent (modèle complet sur un fichier réel), exclu par défaut",
 ]
 addopts = "-m 'not lent'"
+# Racine du dépôt importable, pour les tests de l'application (paquet `app`, D17).
+pythonpath = ["."]
