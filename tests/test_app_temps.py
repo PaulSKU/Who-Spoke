@@ -15,6 +15,9 @@ def leaderboard(tmp_path):
         + "EXP-0001,d,s,,,ami,dev,p,estime,1,1,1,1,1,1,0,0.05,0.80,abc\n"
         + "EXP-0001,d,s,,,ami,test,p,estime,1,1,1,1,1,1,0,0.06,0.80,abc\n"
         + "EXP-0002,d,s,,,ami,dev,p,estime,1,1,1,1,1,1,0,0.10,,abc\n"
+        + "EXP-0003,d,s,,,ami,dev,p,estime,1,1,1,1,1,1,0,0.02,0.03,abc\n"
+        + "EXP-0003,d,s,,,ami,test,p,estime,1,1,1,1,1,1,0,0.02,0.05,abc\n"
+        + "EXP-0003,d,s,,,ami,autre,p,estime,1,1,1,1,1,1,0,0.02,0.90,abc\n"
     )
     return path
 
@@ -30,6 +33,15 @@ def test_rtf_du_peripherique_de_l_experience(leaderboard):
 def test_rtf_cpu_seul(leaderboard):
     measured = temps.measured_rtf("EXP-0001", "cpu", "mps", leaderboard)
     assert measured.rtf == pytest.approx(0.80) and measured.column == "rtf_cpu"
+
+
+def test_colonne_du_peripherique_choisi_pour_une_experience_en_cpu(leaderboard):
+    # Amendement 1 de D17 : CPU choisi -> rtf_cpu, même si l'expérience a tourné en CPU ;
+    # plus grande valeur entre dev et test seulement.
+    measured = temps.measured_rtf("EXP-0003", "cpu", "cpu", leaderboard)
+    assert measured.column == "rtf_cpu" and measured.rtf == pytest.approx(0.05)
+    # rtf_cpu vide pour une expérience exécutée en CPU : repli sur rtf (même périphérique).
+    assert temps.measured_rtf("EXP-0002", "cpu", "cpu", leaderboard).column == "rtf"
 
 
 def test_rtf_non_mesure(leaderboard):

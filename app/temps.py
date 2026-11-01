@@ -1,11 +1,13 @@
 """Estimation du temps restant d'une analyse, à partir du RTF mesuré (D17, protocole §3.5).
 
-Le RTF d'un moteur est lu dans `results/leaderboard.csv`, sur les lignes de l'expérience
-qui sert de source à ce moteur (`app/moteurs.py`) : colonne `rtf` si le périphérique
-demandé est celui de l'exécution principale de l'expérience, colonne `rtf_cpu` pour le
-CPU seul. Quand l'expérience a plusieurs lignes (dev et test), on prend la plus grande
-valeur, pour ne pas annoncer un temps trop court. Le RTF exclut le chargement des
-modèles : l'estimation ne porte que sur le calcul.
+Le RTF d'un moteur est lu dans `results/leaderboard.csv`, sur les lignes dev et test de
+l'expérience qui sert de source à ce moteur (`app/moteurs.py`), dans la colonne du
+périphérique choisi (D17, amendement 1) : `rtf_cpu` pour le CPU seul, `rtf` pour le
+périphérique de l'exécution principale de l'expérience. Pour une expérience exécutée en
+CPU, `rtf` sert de repli si `rtf_cpu` est vide (même périphérique). On prend la plus
+grande valeur entre dev et test, pour ne pas annoncer un temps trop court. Le RTF exclut
+le chargement des modèles : l'estimation ne porte que sur le calcul. C'est un affichage,
+pas une mesure au sens de D21 : un temps non conforme peut l'alimenter.
 """
 
 from __future__ import annotations
@@ -18,6 +20,7 @@ from pathlib import Path
 from whospoke.experiment import REPO_ROOT
 
 LEADERBOARD = REPO_ROOT / "results" / "leaderboard.csv"
+PARTITIONS = ("dev", "test")
 
 
 @dataclass(frozen=True)
@@ -44,20 +47,22 @@ def measured_rtf(
     `exp_device` est le périphérique de l'exécution principale de l'expérience (clé
     `device` de son config.yaml).
     """
-    if device == exp_device:
-        column = "rtf"
-    elif device == "cpu":
-        column = "rtf_cpu"
+    if device == "cpu":
+        columns = ["rtf_cpu"] + (["rtf"] if exp_device == "cpu" else [])
+    elif device == exp_device:
+        columns = ["rtf"]
     else:
         return None
     if not leaderboard.is_file():
         return None
     with leaderboard.open(newline="") as handle:
-        values = [row[column] for row in csv.DictReader(handle) if row["exp_id"] == exp_id]
-    values = [float(value) for value in values if value not in ("", None)]
-    if not values:
-        return None
-    return MeasuredRtf(max(values), exp_id, device, column)
+        rows = [row for row in csv.DictReader(handle)
+                if row["exp_id"] == exp_id and row["partition"] in PARTITIONS]
+    for column in columns:
+        values = [float(row[column]) for row in rows if row.get(column) not in ("", None)]
+        if values:
+            return MeasuredRtf(max(values), exp_id, device, column)
+    return None
 
 
 def remaining_s(rtf: float | None, duration_s: float, elapsed_s: float) -> float | None:

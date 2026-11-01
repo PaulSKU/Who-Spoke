@@ -3,9 +3,11 @@
 Chaque moteur de l'interface reprend la configuration d'une expérience source : ses
 paramètres (`pipeline.parametres` de config.yaml), le θ retenu par son balayage
 (`execution_<périphérique>.json`) et son RTF mesuré (`results/leaderboard.csv`, voir
-`app/temps.py`). Les sources sont les expériences SUMM-RE quand elles existent, SUMM-RE
-étant le jeu de validation prioritaire (D3) ; WeSpeaker n'a pour l'instant qu'une
-expérience AMI (EXP-0013).
+`app/temps.py`). Les sources sont les expériences sur SUMM-RE, jeu de validation
+prioritaire (D3 ; D17, amendement 1) : EXP-0009 (MFCC), EXP-0012 (ECAPA), EXP-0007
+(pyannote) et EXP-0015 (WeSpeaker), ce dernier moteur restant indisponible tant
+qu'EXP-0015 n'existe pas ou n'a pas été exécutée. Au gel, cette correspondance passera
+dans `configs/demo.yaml`.
 
 Périphériques : la baseline MFCC s'exécute en CPU seul (D19) et les empreintes ECAPA et
 WeSpeaker en CPU (D22, amendement 2 : NaN intermittents en MPS) ; seul pyannote suit le
@@ -59,7 +61,7 @@ SPECS: dict[str, EngineSpec] = {
     for spec in (
         EngineSpec("baseline-mfcc", "Baseline MFCC", "baseline", "EXP-0009", BASELINE_STEPS, True, False),
         EngineSpec("baseline-ecapa", "Baseline ECAPA", "baseline", "EXP-0012", BASELINE_STEPS, True, False),
-        EngineSpec("baseline-wespeaker", "Baseline WeSpeaker", "baseline", "EXP-0013", BASELINE_STEPS, True, False),
+        EngineSpec("baseline-wespeaker", "Baseline WeSpeaker", "baseline", "EXP-0015", BASELINE_STEPS, True, False),
         EngineSpec("pyannote-community-1", "pyannote community-1", "pyannote-community-1", "EXP-0007",
                    PYANNOTE_STEPS, False, True),
     )
@@ -72,8 +74,10 @@ class EngineUnavailable(RuntimeError):
 
 def experiment_dir(exp_id: str, root: Path = EXPERIMENTS_DIR) -> Path:
     matches = sorted(root.glob(f"{exp_id}_*"))
-    if len(matches) != 1:
-        raise EngineUnavailable(f"Dossier d'expérience introuvable ou ambigu : {exp_id}")
+    if not matches:
+        raise EngineUnavailable(f"{exp_id} n'existe pas encore")
+    if len(matches) > 1:
+        raise EngineUnavailable(f"Plusieurs dossiers pour {exp_id}")
     return matches[0]
 
 
@@ -121,6 +125,28 @@ def build_engine(spec: EngineSpec, device: str) -> Engine:
 def _shown(path: Path) -> str:
     """Chemin relatif au dépôt quand c'est possible (affichage, JSON)."""
     return str(path.relative_to(REPO_ROOT)) if path.is_relative_to(REPO_ROOT) else str(path)
+
+
+def missing_model_message(error: BaseException, spec: EngineSpec) -> str | None:
+    """Message clair si `error` vient d'un modèle absent du cache local (mode hors ligne).
+
+    Parcourt la chaîne des causes à la recherche des erreurs de huggingface_hub levées
+    quand `HF_HUB_OFFLINE=1` et que le fichier manque dans le cache ; None sinon.
+    """
+    from huggingface_hub.errors import LocalEntryNotFoundError, OfflineModeIsEnabled
+
+    seen: set[int] = set()
+    current: BaseException | None = error
+    while current is not None and id(current) not in seen:
+        seen.add(id(current))
+        if isinstance(current, (LocalEntryNotFoundError, OfflineModeIsEnabled)):
+            return (
+                f"Modèle de {spec.label} absent du cache local. L'application fonctionne hors ligne "
+                "(HF_HUB_OFFLINE=1) et ne télécharge rien. Remplissez le cache une fois, avec accès "
+                f"réseau et HF_TOKEN dans .env (par exemple en exécutant {spec.source_exp}), puis relancez."
+            )
+        current = current.__cause__ or current.__context__
+    return None
 
 
 def find_rttm(rttm_dir: Path, name: str) -> Path:

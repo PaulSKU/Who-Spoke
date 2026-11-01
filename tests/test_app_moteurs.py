@@ -62,13 +62,36 @@ def test_parametres_repris_des_experiences_sources():
     assert moteurs.source_device(moteurs.SPECS["pyannote-community-1"]) == "mps"
 
 
+def test_source_wespeaker_exp_0015(tmp_path):
+    spec = moteurs.SPECS["baseline-wespeaker"]
+    assert spec.source_exp == "EXP-0015"
+    # Indisponible tant qu'EXP-0015 n'existe pas.
+    with pytest.raises(moteurs.EngineUnavailable, match="n'existe pas encore"):
+        moteurs.engine_params(spec, tmp_path)
+
+
+def test_message_si_modele_absent_du_cache():
+    from huggingface_hub.errors import LocalEntryNotFoundError
+
+    spec = moteurs.SPECS["pyannote-community-1"]
+    try:
+        try:
+            raise LocalEntryNotFoundError("absent du cache")
+        except LocalEntryNotFoundError as cause:
+            raise RuntimeError("chargement impossible") from cause
+    except RuntimeError as error:
+        message = moteurs.missing_model_message(error, spec)
+    assert "absent du cache local" in message and "HF_HUB_OFFLINE=1" in message and "EXP-0007" in message
+    assert moteurs.missing_model_message(ValueError("autre"), spec) is None
+
+
 def test_moteur_indisponible_sans_execution(tmp_path):
     fake_experiment(tmp_path)
     with pytest.raises(moteurs.EngineUnavailable, match="pas encore"):
         moteurs.engine_params(SPEC, tmp_path)
     with pytest.raises(moteurs.EngineUnavailable, match="RTTM"):
         moteurs.FakeEngine(SPEC, tmp_path)
-    with pytest.raises(moteurs.EngineUnavailable, match="introuvable"):
+    with pytest.raises(moteurs.EngineUnavailable, match="n'existe pas encore"):
         moteurs.engine_params(SPEC, tmp_path / "vide")
 
 
