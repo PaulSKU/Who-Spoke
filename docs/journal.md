@@ -346,3 +346,17 @@ Résultats : aucune expérience.
 Décisions : aucune ; amendement 1 de D17 appliqué tel que rédigé.
 Problèmes : SIGINT est ignoré par un processus lancé en arrière-plan depuis un shell non interactif (artefact de test, pas de l'application) ; vérifié dans les conditions d'un terminal. Le message de cache manquant n'a pas pu être vérifié sur un vrai chargement.
 Suite : après le lot, suite de tests complète et essai réel des quatre moteurs (liste dans `app/README.md`, « Reste à vérifier avec les vrais moteurs ») ; `configs/demo.yaml` au gel.
+
+## 2026-11-01 — Amendement 1 de D17, lignes ajoutées : préchargement, ECAPA, palette (Claude Code)
+
+Objectif : appliquer les deux lignes ajoutées à l'amendement 1 de D17 (préchargement des modèles, emplacement des fichiers d'ECAPA) et vérifier la palette des locuteurs, sur la branche `interface`, sans charger de modèle pendant le lot EXP-0014/0015.
+Réalisé :
+- Vérification que WeSpeaker est inclus dans community-1 : dans le cache, `models--pyannote--speaker-diarization-community-1/snapshots/3533c8c…/` contient `embedding/pytorch_model.bin`, et son `config.yaml` y renvoie (`embedding: $model/embedding`) ; `refs/main` pointe sur la même révision que celle figée pour la baseline WeSpeaker. Lecture de fichiers seulement, aucun modèle chargé.
+- `scripts/prefetch_models.py` : télécharge community-1 (`main` et révision figée de WeSpeaker) et ECAPA (révision figée) avec `HF_TOKEN` lu dans `.env` (jamais affiché), puis vérifie les trois chargements dans un processus enfant avec `HF_HUB_OFFLINE=1` et un dossier courant vide, en contrôlant que rien n'y est écrit. 8 tests sans réseau (téléchargements et chargements simulés, dont un processus enfant réel). Non exécuté pour de vrai. Le message « modèle absent du cache » et `app/README.md` renvoient au script.
+- `src/whospoke/embeddings.py`, chargement d'ECAPA seulement : `ecapa_load_options()` impose `savedir=None` et `LocalStrategy.NO_LINK`, donc une lecture en place dans le cache Hugging Face (`HF_HUB_CACHE`, `$HF_HOME/hub`). C'était déjà le comportement de speechbrain 1.1.2 sans `savedir` (aucun `pretrained_models/` dans `~/Dev/Who-Spoke`) ; il est rendu explicite, indépendant du dossier courant et de la version. Mêmes fichiers lus, calculs inchangés. 3 tests sans modèle.
+- Palette des locuteurs : validateur de la skill dataviz (OKLab ΔE × 100, simulation de Machado 2009) sur le fond des pistes, plus une planche visuelle simulée. Paires adjacentes : réussi en clair (CVD 9,1 ; normal 19,6) et en sombre (8,4 ; 19,3). Toutes paires, deutéranopie : pire 4,5 en clair (1↔7), 1,6 en sombre (3↔5) ; vision normale : 7,1 (2↔8) dans les deux modes. La couleur seule ne sépare toutes les paires que jusqu'à 3 locuteurs ; au-delà, l'identité repose sur la piste nommée, le tableau et le survol, sauf pour les teintes de la forme d'onde. Au-delà de 8 locuteurs, un gris unique. Consigné dans `app/README.md`.
+- Suite de tests sans les trois fichiers qui chargent des modèles : 185 réussis, 1 ignoré.
+Résultats : aucune expérience.
+Décisions : aucune. Proposition : ne pas compter sur les teintes de la forme d'onde pour identifier un locuteur (les retirer, ou y ajouter le nom au survol).
+Problèmes : aucun.
+Suite : après le lot, `uv run python scripts/prefetch_models.py`, puis la liste « Reste à vérifier avec les vrais moteurs » de `app/README.md`.

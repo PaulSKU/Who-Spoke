@@ -9,11 +9,28 @@ uv run python -m app.app --factice   # moteur factice : aucune inférence
 
 Puis ouvrir http://127.0.0.1:7860 (serveur local uniquement, pas de lien public). Options : `--port`, `--factice-max-s` (durée maximale simulée d'une analyse en mode factice). Lancer par `python -m app.app` (ou `python app/app.py`) : c'est ce point d'entrée qui fixe l'environnement ci-dessous avant tout import.
 
+## Installation des modèles (D15 ; D17, amendement 1)
+
+```bash
+uv run python scripts/prefetch_models.py              # téléchargement, puis vérification hors ligne
+uv run python scripts/prefetch_models.py --verifier   # vérification hors ligne seule
+```
+
+À lancer une fois, avec accès réseau et `HF_TOKEN` dans `.env` (le modèle pyannote est à accès restreint : accepter ses conditions sur le Hub au préalable). Le script place dans le cache Hugging Face (`~/.cache/huggingface/hub`, ou `$HF_HOME/hub`) :
+
+| Dépôt | Révision | Moteurs |
+|---|---|---|
+| `pyannote/speaker-diarization-community-1` | `main` | pyannote community-1 (segmentation, empreintes, PLDA) |
+| `pyannote/speaker-diarization-community-1` | `3533c8c…` (figée) | baseline WeSpeaker : WeSpeakerResNet34 est le sous-dossier `embedding` de community-1, pas un dépôt séparé |
+| `speechbrain/spkrec-ecapa-voxceleb` | `0f99f2d…` (figée) | baseline ECAPA |
+
+La baseline MFCC n'utilise aucun modèle. Le script vérifie ensuite, dans un processus séparé avec `HF_HUB_OFFLINE=1` et un dossier courant vide, que chaque modèle se charge sans réseau et que rien n'est écrit dans le dossier de lancement. Les fichiers d'ECAPA sont lus en place dans le cache, jamais copiés dans un `pretrained_models/` du dossier courant (`whospoke.embeddings.ecapa_load_options`).
+
 ## Fonctionnement hors ligne et dossiers temporaires (D17, amendement 1)
 
 | Point | Comportement | Où |
 |---|---|---|
-| Modèles | Hors mode factice, `HF_HUB_OFFLINE=1` est fixé au démarrage, avant tout import de huggingface_hub, pyannote ou speechbrain : les modèles sont lus dans le cache local, sans requête au Hub. Le cache doit donc être rempli au préalable, avec accès réseau et `HF_TOKEN` dans `.env`. Si un modèle manque, l'analyse s'arrête sur un message qui le dit et indique comment remplir le cache | `app/travail.py`, `moteurs.missing_model_message` |
+| Modèles | Hors mode factice, `HF_HUB_OFFLINE=1` est fixé au démarrage, avant tout import de huggingface_hub, pyannote ou speechbrain : les modèles sont lus dans le cache local, sans requête au Hub. Le cache doit donc être rempli au préalable, une fois, avec accès réseau et `HF_TOKEN` dans `.env` : `uv run python scripts/prefetch_models.py` (voir ci-dessous). Si un modèle manque, l'analyse s'arrête sur un message qui renvoie à ce script | `app/travail.py`, `moteurs.missing_model_message` |
 | Dossiers temporaires | Chaque lancement travaille dans `<tmp>/whospoke-app/run-<pid>/` : audio normalisé, exports, et fichiers déposés ou servis par Gradio (`GRADIO_TEMP_DIR`). Le dossier est supprimé à la fermeture (sortie normale, Ctrl+C, SIGTERM). Ceux d'un lancement tué brutalement sont supprimés au lancement suivant | `app/travail.py`, `app.main` |
 
 ## Onglet « Analyse »
@@ -30,6 +47,24 @@ Puis ouvrir http://127.0.0.1:7860 (serveur local uniquement, pas de lien public)
 ## Principes d'affichage
 
 L'interface est monochrome : la couleur est réservée aux locuteurs (palette catégorielle à huit teintes en ordre fixe, gris au-delà). Les polices sont celles du système, aucun fichier de police n'est chargé. Les ombres sont en couches légères. Le mouvement se limite au retour d'appui des boutons, à la barre d'avancement et à l'indicateur de l'étape en cours, et il est coupé avec `prefers-reduced-motion`. L'état de chaque étape est écrit en toutes lettres (« terminé », « 45 % », « en attente »), le focus clavier est visible partout, et les noms saisis sont échappés avant affichage. Ces principes sont tirés des skills frontend-design, beautiful-shadows, emil-design-eng, apple-design, interaction-design, accessibility et unslop, lus et non installés.
+
+### Palette des locuteurs : vérification (01/11/2026)
+
+Huit teintes en ordre fixe (palette validée de la skill dataviz), une variante par mode ; à partir du 9e locuteur, un gris neutre unique. Les couleurs sont attribuées dans l'ordre de première prise de parole. Écarts mesurés par le validateur de la skill (OKLab ΔE × 100, simulation de Machado 2009 à sévérité 1), sur le fond des pistes (`#f0f0ed` en clair, `#232428` en sombre) :
+
+| Condition | Clair | Sombre |
+|---|---|---|
+| Paires adjacentes (pistes voisines), daltonisme rouge-vert | pire ΔE 9,1 : réussi (cible ≥ 8) | pire ΔE 8,4 : réussi |
+| Paires adjacentes, vision normale | pire ΔE 19,6 : réussi (plancher 15) | pire ΔE 19,3 : réussi |
+| Toutes les paires, deutéranopie | pire ΔE 4,5 (1↔7) ; sous 8 : 1↔7, 2↔8, 3↔5, 3↔8 | pire ΔE 1,6 (3↔5, quasi identiques) ; sous 8 : 7 paires |
+| Toutes les paires, vision normale | pire ΔE 7,1 (2↔8, orange et rouge) | pire ΔE 7,1 (2↔8) |
+| Contraste sur la piste | 4 teintes sous 3:1 (2, 3, 4, 5) : étiquettes requises | toutes ≥ 3:1 |
+
+Pire paire en deutéranopie selon le nombre de locuteurs (toutes paires) : clair 31,7 (2), 9,2 (3 et 4), 6,1 (5 et 6), 4,5 (7 et 8) ; sombre 28,6 (2), 9,4 (3), 4,8 (4), 1,6 (5 à 8).
+
+Conclusion. La couleur seule ne distingue toutes les paires que **jusqu'à 3 locuteurs** (deutéranopie comprise) ; au-delà, l'identité repose sur l'encodage secondaire, qui est présent partout sauf sur la forme d'onde : une piste par locuteur, toujours dans le même ordre et étiquetée par son nom (les pistes voisines restent distinguables, c'est le cas que la palette garantit), pastille accompagnée du nom dans le tableau, nom et horaires au survol de chaque segment. Les teintes posées sur la forme d'onde, elles, ne portent que la couleur : elles doublent la timeline alignée juste dessous.
+
+Au-delà de 8 locuteurs : tous les suivants reçoivent le même gris (`#8a8985` en clair, `#a3a29c` en sombre). Ils sont indiscernables entre eux par la couleur et ne se distinguent que par leur piste, leur nom et le survol ; en deutéranopie, ce gris est en outre proche de l'aqua (3) en clair (ΔE 4,8). Aucune teinte n'est générée en plus, conformément à la règle de la palette (pas de 9e teinte inventée).
 
 Moteur factice : il respecte le contrat de `src/whospoke/pipelines/base.py`, simule les étapes du moteur choisi, puis renvoie le RTTM produit par l'expérience source pour le fichier déposé, reconnu à son nom (`007a_ECRH.mp3` ou `summre__007a_ECRH.wav` pour `summre__007a_ECRH`), coupé à la durée de l'audio. La contrainte sur le nombre de locuteurs est ignorée, et l'interface le signale.
 
@@ -59,7 +94,8 @@ Réglages qui y contribuent : `GRADIO_ANALYTICS_ENABLED=False` posé avant l'imp
 Aucun modèle neuronal n'a été chargé pendant le développement (lot d'expériences EXP-0013 à EXP-0015 en cours). Après le lot :
 
 1. Suite de tests complète (`uv run pytest`), dont les fichiers qui chargent ECAPA, WeSpeaker et pyannote.
-2. Analyse réelle de l'extrait de 3 min avec chacun des moteurs, sous relevé d'audit réseau : aucune connexion hors `127.0.0.1` avec `HF_HUB_OFFLINE=1` ; durée de chargement des modèles ; temps restant annoncé face au temps réel.
-3. Modèle absent du cache : vider ou renommer temporairement le cache d'un modèle et vérifier que l'erreur levée est bien reconnue (`LocalEntryNotFoundError` ou `OfflineModeIsEnabled` dans la chaîne des causes) et affichée telle quelle. Points d'incertitude : pyannote peut renvoyer `None` au lieu de lever, et speechbrain (ECAPA) peut chercher ses fichiers dans `pretrained_models/` du dossier courant **[incertain]**.
-4. Fourchette min–max de pyannote et nombre imposé pour la baseline sur un vrai moteur (le moteur factice les ignore).
-5. Zoom au maximal sur une réunion de 30 min : fluidité et mémoire.
+2. `uv run python scripts/prefetch_models.py` : téléchargement réel puis vérification hors ligne des trois chargements (le script n'a été testé qu'avec des téléchargements et chargements simulés).
+3. Analyse réelle de l'extrait de 3 min avec chacun des moteurs, sous relevé d'audit réseau : aucune connexion hors `127.0.0.1` avec `HF_HUB_OFFLINE=1` ; durée de chargement des modèles ; temps restant annoncé face au temps réel.
+4. Modèle absent du cache : vider ou renommer temporairement le cache d'un modèle et vérifier que l'erreur levée est bien reconnue (`LocalEntryNotFoundError` ou `OfflineModeIsEnabled` dans la chaîne des causes) et affichée telle quelle. Point d'incertitude : pyannote peut renvoyer `None` au lieu de lever **[incertain]**. Le cas speechbrain (`pretrained_models/` du dossier courant) est écarté par `ecapa_load_options`.
+5. Fourchette min–max de pyannote et nombre imposé pour la baseline sur un vrai moteur (le moteur factice les ignore).
+6. Zoom au maximal sur une réunion de 30 min : fluidité et mémoire.
