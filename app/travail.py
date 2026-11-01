@@ -1,15 +1,15 @@
 """Environnement de lancement et dossiers temporaires de l'application (D17, amendement 1).
 
 Ce module est importé avant gradio, huggingface_hub, pyannote et speechbrain : il ne doit
-importer que la bibliothèque standard.
+importer que la bibliothèque standard (et `whospoke.telemetry`, qui n'importe qu'elle).
 
 - Hors mode factice, `HF_HUB_OFFLINE=1` : les modèles sont lus dans le cache local, sans
   aucune requête au Hub. La variable doit être posée avant l'import de huggingface_hub,
   qui la lit une fois pour toutes.
-- Toujours, `PYANNOTE_METRICS_ENABLED=false` : pyannote.audio 4 envoie par défaut une
-  télémétrie OpenTelemetry à otel.pyannote.ai (chargement des modèles et des pipelines,
-  durée de chaque fichier analysé, nombre de locuteurs demandé). Constaté au chantier V
-  de D26 par le relevé réseau ; désactivée avant tout import de pyannote.audio.
+- Toujours, les variables de `whospoke.telemetry.TELEMETRY_OFF` (D27) : télémétrie de
+  pyannote.audio, de huggingface_hub, de Gradio et d'OpenTelemetry coupée. Elles sont déjà
+  posées par l'import de `app` (qui importe `whospoke`) ; elles le sont aussi dans
+  l'environnement passé ici, qui peut ne pas être `os.environ`.
 - Chaque lancement travaille dans `<tmp>/whospoke-app/run-<pid>/` : audio normalisé,
   exports, et fichiers déposés ou servis par Gradio (`GRADIO_TEMP_DIR`). Le dossier est
   supprimé à la fermeture ; ceux d'un lancement interrompu brutalement (processus absent)
@@ -25,6 +25,8 @@ import tempfile
 from collections.abc import MutableMapping, Sequence
 from pathlib import Path
 
+from whospoke.telemetry import disable_telemetry
+
 ROOT = Path(tempfile.gettempdir()) / "whospoke-app"
 _RUN = re.compile(r"^run-(\d+)$")
 
@@ -38,9 +40,8 @@ def configure_environment(environ: MutableMapping[str, str], argv: Sequence[str]
                           root: Path = ROOT) -> Path:
     """Pose les variables d'environnement du lancement et renvoie son dossier de travail."""
     work = run_dir(root)
-    environ.setdefault("GRADIO_ANALYTICS_ENABLED", "False")
+    disable_telemetry(environ)
     environ["GRADIO_TEMP_DIR"] = str(work / "gradio")
-    environ["PYANNOTE_METRICS_ENABLED"] = "false"
     if "--factice" not in argv:
         environ["HF_HUB_OFFLINE"] = "1"
     return work

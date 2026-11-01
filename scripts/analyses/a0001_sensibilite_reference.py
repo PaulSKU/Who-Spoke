@@ -55,6 +55,7 @@ from collections import defaultdict
 from datetime import datetime
 from pathlib import Path
 
+import whospoke  # noqa: F401  (D27 : télémétrie coupée avant tout import tiers)
 import numpy as np
 import yaml
 from pyannote.core import Annotation, Timeline

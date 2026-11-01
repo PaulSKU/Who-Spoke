@@ -12,6 +12,7 @@ import subprocess
 import sys
 from pathlib import Path
 
+import whospoke  # noqa: F401  (D27 : télémétrie coupée avant tout import tiers)
 from dotenv import load_dotenv
 
 REPO_ROOT = Path(__file__).resolve().parent.parent

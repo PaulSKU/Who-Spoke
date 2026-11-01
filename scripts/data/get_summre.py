@@ -81,6 +81,7 @@ from collections import Counter, defaultdict
 from datetime import datetime
 from pathlib import Path
 
+import whospoke  # noqa: F401  (D27 : télémétrie coupée avant tout import tiers)
 import numpy as np
 from scipy.io import wavfile
 

@@ -67,6 +67,7 @@ import time
 from datetime import datetime
 from pathlib import Path
 
+import whospoke  # noqa: F401  (D27 : télémétrie coupée avant tout import tiers)
 import librosa
 import numpy as np
 import torch

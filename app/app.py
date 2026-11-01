@@ -26,8 +26,7 @@ if __name__ == "__main__":
     # Avant tout import de gradio, huggingface_hub, pyannote ou speechbrain.
     RUN_DIR = travail.configure_environment(os.environ, sys.argv[1:])
 else:
-    os.environ.setdefault("GRADIO_ANALYTICS_ENABLED", "False")
-    RUN_DIR = travail.run_dir()
+    RUN_DIR = travail.run_dir()   # télémétrie déjà coupée par l'import de `app` (D27)
 
 import argparse
 import atexit

@@ -226,3 +226,16 @@ Le cockpit met à jour la section « État d'avancement » du `README.md` à cha
 ## 7. Données
 
 Chaque corpus est obtenu par un script `scripts/data/get_<corpus>.py` qui télécharge, vérifie les sommes de contrôle, normalise l'audio en 16 kHz mono et produit le RTTM de référence. Le manifeste `data/manifests/<corpus>.csv` est versionné ; son SHA-256 porte sur le fichier brut téléchargé, et non sur l'audio normalisé (D18). Toute option d'un script est documentée dans son `--help` ; il n'y a pas d'option cachée (D18). La fiche `docs/corpus.md` est mise à jour avant tout premier téléchargement d'un corpus : source, accès, licence, volume, composition, limites et jeux vus par chaque modèle pré-entraîné. Les consentements signés du corpus maison et la table de correspondance entre noms et codes sont conservés **hors du dossier du dépôt** (par exemple `~/Dev/Who-Spoke-confidentiel/`). `corpus.md` mentionne seulement leur existence et leur date. Les enregistrements maison ne sont traités qu'en local (voir `docs/corpus-maison/README.md`).
+
+### 7.1 Télémétrie (D27)
+
+Toute télémétrie connue des bibliothèques tierces est coupée à l'import du paquet `whospoke` (`src/whospoke/telemetry.py`, liste `TELEMETRY_OFF`), avant tout import tiers. Les valeurs sont imposées : une valeur contraire de l'environnement est écrasée. Tout point d'entrée (`scripts/`, `app/app.py`) importe `whospoke` (ou `app`, qui l'importe) avant tout autre module tiers ; `tests/test_telemetry.py` le vérifie.
+
+| Variable | Valeur | Bibliothèque concernée |
+|---|---|---|
+| `PYANNOTE_METRICS_ENABLED` | `false` | pyannote.audio 4 : traces OpenTelemetry vers `otel.pyannote.ai`, actives par défaut, non coupées par `HF_HUB_OFFLINE=1` |
+| `HF_HUB_DISABLE_TELEMETRY` | `1` | huggingface_hub (lue à l'import) |
+| `GRADIO_ANALYTICS_ENABLED` | `False` | gradio, gradio_client |
+| `OTEL_SDK_DISABLED` | `true` | SDK OpenTelemetry : télémétrie native de FastAPI (sous Gradio), et en double sécurité celle de pyannote.audio |
+
+Inventaire du 01/11/2026 : aucune télémétrie trouvée dans speechbrain, torch, torchaudio, lightning, optuna ni librosa. Tout moteur ajouté (D23, NeMo compris) complète cette liste avant son intégration. Une exécution courte d'expérience sous relevé réseau est faite avant toute exécution sur le corpus maison et après l'intégration de chaque nouveau moteur local ; son résultat est consigné dans le journal.

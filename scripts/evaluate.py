@@ -55,6 +55,7 @@ import sys
 from datetime import datetime
 from pathlib import Path
 
+import whospoke  # noqa: F401  (D27 : télémétrie coupée avant tout import tiers)
 import yaml
 from scipy.io import wavfile
 
