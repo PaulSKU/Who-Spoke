@@ -1,0 +1,115 @@
+{
+  "exp_id": "EXP-0013",
+  "slug": "baseline-wespeaker-ami-sdm",
+  "date": "2026-11-01T16:14:55+01:00",
+  "git_commit": "2a08ff7",
+  "arbre_propre": true,
+  "reference": "EXP-0002",
+  "variable_modifiee": "representation",
+  "donnees": {
+    "corpus": "ami",
+    "partition": "test",
+    "n_fichiers": 16,
+    "duree_audio_s": 32624.3
+  },
+  "systeme": {
+    "pipeline": "baseline",
+    "mode_n_locuteurs": "estime",
+    "vad": "energie",
+    "device": "cpu"
+  },
+  "materiel": {
+    "machine": "MacBook Pro M2 Pro",
+    "ram_go": 16
+  },
+  "metriques": {
+    "collar_0": {
+      "der": 49.17,
+      "manquee": 32.27,
+      "fausse_alarme": 4.99,
+      "confusion": 11.9,
+      "jer": 50.97
+    },
+    "collar_0_25": {
+      "der": 43.95,
+      "manquee": 28.23,
+      "fausse_alarme": 5.14,
+      "confusion": 10.58,
+      "jer": 46.04
+    },
+    "der_zones_sans_chevauchement": 42.07,
+    "der_zones_chevauchement": 67.5,
+    "n_locuteurs": {
+      "erreur_absolue_moyenne": 3.19,
+      "taux_exact": 0.0
+    }
+  },
+  "temps": {
+    "device": "cpu",
+    "chargement_modeles_s": 7.54,
+    "calcul_s": 646.41,
+    "rtf": 0.0198,
+    "conforme": true
+  },
+  "temps_cpu": {
+    "sous_ensemble": "data/splits/ami/temps.txt",
+    "duree_audio_s": 2555.0,
+    "calcul_s": 50.09,
+    "rtf": 0.0196,
+    "conforme": true
+  },
+  "evaluation": {
+    "date": "2026-11-01T16:15:01+01:00",
+    "git_commit": "2a08ff7e1d60f1297f60c7cd1447aeb0ed114682",
+    "arbre_propre": true,
+    "fichiers_non_commites": [
+      "docs/decisions/D17-interface.md",
+      "docs/journal.md",
+      "docs/decisions/D23-moteurs-supplementaires.md",
+      "docs/planning.md",
+      "docs/recherche/veille-2026-11-01-modeles-recents.md",
+      "experiments/EXP-0013_baseline-wespeaker-ami-sdm/balayage_ami_dev.csv",
+      "experiments/EXP-0013_baseline-wespeaker-ami-sdm/execution_cpu.json",
+      "experiments/EXP-0013_baseline-wespeaker-ami-sdm/rttm/ami__EN2002a.rttm",
+      "experiments/EXP-0013_baseline-wespeaker-ami-sdm/rttm/ami__EN2002b.rttm",
+      "experiments/EXP-0013_baseline-wespeaker-ami-sdm/rttm/ami__EN2002c.rttm",
+      "experiments/EXP-0013_baseline-wespeaker-ami-sdm/rttm/ami__EN2002d.rttm",
+      "experiments/EXP-0013_baseline-wespeaker-ami-sdm/rttm/ami__ES2004a.rttm",
+      "experiments/EXP-0013_baseline-wespeaker-ami-sdm/rttm/ami__ES2004b.rttm",
+      "experiments/EXP-0013_baseline-wespeaker-ami-sdm/rttm/ami__ES2004c.rttm",
+      "experiments/EXP-0013_baseline-wespeaker-ami-sdm/rttm/ami__ES2004d.rttm",
+      "experiments/EXP-0013_baseline-wespeaker-ami-sdm/rttm/ami__ES2011a.rttm",
+      "experiments/EXP-0013_baseline-wespeaker-ami-sdm/rttm/ami__ES2011b.rttm",
+      "experiments/EXP-0013_baseline-wespeaker-ami-sdm/rttm/ami__ES2011c.rttm",
+      "experiments/EXP-0013_baseline-wespeaker-ami-sdm/rttm/ami__ES2011d.rttm",
+      "experiments/EXP-0013_baseline-wespeaker-ami-sdm/rttm/ami__IB4001.rttm",
+      "experiments/EXP-0013_baseline-wespeaker-ami-sdm/rttm/ami__IB4002.rttm",
+      "experiments/EXP-0013_baseline-wespeaker-ami-sdm/rttm/ami__IB4003.rttm",
+      "experiments/EXP-0013_baseline-wespeaker-ami-sdm/rttm/ami__IB4004.rttm",
+      "experiments/EXP-0013_baseline-wespeaker-ami-sdm/rttm/ami__IB4010.rttm",
+      "experiments/EXP-0013_baseline-wespeaker-ami-sdm/rttm/ami__IB4011.rttm",
+      "experiments/EXP-0013_baseline-wespeaker-ami-sdm/rttm/ami__IS1008a.rttm",
+      "experiments/EXP-0013_baseline-wespeaker-ami-sdm/rttm/ami__IS1008b.rttm",
+      "experiments/EXP-0013_baseline-wespeaker-ami-sdm/rttm/ami__IS1008c.rttm",
+      "experiments/EXP-0013_baseline-wespeaker-ami-sdm/rttm/ami__IS1008d.rttm",
+      "experiments/EXP-0013_baseline-wespeaker-ami-sdm/rttm/ami__IS1009a.rttm",
+      "experiments/EXP-0013_baseline-wespeaker-ami-sdm/rttm/ami__IS1009b.rttm",
+      "experiments/EXP-0013_baseline-wespeaker-ami-sdm/rttm/ami__IS1009c.rttm",
+      "experiments/EXP-0013_baseline-wespeaker-ami-sdm/rttm/ami__IS1009d.rttm",
+      "experiments/EXP-0013_baseline-wespeaker-ami-sdm/rttm/ami__TS3003a.rttm",
+      "experiments/EXP-0013_baseline-wespeaker-ami-sdm/rttm/ami__TS3003b.rttm",
+      "experiments/EXP-0013_baseline-wespeaker-ami-sdm/rttm/ami__TS3003c.rttm",
+      "experiments/EXP-0013_baseline-wespeaker-ami-sdm/rttm/ami__TS3003d.rttm",
+      "experiments/EXP-0013_baseline-wespeaker-ami-sdm/rttm/ami__TS3004a.rttm",
+      "experiments/EXP-0013_baseline-wespeaker-ami-sdm/rttm/ami__TS3004b.rttm",
+      "experiments/EXP-0013_baseline-wespeaker-ami-sdm/rttm/ami__TS3004c.rttm",
+      "experiments/EXP-0013_baseline-wespeaker-ami-sdm/rttm/ami__TS3004d.rttm",
+      "experiments/EXP-0013_baseline-wespeaker-ami-sdm/run.log",
+      "experiments/EXP-0014_baseline-wespeaker-vad-k-oracle/config.yaml",
+      "experiments/EXP-0014_baseline-wespeaker-vad-k-oracle/notes.md",
+      "experiments/EXP-0015_baseline-wespeaker-summre/config.yaml",
+      "experiments/EXP-0015_baseline-wespeaker-summre/notes.md"
+    ]
+  },
+  "invalidee": null
+}
