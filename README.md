@@ -4,6 +4,8 @@ Système de diarisation de locuteurs : à partir d'un enregistrement, détermine
 
 ## Installation
 
+Pas-à-pas complet, durées mesurées, problèmes connus (ffmpeg sur macOS 14, dossier `envs/`) et vérification automatique d'une installation : [`docs/installation.md`](docs/installation.md).
+
 Prérequis : [uv](https://docs.astral.sh/uv/) et l'exécutable `ffmpeg` accessibles dans le `PATH`. Seul l'exécutable est requis, et non les bibliothèques partagées de ffmpeg : l'audio est normalisé par ffmpeg en sous-processus, puis passé aux pipelines en mémoire (décision D16).
 
 ```bash
@@ -69,6 +71,7 @@ Options : `--moteur` (`pyannote-community-1`, `baseline-mfcc`, `baseline-ecapa`,
 | `docs/recherche/` | Recherche documentaire (corpus, veille sur les modèles) |
 | `docs/maquettes/` | Maquettes de l'interface |
 | `app/README.md` | Application de démonstration : fonctionnement, vérifications, limites |
+| [`docs/installation.md`](docs/installation.md) | Installation pas à pas, durées mesurées, problèmes connus, vérification sur machine vierge |
 | [`docs/licences.md`](docs/licences.md) | Licences des modèles, des fichiers de tiers, des dépendances et des corpus |
 | `docs/corpus-maison/guide-annotation.md` | Pas-à-pas de la chaîne du corpus maison (synchronisation, pré-annotation, annotation, contrôle) |
 | `experiments/`, `analyses/` | Expériences et analyses a posteriori, avec leur interprétation (`notes.md`) |

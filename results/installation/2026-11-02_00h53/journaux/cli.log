@@ -1,0 +1,27 @@
+usage: whospoke diarize [-h]
+                        [--moteur {pyannote-community-1,baseline-mfcc,baseline-ecapa,baseline-wespeaker}]
+                        [--locuteurs LOCUTEURS]
+                        [--peripherique {auto,cpu,mps,cuda}]
+                        [--sortie {rttm,json}] [-o FICHIER]
+                        audio
+
+Diarise un fichier audio (tout format lu par ffmpeg) avec un moteur de
+l'application, hors ligne. Le résultat va sur la sortie standard, ou dans le
+fichier donné par -o.
+
+positional arguments:
+  audio                 fichier audio à analyser
+
+options:
+  -h, --help            show this help message and exit
+  --moteur {pyannote-community-1,baseline-mfcc,baseline-ecapa,baseline-wespeaker}
+                        moteur (défaut : pyannote-community-1)
+  --locuteurs LOCUTEURS
+                        nombre de locuteurs : auto (estimé, défaut), N
+                        (imposé) ou MIN-MAX (fourchette, pyannote seulement)
+  --peripherique {auto,cpu,mps,cuda}
+                        périphérique de calcul (défaut : auto ; les baselines
+                        tournent toujours en CPU)
+  --sortie {rttm,json}  format du résultat (défaut : rttm)
+  -o FICHIER, --fichier FICHIER
+                        fichier de sortie (défaut : sortie standard)
