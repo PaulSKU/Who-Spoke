@@ -136,6 +136,18 @@ button.primary:active, button.secondary:active, .wsp-play:active { transform: sc
 .st-run { color: var(--ws-ink) !important; font-weight: 600; }
 .st-run .st-mark { border-color: var(--ws-ink); border-right-color: transparent; animation: st-spin 0.8s linear infinite; }
 @keyframes st-spin { to { transform: rotate(360deg); } }
+.st-fail { color: var(--ws-ink) !important; font-weight: 600; }
+.st-fail .st-mark { border-color: var(--ws-ink); background: var(--ws-ink); }
+.st-fail .st-mark::before, .st-fail .st-mark::after {
+  content: ""; position: absolute; left: 6.25px; top: 3px; width: 1.5px; height: 7px;
+  background: var(--ws-surface); transform: rotate(45deg);
+}
+.st-fail .st-mark::after { transform: rotate(-45deg); }
+.st-error {
+  margin: 0; padding: 10px 12px; border-radius: 8px; font-size: 0.875rem; line-height: 1.45;
+  color: var(--ws-ink); background: var(--ws-track); box-shadow: inset 3px 0 0 var(--ws-ink);
+  overflow-wrap: anywhere;
+}
 
 /* --- Tableaux de résultats ----------------------------------------------------- */
 .ws-table { width: 100%; border-collapse: collapse; font-size: 0.9rem; border: none !important; margin: 0 !important; }

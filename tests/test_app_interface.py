@@ -46,6 +46,24 @@ def test_etat_d_avancement():
     assert interface._step_fraction(["analyse", "detection"], {"analyse": 1.0, "detection": 0.5}) == 0.75
 
 
+
+def test_etat_d_echec():
+    """Après une erreur, l'étape en cause est marquée « échec » et le message est dans le panneau."""
+    steps = ["normalisation_audio", "chargement", "analyse", "detection"]
+    state = {"normalisation_audio": 1.0, "chargement": 1.0, "analyse": 0.4}
+    assert interface._failed_step(steps, state) == "analyse"                  # étape en cours
+    assert interface._failed_step(steps, {"normalisation_audio": 1.0}) == "chargement"
+    assert interface._failed_step(steps, {}) == "normalisation_audio"
+    assert interface._failed_step(steps, dict.fromkeys(steps, 1.0)) == "detection"
+    assert interface._failed_step([], {}) is None
+    html = interface._status_html(steps, state, "Échec : Analyse", failed="analyse",
+                                  error="Modèle <absent> du cache")
+    assert '<li class="st-fail">' in html and "échec" in html
+    assert 'role="alert"' in html and "Modèle &lt;absent&gt; du cache" in html
+    assert "st-root st-failed" in html and html.count("terminé") == 2 and "40 %" not in html
+    assert "st-fail" not in interface._status_html(steps, state, "En cours")
+
+
 def test_der_dans_les_deux_conditions_avec_mention_sans_uem(tmp_path):
     from pyannote.core import Annotation, Segment
 

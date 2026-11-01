@@ -133,14 +133,18 @@ def _availability(fake: bool, experiments: Path = moteurs.EXPERIMENTS_DIR) -> di
 
 
 def _status_html(steps: list[str], state: dict[str, float], title: str, detail: str = "",
-                 fraction: float | None = None, labels: dict[str, str] | None = None) -> str:
+                 fraction: float | None = None, labels: dict[str, str] | None = None,
+                 failed: str | None = None, error: str | None = None) -> str:
     """Panneau d'avancement : l'état de chaque étape est écrit, pas seulement dessiné.
 
-    `labels` donne le libellé d'étapes composées (« 2:segmentation » en comparaison)."""
+    `labels` donne le libellé d'étapes composées (« 2:segmentation » en comparaison).
+    `failed` : étape en échec, marquée « échec » ; `error` : message affiché dans le panneau."""
     rows = []
     for step in steps:
         value = state.get(step, 0.0)
-        if value >= 1.0:
+        if step == failed:
+            cls, text = "fail", "échec"
+        elif value >= 1.0:
             cls, text = "done", "terminé"
         elif value > 0.0:
             cls, text = "run", f"{int(100 * value)} %"
@@ -155,13 +159,27 @@ def _status_html(steps: list[str], state: dict[str, float], title: str, detail: 
         bar = (f'<div class="st-bar" role="progressbar" aria-label="Avancement" aria-valuemin="0" '
                f'aria-valuemax="100" aria-valuenow="{percent}"><div style="width:{percent}%"></div></div>')
     steps_html = f'<ol class="st-steps">{"".join(rows)}</ol>' if rows else ""
-    return (f'<div class="st-root"><div class="st-head" aria-live="polite">'
+    error_html = (f'<p class="st-error" role="alert">{escape(error)}</p>' if error else "")
+    root = "st-root st-failed" if failed or error else "st-root"
+    return (f'<div class="{root}"><div class="st-head" aria-live="polite">'
             f'<p class="st-title">{escape(title)}</p><span class="st-detail">{escape(detail)}</span></div>'
-            f'{bar}{steps_html}</div>')
+            f'{error_html}{bar}{steps_html}</div>')
 
 
 def _step_fraction(steps: list[str], state: dict[str, float]) -> float:
     return sum(min(1.0, state.get(step, 0.0)) for step in steps) / len(steps)
+
+
+def _failed_step(steps: list[str], state: dict[str, float]) -> str | None:
+    """Étape en cause après une erreur : celle en cours (commencée, non terminée), à défaut la
+    première non commencée, à défaut la dernière ; None sans étape."""
+    for step in steps:
+        if 0.0 < state.get(step, 0.0) < 1.0:
+            return step
+    for step in steps:
+        if state.get(step, 0.0) < 1.0:
+            return step
+    return steps[-1] if steps else None
 
 
 # --- Résultats ------------------------------------------------------------------------
@@ -587,118 +605,130 @@ def build_app(fake: bool = False, fake_max_s: float = 20.0, repo_root: Path = RE
                  gr.update(visible=True), "", gr.update(visible=False), None)
         yield (status("Normalisation de l'audio", fraction=0.0), *empty)
 
-        uri = Path(audio_path).stem
-        work = sortie.new_work_dir(RUN_DIR)
-        start = time.perf_counter()
         try:
-            wav = normalize(audio_path, work / f"{sortie.rttm_name(uri)}.wav")
-        except AudioError as error:
-            raise gr.Error(f"Ce fichier n'a pas pu être lu comme de l'audio. Détail : {error}") from error
-        normalisation_s = time.perf_counter() - start
-        state["normalisation_audio"] = 1.0
-        waveform, sample_rate = load_waveform(wav)
-        duration_s = waveform.shape[1] / sample_rate
-        for run in runs:
-            run["measured"] = temps.measured_rtf(run["spec"].source_exp, run["device"],
-                                                 moteurs.source_device(run["spec"], experiments), leaderboard)
-            run["rtf"] = run["measured"].rtf if run["measured"] else None
-
-        def remaining_text() -> str:
-            remaining = temps.cumulative_remaining_s(
-                [(run["rtf"], run["elapsed"], run["done"]) for run in runs], duration_s)
-            scope = " pour les deux moteurs" if prefix and not runs[0]["done"] else ""
-            if remaining is None:
-                return "temps restant inconnu (RTF non mesuré sur ce périphérique)"
-            if remaining > 0:
-                return f"environ {temps.format_duration(remaining)} restantes{scope}"
-            return "estimation dépassée, calcul en cours"
-
-        results = []
-        with cache.lock:
+            uri = Path(audio_path).stem
+            work = sortie.new_work_dir(RUN_DIR)
+            start = time.perf_counter()
+            try:
+                wav = normalize(audio_path, work / f"{sortie.rttm_name(uri)}.wav")
+            except AudioError as error:
+                raise gr.Error(f"Ce fichier n'a pas pu être lu comme de l'audio. Détail : {error}") from error
+            normalisation_s = time.perf_counter() - start
+            state["normalisation_audio"] = 1.0
+            waveform, sample_rate = load_waveform(wav)
+            duration_s = waveform.shape[1] / sample_rate
             for run in runs:
-                spec, index = run["spec"], run["index"]
-                yield (status(f"Chargement de {spec.label}", fraction=_step_fraction(steps, state)), *skip)
-                try:
-                    engine, loading_s = cache.get(spec, run["device"])
-                except ModelMissing as error:
-                    raise gr.Error(str(error), duration=None) from error
-                except Exception as error:  # chargement des modèles : message affiché tel quel
-                    raise gr.Error(f"Le modèle n'a pas pu être chargé. Détail : {error}") from error
-                state[f"{index}:chargement"] = 1.0
-                if fake:
-                    engine.simulated_s = min(fake_max_s, max(2.0, (run["rtf"] or 0.05) * duration_s))
-                if spec.supports_range:
-                    engine.min_speakers = run["speaker_conf"].get("min")
-                    engine.max_speakers = run["speaker_conf"].get("max")
-                outcome: dict = {}
+                run["measured"] = temps.measured_rtf(run["spec"].source_exp, run["device"],
+                                                     moteurs.source_device(run["spec"], experiments), leaderboard)
+                run["rtf"] = run["measured"].rtf if run["measured"] else None
 
-                def progress(step: str, fraction: float, index=index) -> None:
-                    step_id = f"{index}:{step}"
-                    state[step_id] = max(state.get(step_id, 0.0), fraction)
+            def remaining_text() -> str:
+                remaining = temps.cumulative_remaining_s(
+                    [(run["rtf"], run["elapsed"], run["done"]) for run in runs], duration_s)
+                scope = " pour les deux moteurs" if prefix and not runs[0]["done"] else ""
+                if remaining is None:
+                    return "temps restant inconnu (RTF non mesuré sur ce périphérique)"
+                if remaining > 0:
+                    return f"environ {temps.format_duration(remaining)} restantes{scope}"
+                return "estimation dépassée, calcul en cours"
 
-                def work_thread(engine=engine, run=run, progress=progress, outcome=outcome) -> None:
+            results = []
+            with cache.lock:
+                for run in runs:
+                    spec, index = run["spec"], run["index"]
+                    yield (status(f"Chargement de {spec.label}", fraction=_step_fraction(steps, state)), *skip)
                     try:
-                        outcome["result"] = engine.run(waveform, sample_rate, uri=uri,
-                                                       num_speakers=run["num_speakers"], progress=progress)
-                    except Exception as error:  # remonté à l'interface ci-dessous
-                        outcome["error"] = error
+                        engine, loading_s = cache.get(spec, run["device"])
+                    except ModelMissing as error:
+                        raise gr.Error(str(error), duration=None) from error
+                    except Exception as error:  # chargement des modèles : message affiché tel quel
+                        raise gr.Error(f"Le modèle n'a pas pu être chargé. Détail : {error}") from error
+                    state[f"{index}:chargement"] = 1.0
+                    if fake:
+                        engine.simulated_s = min(fake_max_s, max(2.0, (run["rtf"] or 0.05) * duration_s))
+                    if spec.supports_range:
+                        engine.min_speakers = run["speaker_conf"].get("min")
+                        engine.max_speakers = run["speaker_conf"].get("max")
+                    outcome: dict = {}
 
-                t0 = time.perf_counter()
-                thread = threading.Thread(target=work_thread, daemon=True)
-                thread.start()
-                while thread.is_alive():
-                    run["elapsed"] = time.perf_counter() - t0
+                    def progress(step: str, fraction: float, index=index) -> None:
+                        step_id = f"{index}:{step}"
+                        state[step_id] = max(state.get(step_id, 0.0), fraction)
+
+                    def work_thread(engine=engine, run=run, progress=progress, outcome=outcome) -> None:
+                        try:
+                            outcome["result"] = engine.run(waveform, sample_rate, uri=uri,
+                                                           num_speakers=run["num_speakers"], progress=progress)
+                        except Exception as error:  # remonté à l'interface ci-dessous
+                            outcome["error"] = error
+
+                    t0 = time.perf_counter()
+                    thread = threading.Thread(target=work_thread, daemon=True)
+                    thread.start()
+                    while thread.is_alive():
+                        run["elapsed"] = time.perf_counter() - t0
+                        measured = run["measured"]
+                        detail = (f"{temps.format_duration(run['elapsed'])} écoulées, {remaining_text()}"
+                                  + (f" (RTF {_num(run['rtf'], 4)} mesuré par {measured.exp_id})" if measured else ""))
+                        title = f"Analyse de {Path(audio_path).name} avec {spec.label}"
+                        if prefix:
+                            title += f" ({index}/{len(runs)})"
+                        yield (status(title, detail, _step_fraction(steps, state)), *skip)
+                        thread.join(0.3)
+                    calcul_s = time.perf_counter() - t0
+                    run["elapsed"], run["done"] = calcul_s, True
+                    if "error" in outcome:
+                        raise gr.Error(f"L'analyse avec {spec.label} a échoué. Détail : {outcome['error']}")
+                    resultat = outcome["result"]
                     measured = run["measured"]
-                    detail = (f"{temps.format_duration(run['elapsed'])} écoulées, {remaining_text()}"
-                              + (f" (RTF {_num(run['rtf'], 4)} mesuré par {measured.exp_id})" if measured else ""))
-                    title = f"Analyse de {Path(audio_path).name} avec {spec.label}"
-                    if prefix:
-                        title += f" ({index}/{len(runs)})"
-                    yield (status(title, detail, _step_fraction(steps, state)), *skip)
-                    thread.join(0.3)
-                calcul_s = time.perf_counter() - t0
-                run["elapsed"], run["done"] = calcul_s, True
-                if "error" in outcome:
-                    raise gr.Error(f"L'analyse avec {spec.label} a échoué. Détail : {outcome['error']}")
-                resultat = outcome["result"]
-                measured = run["measured"]
-                results.append({
-                    "uri": uri, "dir": work, "wav": wav, "duree_s": duration_s, "libelle": spec.label,
-                    "moteur_cle": spec.key, "annotation": resultat.annotation, "names": {},
-                    "moteur": f"factice ({spec.key})" if fake else spec.key,
-                    "configuration": {
-                        "experience_source": spec.source_exp, "peripherique": run["device"],
-                        "nombre_locuteurs": run["speaker_conf"], "moteur_factice": fake,
-                        "reglages": engine.describe_dict(),
-                    },
-                    "calcul_s": calcul_s, "normalisation_s": normalisation_s, "chargement_s": loading_s,
-                    "durees_etapes": resultat.durees_etapes, "device": run["device"], "factice": fake,
-                    "rttm_source": resultat.infos.get("rttm_source"),
-                    "rtf_mesure": {"rtf": measured.rtf, "source": measured.source()} if measured else None,
-                })
+                    results.append({
+                        "uri": uri, "dir": work, "wav": wav, "duree_s": duration_s, "libelle": spec.label,
+                        "moteur_cle": spec.key, "annotation": resultat.annotation, "names": {},
+                        "moteur": f"factice ({spec.key})" if fake else spec.key,
+                        "configuration": {
+                            "experience_source": spec.source_exp, "peripherique": run["device"],
+                            "nombre_locuteurs": run["speaker_conf"], "moteur_factice": fake,
+                            "reglages": engine.describe_dict(),
+                        },
+                        "calcul_s": calcul_s, "normalisation_s": normalisation_s, "chargement_s": loading_s,
+                        "durees_etapes": resultat.durees_etapes, "device": run["device"], "factice": fake,
+                        "rttm_source": resultat.infos.get("rttm_source"),
+                        "rtf_mesure": {"rtf": measured.rtf, "source": measured.source()} if measured else None,
+                    })
 
-        result = dict(results[0], peaks=sortie.peaks(waveform[0].numpy(),
-                                                    n_points=max(4000, int(PEAKS_PER_S * duration_s))))
-        if len(results) > 1:
-            result["comparaison"] = results[1]
-        result = _with_reference(result, reference_path)
-        summary = ", ".join(
-            f"{item['libelle']} : {len(sortie.speaker_labels(item['annotation']))} locuteur(s) en "
-            f"{temps.format_duration(item['calcul_s'])}" for item in results)
-        total_s = sum(item["calcul_s"] for item in results)
-        done = _status_html(
-            steps, {step: 1.0 for step in steps},
-            summary if prefix else
-            f"{len(sortie.speaker_labels(result['annotation']))} locuteur(s) en {temps.format_duration(total_s)}",
-            f"{Path(audio_path).name}, {temps.format_duration(duration_s)} d'audio"
-            + ("" if prefix else f", {result['libelle']}, RTF {_num(total_s / duration_s, 4)}"),
-            1.0, labels=labels)
-        names_rows = [[label, ""] for label in sortie.speaker_labels(result["annotation"])]
-        yield (done, _viewer_value(result), _stats_html(result),
-               gr.update(value=names_rows, visible=True, row_limits=(len(names_rows), len(names_rows))),
-               _times_all(result), _der_all(result, reference_path),
-               gr.update(value=_exports(result), visible=True), gr.update(visible=False),
-               _comparison_html(result), gr.update(visible=bool(result.get("comparaison"))), result)
+            result = dict(results[0], peaks=sortie.peaks(waveform[0].numpy(),
+                                                        n_points=max(4000, int(PEAKS_PER_S * duration_s))))
+            if len(results) > 1:
+                result["comparaison"] = results[1]
+            result = _with_reference(result, reference_path)
+            summary = ", ".join(
+                f"{item['libelle']} : {len(sortie.speaker_labels(item['annotation']))} locuteur(s) en "
+                f"{temps.format_duration(item['calcul_s'])}" for item in results)
+            total_s = sum(item["calcul_s"] for item in results)
+            done = _status_html(
+                steps, {step: 1.0 for step in steps},
+                summary if prefix else
+                f"{len(sortie.speaker_labels(result['annotation']))} locuteur(s) en {temps.format_duration(total_s)}",
+                f"{Path(audio_path).name}, {temps.format_duration(duration_s)} d'audio"
+                + ("" if prefix else f", {result['libelle']}, RTF {_num(total_s / duration_s, 4)}"),
+                1.0, labels=labels)
+            names_rows = [[label, ""] for label in sortie.speaker_labels(result["annotation"])]
+            yield (done, _viewer_value(result), _stats_html(result),
+                   gr.update(value=names_rows, visible=True, row_limits=(len(names_rows), len(names_rows))),
+                   _times_all(result), _der_all(result, reference_path),
+                   gr.update(value=_exports(result), visible=True), gr.update(visible=False),
+                   _comparison_html(result), gr.update(visible=bool(result.get("comparaison"))), result)
+        except Exception as error:
+            # Le panneau passe à l'état « échec » sur l'étape en cause, message visible dans la page ;
+            # la notification de Gradio est conservée.
+            failed = _failed_step(steps, state)
+            message = error.message if isinstance(error, gr.Error) else f"{type(error).__name__}: {error}"
+            label = labels.get(failed) or PRE_LABELS.get(failed) or STEP_LABELS.get(failed, failed)
+            yield (_status_html(steps, state, f"Échec : {label}", fraction=_step_fraction(steps, state),
+                                labels=labels, failed=failed, error=str(message)), *skip)
+            if isinstance(error, gr.Error):
+                raise
+            raise gr.Error(f"L'analyse a échoué. Détail : {message}") from error
 
     def rename(rows, result):
         if result is None:
