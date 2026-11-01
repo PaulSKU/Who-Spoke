@@ -524,3 +524,11 @@ Réalisé : fiche D27 (télémétrie) ; note D27 dans les `notes.md` des sept ex
 Résultats : interface fusionnée et fonctionnelle avec les vrais moteurs ; pyannote figé à 3533c8c, EXP-0001 reproduite à l'octet ; télémétrie de pyannote découverte par le relevé réseau ; temps restant sous-estimé de 16 à 30 %.
 Décisions : D27 — télémétrie coupée au niveau du paquet, contrôle réseau avant le corpus maison et à chaque nouveau moteur ; temps restant = surcoût fixe mesuré par moteur + RTF × durée.
 Suite : correctifs (D27, temps restant, panneau après erreur), puis rang 1 de D23 (NeMo Sortformer v2).
+
+## 2026-11-01 — Audit du projet (cockpit)
+
+Objectif : recenser ce qui peut améliorer le projet, à toutes ses couches, à la demande de la candidate.
+Réalisé : `docs/audit/audit-2026-11-01.md`. Méthode : lecture du dépôt (commit b747bd6), interface lancée en mode factice dans un environnement Linux en CPU avec captures des quatre onglets, trois recherches web (méthodes de diarisation, UI/UX et skills, annonces de juin à novembre 2026), fiches de community-1, Nemotron 3 Diarization et DiariZen revérifiées.
+Résultats : sortie exclusive de pyannote disponible et non mesurée ; Nemotron 3 Diarization entraîné sur AMI train/dev et VoxConverse dev/test ; DiariZen annoncé à 13,9 % sur AMI-SDM (poids CC BY-NC, installation documentée en CUDA) ; dépôt public sans licence ; défauts d'interface relevés sur les captures.
+Décisions : aucune. Le réordonnancement de D23 (R-M1) et le choix de la licence (R-R1) attendent la candidate.
+Suite : transformer les recommandations retenues en chantiers.
