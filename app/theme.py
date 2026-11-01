@@ -120,3 +120,16 @@ def build_theme() -> gr.themes.Base:
 
 def css() -> str:
     return CSS_PATH.read_text()
+
+
+# Zones de dépôt en français quelle que soit la langue du navigateur (audit R-U5) : Gradio
+# choisit ses textes selon la langue du navigateur ; les clés de ses zones de dépôt sont
+# redéfinies pour toutes les langues qu'il fournit (Gradio 6.3).
+GRADIO_LOCALES = ("ca", "de", "en", "es", "et", "eu", "fa", "fr", "he", "id", "ja", "ko", "lt", "nb",
+                  "pt-BR", "pt", "ro", "ru", "sv", "ta", "th", "tr", "uk", "ur", "uz", "zh-CN", "zh-TW")
+_UPLOAD_FR = {
+    "upload_text.drop_file": "Déposez le fichier ici",
+    "upload_text.click_to_upload": "cliquez pour le choisir",
+    "common.or": "ou",
+}
+UPLOAD_TEXT = {locale: dict(_UPLOAD_FR) for locale in GRADIO_LOCALES}

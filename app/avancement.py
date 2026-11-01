@@ -11,8 +11,9 @@ seule, sans rien exécuter :
   à leur expérience de référence (`reference` et `variable_modifiee` de results.json) ;
 - décisions : D1 à D15 depuis le tableau de `docs/cadrage.md` et sa phrase « Statut »,
   D16 et suivantes depuis la ligne « Statut : » de chaque fiche et de ses amendements ;
-- file d'attente de D23 : tableau « File d'attente » de `docs/planning.md`, complété d'un
-  état calculé (expériences citées ayant des résultats, fiches citées présentes ou non).
+- file d'attente de la piste A (D23, amendement du 01/11) : tableau « File d'attente » de
+  `docs/planning.md` (Rang, Contenu, Calcul estimé, Prérequis), complété d'un état calculé
+  (fiches de décision citées présentes ou non).
 """
 
 from __future__ import annotations
@@ -270,39 +271,33 @@ def markdown_table(text: str, after: str) -> list[dict[str, str]]:
 @dataclass
 class QueueRow:
     rank: str
-    task: str
-    condition: str
+    content: str
+    estimate: str
+    prerequisites: str
     state: str
 
 
-def _exp_ids(text: str) -> list[str]:
-    ids = []
-    for start, end in re.findall(r"EXP-(\d{4})\s*(?:à|-|–)\s*(?:EXP-)?(\d{4})", text):
-        ids += [f"EXP-{n:04d}" for n in range(int(start), int(end) + 1)]
-    ids += [f"EXP-{n}" for n in re.findall(r"EXP-(\d{4})", text) if f"EXP-{n}" not in ids]
-    return ids
+QUEUE_COLUMNS = ("Rang", "Contenu", "Calcul estimé", "Prérequis")
 
 
-def read_queue(root: Path, items: list[Item]) -> list[QueueRow]:
+def read_queue(root: Path) -> list[QueueRow]:
+    """Tableau « File d'attente » de docs/planning.md (colonnes de `QUEUE_COLUMNS`).
+
+    L'état constaté ne retient que les fiches de décision citées (D16 et suivantes),
+    présentes ou absentes : les expériences de la file n'ont pas encore de numéro, et
+    celles qui sont citées le sont comme référence (EXP-0007 à reproduire en A1), pas
+    comme travail fait.
+    """
     path = root / "docs" / "planning.md"
     if not path.is_file():
         return []
-    by_id = {item.id: item for item in items}
     fiches = {d.number for d in read_decisions(root) if d.source.startswith("docs/decisions/")}
     rows = []
     for row in markdown_table(path.read_text(encoding="utf-8"), after="## File d'attente"):
-        task = row.get("Expérience ou chantier", "")
-        condition = row.get("Condition", "")
-        states = []
-        ids = _exp_ids(task)
-        if ids:
-            done = [i for i in ids if i in by_id and by_id[i].results]
-            created = [i for i in ids if i in by_id]
-            states.append(f"{len(done)}/{len(ids)} avec résultats, {len(created)}/{len(ids)} créées")
-        for number in _DECISION.findall(f"{task} {condition}"):
-            if int(number) > 15:
-                states.append(f"fiche D{number} " + ("présente" if int(number) in fiches else "absente"))
-        rows.append(QueueRow(row.get("Rang", ""), task, condition, " ; ".join(states) or "—"))
+        rank, content, estimate, prerequisites = (row.get(column, "") for column in QUEUE_COLUMNS)
+        cited = dict.fromkeys(int(n) for n in _DECISION.findall(f"{content} {prerequisites}") if int(n) > 15)
+        states = [f"fiche D{n} " + ("présente" if n in fiches else "absente") for n in cited]
+        rows.append(QueueRow(rank, content, estimate, prerequisites, " ; ".join(states) or "—"))
     return rows
 
 
@@ -420,13 +415,14 @@ def _decisions_html(decisions: list[Decision]) -> str:
 def _queue_html(queue: list[QueueRow]) -> str:
     if not queue:
         return '<p class="ws-empty-note">Tableau « File d\'attente » introuvable dans docs/planning.md.</p>'
-    rows = "".join(f'<tr><td class="num">{escape(q.rank)}</td><td>{_inline(q.task)}</td>'
-                   f'<td>{_inline(q.condition)}</td><td>{escape(q.state)}</td></tr>' for q in queue)
-    return ('<div class="ws-table-wrap"><table class="ws-table av-table"><thead><tr><th scope="col" class="num">Rang</th>'
-            '<th scope="col">Expérience ou chantier</th><th scope="col">Condition</th>'
-            f'<th scope="col">État constaté</th></tr></thead><tbody>{rows}</tbody></table></div>'
-            '<p class="ws-caption">Tableau de docs/planning.md ; « État constaté » est calculé depuis les '
-            'dossiers d\'expériences et les fiches présentes.</p>')
+    rows = "".join(f'<tr><td class="strong">{escape(q.rank)}</td><td>{_inline(q.content)}</td>'
+                   f'<td class="av-estimate">{_inline(q.estimate)}</td><td>{_inline(q.prerequisites)}</td>'
+                   f'<td>{escape(q.state)}</td></tr>' for q in queue)
+    return ('<div class="ws-table-wrap"><table class="ws-table av-table av-queue"><thead><tr>'
+            '<th scope="col">Rang</th><th scope="col">Contenu</th><th scope="col">Calcul estimé</th>'
+            f'<th scope="col">Prérequis</th><th scope="col">État constaté</th></tr></thead><tbody>{rows}</tbody>'
+            '</table></div><p class="ws-caption">Tableau de docs/planning.md, dans l\'ordre de la file ; '
+            '« État constaté » est calculé depuis les fiches de décision présentes.</p>')
 
 
 def _count(n: int, word: str) -> str:
@@ -437,7 +433,7 @@ def render(root: Path) -> dict[str, str]:
     """Sections HTML de l'onglet, chacune autonome."""
     items = read_items(root)
     decisions = read_decisions(root)
-    queue = read_queue(root, items)
+    queue = read_queue(root)
     experiments = [i for i in items if i.kind == "experience"]
     missing = [i.id for i in items if i.header.status != "ok"]
     analyses = len(items) - len(experiments)

@@ -111,12 +111,18 @@ function drawAxis() {
   axis.innerHTML = '';
   const width = $('.wsp-canvas').clientWidth || viewportWidth();
   const step = tickStep(v.duree_s, width);
+  let last = null;
   for (let t = 0; t <= v.duree_s; t += step) {
     const tick = document.createElement('span');
     tick.className = 'wsp-tick';
     tick.style.left = (100 * t / v.duree_s) + '%';
     tick.textContent = fmt(t);
     axis.appendChild(tick);
+    last = { tick, t };
+  }
+  // Dernière graduation près du bord droit : alignée à droite, pour ne pas être rognée.
+  if (last && last.t > 0 && (v.duree_s - last.t) * width / v.duree_s < 32) {
+    last.tick.classList.add('wsp-tick-end');
   }
 }
 

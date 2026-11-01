@@ -79,10 +79,11 @@ def depot(tmp_path):
     (docs / "decisions" / "D17-interface.md").write_text(
         "# D17 — Interface\n\nStatut : actée (périmètre, branche `interface`)\n\n## Amendement 1 — prototype\n\nStatut : proposée\n")
     (docs / "planning.md").write_text(
-        "# Planning\n\n## File d'attente des expériences (D23)\n\nTexte.\n\n"
-        "| Rang | Expérience ou chantier | Condition |\n|---|---|---|\n"
-        "| 0 | EXP-0004 à EXP-0007, baseline | En cours |\n| 1 | Robustesse | Fiche D24 |\n"
-        "| 2 | Interface | Fiche D17 |\n\n## Calendrier\n")
+        "# Planning\n\n## File d'attente de la piste A (D23, amendement du 01/11)\n\n"
+        "| Rang | Contenu | Calcul estimé | Prérequis |\n|---|---|---|---|\n"
+        "| A1 | pyannote figé ; contrôle que la sortie reproduit EXP-0007 | ≈ 2 h | — |\n"
+        "| A2 | D24 : robustesse, `configs/x.yaml` | génération ≈ 1 h ; calcul ≈ 6 h | A1 ; D17 et D24 |\n"
+        "| A3 | Options | — | S'il reste du temps |\n\n## Calendrier\n")
     return root
 
 
@@ -141,11 +142,17 @@ def test_decisions_et_statuts(depot):
 
 
 def test_file_d_attente_et_etat_constate(depot):
-    queue = av.read_queue(depot, av.read_items(depot))
-    assert [q.rank for q in queue] == ["0", "1", "2"]
-    # EXP-0004 a des résultats ; EXP-0005 et EXP-0006 existent sans résultats ; EXP-0007 n'existe pas.
-    assert queue[0].state == "1/4 avec résultats, 3/4 créées"
-    assert queue[1].state == "fiche D24 absente" and queue[2].state == "fiche D17 présente"
+    queue = av.read_queue(depot)
+    assert [q.rank for q in queue] == ["A1", "A2", "A3"]
+    assert queue[1].estimate == "génération ≈ 1 h ; calcul ≈ 6 h" and queue[1].prerequisites == "A1 ; D17 et D24"
+    # Expérience citée comme référence : aucun état « avec résultats » qui ferait croire A1 fait.
+    assert queue[0].state == "—"
+    # Fiches citées dans le contenu ou les prérequis, chacune une fois.
+    assert queue[1].state == "fiche D24 absente ; fiche D17 présente" and queue[2].state == "—"
+    html = av.render(depot)["file"]
+    for column in ("Rang", "Contenu", "Calcul estimé", "Prérequis", "État constaté"):
+        assert f">{column}</th>" in html
+    assert "<code>configs/x.yaml</code>" in html and "≈ 2 h" in html
 
 
 def test_notes_affichees_sans_en_tete(depot):
@@ -175,7 +182,9 @@ def test_resume_accorde(depot):
 
 def test_depot_principal_complet_si_present():
     """Avec les en-têtes et les statuts ajoutés au dépôt principal (D26, amendement du
-    01/11), plus aucun « en-tête manquant » ni « statut non indiqué »."""
+    01/11), plus aucun « en-tête manquant » ni « statut non indiqué ». Une expérience en
+    cours, sans notes.md, n'est pas encore interprétée (en-tête rempli à l'interprétation,
+    D26 §2) : elle n'est pas comptée."""
     from whospoke.experiment import REPO_ROOT
 
     main = REPO_ROOT.parent / "Who-Spoke"
@@ -184,5 +193,6 @@ def test_depot_principal_complet_si_present():
     items = av.read_items(main)
     if not any(i.header.status == "ok" for i in items):
         pytest.skip("en-têtes pas encore ajoutés dans ce dépôt")
-    assert [i.id for i in items if i.header.status != "ok" or i.header.problems] == []
+    interpreted = [i for i in items if i.notes.is_file()]
+    assert [i.id for i in interpreted if i.header.status != "ok" or i.header.problems] == []
     assert [(d.number, t) for d in av.read_decisions(main) for t, s in d.amendments if s == "statut non indiqué"] == []

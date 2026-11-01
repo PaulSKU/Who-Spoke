@@ -3,6 +3,7 @@
 .wsp-root {
   --wsp-label-w: 132px;
   color: var(--ws-ink);
+  width: 0; min-width: 100%;   /* n'élargit jamais la carte (375 px) */
 }
 .wsp-empty .wsp-body { display: none; }
 .wsp-placeholder { display: none; color: var(--ws-slate); font-size: 0.9rem; margin: 0; padding: 4px 0; }
@@ -59,6 +60,8 @@
 .wsp-axis { position: relative; height: 20px; margin-top: 6px; color: var(--ws-slate); font-size: 0.75rem; }
 .wsp-tick { position: absolute; top: 2px; transform: translateX(-50%); font-variant-numeric: tabular-nums; white-space: nowrap; }
 .wsp-tick:first-child { transform: none; }
+/* Dernière graduation alignée à droite quand elle touche le bord : jamais rognée (R-U5). */
+.wsp-tick.wsp-tick-end { transform: translateX(-100%); }
 @media (max-width: 640px) {
   .wsp-root { --wsp-label-w: 88px; }
   .wsp-zoom { margin-left: 0; width: 100%; }
@@ -72,7 +75,12 @@
   color: var(--ws-slate); font-size: 0.75rem; height: 20px; margin-top: 6px;
   overflow: visible; position: relative; z-index: 1;
 }
-.wsp-spacer { height: 20px; margin-top: 6px; border-top: 1px solid var(--ws-line); }
+/* Rangée d'intitulé opaque, au-dessus de la tête de lecture : l'intitulé reste hors de son
+   tracé (R-U5). */
+.wsp-spacer {
+  height: 20px; margin-top: 6px; border-top: 1px solid var(--ws-line);
+  position: relative; z-index: 3; background: var(--ws-surface);
+}
 .wsp-labels > .wsp-caption:first-child, .wsp-lanes > .wsp-spacer:first-child { margin-top: 0; border-top: none; }
 .wsp-seg.wsp-err-manquee, .wsp-swatch.wsp-err-manquee { background: var(--ws-ink); }
 .wsp-seg.wsp-err-fausse_alarme, .wsp-swatch.wsp-err-fausse_alarme {

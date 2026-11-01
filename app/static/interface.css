@@ -33,14 +33,21 @@
 }
 
 /* --- Page ---------------------------------------------------------------------- */
+/* Marges latérales fluides, hors @media : Gradio préfixe les sélecteurs placés dans une
+   règle @media, et `.gradio-container` ou `.main` n'y seraient plus atteints. 16 px de
+   gouttière à 375 px de large, 24 px (et 32 px pour .main) au-delà. */
 .gradio-container {
   max-width: 1280px !important;
   margin: 0 auto !important;
-  padding: 0 24px !important;
+  padding: 0 clamp(16px, 4.27vw, 24px) !important;
   font-variant-numeric: tabular-nums;
   -webkit-font-smoothing: antialiased;
 }
-footer { opacity: 0.7; }
+
+.gradio-container .main {
+  padding-left: clamp(0px, calc((100vw - 480px) / 2), 32px) !important;
+  padding-right: clamp(0px, calc((100vw - 480px) / 2), 32px) !important;
+}
 
 .ws-header {
   display: flex; align-items: flex-end; justify-content: space-between; gap: 16px;
@@ -59,10 +66,25 @@ footer { opacity: 0.7; }
 .ws-badge::before {
   content: ""; width: 6px; height: 6px; border-radius: 50%; background: var(--ws-slate);
 }
+.ws-badges { display: flex; flex-wrap: wrap; gap: 8px; }
+
+/* Indicateur « moteurs prêts » (R-D2) : l'état est écrit ; la pastille le double. */
+.ws-engines[data-state="ready"]::before { background: var(--ws-ink); }
+.ws-engines[data-state="run"]::before {
+  width: 8px; height: 8px; box-sizing: border-box; background: transparent;
+  border: 1.5px solid var(--ws-ink); border-right-color: transparent; animation: st-spin 0.8s linear infinite;
+}
+.ws-engines[data-state="warn"]::before, .ws-engines[data-state="off"]::before {
+  box-sizing: border-box; background: transparent; border: 1.5px solid var(--ws-slate);
+}
 
 /* Onglets : soulignement fin, sans couleur. */
 .tab-wrapper, .tab-container { border-bottom: 1px solid var(--ws-line) !important; }
-button[role="tab"] { font-weight: 500 !important; color: var(--ws-slate) !important; }
+button[role="tab"] {
+  font-weight: 500 !important; color: var(--ws-slate) !important;
+  /* Les quatre onglets tiennent sur 343 px (375 px moins les gouttières). */
+  padding-left: clamp(8px, 2.5vw, 16px) !important; padding-right: clamp(8px, 2.5vw, 16px) !important;
+}
 button[role="tab"][aria-selected="true"] { color: var(--ws-ink) !important; }
 button[role="tab"][aria-selected="true"]::after,
 .tab-container .selected::after { background: var(--ws-ink) !important; height: 2px !important; }
@@ -104,6 +126,33 @@ button.primary:active, button.secondary:active, .wsp-play:active { transform: sc
 }
 .ws-run { min-height: 44px; font-weight: 600 !important; letter-spacing: -0.005em; }
 
+/* Durée annoncée avant le lancement (R-D2 ; D17, amendement 2). */
+.ws-estimate {
+  background: var(--ws-canvas); border-radius: 10px; padding: 10px 12px; font-size: 0.85rem; line-height: 1.45;
+}
+.ws-estimate[data-state="warn"] { box-shadow: inset 3px 0 0 var(--ws-ink); }
+.ws-estimate-head { margin: 0; font-weight: 600; color: var(--ws-ink); }
+.ws-estimate-list { margin: 4px 0 0; padding-left: 18px; color: var(--ws-slate); }
+.ws-estimate-list:empty { display: none; }
+.ws-estimate .ws-caption { margin-top: 4px; }
+
+/* Bandeau des réglages repliés après l'analyse (R-U1). */
+.ws-band {
+  background: var(--ws-surface) !important; border-radius: 14px !important;
+  box-shadow: var(--ws-shadow-md) !important; padding: 10px 12px 10px 20px !important;
+  align-items: center !important; gap: 12px !important;
+}
+.ws-band > .block, .ws-band .block { background: transparent !important; box-shadow: none !important; border: none !important; }
+.ws-band-info { min-width: min(240px, 100%) !important; flex: 1 1 0% !important; }
+.ws-band-text { display: flex; flex-wrap: wrap; align-items: baseline; gap: 2px 0; margin: 0; font-size: 0.9rem; color: var(--ws-slate); }
+.ws-band-text > span:not(:last-child)::after { content: "·"; margin: 0 10px; color: var(--ws-line); }
+.ws-band-text .strong { color: var(--ws-ink); font-weight: 600; overflow-wrap: anywhere; }
+.ws-band-button { white-space: nowrap; }
+
+/* Cache des résultats : repli discret sous le bouton principal. */
+.ws-cache { box-shadow: 0 0 0 1px var(--ws-line) !important; border-radius: 10px !important; }
+.ws-cache .label-wrap { font-size: 0.875rem; }
+
 /* Focus visible partout, contraste ≥ 3:1. */
 :is(button, a, input, textarea, select, [tabindex]):focus-visible {
   outline: 2px solid var(--ws-ink) !important; outline-offset: 2px !important;
@@ -116,11 +165,14 @@ button.primary:active, button.secondary:active, .wsp-play:active { transform: sc
 .st-detail { color: var(--ws-slate); font-size: 0.875rem; }
 .st-bar { height: 6px; border-radius: 999px; background: var(--ws-track); overflow: hidden; }
 .st-bar > div { height: 100%; border-radius: 999px; background: var(--ws-ink); transition: width 300ms linear; }
+/* Étapes lues en colonne, dans l'ordre du pipeline (R-U5) : de haut en bas, puis colonne suivante. */
 .st-steps {
-  list-style: none; padding: 0; margin: 0; display: grid; gap: 6px 24px;
-  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); font-size: 0.875rem;
+  list-style: none; padding: 0; margin: 0; columns: 3 220px; column-gap: 24px; font-size: 0.875rem;
 }
-.st-steps li { display: flex; align-items: center; gap: 10px; min-height: 24px; color: var(--ws-slate); }
+.st-steps li {
+  display: flex; align-items: center; gap: 10px; min-height: 24px; color: var(--ws-slate);
+  break-inside: avoid; margin-bottom: 6px;
+}
 .st-steps li .st-label { flex: 1; }
 .st-steps li .st-val { font-size: 0.8rem; }
 .st-mark {
@@ -245,6 +297,8 @@ button.primary:active, button.secondary:active, .wsp-play:active { transform: sc
 /* --- Onglet Avancement (D26, I2) --------------------------------------------------- */
 .av-table td { vertical-align: top; font-size: 0.875rem; }
 .av-table td:nth-child(2) { min-width: 220px; line-height: 1.45; }
+.av-queue td:nth-child(2) { min-width: 280px; }
+.av-queue td:nth-child(3), .av-queue td:nth-child(4) { min-width: 140px; line-height: 1.45; }
 .av-missing { color: var(--ws-slate); font-style: italic; }
 .av-flag {
   display: inline-block; margin-top: 4px; padding: 1px 8px; border-radius: 999px; font-size: 0.75rem;
@@ -293,9 +347,10 @@ a.gl-index {
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after { transition-duration: 0.01ms !important; animation-duration: 0.01ms !important; animation-iteration-count: 1 !important; }
 }
-.ws-table-wrap { overflow-x: auto; max-width: 100%; }
+/* Largeur nulle et largeur minimale pleine : le tableau ne contribue pas à la largeur
+   intrinsèque de la carte, il défile dans son cadre au lieu d'élargir la page à 375 px. */
+.ws-table-wrap { overflow-x: auto; max-width: 100%; width: 0; min-width: 100%; }
 @media (max-width: 720px) {
-  .gradio-container { padding: 0 16px !important; }
   .ws-share-bar { display: none; }
   .ws-card { min-width: 0 !important; }
   .ws-card { padding: 16px !important; }
