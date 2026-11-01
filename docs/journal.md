@@ -351,3 +351,12 @@ Résultats : EXP-0010 à EXP-0015, en CPU. θ retenu : 1,00 (EXP-0010), 1,00 (EX
 Décisions : amendement de D22 (normalisation par fichier, calcul en CPU), rédigé par le cockpit après signalement.
 Problèmes : NaN intermittents des deux modèles en MPS (torch 2.14.1), d'où le CPU ; en CPU, ECAPA est 30 fois plus lent par fenêtre en lots de 16 qu'en lots de 8. Passage sur batterie pendant EXP-0012 (10 relevés sur 52) : temps non conforme, métriques non affectées ; le lot s'est arrêté avant EXP-0013, relancé le 01/11 sur secteur.
 Suite : interprétation d'EXP-0010 à EXP-0015 au cockpit (`notes.md`, en-têtes YAML d'EXP-0015 à compléter).
+
+## 2026-11-01 — Interprétation des empreintes neuronales, EXP-0010 à EXP-0015 (cockpit)
+
+Objectif : interpréter les six expériences de D22.
+Réalisé : observations et interprétation dans les six `notes.md`, verdicts des en-têtes YAML, README mis à jour.
+Résultats : ECAPA et WeSpeaker réduisent fortement la confusion de la baseline (AMI test 27,1 → 8,6 et 11,9 points ; SUMM-RE test 24,4 → 8,5 et 10,9), avec des écarts significatifs à MFCC dans toutes les conditions. La parole manquée par la détection d'énergie devient l'erreur principale (70 % sur AMI, deux tiers sur SUMM-RE). WeSpeaker n'est jamais meilleur qu'ECAPA ; l'écart n'est pas significatif sous oracles. À empreinte identique, pyannote devance la baseline de 29,3 points sur AMI (72 % dus à la détection) et de 9,6 points sur SUMM-RE.
+Décisions : verdicts — EXP-0010 et 0012 retenues (ECAPA, représentation de la baseline), EXP-0013 et 0015 écartées, EXP-0011 et 0014 informatives. Aucune nouvelle fiche.
+Problèmes : temps d'EXP-0012 non conforme (batterie), non exploité.
+Suite : chantier V (fusion de l'interface, révision figée de pyannote), puis rang 1 de D23 (NeMo Sortformer v2).
