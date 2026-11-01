@@ -17,6 +17,13 @@ Périphérique : sur le MPS de la machine principale (torch 2.14.1), les deux mo
 renvoient par intermittence des NaN pour une même entrée, ce qui n'arrive jamais en CPU
 (constaté le 31/10/2026) ; une empreinte non finie lève donc une erreur.
 
+Fichiers d'ECAPA (D17, amendement 1) : lus en place dans le cache Hugging Face
+(`HF_HUB_CACHE`, par défaut `~/.cache/huggingface/hub`, ou `$HF_HOME/hub`), sans copie ni
+lien dans un dossier `pretrained_models/` du dossier de lancement. C'est le comportement de
+speechbrain 1.1 sans `savedir` ; il est imposé explicitement (`ecapa_load_options`) pour ne
+pas dépendre de la version ni du dossier courant. Les fichiers lus, donc les calculs, sont
+les mêmes.
+
 Un signal plus court que `min_samples` (longueur minimale que le modèle accepte, mesurée
 au chargement par essais sur bruit blanc) n'est pas traité : sa ligne vaut NaN, et c'est à
 l'appelant de le signaler (D22 : ni ignoré silencieusement, ni complété).
@@ -37,6 +44,19 @@ WESPEAKER_REVISION = "3533c8cf8e369892e6b79ff1bf80f7b0286a54ee"
 EMBEDDING_MODELS = ("ecapa", "wespeaker")
 
 
+def ecapa_load_options() -> dict:
+    """Arguments de chargement d'ECAPA hors périphérique : source et révision figées,
+    fichiers lus en place dans le cache Hugging Face (aucun `savedir`, stratégie `NO_LINK`)."""
+    from speechbrain.utils.fetching import FetchConfig, LocalStrategy
+
+    return {
+        "source": ECAPA_SOURCE,
+        "savedir": None,
+        "local_strategy": LocalStrategy.NO_LINK,
+        "fetch_config": FetchConfig(revision=ECAPA_REVISION),
+    }
+
+
 class SpeakerEmbedder:
     """Modèle d'empreintes chargé une fois sur un périphérique."""
 
@@ -48,11 +68,9 @@ class SpeakerEmbedder:
         self.batch_size = batch_size
         if model == "ecapa":
             from speechbrain.inference.speaker import EncoderClassifier
-            from speechbrain.utils.fetching import FetchConfig
 
             self._net = EncoderClassifier.from_hparams(
-                source=ECAPA_SOURCE, run_opts={"device": str(self.device)},
-                fetch_config=FetchConfig(revision=ECAPA_REVISION),
+                **ecapa_load_options(), run_opts={"device": str(self.device)},
             )
             self._net.eval()
             self.checkpoint = f"{ECAPA_SOURCE}@{ECAPA_REVISION}"
