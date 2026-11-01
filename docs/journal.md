@@ -309,7 +309,7 @@ Objectif : premier prototype de l'onglet « Analyse » (D17), développé sur la
 Réalisé :
 - `uv add gradio` : Gradio 6.31.0 (figé par uv.lock) ; dépendances transitives dont fastapi, uvicorn, pydantic, httpx.
 - `app/sortie.py` (statistiques par locuteur, renommage, exports RTTM et JSON, enveloppe de la forme d'onde, DER décomposé face à une référence déposée, deux collars) ; `app/temps.py` (RTF mesuré lu dans le leaderboard, temps restant) ; `app/moteurs.py` (quatre moteurs repris d'une expérience source : EXP-0009, EXP-0012, EXP-0013, EXP-0007 ; moteur factice au contrat de base.py) ; `app/app.py` (onglet « Analyse ») ; `app/static/` (wavesurfer.js 7.12.12 embarqué, visualiseur) ; `app/README.md`.
-- 31 tests (`tests/test_app_*.py`) ; racine du dépôt ajoutée au `pythonpath` de pytest.
+- 32 tests (`tests/test_app_*.py`) ; racine du dépôt ajoutée au `pythonpath` de pytest.
 - Parcours complet en mode factice sur un extrait de 3 min de SUMM-RE 007a_ECRH converti en mp3 stéréo 44,1 kHz (hors dépôt) : normalisation, progression, timeline, écoute au clic, renommage, exports, DER face à la référence (RTTM d'EXP-0007 : 12,81 % sans collar sur l'extrait).
 - Contrôle hors ligne (app/README.md) : toutes les requêtes du navigateur vont vers 127.0.0.1, polices comprises ; côté serveur, aucune connexion hors 127.0.0.1.
 Résultats : aucune expérience.
