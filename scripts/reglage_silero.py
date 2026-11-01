@@ -20,10 +20,17 @@ Déroulé :
    de silence rouvert, s) et `--marges` (s). Pour chaque point : masque de Silero,
    intersection avec chaque hypothèse, DER dans les deux conditions de collar, en rapport
    des sommes (protocole §4), et parole retirée.
-3. Point retenu : DER sans collar le plus bas sur dev (premier dans l'ordre de la grille en
-   cas d'égalité). Si son DER avec collar dépasse celui de la source, c'est signalé : la
-   règle de choix de D25 se juge sur test, par le bootstrap apparié, pas ici.
-4. V3 : sortie exclusive + le réglage retenu pour V2 (D25 : « réglage de V2 repris »).
+3. Point retenu (décision du cockpit du 02/11, journal) : DER sans collar le plus bas sur
+   dev, parmi les points dont le DER avec collar ne dépasse pas celui de la source V2
+   (EXP-0007 : 10,76 %), comparé au centième comme les résultats consignés. C'est une
+   contrainte (règle 2 de D25), pas une alerte : sans point admissible, rien n'est retenu.
+   Égalité : premier point dans l'ordre de la grille.
+4. Élargissement, une fois : si le point retenu est au bord de la grille sur un axe (valeur
+   extrême d'un axe d'au moins deux valeurs), l'axe est prolongé d'un pas, symétrique du pas
+   voisin (seuil borné à [0,05 ; 0,95], durées positives ou nulles). Les nouveaux points sont
+   évalués, puis le choix est refait sur toute la grille. Un point encore au bord est
+   signalé, sans second élargissement.
+5. V3 : sortie exclusive + le réglage retenu pour V2 (D25 : « réglage de V2 repris »).
 
 Sorties dans `--sortie` (par défaut `results/reglage_silero/<date>_<heure>/`) :
 `reglage.json` (tout : sources, fichiers, version de Silero, grille, lignes, choix, état
@@ -176,8 +183,50 @@ def grid(seuils, silences, marges) -> list[silero.MaskParams]:
     return [silero.MaskParams(seuil=s, silence_min_s=m, marge_s=g) for s, m, g in product(seuils, silences, marges)]
 
 
-def choose(rows: list[dict]) -> dict:
-    return min(rows, key=lambda row: row["metriques"]["collar_0"]["der"])
+AXES = ("seuil", "silence_min_s", "marge_s")
+BOUNDS = {"seuil": (0.05, 0.95), "silence_min_s": (0.0, None), "marge_s": (0.0, None)}
+
+
+def admissible(row: dict, limit_c25: float) -> bool:
+    """DER avec collar au plus celui de la source, au centième (précision des résultats consignés)."""
+    return round(row["metriques"]["collar_0_25"]["der"], 2) <= limit_c25
+
+
+def choose(rows: list[dict], limit_c25: float) -> dict | None:
+    """DER sans collar minimal parmi les points admissibles ; None s'il n'y en a aucun."""
+    candidates = [row for row in rows if admissible(row, limit_c25)]
+    return min(candidates, key=lambda row: row["metriques"]["collar_0"]["der"]) if candidates else None
+
+
+def edges(row: dict, axes: dict[str, tuple]) -> dict[str, str]:
+    """Axes (d'au moins deux valeurs) dont le point occupe une extrémité : « bas » ou « haut »."""
+    found = {}
+    for axis in AXES:
+        values = sorted(set(axes[axis]))
+        if len(values) < 2:
+            continue
+        if row["reglage"][axis] == values[0]:
+            found[axis] = "bas"
+        elif row["reglage"][axis] == values[-1]:
+            found[axis] = "haut"
+    return found
+
+
+def widen(axes: dict[str, tuple], sides: dict[str, str]) -> dict[str, tuple]:
+    """Axes prolongés d'un pas du côté indiqué (pas symétrique du pas voisin, borné)."""
+    widened = {axis: tuple(values) for axis, values in axes.items()}
+    for axis, side in sides.items():
+        values = sorted(set(axes[axis]))
+        if side == "bas":
+            value = values[0] - (values[1] - values[0])
+        else:
+            value = values[-1] + (values[-1] - values[-2])
+        low, high = BOUNDS[axis]
+        value = max(low, value) if high is None else min(max(low, value), high)
+        value = round(value, 4)
+        if value not in values:
+            widened[axis] = tuple(sorted((*values, value)))
+    return widened
 
 
 def _pct(value: float) -> str:
@@ -211,10 +260,17 @@ def markdown(summary: dict) -> str:
     lines.append(line("Source V2 (sortie habituelle)", summary["sources_evaluees"]["v2"]))
     if summary["sources_evaluees"].get("v3"):
         lines.append(line("Source V3 (sortie exclusive, V1)", summary["sources_evaluees"]["v3"]))
-    lines.append(line("**V2 retenue**", summary["v2_retenue"]))
+    if summary["v2_retenue"]:
+        lines.append(line("**V2 retenue**", summary["v2_retenue"]))
     if summary.get("v3"):
         lines.append(line("**V3** (réglage de V2)", summary["v3"]))
-    lines += ["", f"Point retenu : {summary['choix']['regle']}"]
+    lines += ["", f"Règle : {summary['choix']['regle']}"]
+    if not summary["v2_retenue"]:
+        lines += ["", "**Aucun point admissible** : aucun réglage de V2 n'est retenu, ni V3 évaluée."]
+    widening = summary["choix"]["elargissement"]
+    if widening:
+        lines += ["", f"Élargissement (point au bord : {', '.join(f'{a} {s}' for a, s in widening['bord_avant'].items())}) : "
+                  f"{widening['points_ajoutes']} points ajoutés ; grille finale {widening['grille_finale']}."]
     if summary["choix"]["alerte"]:
         lines += ["", f"**Alerte** : {summary['choix']['alerte']}"]
     lines += ["", "## Grille V2 (DER sans collar croissant)", "",
@@ -306,22 +362,41 @@ def main(argv: list[str] | None = None, model_loader=silero.load_model, binarize
                 f"(consigné {checks[name]['consigne']}, recalculé {checks[name]['recalcule']})")
             return 1
 
-    points = grid(args.seuils, args.silences, args.marges)
-    rows = []
-    for index, params in enumerate(points, start=1):
-        refined, removed = apply_mask(items["v2"], probs, params, binarize)
-        row = {"reglage": params.as_dict(), "metriques": der_report(items["v2"], refined), "parole_retiree_s": round(removed, 1)}
-        rows.append(row)
-        say(f"  [{index}/{len(points)}] seuil {params.seuil}, silence {params.silence_min_s} s, marge {params.marge_s} s : "
-            f"DER {row['metriques']['collar_0']['der']:.2f} / {row['metriques']['collar_0_25']['der']:.2f} %")
-    best = choose(rows)
-    source_c25 = evaluated["v2"]["metriques"]["collar_0_25"]["der"]
-    alert = None
-    if best["metriques"]["collar_0_25"]["der"] > source_c25:
-        alert = (f"le DER avec collar du point retenu ({best['metriques']['collar_0_25']['der']:.2f} %) dépasse celui "
-                 f"de la source ({source_c25:.2f} %) sur dev")
+    def evaluate(points: list[silero.MaskParams]) -> list[dict]:
+        rows = []
+        for index, params in enumerate(points, start=1):
+            refined, removed = apply_mask(items["v2"], probs, params, binarize)
+            row = {"reglage": params.as_dict(), "metriques": der_report(items["v2"], refined),
+                   "parole_retiree_s": round(removed, 1)}
+            rows.append(row)
+            say(f"  [{index}/{len(points)}] seuil {params.seuil}, silence {params.silence_min_s} s, marge {params.marge_s} s : "
+                f"DER {row['metriques']['collar_0']['der']:.2f} / {row['metriques']['collar_0_25']['der']:.2f} %")
+        return rows
+
+    recorded = checks["v2"].get("consigne")
+    limit_c25 = recorded["collar_0_25"] if recorded else round(evaluated["v2"]["metriques"]["collar_0_25"]["der"], 2)
+    axes = {"seuil": tuple(args.seuils), "silence_min_s": tuple(args.silences), "marge_s": tuple(args.marges)}
+    rows = evaluate(grid(*axes.values()))
+    best = choose(rows, limit_c25)
+    widening, alert = None, None
+    sides = edges(best, axes) if best else {}
+    if sides:
+        widened = widen(axes, sides)
+        done = {tuple(row["reglage"][a] for a in AXES) for row in rows}
+        new = [p for p in grid(*widened.values()) if (p.seuil, p.silence_min_s, p.marge_s) not in done]
+        say(f"Point au bord ({', '.join(f'{a} {s}' for a, s in sides.items())}) : élargissement, {len(new)} points")
+        rows += evaluate(new)
+        best = choose(rows, limit_c25)
+        after = edges(best, widened) if best else {}
+        widening = {"bord_avant": sides, "grille_finale": {a: list(v) for a, v in widened.items()},
+                    "points_ajoutes": len(new), "bord_apres": after}
+        if after:
+            alert = (f"point retenu encore au bord après élargissement ({', '.join(f'{a} {s}' for a, s in after.items())}) ; "
+                     "pas de second élargissement")
+    if best is None:
+        alert = f"aucun point de la grille n'a un DER avec collar au plus {limit_c25:.2f} % sur dev"
     v3 = None
-    if "v3" in sources:
+    if "v3" in sources and best is not None:
         params = silero.MaskParams(**best["reglage"])
         refined, removed = apply_mask(items["v3"], probs, params, binarize)
         v3 = {"reglage": params.as_dict(), "metriques": der_report(items["v3"], refined), "parole_retiree_s": round(removed, 1)}
@@ -340,8 +415,10 @@ def main(argv: list[str] | None = None, model_loader=silero.load_model, binarize
         "grille": rows,
         "v2_retenue": best,
         "v3": v3,
-        "choix": {"regle": "DER sans collar le plus bas sur dev (premier de la grille en cas d'égalité).",
-                  "alerte": alert},
+        "choix": {"regle": (f"DER sans collar le plus bas sur dev parmi les points dont le DER avec collar ne "
+                            f"dépasse pas {limit_c25:.2f} % (source V2) ; un élargissement si le point est au bord "
+                            "(décision du cockpit du 02/11)"),
+                  "limite_collar_0_25": limit_c25, "elargissement": widening, "alerte": alert},
         "duree_s": round(time.perf_counter() - t0, 1),
         "git": git_state() if root == REPO_ROOT else None,
     }
@@ -350,9 +427,10 @@ def main(argv: list[str] | None = None, model_loader=silero.load_model, binarize
         say(f"Arrêt : {output} n'est pas vide")
         return 1
     write_outputs(output, summary)
-    p = best["reglage"]
-    say(f"Retenu : seuil {p['seuil']}, silence {p['silence_min_s']} s, marge {p['marge_s']} s "
-        f"(DER {best['metriques']['collar_0']['der']:.2f} / {best['metriques']['collar_0_25']['der']:.2f} %)")
+    if best is not None:
+        p = best["reglage"]
+        say(f"Retenu : seuil {p['seuil']}, silence {p['silence_min_s']} s, marge {p['marge_s']} s "
+            f"(DER {best['metriques']['collar_0']['der']:.2f} / {best['metriques']['collar_0_25']['der']:.2f} %)")
     if alert:
         say(f"Alerte : {alert}")
     say(f"Écrit : {output}")

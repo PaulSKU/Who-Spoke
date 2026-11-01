@@ -339,7 +339,12 @@ def test_reglage_de_bout_en_bout(depot, capsys):
     summary = json.loads((out / "reglage.json").read_text())
     assert summary["controle_sources"]["v2"]["conforme"] is True
     assert summary["silero"]["lus_en_cache"] == 2 and summary["silero"]["calcules"] == []
-    assert len(summary["grille"]) == 4
+    # Point retenu au bord (seuil 0,5 et silence 0,2 s, minimums de leur axe) : un élargissement.
+    widening = summary["choix"]["elargissement"]
+    assert widening["bord_avant"] == {"seuil": "bas", "silence_min_s": "bas"}
+    assert widening["grille_finale"] == {"seuil": [0.1, 0.5, 0.9], "silence_min_s": [0.0, 0.2, 3.0], "marge_s": [0.0]}
+    assert widening["points_ajoutes"] == 5 and len(summary["grille"]) == 9 and widening["bord_apres"] == {}
+    assert summary["choix"]["limite_collar_0_25"] == summary["controle_sources"]["v2"]["consigne"]["collar_0_25"]
     source = summary["sources_evaluees"]["v2"]["metriques"]["collar_0"]
     best = summary["v2_retenue"]
     # La pause pontée (2 s sur 12 s de parole) est rouverte : fausse alarme retirée.
@@ -353,11 +358,49 @@ def test_reglage_de_bout_en_bout(depot, capsys):
     assert summary["v3"]["reglage"] == best["reglage"]
     assert summary["choix"]["alerte"] is None
     rows = (out / "grille.csv").read_text().splitlines()
-    assert len(rows) == 5 and rows[0].startswith("seuil,silence_min_s,marge_s,parole_retiree_s,der_c0")
+    assert len(rows) == 10 and rows[0].startswith("seuil,silence_min_s,marge_s,parole_retiree_s,der_c0")
     text = (out / "reglage.md").read_text()
     assert "**V2 retenue**" in text and "**V3** (réglage de V2)" in text and "| 0,5 | 0,2 | 0,0 |" in text
     assert run_script(depot, "--sortie", str(out)) == 1                       # sortie non vide : refus
     assert "n'est pas vide" in capsys.readouterr().out
+
+
+def row(seuil, silence, marge, c0, c25):
+    return {"reglage": {"seuil": seuil, "silence_min_s": silence, "marge_s": marge},
+            "metriques": {"collar_0": {"der": c0}, "collar_0_25": {"der": c25}}}
+
+
+def test_choix_sous_contrainte_du_der_avec_collar():
+    """Décision du cockpit du 02/11 : contrainte sur le DER avec collar (règle 2 de D25)."""
+    rows = [row(0.5, 0.2, 0.03, 24.0, 10.80), row(0.5, 0.4, 0.03, 25.0, 10.764), row(0.65, 0.4, 0.1, 25.5, 10.2)]
+    # 10,80 % dépasse 10,76 % : exclu malgré le meilleur DER sans collar ; 10,764 arrondi à 10,76 : admis.
+    assert reglage_silero.choose(rows, 10.76) is rows[1]
+    assert reglage_silero.choose(rows, 10.0) is None
+    axes = {"seuil": (0.35, 0.5, 0.65), "silence_min_s": (0.2, 0.4, 0.8), "marge_s": (0.03, 0.1, 0.2)}
+    assert reglage_silero.edges(rows[2], axes) == {"seuil": "haut"}
+    assert reglage_silero.edges(row(0.5, 0.4, 0.1, 0, 0), axes) == {}
+    widened = reglage_silero.widen(axes, {"seuil": "haut", "silence_min_s": "bas", "marge_s": "bas"})
+    assert widened == {"seuil": (0.35, 0.5, 0.65, 0.8), "silence_min_s": (0.0, 0.2, 0.4, 0.8),
+                       "marge_s": (0.0, 0.03, 0.1, 0.2)}
+    # Seuil borné à 0,95 ; un axe d'une seule valeur n'est jamais au bord.
+    assert reglage_silero.widen({"seuil": (0.8, 0.9), "silence_min_s": (0.2,), "marge_s": (0.0,)}, {"seuil": "haut"})["seuil"] == (0.8, 0.9, 0.95)
+    assert reglage_silero.edges(row(0.9, 0.2, 0.0, 0, 0), {"seuil": (0.9,), "silence_min_s": (0.2,), "marge_s": (0.0,)}) == {}
+
+
+def test_reglage_sans_point_admissible(depot, capsys):
+    """Un masque vide retire toute la parole : DER avec collar au-delà de la source partout,
+    donc aucun point retenu, ni V3, ni élargissement."""
+    out = depot / "results" / "aucun"
+    code = reglage_silero.main(["--racine", str(depot), "--source-v2", "experiments/EXP-A",
+                                "--source-v3", "experiments/EXP-B", "--seuils", "0.5,0.9", "--silences", "0.2",
+                                "--marges", "0.0", "--sortie", str(out)],
+                               model_loader=lambda: (FakeModel(), fake_binarize), binarize=lambda *a, **k: [])
+    assert code == 0
+    summary = json.loads((out / "reglage.json").read_text())
+    assert summary["v2_retenue"] is None and summary["v3"] is None
+    assert summary["choix"]["elargissement"] is None and "aucun point" in summary["choix"]["alerte"]
+    assert "**Aucun point admissible**" in (out / "reglage.md").read_text()
+    assert "Retenu" not in capsys.readouterr().out
 
 
 def test_reglage_refuse_une_source_non_reproduite(depot, capsys):
