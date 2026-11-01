@@ -24,3 +24,7 @@ Seules changent les 9 réunions où EXP-0007 se trompait sur le nombre. Le gain 
 **Le même constat qu'à AMI, sur des réunions françaises à 2 à 4 participants.** Imposer le bon nombre de locuteurs ne fait rien gagner en moyenne : l'écart n'est pas significatif sur le test, et il est légèrement défavorable sur le dev. Il corrige un échec franc (080b_EBDH, −33 points), mais il dégrade autant de réunions qu'il en améliore. Le pire cas est les réunions Zoom, où forcer le quatrième groupe découpe la parole des autres locuteurs. Un oracle est une borne supérieure de ce qu'une meilleure estimation pourrait apporter : la marge de l'amélioration n° 1 est donc quasi nulle sur SUMM-RE. Selon l'amendement de D9, il reste à confirmer ce constat sur le corpus maison, dont une réunion compte 4 à 6 personnes.
 
 Le RTF de cette expérience n'est pas utilisé : c'est un diagnostic, pas une pipeline candidate au rendu. Aucune nouvelle exécution n'est nécessaire.
+
+## Note du 01/11/2026 (D27)
+
+Cette exécution a chargé pyannote.audio 4 sans couper sa télémétrie : elle a probablement transmis à `otel.pyannote.ai` des métadonnées (chargement des modèles, durée de chaque fichier, nombre de locuteurs demandé), sans audio. Le corpus est public. Les métriques ne sont pas affectées.

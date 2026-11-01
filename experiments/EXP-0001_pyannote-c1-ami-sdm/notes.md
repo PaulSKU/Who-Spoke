@@ -40,3 +40,7 @@ RTF en CPU seul (6 fils), sur ES2004a et TS3003a (42,6 min) : 0,798. Chargement 
 **Temps de calcul.** En MPS, une réunion de 30 min se traite en environ 1 min 30 s ; en CPU seul, en environ 24 min (RTF de 0,80). Le CPU seul reste utilisable hors ligne, mais il est trop lent pour une démonstration confortable sans GPU Apple.
 
 **Conséquences pour la suite.** L'amélioration n° 1 (estimation du nombre de locuteurs, D9) est confirmée comme pertinente. Le chevauchement est le candidat naturel pour l'amélioration n° 2, à confirmer sur le jeu francophone, comme le prévoit D9. EXP-0001 devient l'expérience de référence de pyannote sur AMI. La prochaine comparaison utile ajoute le mode « nombre de locuteurs imposé » (oracle) sur les mêmes fichiers, pour mesurer exactement le coût de l'estimation.
+
+## Note du 01/11/2026 (D27)
+
+Cette exécution a chargé pyannote.audio 4 sans couper sa télémétrie : elle a probablement transmis à `otel.pyannote.ai` des métadonnées (chargement des modèles, durée de chaque fichier, nombre de locuteurs demandé), sans audio. Le corpus est public. Les métriques ne sont pas affectées. Révision de community-1 : 3533c8c, vérifiée par reproduction à l'octet du RTTM après figeage (chantier V).

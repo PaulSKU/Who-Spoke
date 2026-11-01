@@ -16,3 +16,7 @@ Partition test : DER sans collar 35,9 % (parole manquée 21,9 ; fausse alarme 3,
 En français, l'avance de pyannote sur une baseline de même empreinte est trois fois plus faible que sur AMI (9,6 contre 29,3 points). Deux causes probables, non séparables ici : la contamination de pyannote par AMI (`docs/corpus.md` §9), et sa fausse alarme sur SUMM-RE (A-0001), qui compense une partie de son avantage en détection. La détection reste l'écart principal. Comme sur AMI, WeSpeaker est légèrement mais significativement moins bon qu'ECAPA : écarté comme représentation par défaut.
 
 Limites communes au lot (D22) : centrage-réduction des empreintes sur le fichier, qui pourrait pénaliser davantage WeSpeaker (empreintes conçues pour un traitement PLDA dans pyannote) **[incertain]** ; fenêtres de 1,5 s, plus courtes que les segments d'entraînement (3 s pour ECAPA) ; une seule variable changée à la fois, donc ni l'une ni l'autre n'a été testée. Les deux modèles ont été entraînés sur VoxCeleb d'après leurs recettes ; une contamination de WeSpeaker par AMI ne peut pas être exclue (`docs/corpus.md` §9).
+
+## Note du 01/11/2026 (D27)
+
+Cette exécution a chargé pyannote.audio 4 sans couper sa télémétrie : elle a probablement transmis à `otel.pyannote.ai` des métadonnées (chargement des modèles, durée de chaque fichier, nombre de locuteurs demandé), sans audio. Le corpus est public. Les métriques ne sont pas affectées.

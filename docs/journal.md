@@ -516,3 +516,11 @@ Résultats : aucune expérience.
 Décisions : aucune.
 Problèmes : la télémétrie de pyannote.audio est active par défaut et n'est pas coupée par `scripts/run_experiment.py` : les exécutions de pyannote (et des empreintes WeSpeaker, chargées par pyannote.audio) ont probablement envoyé ces métadonnées **[probable]**, non vérifiable après coup. Après une erreur, le panneau d'avancement reste sur l'étape en cours.
 Suite : décider de couper la télémétrie aussi dans les expériences ; rang 1 de D23 (NeMo Sortformer v2).
+
+## 2026-11-01 — Retour du chantier V et télémétrie (cockpit)
+
+Objectif : interpréter le rapport du chantier V.
+Réalisé : fiche D27 (télémétrie) ; note D27 dans les `notes.md` des sept expériences qui ont chargé pyannote ; révision de community-1 consignée dans les notes d'EXP-0001 (vérifiée) et d'EXP-0007 (déduite).
+Résultats : interface fusionnée et fonctionnelle avec les vrais moteurs ; pyannote figé à 3533c8c, EXP-0001 reproduite à l'octet ; télémétrie de pyannote découverte par le relevé réseau ; temps restant sous-estimé de 16 à 30 %.
+Décisions : D27 — télémétrie coupée au niveau du paquet, contrôle réseau avant le corpus maison et à chaque nouveau moteur ; temps restant = surcoût fixe mesuré par moteur + RTF × durée.
+Suite : correctifs (D27, temps restant, panneau après erreur), puis rang 1 de D23 (NeMo Sortformer v2).

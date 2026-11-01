@@ -31,3 +31,7 @@ Réunions au DER le plus élevé. En dev : 097c_EBPH (41,3 % ; 4 → 3 locuteurs
 **Les réunions Zoom sont les plus faciles** (17 % sans collar, 7 à 9 % avec), en cohérence avec leur faible chevauchement (7 à 10 %).
 
 **Les échecs ont deux visages.** 080b_EBDH est un échec de regroupement : un locuteur manquant, et 45 points de confusion. 008a_EARH est un échec de chevauchement : 71,5 % de la parole s'y superpose, et la parole manquée atteint 33,5 points. L'écoute de ces deux réunions (protocole §7) reste à faire ; c'est à la candidate de la mener.
+
+## Note du 01/11/2026 (D27)
+
+Cette exécution a chargé pyannote.audio 4 sans couper sa télémétrie : elle a probablement transmis à `otel.pyannote.ai` des métadonnées (chargement des modèles, durée de chaque fichier, nombre de locuteurs demandé), sans audio. Le corpus est public. Les métriques ne sont pas affectées. Révision de community-1 : 3533c8c, déduite et non consignée : c'était le seul instantané du cache, créé le 27/10, avant cette exécution.

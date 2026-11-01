@@ -38,21 +38,21 @@ Le périphérique de calcul est choisi automatiquement (CUDA, puis MPS, puis CPU
 
 ## État d'avancement
 
-Au 31 octobre 2026.
+Au 1er novembre 2026.
 
 | Chantier | État |
 |---|---|
-| Cadrage, méthode, protocole d'évaluation | Fait (D1 à D20) |
+| Cadrage, méthode, protocole d'évaluation | Fait (D1 à D26 ; D24 et D25 réservées) |
 | Chaîne d'évaluation (DER, JER, chevauchement, nombre de locuteurs, bootstrap) | Faite, testée |
 | Corpus AMI, micro de salle (dev et test) | Préparé |
 | pyannote community-1 | Intégré ; résultat publié reproduit sur AMI (EXP-0001) |
 | Baseline classique (énergie, MFCC, regroupement) | Faite (EXP-0002) |
 | Diagnostics oracles (détection, nombre de locuteurs) | Faits (EXP-0003 à EXP-0006) |
-| Empreintes neuronales (D8) | À faire |
-| NeMo | À faire (essai borné) |
+| Empreintes neuronales (D8, D22) | Faites (EXP-0010 à EXP-0015) : ECAPA retenue pour la baseline ; la parole manquée par la détection d'énergie devient l'erreur principale |
+| Moteurs supplémentaires (D23) | File d'attente : NeMo Sortformer v2, Nemotron 3 Diarization, puis comparaisons cloud |
 | SUMM-RE (validation en français) | Préparé (dev 36, test 37 réunions) ; pyannote, oracle et baseline évalués (EXP-0007 à EXP-0009) |
 | Corpus maison (3 réunions en français) | Documents prêts ; enregistrements à faire |
-| Interface de démonstration et page Pipeline (D17) | Spécifiée ; à construire |
+| Interface de démonstration (D17, D26) | Onglets Analyse, Pipeline, Avancement et Glossaire faits avec un moteur factice (branche `interface`) ; fusion et essai avec les vrais moteurs à faire |
 
 Résultats sur les partitions de test, chevauchements comptés :
 
@@ -62,5 +62,9 @@ Résultats sur les partitions de test, chevauchements comptés :
 | EXP-0002 — baseline MFCC | AMI, micro de salle | 64,4 % | 61,2 % | 70,6 % | 0/16 | ≈ 3 s (CPU) |
 | EXP-0007 — pyannote community-1 | SUMM-RE, français (37 réunions) | 26,3 % | 14,8 % | 28,7 % | 31/37 | ≈ 1 min 30 s (MPS) ; ≈ 23 min (CPU) |
 | EXP-0009 — baseline MFCC | SUMM-RE, français | 49,4 % | 42,7 % | 61,2 % | 17/37 | ≈ 2 s (CPU) |
+| EXP-0010 — baseline ECAPA | AMI, micro de salle | 45,9 % | 40,9 % | 51,2 % | 7/16 | ≈ 26 s (CPU) |
+| EXP-0013 — baseline WeSpeaker | AMI, micro de salle | 49,2 % | 44,0 % | 51,0 % | 0/16 | ≈ 36 s (CPU) |
+| EXP-0012 — baseline ECAPA | SUMM-RE, français | 33,4 % | 24,4 % | 39,2 % | 28/37 | non exploitable (batterie) |
+| EXP-0015 — baseline WeSpeaker | SUMM-RE, français | 35,9 % | 26,7 % | 44,3 % | 23/37 | ≈ 39 s (CPU) |
 
-Les chiffres sur AMI sont optimistes pour pyannote, qui a vu ce corpus à l'entraînement (`docs/corpus.md` §9). SUMM-RE est en français, mais il est enregistré en micros-casques, pas en micro de salle. Sur SUMM-RE, le DER sans collar dépend fortement de la convention de découpage de la référence (jusqu'à 8 points pour pyannote), alors que le DER avec collar n'en dépend presque pas (analyse A-0001) : les deux sont toujours rapportés. Les expériences et leur interprétation sont dans `experiments/` et `results/leaderboard.csv`.
+Les chiffres sur AMI sont optimistes pour pyannote, qui a vu ce corpus à l'entraînement (`docs/corpus.md` §9). SUMM-RE est en français, mais il est enregistré en micros-casques, pas en micro de salle. Sur SUMM-RE, le DER sans collar dépend fortement de la convention de découpage de la référence (jusqu'à 8 points pour pyannote), alors que le DER avec collar n'en dépend presque pas (analyse A-0001) : les deux sont toujours rapportés. WeSpeaker est le modèle d'empreintes de pyannote : l'écart entre EXP-0013 et EXP-0001 (29 points sur AMI, dont 21 de parole manquée) mesure ce que pyannote doit à sa segmentation neuronale et à son regroupement, et non à ses empreintes. Les expériences et leur interprétation sont dans `experiments/` et `results/leaderboard.csv`.
