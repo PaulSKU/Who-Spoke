@@ -298,9 +298,14 @@ def write_session(root, session="M01", aids=("S1", "S2", "S3")):
     return directory
 
 
+METADATA = "session: M01\ncondition: salle\nconsentements:\n  S1: [1, 2, 3]\n  S2: [1, 2]\n  S3: [1, 2, 3]\n"
+
+
 @needs_ffmpeg
 def test_chaine_complete(tmp_path):
     directory = write_session(tmp_path)
+    processed = tmp_path / "processed" / "maison"
+    (directory / "metadonnees.yaml").write_text(METADATA)
     sync = maison.synchronize(directory, "M01")
     for track in sync["pistes"]:
         offset, ratio = CLOCKS[track["piste"]]
@@ -313,34 +318,48 @@ def test_chaine_complete(tmp_path):
     labels = sorted(p.name for p in (directory / "preannotation").glob("*.txt"))
     assert labels == ["S1.txt", "S2.txt", "S3.txt", "a_verifier.txt"]
 
-    # « Correction » : les étiquettes pré-annotées, exportées dans annotation/, plus une exclusion.
+    # « Correction » : les étiquettes pré-annotées, exportées dans annotation/, plus l'annonce exclue.
     annotation = directory / "annotation"
     annotation.mkdir()
     for code in ("S1", "S2", "S3"):
         shutil.copy(directory / "preannotation" / f"{code}.txt", annotation / f"M01_{code}.txt")
     (annotation / "M01_exclusions.txt").write_text("3.0\t3.8\texclusion\n")
-    report = maison.convert(directory, "M01")
-    assert report["valide"] and report["statistiques"]["n_locuteurs"] == 3
-    rttm = maison.read_rttm(directory / "reference" / "maison__M01.rttm")
-    uem = maison.read_uem(directory / "reference" / "maison__M01.uem")
+    report = maison.convert(directory, "M01", processed=processed)
+    assert report["valide"] and report["statistiques"]["n_locuteurs"] == 3 and report["condition"] == "salle"
+    paths = maison.reference_paths("M01", processed)
+    assert paths["wav"].is_file() and not (directory / "reference").exists()
+    rttm = maison.read_rttm(paths["rttm"])
+    uem = maison.read_uem(paths["uem"])
     assert uem == [(3.8, 36.0)]
     truth = {f"M01_{code}": intervals for code, intervals in truth_labels().items()}
     assert ref.agreement(truth, rttm, uem)["collar_0"]["der"] < 3.0
 
-    window = maison.draw_window(directory, "M01", seed=7)["fenetre_s"]
+    window = maison.draw_window(directory, "M01", seed=7, processed=processed)["fenetre_s"]
     assert window[1] - window[0] == pytest.approx(120.0) or window == [3.8, 36.0]
     control = directory / "controle"
     ref.write_labels(control / "M01.txt",
                      [(a, b, code) for code, intervals in truth_labels().items() for a, b in intervals])
-    accord = maison.control_agreement(directory, "M01")
+    accord = maison.control_agreement(directory, "M01", processed=processed)
     assert accord["der_collar_0"] < 3.0
     assert any("au moins 24 h" in alert for alert in accord["alertes"])
-    assert "Session terminée." in maison.status(directory, "M01")
+    assert "Session terminée." in maison.status(directory, "M01", processed)
+
+    # S2 n'a pas coché l'option 3 : rien n'est versionné.
+    versioned = tmp_path / "splits" / "maison"
+    with pytest.raises(maison.SessionError, match="option 3 non cochée par S2"):
+        maison.version(directory, "M01", processed, versioned)
+    assert not versioned.exists()
+    (directory / "metadonnees.yaml").write_text(METADATA.replace("S2: [1, 2]", "S2: [1, 2, 3]"))
+    copies = maison.version(directory, "M01", processed, versioned)
+    assert copies["rttm"] == versioned / "rttm" / "maison__M01.rttm"
+    assert copies["rttm"].read_text() == paths["rttm"].read_text()
+    assert copies["uem"].read_text() == paths["uem"].read_text()
 
 
 @needs_ffmpeg
 def test_locuteur_sans_segment_bloque_la_conversion(tmp_path):
     directory = write_session(tmp_path)
+    processed = tmp_path / "processed" / "maison"
     maison.synchronize(directory, "M01")
     maison.preannotate(directory, "M01")
     annotation = directory / "annotation"
@@ -348,20 +367,69 @@ def test_locuteur_sans_segment_bloque_la_conversion(tmp_path):
     for code in ("S1", "S2"):                       # S3 oublié à l'export
         shutil.copy(directory / "preannotation" / f"{code}.txt", annotation / f"M01_{code}.txt")
     with pytest.raises(maison.SessionError, match="bloquants"):
-        maison.convert(directory, "M01")
-    assert not (directory / "reference" / "maison__M01.rttm").exists()
-    assert json.loads((directory / "reference" / "rapport.json").read_text())["bloquants"] == ["M01_S3 : aucun segment"]
+        maison.convert(directory, "M01", processed=processed)
+    assert not maison.reference_paths("M01", processed)["rttm"].exists()
+    assert json.loads((directory / "conversion.json").read_text())["bloquants"] == ["M01_S3 : aucun segment"]
 
 
 @needs_ffmpeg
 def test_pistes_deja_alignees_et_etat(tmp_path):
     directory = write_session(tmp_path, aids=())
-    assert "Étape suivante : synchroniser" in maison.status(directory, "M01")
+    processed = tmp_path / "processed"
+    assert "Étape suivante : metadonnees.yaml" in maison.status(directory, "M01", processed)
+    (directory / "metadonnees.yaml").write_text("session: M01\ncondition: visio\nconsentements:\n  S1: [1]\n")
+    assert "Étape suivante : synchroniser" in maison.status(directory, "M01", processed)
     sync = maison.synchronize(directory, "M01", already_aligned=True)
     assert sync["pistes"] == []
     with pytest.raises(maison.SessionError, match="à partir de zéro"):
         maison.preannotate(directory, "M01")
-    assert "Étape suivante : corriger dans Audacity" in maison.status(directory, "M01")
+    assert "Étape suivante : corriger dans Audacity" in maison.status(directory, "M01", processed)
+
+
+def test_chemins_des_references():
+    """Les références du corpus maison sont là où l'évaluation les lit (data/processed/maison/)."""
+    from whospoke.experiment import processed_wav, reference_rttm, uem_path
+
+    paths = maison.reference_paths("M01")
+    assert paths == {"wav": processed_wav("maison", "maison__M01"),
+                     "rttm": reference_rttm("maison", "maison__M01"),
+                     "uem": uem_path("maison", "maison__M01")}
+    assert uem_path("maison", "maison__M01") == REPO_ROOT / "data" / "processed" / "maison" / "uem" / "maison__M01.uem"
+    assert uem_path("summre", "summre__x") == REPO_ROOT / "data" / "splits" / "summre" / "uem" / "summre__x.uem"
+
+
+def test_exclusion_retiree_de_l_uem_et_de_la_reference():
+    annotation = ref.Annotation(speakers={"M01_S1": [(3.0, 6.0), (10.0, 12.0)]}, exclusions=[(3.0, 5.0)])
+    uem = ref.uem_intervals(2.0, 37.0, annotation.exclusions)
+    reference = ref.build_reference(annotation, uem)
+    assert uem == [(5.0, 36.0)]
+    assert reference.speakers == {"M01_S1": [(5.0, 6.0), (10.0, 12.0)]}
+
+
+@pytest.mark.parametrize("text, message", [
+    ("session: M01\ncondition: salle\nconsentements:\n  S1: [1, 3]\nnom: Paul\n", "champs non prévus"),
+    ("session: M02\ncondition: salle\nconsentements:\n  S1: [1]\n", "session"),
+    ("session: M01\ncondition: cave\nconsentements:\n  S1: [1]\n", "condition"),
+    ("session: M01\ncondition: salle\nconsentements:\n  Paul: [1]\n", "code de participant"),
+    ("session: M01\ncondition: salle\nconsentements:\n  S1: [2, 3]\n", "option 1"),
+    ("session: M01\ncondition: salle\nconsentements:\n  S1: [1, 4]\n", "liste d'options"),
+])
+def test_metadonnees_refusees(tmp_path, text, message):
+    from whospoke.maison import metadonnees as meta
+
+    (tmp_path / "metadonnees.yaml").write_text(text)
+    with pytest.raises(meta.MetadataError, match=message):
+        meta.load(tmp_path, "M01")
+
+
+def test_metadonnees_et_option_3(tmp_path):
+    from whospoke.maison import metadonnees as meta
+
+    (tmp_path / "metadonnees.yaml").write_text(METADATA)
+    data = meta.load(tmp_path, "M01")
+    assert data.participants == ["S1", "S2", "S3"] and data.condition_label == "salle réverbérante"
+    assert not data.versioning_allowed() and data.refusals() == ["S2"]
+    assert meta.load_optional(tmp_path / "absent", "M01") is None
 
 
 def test_session_mal_nommee(tmp_path, capsys):

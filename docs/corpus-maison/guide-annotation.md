@@ -1,6 +1,6 @@
 # Guide d'annotation du corpus maison, pas à pas
 
-Version 1.0 du 1er novembre 2026 (chantier E2). Ce guide met en œuvre `conventions-annotation.md` pour une session (`M01`, `M02`, `M03`). Les règles sur ce qui compte comme parole restent celles des conventions. Ce guide dit seulement **comment** les appliquer avec les outils du dépôt.
+Version 1.1 du 1er novembre 2026 (chantier E2 ; amendement du 01/11 des conventions : références dans `data/processed/maison/`, copie versionnée selon l'option 3). Ce guide met en œuvre `conventions-annotation.md` pour une session (`M01`, `M02`, `M03`). Les règles sur ce qui compte comme parole restent celles des conventions. Ce guide dit seulement **comment** les appliquer avec les outils du dépôt.
 
 **Légende de confiance.** **[certain]** : vérifié (commande testée sur signaux de synthèse). **[probable]** : non vérifié ici, en particulier les menus d'Audacity, qui n'est pas installé sur la machine où ce guide a été écrit. Vérifier ces menus à la première session et corriger ce guide si besoin.
 
@@ -12,12 +12,13 @@ Version 1.0 du 1er novembre 2026 (chantier E2). Ce guide met en œuvre `conventi
 
 | Étape | Qui | Commande ou outil | Produit | Durée indicative pour 10 min d'audio |
 |---|---|---|---|---|
-| 0 | Candidate | Copie des fichiers | `M01/table.<ext>`, `S1.<ext>`…, `fiche.md` | 5 min |
+| 0 | Candidate | Copie des fichiers, métadonnées | `M01/table.<ext>`, `S1.<ext>`…, `fiche.md`, `metadonnees.yaml` | 5 min |
 | 1 | Script | `synchroniser M01` | `synchro.json`, pistes alignées | < 1 min |
 | 2 | Script | `preannoter M01` | `preannotation/` | < 1 min |
 | 3 | Candidate | Audacity | `annotation/` | 40 à 60 min |
-| 4 | Script | `convertir M01` | `reference/` (RTTM, UEM, rapport) | < 1 min |
+| 4 | Script | `convertir M01` | `data/processed/maison/` (audio, RTTM, UEM) ; `M01/conversion.json` | < 1 min |
 | 5 | Script, puis candidate | `tirer-controle M01` puis, **au moins un jour plus tard**, Audacity et `accord M01` | `controle/` | 15 à 20 min |
+| 6 | Script | `versionner M01`, seulement si tous les participants ont coché l'option 3 | `data/splits/maison/{rttm,uem}/` | < 1 min |
 
 Toutes les commandes se lancent depuis la racine du dépôt :
 
@@ -40,6 +41,19 @@ Juste après la session (protocole §6), copier les fichiers par câble ou par A
 | `fiche.md` | Fiche de session (protocole §7), sans aucun nom réel |
 
 Tout format lu par ffmpeg convient (m4a, wav, mp3…) : le script normalise en WAV 16 kHz mono. Supprimer ensuite les copies restées sur les téléphones des participants.
+
+Écrire aussi `metadonnees.yaml`, à partir de la fiche de session et des formulaires signés. Ce fichier ne contient **aucun nom** : seulement des champs fermés, que le script vérifie. Il refuse tout autre champ.
+
+```yaml
+session: M01
+condition: salle          # salle | visio | bruit
+consentements:            # options cochées sur le formulaire, par code de participant
+  S1: [1, 2, 3]
+  S2: [1, 2]
+  S3: [1, 2, 3]
+```
+
+L'option 1 est obligatoire pour chaque participant. La condition apparaît dans le rapport d'évaluation. L'option 3 décide du versionnement des références (étape 6). Le fichier sert aussi à la conversion, pour connaître les participants attendus.
 
 ---
 
@@ -122,7 +136,7 @@ Toutes les règles de fond sont dans `conventions-annotation.md` §1 et §2. Ce 
 
 ### 3.3 Exclure des zones de l'UEM
 
-L'UEM va automatiquement du claquement de début + 1 s au claquement de fin − 1 s. L'annonce « Session M01, début » qui suit le claquement, toute voix extérieure longue (passant, télévision) et tout incident à écarter doivent être exclus à la main : créer une piste de labels (*Pistes > Ajouter nouvelle > Piste de labels*), y poser un label de texte **`exclusion`** sur chaque zone, et noter ces zones dans la fiche de session.
+L'UEM va automatiquement du claquement de début + 1 s au claquement de fin − 1 s. Les annonces de début et de fin (« Session M01, début », « fin ») sont en plus couvertes par un label `exclusion` (conventions, amendement du 01/11). L'annonce qui suit le claquement, toute voix extérieure longue (passant, télévision) et tout incident à écarter doivent être exclus à la main : créer une piste de labels (*Pistes > Ajouter nouvelle > Piste de labels*), y poser un label de texte **`exclusion`** sur chaque zone, et noter ces zones dans la fiche de session.
 
 ### 3.4 Exporter
 
@@ -138,7 +152,7 @@ Noter le temps passé (début, fin) pour le journal : c'est une donnée du rendu
 uv run python scripts/data/maison.py convertir M01
 ```
 
-Le script relit `annotation/`, fusionne les pauses de 200 ms ou moins par locuteur (même règle que la référence de SUMM-RE), coupe à l'UEM et écrit `reference/maison__M01.rttm` (locuteurs `M01_S1`…), `reference/maison__M01.uem` et `reference/rapport.json` **[certain]**.
+Le script relit `annotation/`, fusionne les pauses de 200 ms ou moins par locuteur (même règle que la référence de SUMM-RE), retire de l'UEM les zones `exclusion` et coupe à l'UEM. Il écrit les références là où l'évaluation les lit, dans `data/processed/maison/` (non versionné) : `maison__M01.wav` (signal de test normalisé), `rttm/maison__M01.rttm` (locuteurs `M01_S1`…) et `uem/maison__M01.uem`. Le rapport va dans `M01/conversion.json` **[certain]**.
 
 | Sortie | Signification | Action |
 |---|---|---|
@@ -160,7 +174,7 @@ Objectif (conventions §5) : mesurer le bruit de la référence elle-même. Ce D
    uv run python scripts/data/maison.py tirer-controle M01
    ```
 
-2. **Au moins un jour plus tard**, ouvrir un **nouveau** projet Audacity avec `travail/table.wav` et les pistes alignées, **sans** la pré-annotation ni le projet de l'étape 3. Annoter à partir de zéro la fenêtre affichée par la commande (aussi dans `controle/fenetre.json`), selon les mêmes règles, avec un label par segment portant le code du locuteur. Ce qui déborde de la fenêtre est ignoré.
+2. **Au moins un jour plus tard**, ouvrir un **nouveau** projet Audacity avec `travail/table.wav` et les pistes alignées, **sans** la pré-annotation ni le projet de l'étape 3, et sans les regarder (conventions, amendement du 01/11 : seule l'écoute des pistes d'aide alignées est permise). Annoter à partir de zéro la fenêtre affichée par la commande (aussi dans `controle/fenetre.json`), selon les mêmes règles, avec un label par segment portant le code du locuteur. Ce qui déborde de la fenêtre est ignoré.
 3. Exporter les labels dans `data/raw/maison/M01/controle/`, puis lancer :
 
    ```bash
@@ -171,12 +185,22 @@ Le script calcule le DER de la ré-annotation face à la référence sur la fen�
 
 ---
 
+## Étape 6 — Versionner les références, si tous l'acceptent
+
+```bash
+uv run python scripts/data/maison.py versionner M01
+```
+
+La commande copie `rttm/maison__M01.rttm` et `uem/maison__M01.uem` dans `data/splits/maison/` (dossier versionné) **seulement si** `metadonnees.yaml` indique l'option 3 pour **tous** les participants. Elle vérifie aussi que chaque locuteur de la référence figure dans le fichier. Sinon, elle s'arrête en nommant les codes concernés, et les références restent dans `data/processed/maison/` uniquement. La copie n'est pas ajoutée à git par la commande : vérifier avec `git status`, puis commiter (`data:`). Jamais d'audio ni de nom.
+
+---
+
 ## Après la session
 
 | Quoi | Où |
 |---|---|
-| Statistiques de `reference/rapport.json`, DER d'accord, temps passé, incidents | Message au cockpit, qui les reporte dans `docs/corpus.md` et le journal (aucun nom réel) |
-| RTTM et UEM de référence | Restent dans `data/raw/maison/M01/reference/`. Leur installation pour l'évaluation (A9) et leur éventuel versionnement selon le consentement relèvent du cockpit |
+| Statistiques de `conversion.json`, DER d'accord, temps passé, incidents | Message au cockpit, qui les reporte dans `docs/corpus.md` et le journal (aucun nom réel) |
+| RTTM et UEM de référence | `data/processed/maison/`, lus par l'évaluation (A9, `scripts/rapport_maison.py`) ; copie versionnée dans `data/splits/maison/` seulement avec l'option 3 de tous (étape 6) |
 | Projet Audacity, audio, étiquettes | Restent dans `data/raw/maison/M01/`, jamais dans git, jamais en ligne |
 
 ## Dépannage

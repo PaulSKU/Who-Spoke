@@ -20,6 +20,11 @@ def reference_rttm(corpus: str, uri: str) -> Path:
 
 
 def uem_path(corpus: str, uri: str) -> Path:
+    """UEM d'un fichier : versionné dans `data/splits/`, sauf pour le corpus maison, dont les
+    UEM restent dans `data/processed/maison/uem/` (conventions d'annotation du corpus maison,
+    amendement du 01/11 : copie versionnée seulement avec l'accord de tous les participants)."""
+    if corpus == "maison":
+        return DATA_DIR / "processed" / corpus / "uem" / f"{uri}.uem"
     return DATA_DIR / "splits" / corpus / "uem" / f"{uri}.uem"
 
 

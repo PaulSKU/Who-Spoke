@@ -10,16 +10,25 @@ aucun modèle chargé (D27 ; corpus-maison/README.md).
     uv run python scripts/data/maison.py convertir M01        # étape 4 : RTTM, UEM et contrôles automatiques
     uv run python scripts/data/maison.py tirer-controle M01   # contrôle qualité : fenêtre de 2 min à ré-annoter
     uv run python scripts/data/maison.py accord M01           # contrôle qualité : DER entre les deux annotations
+    uv run python scripts/data/maison.py versionner M01       # copie versionnée, si tous ont coché l'option 3
 
 L'étape 3 (correction à l'écoute) se fait dans Audacity. Fichiers d'une session :
 
     M01/table.<ext>, S1.<ext>, S2.<ext>…, fiche.md     déposés par la candidate (protocole §6)
+    M01/metadonnees.yaml                                condition et options de consentement, sans nom
     M01/travail/                                        audio normalisé (16 kHz mono) et pistes alignées
     M01/synchro.json                                    claquements, décalages, dérives, alertes
     M01/preannotation/                                  S1.txt…, a_verifier.txt, parametres.json
     M01/annotation/                                     étiquettes corrigées, exportées d'Audacity
-    M01/reference/                                      maison__M01.rttm, maison__M01.uem, rapport.json
+    M01/conversion.json                                 rapport de conversion et des contrôles automatiques
     M01/controle/                                       fenetre.json, étiquettes ré-annotées, accord.json
+
+Références (conventions d'annotation, amendement du 01/11) : `data/processed/maison/`
+(non versionné) reçoit `maison__M01.wav` (signal de test normalisé), `rttm/maison__M01.rttm`
+et `uem/maison__M01.uem`, aux emplacements lus par l'évaluation (`whospoke.experiment`).
+`versionner` les copie dans `data/splits/maison/{rttm,uem}/` (versionné) seulement si
+`metadonnees.yaml` indique l'option 3 pour tous les participants ; la copie n'est pas
+ajoutée à git par le script.
 """
 
 from __future__ import annotations
@@ -28,6 +37,7 @@ import argparse
 import json
 import re
 import secrets
+import shutil
 import sys
 from datetime import datetime
 from pathlib import Path
@@ -37,13 +47,16 @@ import numpy as np
 from scipy.io import wavfile
 
 from whospoke.audio import SAMPLE_RATE, load_waveform, normalize
-from whospoke.experiment import REPO_ROOT
+from whospoke.experiment import DATA_DIR
+from whospoke.maison import metadonnees as meta
 from whospoke.maison import preannotation as pre
 from whospoke.maison import reference as ref
 from whospoke.maison import synchro
 
-DEFAULT_ROOT = REPO_ROOT / "data" / "raw" / "maison"
-NOT_AUDIO = {".md", ".txt", ".json", ".csv", ".rttm", ".uem"}
+DEFAULT_ROOT = DATA_DIR / "raw" / "maison"
+PROCESSED_DIR = DATA_DIR / "processed" / "maison"   # références, non versionnées
+VERSIONED_DIR = DATA_DIR / "splits" / "maison"      # copie versionnée (option 3 de tous)
+NOT_AUDIO = {".md", ".txt", ".json", ".csv", ".rttm", ".uem", ".yaml", ".yml", ".aup3", ".aup3-wal", ".aup3-shm"}
 _AID = re.compile(r"^S\d+$")
 CONTROL_WINDOW_S = 120.0      # conventions §5 : deux minutes ré-annotées
 MIN_DELAY_H = 24.0            # conventions §5 : au moins un jour après la première annotation
@@ -58,6 +71,14 @@ class SessionError(RuntimeError):
 
 def uri_of(session: str) -> str:
     return f"maison__{session}"
+
+
+def reference_paths(session: str, processed: Path = PROCESSED_DIR) -> dict[str, Path]:
+    """Audio normalisé, RTTM et UEM de référence d'un enregistrement (mêmes chemins que
+    `processed_wav`, `reference_rttm` et `uem_path` de `whospoke.experiment`)."""
+    uri = uri_of(session)
+    return {"wav": processed / f"{uri}.wav", "rttm": processed / "rttm" / f"{uri}.rttm",
+            "uem": processed / "uem" / f"{uri}.uem"}
 
 
 def sorted_codes(codes) -> list[str]:
@@ -190,14 +211,20 @@ def preannotate(session_dir: Path, session: str,
 # --- Étape 4 : conversion et contrôles ----------------------------------------------------
 
 
-def expected_speakers(sync: dict, session: str, n_speakers: int | None) -> list[str]:
+def expected_speakers(sync: dict, session: str, n_speakers: int | None,
+                      metadata: meta.Metadata | None = None) -> list[str]:
+    """Participants attendus : `--locuteurs`, sinon les métadonnées, sinon une piste d'aide par participant."""
     if n_speakers is not None:
         return [f"{session}_S{i}" for i in range(1, n_speakers + 1)]
+    if metadata is not None:
+        return [f"{session}_{code}" for code in metadata.participants]
     return [f"{session}_{track['piste']}" for track in sync["pistes"]]
 
 
-def convert(session_dir: Path, session: str, n_speakers: int | None = None) -> dict:
+def convert(session_dir: Path, session: str, n_speakers: int | None = None,
+            processed: Path = PROCESSED_DIR) -> dict:
     sync = read_json(session_dir / "synchro.json", "synchroniser")
+    metadata = meta.load_optional(session_dir, session)
     annotation_dir = session_dir / "annotation"
     if not annotation_dir.is_dir():
         raise SessionError(f"{annotation_dir} absent : exportez les étiquettes corrigées d'Audacity (guide, étape 3)")
@@ -205,17 +232,22 @@ def convert(session_dir: Path, session: str, n_speakers: int | None = None) -> d
     claps = sync["claquements_table_s"]
     uem = ref.uem_intervals(claps["debut"], claps["fin"], annotation.exclusions)
     reference = ref.build_reference(annotation, uem)
-    report = ref.check_reference(reference, expected_speakers(sync, session, n_speakers))
-    out = session_dir / "reference"
+    report = ref.check_reference(reference, expected_speakers(sync, session, n_speakers, metadata))
     uri = uri_of(session)
-    rttm, uem_file = out / f"{uri}.rttm", out / f"{uri}.uem"
+    paths = reference_paths(session, processed)
+    rttm, uem_file = paths["rttm"], paths["uem"]
     data = {"session": session, "date": now(), "uri": uri,
+            "condition": metadata.condition if metadata else None,
             "fusion_s": ref.MERGE_GAP_S, "marge_uem_s": ref.UEM_MARGIN_S,
             "exclusions": [[round(a, 3), round(b, 3)] for a, b in sorted(annotation.exclusions)],
             "avertissements_lecture": annotation.warnings, "coupes_uem": reference.cropped} | report
     data["valide"] = not report["bloquants"]
-    write_json(out / "rapport.json", data)
+    data["references"] = {key: str(path) for key, path in paths.items()} if data["valide"] else None
+    write_json(session_dir / "conversion.json", data)
     if data["valide"]:
+        for path in paths.values():
+            path.parent.mkdir(parents=True, exist_ok=True)
+        shutil.copyfile(session_dir / "travail" / "table.wav", paths["wav"])
         rttm.write_text(ref.rttm_text(uri, reference.speakers))
         uem_file.write_text(ref.uem_text(uri, reference.uem))
     else:
@@ -231,8 +263,10 @@ def convert(session_dir: Path, session: str, n_speakers: int | None = None) -> d
         say(f"  avertissement : {message}")
     for message in report["bloquants"]:
         say(f"  BLOQUANT : {message}")
-    say(f"Écrit : {out / 'rapport.json'}"
-        + (f", {rttm.name} et {uem_file.name}" if data["valide"] else " ; RTTM et UEM NON écrits"))
+    if metadata is None:
+        say(f"  avertissement : {meta.FILENAME} absent (condition et participants inconnus ; nécessaire pour versionner)")
+    say(f"Écrit : {session_dir / 'conversion.json'}"
+        + (f" ; références dans {processed} (audio, rttm/, uem/)" if data["valide"] else " ; RTTM et UEM NON écrits"))
     if not data["valide"]:
         raise SessionError("contrôles bloquants : corrigez les étiquettes dans Audacity, exportez, reconvertissez")
     return data
@@ -256,8 +290,8 @@ def read_uem(path: Path) -> list[ref.Interval]:
 
 
 def draw_window(session_dir: Path, session: str, duration_s: float = CONTROL_WINDOW_S,
-                seed: int | None = None) -> dict:
-    uem_file = session_dir / "reference" / f"{uri_of(session)}.uem"
+                seed: int | None = None, processed: Path = PROCESSED_DIR) -> dict:
+    uem_file = reference_paths(session, processed)["uem"]
     if not uem_file.is_file():
         raise SessionError("Référence absente : lancez d'abord « convertir » sans contrôle bloquant")
     uem = read_uem(uem_file)
@@ -268,7 +302,8 @@ def draw_window(session_dir: Path, session: str, duration_s: float = CONTROL_WIN
     window = [round(start, 3), round(min(longest[1], start + duration_s), 3)]
     data = {"session": session, "date": now(), "graine": seed, "fenetre_s": window,
             "consigne": "ré-annoter cette fenêtre à partir de zéro, au moins un jour après la première "
-                        "annotation, sans regarder les étiquettes de annotation/"}
+                        "annotation, sans voir la pré-annotation ni la première annotation ; seule l'écoute "
+                        "des pistes d'aide alignées est permise (conventions, amendement du 01/11)"}
     write_json(session_dir / "controle" / "fenetre.json", data)
     say(f"Fenêtre de contrôle : {window[0]:.3f} s à {window[1]:.3f} s (graine {seed})")
     say(f"Exportez les nouvelles étiquettes dans {session_dir / 'controle'}/, puis lancez « accord ».")
@@ -280,12 +315,13 @@ def _latest_mtime(paths: list[Path]) -> datetime | None:
     return datetime.fromtimestamp(max(times)).astimezone() if times else None
 
 
-def control_agreement(session_dir: Path, session: str) -> dict:
+def control_agreement(session_dir: Path, session: str, processed: Path = PROCESSED_DIR) -> dict:
     control_dir = session_dir / "controle"
     window_data = read_json(control_dir / "fenetre.json", "tirer-controle")
     uri = uri_of(session)
-    first = read_rttm(session_dir / "reference" / f"{uri}.rttm")
-    uem = read_uem(session_dir / "reference" / f"{uri}.uem")
+    paths = reference_paths(session, processed)
+    first = read_rttm(paths["rttm"])
+    uem = read_uem(paths["uem"])
     window = ref.intersect([tuple(window_data["fenetre_s"])], uem)
     control = ref.read_annotation(control_dir, session)
     second = {code: ref.merge_intervals(intervals) for code, intervals in control.speakers.items()}
@@ -322,20 +358,51 @@ def control_agreement(session_dir: Path, session: str) -> dict:
     return data
 
 
+# --- Copie versionnée (option 3 de tous les participants) ----------------------------------
+
+
+def version(session_dir: Path, session: str, processed: Path = PROCESSED_DIR,
+            versioned: Path = VERSIONED_DIR) -> dict[str, Path]:
+    """Copie RTTM et UEM dans le dossier versionné, si tous les participants ont coché l'option 3."""
+    metadata = meta.load(session_dir, session)
+    if not metadata.versioning_allowed():
+        raise SessionError(f"option 3 non cochée par {', '.join(metadata.refusals())} : les références de "
+                           f"{session} restent non versionnées (conventions, amendement du 01/11)")
+    conversion = read_json(session_dir / "conversion.json", "convertir")
+    paths = reference_paths(session, processed)
+    if not conversion.get("valide") or not paths["rttm"].is_file() or not paths["uem"].is_file():
+        raise SessionError("Références absentes ou non valides : lancez d'abord « convertir » sans contrôle bloquant")
+    speakers = {code.split("_", 1)[1] for code in read_rttm(paths["rttm"])}
+    missing = speakers - set(metadata.participants)
+    if missing:
+        raise SessionError(f"locuteurs {sorted(missing)} de la référence absents de {meta.FILENAME} : "
+                           "leur consentement n'est pas consigné")
+    copies = {}
+    for kind in ("rttm", "uem"):
+        target = versioned / kind / paths[kind].name
+        target.parent.mkdir(parents=True, exist_ok=True)
+        shutil.copyfile(paths[kind], target)
+        copies[kind] = target
+    say(f"Copié : {copies['rttm']} et {copies['uem']} (option 3 cochée par tous les participants). "
+        "À vérifier avec `git status`, puis à commiter (`data:`) ; aucun audio, aucun nom.")
+    return copies
+
+
 # --- État d'une session -------------------------------------------------------------------
 
 
-def status(session_dir: Path, session: str) -> str:
+def status(session_dir: Path, session: str, processed: Path = PROCESSED_DIR) -> str:
     """Étape suivante, d'après les fichiers présents."""
-    uri = uri_of(session)
     steps = [
         ("dépôt des fichiers (table.<ext>, S1.<ext>…, fiche.md)", lambda: _has_table(session_dir)),
+        (f"{meta.FILENAME} (condition, options de consentement, sans nom)",
+         lambda: (session_dir / meta.FILENAME).is_file()),
         ("synchroniser", lambda: (session_dir / "synchro.json").is_file()),
         ("preannoter (sauf session sans piste d'aide)", lambda: (session_dir / "preannotation").is_dir()
          or not read_json(session_dir / "synchro.json", "synchroniser")["pistes"]),
         ("corriger dans Audacity et exporter dans annotation/",
          lambda: any((session_dir / "annotation").glob("*.txt"))),
-        ("convertir", lambda: (session_dir / "reference" / f"{uri}.rttm").is_file()),
+        ("convertir", lambda: reference_paths(session, processed)["rttm"].is_file()),
         ("tirer-controle", lambda: (session_dir / "controle" / "fenetre.json").is_file()),
         ("ré-annoter la fenêtre (au moins un jour après) et exporter dans controle/",
          lambda: any((session_dir / "controle").glob("*.txt"))),
@@ -369,6 +436,10 @@ def build_parser() -> argparse.ArgumentParser:
                     "Pas-à-pas : docs/corpus-maison/guide-annotation.md.")
     parser.add_argument("--racine", type=Path, default=DEFAULT_ROOT,
                         help="dossier des sessions (défaut : data/raw/maison/)")
+    parser.add_argument("--references", type=Path, default=PROCESSED_DIR,
+                        help="dossier des références non versionnées (défaut : data/processed/maison/)")
+    parser.add_argument("--versionnees", type=Path, default=VERSIONED_DIR,
+                        help="dossier de la copie versionnée (défaut : data/splits/maison/)")
     commands = parser.add_subparsers(dest="commande", required=True)
 
     def session_command(name: str, help_text: str) -> argparse.ArgumentParser:
@@ -399,6 +470,8 @@ def build_parser() -> argparse.ArgumentParser:
     draw.add_argument("--duree", type=float, default=CONTROL_WINDOW_S, help="durée de la fenêtre (s, défaut : 120)")
     draw.add_argument("--graine", type=int, help="graine du tirage (défaut : tirée au hasard et consignée)")
     session_command("accord", "contrôle qualité : DER entre l'annotation et la ré-annotation de la fenêtre")
+    session_command("versionner", "copie RTTM et UEM dans data/splits/maison/, seulement si tous les participants "
+                                  f"ont coché l'option 3 ({meta.FILENAME})")
     return parser
 
 
@@ -408,23 +481,26 @@ def main(argv: list[str] | None = None) -> int:
         say(f"Session {args.session!r} : M01, M02… attendu")
         return 2
     session_dir = args.racine.expanduser() / args.session
+    processed = args.references.expanduser()
     if not session_dir.is_dir():
         say(f"Dossier absent : {session_dir}")
         return 1
     try:
         if args.commande == "etat":
-            say(status(session_dir, args.session))
+            say(status(session_dir, args.session, processed))
         elif args.commande == "synchroniser":
             synchronize(session_dir, args.session, args.deja_alignees, args.clap_debut, args.clap_fin)
         elif args.commande == "preannoter":
             params = pre.PreannotationParams(seuil_activite_db=args.seuil_activite_db, marge_db=args.marge_db)
             preannotate(session_dir, args.session, params)
         elif args.commande == "convertir":
-            convert(session_dir, args.session, args.locuteurs)
+            convert(session_dir, args.session, args.locuteurs, processed)
         elif args.commande == "tirer-controle":
-            draw_window(session_dir, args.session, args.duree, args.graine)
+            draw_window(session_dir, args.session, args.duree, args.graine, processed)
         elif args.commande == "accord":
-            control_agreement(session_dir, args.session)
+            control_agreement(session_dir, args.session, processed)
+        elif args.commande == "versionner":
+            version(session_dir, args.session, processed, args.versionnees.expanduser())
     except (SessionError, ref.LabelError, ValueError) as error:
         say(f"Arrêt : {error}")
         return 1
