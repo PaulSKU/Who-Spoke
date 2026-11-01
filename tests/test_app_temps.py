@@ -67,3 +67,15 @@ def test_temps_restant():
 ])
 def test_format_des_durees(seconds, text):
     assert temps.format_duration(seconds) == text
+
+
+def test_temps_restant_cumule_de_deux_moteurs():
+    # 600 s d'audio, RTF 0,05 (30 s) puis 0,02 (12 s).
+    runs = [(0.05, 10.0, False), (0.02, None, False)]
+    assert temps.cumulative_remaining_s(runs, 600.0) == pytest.approx(20.0 + 12.0)
+    assert temps.cumulative_remaining_s([(0.05, 31.0, True), (0.02, 4.0, False)], 600.0) == pytest.approx(8.0)
+    # Estimation du premier dépassée : il ne compte plus que pour 0.
+    assert temps.cumulative_remaining_s([(0.05, 40.0, False), (0.02, None, False)], 600.0) == pytest.approx(12.0)
+    # RTF inconnu pour un moteur pas encore terminé : estimation impossible.
+    assert temps.cumulative_remaining_s([(0.05, 1.0, False), (None, None, False)], 600.0) is None
+    assert temps.cumulative_remaining_s([(None, 9.0, True), (0.02, 1.0, False)], 600.0) == pytest.approx(11.0)

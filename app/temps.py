@@ -76,6 +76,25 @@ def remaining_s(rtf: float | None, duration_s: float, elapsed_s: float) -> float
     return max(0.0, rtf * duration_s - elapsed_s)
 
 
+def cumulative_remaining_s(runs: list[tuple[float | None, float | None, bool]],
+                           duration_s: float) -> float | None:
+    """Temps restant cumulé de plusieurs moteurs exécutés l'un après l'autre (D26, I5).
+
+    `runs` : pour chaque moteur, (RTF mesuré, temps écoulé depuis son démarrage ou None
+    s'il n'a pas démarré, terminé ?). Un moteur terminé ne compte plus ; un moteur en cours
+    compte pour RTF × durée − écoulé (jamais négatif) ; un moteur à venir pour RTF × durée.
+    None si un moteur non terminé n'a pas de RTF mesuré.
+    """
+    total = 0.0
+    for rtf, elapsed, done in runs:
+        if done:
+            continue
+        if rtf is None:
+            return None
+        total += remaining_s(rtf, duration_s, elapsed or 0.0)
+    return total
+
+
 def format_duration(seconds: float | None) -> str:
     """« 4 s », « 2 min 05 s », « 1 h 02 min » ; « — » pour une valeur inconnue."""
     if seconds is None or math.isnan(seconds):
