@@ -316,3 +316,17 @@ Résultats : aucune expérience.
 Décisions : aucune ; points soumis à la candidate dans le compte rendu (expériences sources des moteurs, fourchette pour la baseline, RTF retenu, noms dans le RTTM exporté).
 Problèmes : la suite complète de tests n'a pas été lancée, car `test_embeddings_baseline.py` et `test_catalogue.py` exécutent ECAPA et WeSpeaker ; suite lancée sans ces deux fichiers ni `test_pipeline_pyannote.py` (162 réussis, 1 ignoré). Baseline WeSpeaker indisponible tant qu'EXP-0013 n'est pas exécutée (θ inconnu, aucun RTTM). Chargement des modèles réels et mode réel non testés.
 Suite : après le lot, suite de tests complète et essai en mode réel (dont `HF_HUB_OFFLINE=1`) ; fusion de `interface` dans `main` ; page Pipeline.
+
+## 2026-11-01 — Refonte visuelle de l'onglet « Analyse », branche `interface` (Claude Code)
+
+Objectif : rendre l'interface propre, professionnelle et moderne, en s'inspirant des skills d'interface proposés par la candidate.
+Réalisé :
+- Lecture en ligne de frontend-design, better-interface, beautiful-shadows, emil-design-eng, apple-design, interaction-design, accessibility, unslop et stageshow, sans les installer (`npx skills add` non lancé). Stageshow (maquettes produit en React) est hors sujet ici.
+- `app/theme.py` : thème Gradio monochrome, cinq teintes neutres nommées en clair et en sombre, polices système ; `app/static/interface.css` : cartes à ombres en couches, tableaux, panneau d'avancement, focus visible, retour d'appui, `prefers-reduced-motion`, affichage étroit.
+- `app/app.py` : en-tête, une carte par section (réglages, avancement, timeline, locuteurs, évaluation, temps, exports), tableaux HTML à la place des tableaux Markdown et du tableau de statistiques, noms saisis échappés, états vides explicites, renommage et exports masqués avant résultat, indicateurs de chargement de Gradio masqués, messages d'erreur qui disent quoi faire.
+- Visualiseur : pistes sur fond doux, zones de clic de 24 px, libellés accessibles, graduations adaptées à la largeur ; zones colorées de la forme d'onde dessinées une seule fois (elles l'étaient deux fois).
+- Vérifié en mode factice, en clair, en sombre et à 375 px de large. Contrôle hors ligne refait (app/README.md) : 88 requêtes vers 127.0.0.1, une icône en `data:`, aucune police chargée ; côté serveur, aucune connexion hors 127.0.0.1.
+Résultats : aucune expérience.
+Décisions : aucune.
+Problèmes : suite de tests toujours lancée sans les trois fichiers qui chargent des modèles (163 réussis, 1 ignoré). Les couleurs de la forme d'onde suivent le thème actif à la création du lecteur, pas un changement de thème ultérieur.
+Suite : inchangée (suite complète et mode réel après le lot, fusion, page Pipeline).
