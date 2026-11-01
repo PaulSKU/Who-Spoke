@@ -4,20 +4,24 @@ Chaque moteur retenu traite le même sous-ensemble fixe de réunions, une réuni
 l'autre, machine au repos et sur secteur. Les temps du README, de la synthèse et de la
 démonstration viennent de cette campagne, et non des expériences (D21, amendement, règle 3).
 
-    uv run python scripts/campagne_temps.py --plan          # sous-ensemble, moteurs, durée estimée ; rien ne tourne
-    uv run python scripts/campagne_temps.py                 # campagne réelle
-    uv run python scripts/campagne_temps.py --peripheriques mps,cpu   # pyannote aussi en CPU seul (long)
+    uv run python scripts/campagne_temps.py --mesurer-repos   # 5 min, toutes applications fermées
+    uv run python scripts/campagne_temps.py --plan            # sous-ensemble, moteurs, durée estimée ; rien ne tourne
+    uv run python scripts/campagne_temps.py --repos results/campagne_temps/repos_….json --charge-max 1.5
+    uv run python scripts/campagne_temps.py … --peripheriques mps,cpu   # pyannote aussi en CPU seul (long)
 
 Déroulé :
 
-1. Sous-ensemble : `--n-par-corpus` réunions (3 par défaut) de SUMM-RE test et d'AMI test,
-   tirées avec la graine `--graine` dans `data/splits/<corpus>/test.txt`, triées ;
-   `--sous-ensemble temps` prend à la place `data/splits/<corpus>/temps.txt` (sous-ensemble
-   de mesure du protocole §3.5). Le tirage est consigné.
+0. Le jour de la campagne, `--mesurer-repos` relève la charge moyenne pendant 5 min, machine
+   au repos (toutes applications fermées), et l'écrit dans
+   `results/campagne_temps/repos_<date>_<heure>.json`. Le seuil de charge est un réglage
+   (`--charge-max`), fixé à partir de cette mesure ; la mesure (`--repos`) et le seuil sont
+   consignés dans la sortie de la campagne (journal du cockpit du 01/11).
+1. Sous-ensemble : celui du protocole §3.5, `data/splits/<corpus>/temps.txt` (SUMM-RE puis
+   AMI), seule définition du sous-ensemble de mesure du temps.
 2. Conditions de départ : alimentation sur secteur (`pmset -g batt`) et charge moyenne sur
-   1 min au plus `--charge-max` (par défaut le quart des cœurs de performance, au moins 1).
-   Le script attend jusqu'à `--attente-max-s` qu'elles soient réunies, puis renonce, sauf
-   avec `--ignorer-conditions` (résultats alors marqués non conformes).
+   1 min au plus `--charge-max`. Le script attend jusqu'à `--attente-max-s` qu'elles soient
+   réunies, puis renonce, sauf avec `--ignorer-conditions` (résultats alors marqués non
+   conformes).
 3. Relevés d'alimentation et de charge toutes les `--intervalle-s` secondes pendant toute la
    campagne, plus un au début et à la fin de chaque réunion.
 4. Pour chaque moteur et périphérique : chargement (mesuré à part), préchauffage sur les 60
@@ -70,11 +74,10 @@ from whospoke.audio import load_waveform  # noqa: E402
 from whospoke.experiment import dataset_uris, git_state, processed_wav  # noqa: E402
 
 CORPORA = ("summre", "ami")
-DEFAULT_SEED = 20261112      # date prévue de la campagne
-DEFAULT_N = 3
+REST_S = 300.0               # mesure de la charge au repos : 5 min
+REST_INTERVAL_S = 5.0
 WARMUP_S = 60.0              # préchauffage : 60 premières secondes du premier fichier (protocole §3.5)
 HALF_HOUR_S = 1800.0
-SUBSETS = ("graine", "temps")
 
 Say = Callable[[str], None]
 
@@ -86,24 +89,11 @@ def say(message: str = "") -> None:
 # --- Sous-ensemble, moteurs ------------------------------------------------------------------
 
 
-def select_subset(mode: str = "graine", seed: int = DEFAULT_SEED, n: int = DEFAULT_N,
-                  corpora=CORPORA, splits: Path = REPO_ROOT / "data" / "splits") -> tuple[list[tuple[str, str]], dict]:
-    """[(corpus, uri)…] dans l'ordre de passage, et sa description à consigner."""
-    chosen: list[tuple[str, str]] = []
-    for corpus in corpora:
-        if mode == "temps":
-            uris = dataset_uris(splits / corpus / "temps.txt")
-        elif mode == "graine":
-            pool = sorted(dataset_uris(splits / corpus / "test.txt"))
-            if len(pool) < n:
-                raise ValueError(f"{corpus} : {len(pool)} fichiers de test, {n} demandés")
-            uris = sorted(random.Random(f"{seed}-{corpus}").sample(pool, n))
-        else:
-            raise ValueError(f"Sous-ensemble inconnu : {mode!r}")
-        chosen += [(corpus, uri) for uri in uris]
-    description = {"mode": mode, "graine": seed if mode == "graine" else None,
-                   "n_par_corpus": n if mode == "graine" else None,
-                   "source": "test.txt" if mode == "graine" else "temps.txt (protocole §3.5)",
+def select_subset(corpora=CORPORA, splits: Path = REPO_ROOT / "data" / "splits"
+                  ) -> tuple[list[tuple[str, str]], dict]:
+    """[(corpus, uri)…] dans l'ordre de passage (protocole §3.5 : `temps.txt`), et sa description."""
+    chosen = [(corpus, uri) for corpus in corpora for uri in dataset_uris(splits / corpus / "temps.txt")]
+    description = {"source": "data/splits/<corpus>/temps.txt (protocole §3.5)",
                    "fichiers": [{"corpus": corpus, "uri": uri} for corpus, uri in chosen]}
     return chosen, description
 
@@ -136,8 +126,27 @@ def audio_duration(path: Path) -> float | None:
 # --- Conditions de départ --------------------------------------------------------------------
 
 
-def default_load_max(cores: int) -> float:
-    return max(1.0, cores / 4)
+def measure_rest(duration_s: float = REST_S, interval_s: float = REST_INTERVAL_S,
+                 read: Callable[[], dict] | None = None, sleep: Callable[[float], None] = time.sleep,
+                 cores: int | None = None, out: Say = say) -> dict:
+    """Charge moyenne relevée toutes les `interval_s` secondes pendant `duration_s`, machine au repos."""
+    read = read or (lambda: charge.reading("repos"))
+    cores = cores or charge.performance_cores()
+    out(f"Mesure de la charge au repos pendant {duration_s / 60:.0f} min : fermer toutes les applications…")
+    readings = []
+    for index in range(int(duration_s // interval_s) + 1):
+        if index:
+            sleep(interval_s)
+        readings.append(read())
+    values = [r["charge_1min"] for r in readings if r.get("charge_1min") is not None]
+    summary = {"moyenne": round(sum(values) / len(values), 2), "min": min(values), "max": max(values)} if values else None
+    result = {"date": charge.now_iso(), "duree_s": duration_s, "intervalle_s": interval_s,
+              "source_charge": charge.SOURCE, "coeurs_performance": cores, "charge_1min": summary,
+              "alimentation_conforme": power.is_compliant(readings), "releves": readings}
+    if summary:
+        out(f"Charge sur 1 min au repos : moyenne {summary['moyenne']}, de {summary['min']} à {summary['max']} "
+            f"({cores} cœurs de performance). Fixer --charge-max à partir de ces valeurs.")
+    return result
 
 
 def wait_for_conditions(read: Callable[[], dict], load_max: float, wait_max_s: float, poll_s: float = 15.0,
@@ -275,6 +284,13 @@ def _duration_text(seconds: float | None) -> str:
     return f"{minutes} min {rest:02d} s" if minutes else f"{rest} s"
 
 
+def _rest_text(campaign: dict) -> str:
+    rest = (campaign.get("charge_au_repos") or {}).get("charge_1min")
+    measured = (f"charge sur 1 min au repos mesurée le {campaign['charge_au_repos']['date'][:16]} : moyenne "
+                f"{rest['moyenne']}, de {rest['min']} à {rest['max']}" if rest else "charge au repos non mesurée")
+    return f"Seuil de charge au départ : {campaign['conditions_depart']['charge_max']} ; {measured}."
+
+
 def markdown(campaign: dict) -> str:
     """Tableau de la campagne et valeurs pour l'interface."""
     head = ["# Campagne de temps", ""]
@@ -287,9 +303,8 @@ def markdown(campaign: dict) -> str:
              f"{'' if campaign['git']['clean'] else ' (arbre non propre)'}. "
              f"Machine : {campaign['machine']['plateforme']}, {campaign['machine']['coeurs_performance']} cœurs "
              f"de performance.", "",
-             f"Sous-ensemble ({campaign['sous_ensemble']['source']}"
-             + (f", graine {campaign['sous_ensemble']['graine']}" if campaign['sous_ensemble']['graine'] is not None else "")
-             + f") : {subset}.", "",
+             f"Sous-ensemble ({campaign['sous_ensemble']['source']}) : {subset}.", "",
+             _rest_text(campaign), "",
              "| Moteur | Périphérique | RTF | RTF par réunion (min–max) | Temps pour 30 min | Surcoût fixe | "
              "Chargement | Réunions | Conforme |",
              "|---|---|---|---|---|---|---|---|---|"]
@@ -325,11 +340,11 @@ def write_outputs(directory: Path, campaign: dict) -> None:
 def campaign(pairs: list[tuple[moteurs.EngineSpec, str]], subset: list[tuple[str, str]], subset_info: dict,
              factory: Callable, wav_path: Callable[[str, str], Path] = processed_wav,
              monitor: charge.MachineMonitor | None = None, cores: int | None = None,
-             load_max: float | None = None, wait_max_s: float = 600.0, ignore_conditions: bool = False,
+             load_max: float = 1.0, rest: dict | None = None, wait_max_s: float = 600.0,
+             ignore_conditions: bool = False,
              factice_rtf: float | None = None, sleep: Callable[[float], None] = time.sleep, out: Say = say) -> dict:
     """Campagne complète ; renvoie le dictionnaire écrit dans campagne.json."""
     cores = cores or charge.performance_cores()
-    load_max = default_load_max(cores) if load_max is None else load_max
     monitor = monitor or charge.MachineMonitor()
     reached, waiting = wait_for_conditions(lambda: charge.reading("attente", monitor.power_reader, monitor.load_reader),
                                            load_max, wait_max_s, sleep=sleep, out=out)
@@ -341,6 +356,7 @@ def campaign(pairs: list[tuple[moteurs.EngineSpec, str]], subset: list[tuple[str
         "git": {"commit": state["commit"], "clean": state["clean"], "fichiers_non_commites": state["dirty"]},
         "machine": {"plateforme": platform.platform(), "processeur": platform.processor(),
                     "coeurs_performance": cores, "coeurs": os.cpu_count()},
+        "charge_au_repos": rest,
         "conditions_depart": {"reunies": reached, "charge_max": load_max, "releves": waiting},
         "sous_ensemble": subset_info, "regles": {
             "rtf": "Σ temps de calcul / Σ durée, réunions sans erreur",
@@ -378,12 +394,13 @@ def build_parser() -> argparse.ArgumentParser:
                         help="moteurs de l'application, séparés par des virgules (défaut : tous les disponibles)")
     parser.add_argument("--peripheriques", default="mps",
                         help="périphériques des moteurs qui ne sont pas en CPU seul (défaut : mps ; ex. mps,cpu)")
-    parser.add_argument("--sous-ensemble", choices=SUBSETS, default="graine",
-                        help="graine : tirage dans test.txt (défaut) ; temps : temps.txt du protocole §3.5")
-    parser.add_argument("--graine", type=int, default=DEFAULT_SEED, help=f"graine du tirage (défaut : {DEFAULT_SEED})")
-    parser.add_argument("--n-par-corpus", type=int, default=DEFAULT_N, help="réunions par corpus (défaut : 3)")
+    parser.add_argument("--mesurer-repos", action="store_true",
+                        help="mesure la charge au repos pendant 5 min et l'écrit dans results/campagne_temps/")
+    parser.add_argument("--repos", type=Path, default=None,
+                        help="fichier de la mesure au repos du jour (--mesurer-repos), consigné ; obligatoire hors --factice")
     parser.add_argument("--charge-max", type=float, default=None,
-                        help="charge sur 1 min maximale au départ (défaut : quart des cœurs de performance, au moins 1)")
+                        help="seuil : charge sur 1 min maximale au départ, fixé d'après la mesure au repos ; "
+                             "obligatoire hors --factice")
     parser.add_argument("--attente-max-s", type=float, default=600.0,
                         help="attente maximale des conditions de départ (s, défaut : 600)")
     parser.add_argument("--intervalle-s", type=float, default=30.0, help="intervalle des relevés (s, défaut : 30)")
@@ -404,8 +421,15 @@ def main(argv: list[str] | None = None) -> int:
     if unknown:
         say(f"Moteurs inconnus : {', '.join(unknown)} (connus : {', '.join(moteurs.SPECS)})")
         return 2
+    if args.mesurer_repos:
+        rest = measure_rest()
+        path = (args.sortie or REPO_ROOT / "results" / "campagne_temps") / f"repos_{datetime.now():%Y-%m-%d_%Hh%M}.json"
+        path.parent.mkdir(parents=True, exist_ok=True)
+        path.write_text(json.dumps(rest, ensure_ascii=False, indent=2) + "\n")
+        say(f"Écrit : {path}")
+        return 0
     devices = [d.strip() for d in args.peripheriques.split(",") if d.strip()]
-    subset, info = select_subset(args.sous_ensemble, args.graine, args.n_par_corpus)
+    subset, info = select_subset()
     pairs, skipped = engine_plan(keys, devices)
     for reason in skipped:
         say(f"Écarté : {reason}")
@@ -425,11 +449,18 @@ def main(argv: list[str] | None = None) -> int:
         say(f"  {spec.label} ({device}) : {guess}")
     if estimate:
         say(f"Durée estimée (RTF des expériences, hors chargements) : {_duration_text(estimate)}")
+    if args.plan:
+        if missing:
+            say("Audio normalisé absent : " + ", ".join(missing))
+        return 0
+    if not args.factice and (args.repos is None or args.charge_max is None):
+        say("Arrêt : --repos (mesure au repos du jour, --mesurer-repos) et --charge-max sont obligatoires.")
+        return 2
     if missing and not args.factice:
         say("Audio normalisé absent : " + ", ".join(missing))
         return 1
-    if args.plan:
-        return 0
+    rest = json.loads(args.repos.read_text()) if args.repos else None
+    load_max = args.charge_max if args.charge_max is not None else float(charge.performance_cores())
     say("Rappel : machine au repos, sur secteur, aucune autre session ni expérience ouverte (D21).")
     if args.factice:
         factory = lambda spec, device: moteurs.FakeEngine(spec, simulated_s=1.0, ticks_per_step=1)  # noqa: E731
@@ -439,7 +470,7 @@ def main(argv: list[str] | None = None) -> int:
                              REPO_ROOT / "results" / "campagne_temps" / datetime.now().strftime("%Y-%m-%d_%Hh%M"))
     try:
         result = campaign(pairs, subset, info, factory, monitor=charge.MachineMonitor(args.intervalle_s),
-                          load_max=args.charge_max, wait_max_s=args.attente_max_s,
+                          load_max=load_max, rest=rest, wait_max_s=args.attente_max_s,
                           ignore_conditions=args.ignorer_conditions,
                           factice_rtf=args.factice_rtf if args.factice else None)
     except RuntimeError as error:

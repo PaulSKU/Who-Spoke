@@ -59,34 +59,27 @@ def monitor(source=AC, load=0.5):
 def run(tmp_path, **kwargs):
     root = fake_root(tmp_path)
     factory = lambda spec, device: moteurs.FakeEngine(spec, root, ticks_per_step=1)  # noqa: E731
-    info = {"mode": "graine", "graine": 1, "source": "test.txt", "fichiers": [{"corpus": c, "uri": u} for c, u in SUBSET]}
-    options = dict(wav_path=audio(tmp_path), monitor=monitor(), cores=6, factice_rtf=0.02,
+    info = {"source": "temps.txt (protocole §3.5)", "fichiers": [{"corpus": c, "uri": u} for c, u in SUBSET]}
+    options = dict(wav_path=audio(tmp_path), monitor=monitor(), cores=6, factice_rtf=0.02, load_max=1.5,
+                   rest={"date": "2026-11-12T08:00:00+01:00", "charge_1min": {"moyenne": 0.9, "min": 0.6, "max": 1.2}},
                    sleep=lambda s: None, out=lambda m: None) | kwargs
     return campagne.campaign([(SPEC, "cpu")], SUBSET, info, factory, **options)
 
 
-def test_sous_ensemble_tire_par_graine_et_consigne(tmp_path):
-    for corpus, n in (("summre", 37), ("ami", 16)):
+def test_sous_ensemble_du_protocole(tmp_path):
+    for corpus in ("summre", "ami"):
         (tmp_path / corpus).mkdir()
-        (tmp_path / corpus / "test.txt").write_text("".join(f"{corpus}__{i:02d}\n" for i in range(n)))
         (tmp_path / corpus / "temps.txt").write_text(f"{corpus}__00\n{corpus}__05\n")
-    subset, info = campagne.select_subset("graine", 7, 3, splits=tmp_path)
-    assert [c for c, _ in subset] == ["summre"] * 3 + ["ami"] * 3
-    assert subset == campagne.select_subset("graine", 7, 3, splits=tmp_path)[0]
-    assert subset != campagne.select_subset("graine", 8, 3, splits=tmp_path)[0]
-    assert info["graine"] == 7 and [f["uri"] for f in info["fichiers"]] == [u for _, u in subset]
-    assert all(u.startswith(c) for c, u in subset)
-    temps_subset, temps_info = campagne.select_subset("temps", splits=tmp_path)
-    assert [u for _, u in temps_subset] == ["summre__00", "summre__05", "ami__00", "ami__05"]
-    assert temps_info["graine"] is None
+    subset, info = campagne.select_subset(splits=tmp_path)
+    assert [u for _, u in subset] == ["summre__00", "summre__05", "ami__00", "ami__05"]
+    assert "temps.txt" in info["source"] and [f["uri"] for f in info["fichiers"]] == [u for _, u in subset]
 
 
 def test_sous_ensemble_du_depot():
     subset, _ = campagne.select_subset()
-    summre = set((REPO_ROOT / "data" / "splits" / "summre" / "test.txt").read_text().split())
-    ami = set((REPO_ROOT / "data" / "splits" / "ami" / "test.txt").read_text().split())
-    assert len(subset) == 6
-    assert {u for c, u in subset if c == "summre"} <= summre and {u for c, u in subset if c == "ami"} <= ami
+    expected = [(c, u) for c in ("summre", "ami")
+                for u in (REPO_ROOT / "data" / "splits" / c / "temps.txt").read_text().split()]
+    assert subset == expected and len(subset) == 4
 
 
 def test_conditions_de_depart():
@@ -97,7 +90,16 @@ def test_conditions_de_depart():
     ok, readings = campagne.wait_for_conditions(lambda: {"source": "batterie", "charge_1min": 0.2}, 1.5, 30,
                                                 poll_s=15, sleep=lambda s: None, out=lambda m: None)
     assert not ok and len(readings) == 3
-    assert campagne.default_load_max(6) == 1.5 and campagne.default_load_max(2) == 1.0
+
+
+def test_mesure_au_repos():
+    loads = iter([0.8, 1.2, 1.0, 0.6, 0.9, 1.1, 0.7])
+    read = lambda: {"source": "secteur", "charge_1min": next(loads)}  # noqa: E731
+    slept = []
+    rest = campagne.measure_rest(30.0, 5.0, read=read, sleep=slept.append, cores=6, out=lambda m: None)
+    assert len(rest["releves"]) == 7 and slept == [5.0] * 6
+    assert rest["charge_1min"] == {"moyenne": 0.9, "min": 0.6, "max": 1.2}
+    assert rest["alimentation_conforme"] is True and rest["coeurs_performance"] == 6
 
 
 def test_charge_concurrente():
@@ -115,7 +117,7 @@ def test_campagne_avec_le_moteur_factice(tmp_path):
     summary = measure["synthese"]
     assert 0.02 <= summary["rtf"] < 0.06
     assert set(summary["rtf_par_corpus"]) == {"summre", "ami"}
-    assert summary["temps_30min_s"] == pytest.approx(summary["rtf"] * 1800, rel=1e-3)
+    assert summary["temps_30min_s"] == pytest.approx(summary["rtf"] * 1800, abs=0.1)
     assert summary["surcout_fixe_s"] >= 0 and summary["conforme"]
     assert measure["prechauffage"]["duree_s"] == pytest.approx(20.0)   # 60 s demandées, réunion de 20 s
     assert result["factice"] and result["conditions_depart"]["reunies"]
@@ -128,7 +130,9 @@ def test_campagne_avec_le_moteur_factice(tmp_path):
     assert len(rows) == 3 and rows[0]["moteur"] == "essai"
     table = (tmp_path / "sortie" / "tableau.md").read_text()
     assert "MOTEUR FACTICE" in table and "| Essai | cpu |" in table and "FIXED_OVERHEAD" in table
-    assert json.loads((tmp_path / "sortie" / "campagne.json").read_text())["sous_ensemble"]["graine"] == 1
+    saved = json.loads((tmp_path / "sortie" / "campagne.json").read_text())
+    assert saved["charge_au_repos"]["charge_1min"]["max"] == 1.2 and saved["conditions_depart"]["charge_max"] == 1.5
+    assert "Seuil de charge au départ : 1.5 ; charge sur 1 min au repos mesurée le 2026-11-12T08:00" in table
 
 
 def test_batterie_campagne_refusee_ou_non_conforme(tmp_path):
@@ -167,8 +171,10 @@ def test_plan_des_moteurs(tmp_path):
                                               ("pyannote-community-1", "cpu")]
 
 
-def test_ligne_de_commande_plan(capsys):
-    assert campagne.main(["--plan", "--moteurs", "baseline-mfcc", "--factice"]) == 0
+def test_ligne_de_commande(capsys):
+    assert campagne.main(["--plan", "--moteurs", "baseline-mfcc"]) == 0
     out = capsys.readouterr().out
-    assert "Sous-ensemble (test.txt)" in out and "Baseline MFCC (cpu)" in out
+    assert "temps.txt" in out and "summre__007a_ECRH" in out and "Baseline MFCC (cpu)" in out
     assert campagne.main(["--plan", "--moteurs", "inconnu"]) == 2
+    assert campagne.main(["--moteurs", "baseline-mfcc"]) == 2          # sans --repos ni --charge-max
+    assert "obligatoires" in capsys.readouterr().out
