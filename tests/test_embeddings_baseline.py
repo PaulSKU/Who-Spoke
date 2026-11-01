@@ -128,6 +128,7 @@ def check_real_model(model, dimension):
     assert names[:2] == ["representation", "empreintes.modele"]
 
 
+@pytest.mark.modele
 def test_ecapa():
     check_real_model("ecapa", 192)
 

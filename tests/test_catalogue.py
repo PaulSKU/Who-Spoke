@@ -35,6 +35,7 @@ def test_entrees_completes():
             assert entry["etape"] in CATALOGUE["etapes"], f"{engine} : {name}"
 
 
+@pytest.mark.modele
 def test_catalogue_baseline():
     """Réglages des trois représentations (D22) ; pas d'entrée orpheline sur leur union."""
     described, catalogued = check_engine(Baseline(theta=0.5))

@@ -1,0 +1,62 @@
+# Intégration continue (chantier E1, audit du 01/11, R-R3).
+#
+# Suite rapide, sans modèle ni jeton : tests marqués `lent` (modèle complet sur un fichier
+# réel) et `modele` (modèle pré-entraîné lu dans le cache Hugging Face) exclus ;
+# HF_HUB_OFFLINE=1 fait échouer tout test qui tenterait un téléchargement ; aucun secret.
+#
+# Torch en CPU sans toucher à uv.lock : sous Linux, le verrou résout torch depuis PyPI,
+# c'est-à-dire la version CUDA (environ 3 Go de paquets nvidia-* et triton). Plutôt que
+# d'ajouter un index PyTorch dans pyproject.toml, ce qui réécrirait uv.lock pour toutes les
+# plateformes et ferait entrer en conflit cette branche avec la piste A, la CI exporte les
+# versions exactes du verrou, retire les paquets propres à CUDA, puis installe avec
+# `--torch-backend cpu` : uv prend alors torch, torchaudio et torchcodec sur l'index CPU
+# de PyTorch (versions identiques, suffixe +cpu). Le verrou et sa résolution sur macOS
+# sont inchangés ; `uv lock --check` vérifie qu'il est à jour avec pyproject.toml.
+
+name: Tests
+
+on:
+  push:
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: tests-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  suite-rapide:
+    name: Suite rapide (Linux, torch CPU, sans modèle ni jeton)
+    runs-on: ubuntu-24.04
+    timeout-minutes: 30
+    env:
+      HF_HUB_OFFLINE: "1"
+    steps:
+      - uses: actions/checkout@v5
+
+      - uses: astral-sh/setup-uv@v6
+        with:
+          version: "0.11.28"   # même version que la machine principale
+          enable-cache: true
+          cache-dependency-glob: uv.lock
+
+      - name: ffmpeg (normalisation de l'audio, D15)
+        run: sudo apt-get update && sudo apt-get install -y --no-install-recommends ffmpeg
+
+      - name: uv.lock à jour avec pyproject.toml
+        run: uv lock --check
+
+      - name: Environnement aux versions de uv.lock, torch en CPU
+        run: |
+          uv export --frozen --no-hashes --no-emit-project --group dev --format requirements-txt \
+            | grep -v -E '^(nvidia-|triton)' > "$RUNNER_TEMP/requirements-ci.txt"
+          uv venv --python 3.11
+          uv pip install --torch-backend cpu -r "$RUNNER_TEMP/requirements-ci.txt"
+          uv pip install --no-deps -e .
+          uv run --no-sync python -c "import torch; assert torch.version.cuda is None, torch.__version__; print('torch', torch.__version__)"
+
+      - name: Tests
+        run: uv run --no-sync pytest -m "not lent and not modele"
