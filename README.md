@@ -42,6 +42,18 @@ Puis ouvrir http://127.0.0.1:7860 dans un navigateur. Le serveur est local : auc
 
 Pour une réunion de 30 min, l'analyse prend environ 1 min 30 s avec pyannote en MPS, et moins d'une minute avec les baselines en CPU. Détails techniques, vérifications hors ligne et limites connues : `app/README.md`.
 
+## Commande en ligne
+
+La même analyse que l'onglet « Analyse », sans l'interface, hors ligne et avec les mêmes moteurs :
+
+```bash
+uv run whospoke diarize reunion.m4a                                   # pyannote, nombre de locuteurs estimé, RTTM sur la sortie standard
+uv run whospoke diarize reunion.m4a --moteur baseline-ecapa --locuteurs 4 --sortie json -o reunion.json
+uv run whospoke diarize reunion.m4a --locuteurs 2-6                   # fourchette (pyannote seulement)
+```
+
+Options : `--moteur` (`pyannote-community-1`, `baseline-mfcc`, `baseline-ecapa`, `baseline-wespeaker`), `--locuteurs` (`auto`, `N` ou `MIN-MAX`), `--peripherique`, `--sortie` (`rttm` ou `json`), `-o`. La commande lit la configuration des moteurs dans `experiments/` : elle s'utilise depuis un clone du dépôt.
+
 ## Documentation
 
 | Document | Contenu |
@@ -58,6 +70,7 @@ Pour une réunion de 30 min, l'analyse prend environ 1 min 30 s avec pyannote en
 | `docs/maquettes/` | Maquettes de l'interface |
 | `app/README.md` | Application de démonstration : fonctionnement, vérifications, limites |
 | [`docs/licences.md`](docs/licences.md) | Licences des modèles, des fichiers de tiers, des dépendances et des corpus |
+| `docs/corpus-maison/guide-annotation.md` | Pas-à-pas de la chaîne du corpus maison (synchronisation, pré-annotation, annotation, contrôle) |
 | `experiments/`, `analyses/` | Expériences et analyses a posteriori, avec leur interprétation (`notes.md`) |
 | `docs/journal.md` | Journal de bord |
 | `results/leaderboard.csv` | Une ligne par expérience et par jeu évalué |
@@ -95,3 +108,7 @@ Résultats sur les partitions de test, chevauchements comptés :
 | EXP-0015 — baseline WeSpeaker | SUMM-RE, français | 35,9 % | 26,7 % | 44,3 % | 23/37 | ≈ 39 s (CPU) |
 
 Les chiffres sur AMI sont optimistes pour pyannote, qui a vu ce corpus à l'entraînement (`docs/corpus.md` §9). SUMM-RE est en français, mais il est enregistré en micros-casques, pas en micro de salle. Sur SUMM-RE, le DER sans collar dépend fortement de la convention de découpage de la référence (jusqu'à 8 points pour pyannote), alors que le DER avec collar n'en dépend presque pas (analyse A-0001) : les deux sont toujours rapportés. WeSpeaker est le modèle d'empreintes de pyannote : l'écart entre EXP-0013 et EXP-0001 (29 points sur AMI, dont 21 de parole manquée) mesure ce que pyannote doit à sa segmentation neuronale et à son regroupement, et non à ses empreintes. Les expériences et leur interprétation sont dans `experiments/` et `results/leaderboard.csv`.
+
+## Licence
+
+Code et documentation sous licence MIT (`LICENSE`). Les modèles, fichiers de tiers et corpus gardent leur licence : voir [`docs/licences.md`](docs/licences.md). L'intégration continue (`.github/workflows/tests.yml`) lance la suite rapide à chaque envoi, sous Linux, avec torch en CPU, sans modèle ni jeton.
