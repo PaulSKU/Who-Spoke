@@ -27,3 +27,5 @@ EXP-0013,2026-11-01T16:14:55+01:00,baseline-wespeaker-ami-sdm,EXP-0002,represent
 EXP-0013,2026-11-01T16:14:55+01:00,baseline-wespeaker-ami-sdm,EXP-0002,representation,ami,test,baseline,estime,49.17,32.27,4.99,11.9,43.95,50.97,3.19,0.0198,0.0196,2a08ff7
 EXP-0014,2026-11-01T16:44:40+01:00,baseline-wespeaker-vad-k-oracle,EXP-0006,representation,ami,dev,baseline,oracle,25.47,13.51,0.17,11.79,18.36,37.05,0.0,0.0262,0.0204,bd51ca9
 EXP-0014,2026-11-01T16:44:40+01:00,baseline-wespeaker-vad-k-oracle,EXP-0006,representation,ami,test,baseline,oracle,27.59,14.59,0.13,12.87,21.02,39.88,0.0,0.0252,0.0204,bd51ca9
+EXP-0015,2026-11-01T17:46:57+01:00,baseline-wespeaker-summre,EXP-0009,representation,summre,dev,baseline,estime,33.6,17.74,4.31,11.55,21.8,43.92,0.5,0.0222,0.0194,5bcb295
+EXP-0015,2026-11-01T17:46:57+01:00,baseline-wespeaker-summre,EXP-0009,representation,summre,test,baseline,estime,35.86,21.87,3.08,10.92,26.74,44.29,0.41,0.0217,0.0194,5bcb295
