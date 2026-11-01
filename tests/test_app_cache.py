@@ -20,17 +20,31 @@ def test_empreinte_des_echantillons():
     assert cache.audio_fingerprint(changed) != cache.audio_fingerprint(samples)
 
 
+CONFIGURATION = {"regroupement": [{"nom": "theta", "valeur": 0.5, "origine": "experience"}]}
+REVISIONS = {"pyannote/speaker-diarization-community-1": "3533c8cf8e369892e6b79ff1bf80f7b0286a54ee"}
+
+
 def test_cle_sensible_a_chaque_composante():
-    base = dict(fingerprint="a" * 64, engine="pyannote-community-1", fake=False, settings=SETTINGS, code="abc")
+    base = dict(fingerprint="a" * 64, engine="pyannote-community-1", fake=False, settings=SETTINGS,
+                configuration=CONFIGURATION, revisions=REVISIONS)
     key = cache.result_key(**base)
     assert len(key) == 64 and key == cache.result_key(**base)
     # Ordre des clés des réglages sans effet ; toute composante changée donne une autre clé.
     assert cache.result_key(**dict(base, settings=dict(reversed(list(SETTINGS.items()))))) == key
     variants = [dict(base, fingerprint="b" * 64), dict(base, engine="baseline-ecapa"), dict(base, fake=True),
-                dict(base, code="abc+modifie"), dict(base, settings=dict(SETTINGS, peripherique="mps")),
+                dict(base, settings=dict(SETTINGS, peripherique="mps")),
                 dict(base, settings=dict(SETTINGS, parametres={"theta": 0.6})),
-                dict(base, settings=dict(SETTINGS, nombre_locuteurs={"mode": "impose", "valeur": 3}))]
+                dict(base, settings=dict(SETTINGS, nombre_locuteurs={"mode": "impose", "valeur": 3})),
+                dict(base, configuration={"regroupement": [{"nom": "theta", "valeur": 0.6}]}),
+                dict(base, revisions={"pyannote/speaker-diarization-community-1": "0" * 40}), dict(base, revisions={})]
     assert len({cache.result_key(**v) for v in variants} | {key}) == len(variants) + 1
+
+
+def test_le_commit_n_entre_pas_dans_la_cle():
+    """Décision du cockpit du 01/11 : un commit de documents n'invalide pas le cache."""
+    import inspect
+
+    assert "code" not in inspect.signature(cache.result_key).parameters
 
 
 def test_pistes_avec_chevauchement_restituees_a_l_identique():
@@ -48,7 +62,7 @@ def test_pistes_avec_chevauchement_restituees_a_l_identique():
 def test_enregistrer_lire_vider(tmp_path):
     store = cache.ResultCache(tmp_path / "resultats")
     assert store.stats() == (0, 0) and store.get("0" * 64) is None and store.clear() == 0
-    key = cache.result_key("a" * 64, "baseline-mfcc", True, SETTINGS, "abc")
+    key = cache.result_key("a" * 64, "baseline-mfcc", True, SETTINGS, CONFIGURATION, {})
     path = store.put(key, {"pistes": [[0.0, 1.0, "0", "S0"]], "calcul_s": 1.5})
     assert path.parent == tmp_path / "resultats" and path.name == f"{key}.json"
     entry = store.get(key)

@@ -6,9 +6,15 @@ les mêmes réglages et le même code. La clé est l'empreinte SHA-256 de :
 - l'audio normalisé (échantillons du WAV 16 kHz mono, D15) : un même enregistrement
   déposé sous un autre nom ou un autre format donne la même clé ;
 - le moteur (clé de `app.moteurs.SPECS`, et le mode factice) ;
-- les réglages : périphérique, nombre de locuteurs, paramètres effectifs repris de
-  l'expérience source (θ retenu compris) ;
-- le commit du code, suffixé « +modifie » si l'arbre n'est pas propre (D18).
+- les réglages : périphérique, nombre de locuteurs, paramètres repris de l'expérience
+  source (θ retenu compris) ;
+- la configuration effective de l'expérience source (`configuration_effective`, celle
+  de la page Pipeline) et les révisions figées des modèles (D18, amendement du 01/11).
+
+Le commit n'entre plus dans la clé (décision du cockpit du 01/11) : un commit de documents
+ne doit pas invalider le cache. Il est seulement consigné dans l'entrée. Un changement de
+code qui modifierait les résultats sans changer ni la configuration effective ni les
+révisions n'invalide donc pas le cache : le vider dans ce cas.
 
 Le cache est rangé hors du dépôt, dans `~/.cache/whospoke/resultats/` (ou
 `$WHOSPOKE_CACHE_DIR/resultats/`), un fichier JSON par résultat. Il ne contient ni audio
@@ -27,7 +33,7 @@ from pathlib import Path
 
 import numpy as np
 
-FORMAT_VERSION = 1
+FORMAT_VERSION = 2   # 2 : clé sans le commit, avec configuration et révisions
 
 
 def default_dir() -> Path:
@@ -36,7 +42,8 @@ def default_dir() -> Path:
 
 
 def code_version(repo_root: Path) -> str:
-    """Commit du code, « +modifie » si l'arbre n'est pas propre (D18) ; « inconnu » hors git."""
+    """Commit du code, « +modifie » si l'arbre n'est pas propre (D18) ; « inconnu » hors git.
+    Consigné dans chaque entrée pour la traçabilité, hors de la clé."""
     from whospoke.experiment import tree_is_clean
 
     def git(*args: str) -> str:
@@ -56,9 +63,12 @@ def audio_fingerprint(samples: np.ndarray) -> str:
     return hashlib.sha256(np.ascontiguousarray(samples).tobytes()).hexdigest()
 
 
-def result_key(fingerprint: str, engine: str, fake: bool, settings: dict, code: str) -> str:
-    """Clé d'un résultat : empreinte de l'audio, moteur, réglages et commit."""
-    parts = {"audio": fingerprint, "moteur": engine, "factice": fake, "reglages": settings, "code": code}
+def result_key(fingerprint: str, engine: str, fake: bool, settings: dict, configuration: dict,
+               revisions: dict) -> str:
+    """Clé d'un résultat : empreinte de l'audio, moteur, réglages, configuration effective
+    et révisions des modèles."""
+    parts = {"audio": fingerprint, "moteur": engine, "factice": fake, "reglages": settings,
+             "configuration": configuration, "revisions": revisions}
     canonical = json.dumps(parts, sort_keys=True, ensure_ascii=False, default=str)
     return hashlib.sha256(canonical.encode()).hexdigest()
 

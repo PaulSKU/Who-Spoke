@@ -181,6 +181,12 @@ def test_analyse_puis_reaffichage_depuis_le_cache(tmp_path, monkeypatch):
     assert again["cache"] and again["annotation"] == result["annotation"]
     assert again["calcul_s"] == pytest.approx(result["calcul_s"])
     assert len(second) < len(first)                      # aucun pas de calcul simulé
+    # Badge visible dans le panneau d'avancement, avec la date du calcul d'origine.
+    statuses = [v for v in second[-1].values() if isinstance(v, str) and "st-root" in v]
+    assert len(statuses) == 1 and "Résultat réaffiché depuis le cache, calculé le " in statuses[0]
+    assert "ws-cache-badge" not in next(v for v in first[-1].values() if isinstance(v, str) and "st-root" in v)
+    # Case décochée : nouveau calcul, et l'annonce signale le résultat présent en cache.
+    assert "nouveau calcul (case « Réafficher un résultat déjà calculé » décochée)" in estimate(prepared, *settings, False)
 
     # Cache désactivé : nouveau calcul ; autre réglage : autre clé.
     third = list(analyse(prepared, audio, *settings, None, False))
@@ -213,3 +219,43 @@ def test_construction_sans_prechauffage_ni_minuterie_active(tmp_path):
 
     timers = [block for block in blocks.blocks.values() if isinstance(block, gr.Timer)]
     assert len(timers) == 1 and timers[0].active is False
+
+
+def test_reafficher_depuis_le_cache_decoche_par_defaut(tmp_path):
+    import gradio as gr
+
+    blocks = interface.build_app(fake=True, cache_dir=tmp_path)
+    boxes = [b for b in blocks.blocks.values() if isinstance(b, gr.Checkbox)
+             and b.label == "Réafficher un résultat déjà calculé"]
+    assert len(boxes) == 1 and boxes[0].value is False
+
+
+def test_badges_du_cache():
+    cached = {"libelle": "pyannote community-1", "cache": "2026-11-01T19:50:12"}
+    fresh = {"libelle": "Baseline ECAPA", "cache": None}
+    assert interface._cache_badges([cached]) == ["Résultat réaffiché depuis le cache, calculé le 01/11/2026 à 19:50"]
+    assert interface._cache_badges([cached, fresh]) == [
+        "pyannote community-1 : résultat réaffiché depuis le cache, calculé le 01/11/2026 à 19:50"]
+    assert interface._cache_badges([fresh]) == []
+    html = interface._status_html([], {}, "Fini", badges=["Résultat <réaffiché>"])
+    assert 'class="ws-cache-badge"' in html and "&lt;réaffiché&gt;" in html
+
+
+def test_cle_fondee_sur_configuration_effective_et_revisions():
+    from whospoke import embeddings
+    from whospoke.pipelines import pyannote_community1 as wrapper
+
+    expected = {
+        "pyannote-community-1": {wrapper.MODEL_ID: wrapper.MODEL_REVISION},
+        "baseline-ecapa": {embeddings.ECAPA_SOURCE: embeddings.ECAPA_REVISION},
+        "baseline-wespeaker": {embeddings.WESPEAKER_SOURCE: embeddings.WESPEAKER_REVISION},
+        "baseline-mfcc": {},
+    }
+    for key, revisions in expected.items():
+        spec = moteurs.SPECS[key]
+        try:
+            moteurs.experiment_dir(spec.source_exp)
+        except moteurs.EngineUnavailable:
+            continue
+        assert moteurs.model_revisions(spec) == revisions
+        assert moteurs.effective_configuration(spec)        # consignée par l'expérience source

@@ -195,6 +195,15 @@ button.primary:active, button.secondary:active, .wsp-play:active { transform: sc
   background: var(--ws-surface); transform: rotate(45deg);
 }
 .st-fail .st-mark::after { transform: rotate(-45deg); }
+/* Résultat réaffiché depuis le cache : pastille pleine, visible au premier coup d'œil. */
+.st-badges { margin: 0; display: flex; flex-wrap: wrap; gap: 6px; }
+.ws-cache-badge {
+  display: inline-flex; align-items: center; gap: 8px; padding: 4px 10px; border-radius: 999px;
+  font-size: 0.8rem; font-weight: 600; color: var(--ws-surface); background: var(--ws-ink);
+}
+.ws-cache-badge::before {
+  content: ""; width: 6px; height: 6px; border-radius: 50%; background: var(--ws-surface);
+}
 .st-error {
   margin: 0; padding: 10px 12px; border-radius: 8px; font-size: 0.875rem; line-height: 1.45;
   color: var(--ws-ink); background: var(--ws-track); box-shadow: inset 3px 0 0 var(--ws-ink);

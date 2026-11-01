@@ -207,11 +207,13 @@ def _availability(fake: bool, experiments: Path = moteurs.EXPERIMENTS_DIR) -> di
 
 def _status_html(steps: list[str], state: dict[str, float], title: str, detail: str = "",
                  fraction: float | None = None, labels: dict[str, str] | None = None,
-                 failed: str | None = None, error: str | None = None) -> str:
+                 failed: str | None = None, error: str | None = None,
+                 badges: list[str] | None = None) -> str:
     """Panneau d'avancement : l'état de chaque étape est écrit, pas seulement dessiné.
 
     `labels` donne le libellé d'étapes composées (« 2:segmentation » en comparaison).
-    `failed` : étape en échec, marquée « échec » ; `error` : message affiché dans le panneau."""
+    `failed` : étape en échec, marquée « échec » ; `error` : message affiché dans le panneau ;
+    `badges` : pastilles sous le titre (résultat réaffiché depuis le cache)."""
     rows = []
     for step in steps:
         value = state.get(step, 0.0)
@@ -233,6 +235,9 @@ def _status_html(steps: list[str], state: dict[str, float], title: str, detail: 
                f'aria-valuemax="100" aria-valuenow="{percent}"><div style="width:{percent}%"></div></div>')
     steps_html = f'<ol class="st-steps">{"".join(rows)}</ol>' if rows else ""
     error_html = (f'<p class="st-error" role="alert">{escape(error)}</p>' if error else "")
+    if badges:
+        error_html += ('<p class="st-badges">'
+                       + "".join(f'<span class="ws-cache-badge">{escape(b)}</span>' for b in badges) + "</p>")
     root = "st-root st-failed" if failed or error else "st-root"
     return (f'<div class="{root}"><div class="st-head" aria-live="polite">'
             f'<p class="st-title">{escape(title)}</p><span class="st-detail">{escape(detail)}</span></div>'
@@ -503,6 +508,15 @@ def _cache_date(iso: str) -> str:
         return str(iso)
 
 
+def _cache_badges(results: list[dict]) -> list[str]:
+    """Pastilles des résultats réaffichés depuis le cache, avec la date du calcul d'origine ;
+    préfixées par le moteur en comparaison."""
+    several = len(results) > 1
+    return [(f"{item['libelle']} : r" if several else "R")
+            + f"ésultat réaffiché depuis le cache, calculé le {_cache_date(item['cache'])}"
+            for item in results if item.get("cache")]
+
+
 def _times_html(result: dict | None) -> str:
     if result is None:
         return _empty("Les durées de chaque étape s'afficheront après l'analyse.")
@@ -697,7 +711,7 @@ def build_app(fake: bool = False, fake_max_s: float = 20.0, repo_root: Path = RE
     leaderboard = repo_root / "results" / "leaderboard.csv"
     engines = EngineCache(fake, fake_max_s, experiments)
     store = ResultCache(cache_dir)
-    code = code_version(REPO_ROOT)   # commit du code des moteurs et de l'application
+    code = code_version(REPO_ROOT)   # consigné dans le cache, hors de la clé
     availability = _availability(fake, experiments)
     choices = [
         (spec.label + ("" if availability[key] is None else " (indisponible)"), key)
@@ -787,9 +801,12 @@ def build_app(fake: bool = False, fake_max_s: float = 20.0, repo_root: Path = RE
                                           / f"execution_{source_device}.json")
 
     def cache_key(run: dict, prepared: dict) -> str:
+        spec = run["spec"]
         settings = {"peripherique": run["device"], "nombre_locuteurs": run["speaker_conf"],
-                    "parametres": moteurs.engine_params(run["spec"], experiments)}
-        return result_key(prepared["empreinte"], run["spec"].key, fake, settings, code)
+                    "parametres": moteurs.engine_params(spec, experiments)}
+        return result_key(prepared["empreinte"], spec.key, fake, settings,
+                          moteurs.effective_configuration(spec, experiments),
+                          moteurs.model_revisions(spec, experiments))
 
     def prepare(audio_path: str) -> dict:
         """Audio normalisé (D15, D16) dans le dossier de travail, durée et empreinte."""
@@ -819,9 +836,13 @@ def build_app(fake: bool = False, fake_max_s: float = 20.0, repo_root: Path = RE
         for run in runs:
             timing(run)
             spec, where = run["spec"], f"{run['spec'].label} sur {run['device']}"
-            if use_cache and store.get(cache_key(run, prepared)):
+            cached = store.get(cache_key(run, prepared))
+            if use_cache and cached:
                 lines.append(f"{where} : résultat en cache, réaffichage immédiat")
                 continue
+            if cached:
+                lines.append(f"{where} : un résultat du {_cache_date(cached['date'])} est en cache ; "
+                             "nouveau calcul (case « Réafficher un résultat déjà calculé » décochée)")
             computed += 1
             span = temps.announced_range_s(run["rtf"], prepared["duree_s"], run["overhead_s"])
             if span is None:
@@ -1021,18 +1042,12 @@ def build_app(fake: bool = False, fake_max_s: float = 20.0, repo_root: Path = RE
                 for item in results)
             total_s = sum(item["calcul_s"] for item in results)
             n_speakers = len(sortie.speaker_labels(result["annotation"]))
-            if prefix:
-                title = summary
-            elif result["cache"]:
-                title = f"{n_speakers} locuteur(s), résultat réaffiché depuis le cache"
-            else:
-                title = f"{n_speakers} locuteur(s) en {temps.format_duration(total_s)}"
+            title = summary if prefix else f"{n_speakers} locuteur(s) en {temps.format_duration(total_s)}"
             detail = f"{prepared['nom']}, {temps.format_duration(duration_s)} d'audio"
             if not prefix:
                 detail += f", {result['libelle']}, RTF {_num(total_s / duration_s, 4)}"
-                if result["cache"]:
-                    detail += f", calculé le {_cache_date(result['cache'])}"
-            done = _status_html(steps, {step: 1.0 for step in steps}, title, detail, 1.0, labels=labels)
+            done = _status_html(steps, {step: 1.0 for step in steps}, title, detail, 1.0, labels=labels,
+                                badges=_cache_badges(results))
             names_rows = [[label, ""] for label in sortie.speaker_labels(result["annotation"])]
             yield {status_box: done, viewer: _viewer_value(result), stats: _stats_html(result),
                    names: gr.update(value=names_rows, visible=True, row_limits=(len(names_rows), len(names_rows))),
@@ -1108,9 +1123,9 @@ def build_app(fake: bool = False, fake_max_s: float = 20.0, repo_root: Path = RE
                         with gr.Accordion("Cache des résultats (plan de repli)", open=False,
                                           elem_classes="ws-cache"):
                             use_cache = gr.Checkbox(
-                                value=True, label="Réafficher un résultat déjà calculé",
-                                info="Même audio normalisé, même moteur, mêmes réglages et même commit : "
-                                     "réaffichage immédiat, sans calcul.")
+                                value=False, label="Réafficher un résultat déjà calculé",
+                                info="Même audio normalisé, même moteur, mêmes réglages, même configuration "
+                                     "effective et mêmes révisions des modèles : réaffichage immédiat, sans calcul.")
                             cache_info = gr.HTML(_cache_info_html(store), js_on_load=None)
                             clear_cache = gr.Button("Vider le cache", variant="secondary", size="sm")
                     with gr.Column(scale=8, min_width=360):

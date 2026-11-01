@@ -119,6 +119,43 @@ def source_device(spec: EngineSpec, root: Path = EXPERIMENTS_DIR) -> str:
     return source_config(spec, root)["device"]
 
 
+def execution_path(spec: EngineSpec, root: Path = EXPERIMENTS_DIR) -> Path:
+    """execution_<périphérique>.json de l'exécution principale de l'expérience source (à
+    défaut, la première exécution trouvée)."""
+    directory = experiment_dir(spec.source_exp, root)
+    main = directory / f"execution_{source_device(spec, root)}.json"
+    if main.is_file():
+        return main
+    others = sorted(directory.glob("execution_*.json"))
+    if not others:
+        raise EngineUnavailable(f"{spec.source_exp} n'a pas encore été exécutée")
+    return others[0]
+
+
+def effective_configuration(spec: EngineSpec, root: Path = EXPERIMENTS_DIR) -> dict:
+    """`configuration_effective` de l'exécution principale de l'expérience source, celle
+    qu'affiche la page Pipeline (D17) ; dictionnaire vide si elle n'est pas consignée."""
+    try:
+        return json.loads(execution_path(spec, root).read_text()).get("configuration_effective") or {}
+    except (OSError, ValueError, EngineUnavailable):
+        return {}
+
+
+def model_revisions(spec: EngineSpec, root: Path = EXPERIMENTS_DIR) -> dict[str, str]:
+    """Révisions figées des modèles pré-entraînés du moteur (D18, amendement du 01/11) :
+    {dépôt : commit}. La baseline MFCC n'en utilise aucun."""
+    from whospoke import embeddings
+    from whospoke.pipelines import pyannote_community1
+
+    if spec.pipeline == pyannote_community1.PyannoteCommunity1.name:
+        return {pyannote_community1.MODEL_ID: pyannote_community1.MODEL_REVISION}
+    representation = (source_config(spec, root)["pipeline"].get("parametres") or {}).get("representation")
+    return {
+        "ecapa": {embeddings.ECAPA_SOURCE: embeddings.ECAPA_REVISION},
+        "wespeaker": {embeddings.WESPEAKER_SOURCE: embeddings.WESPEAKER_REVISION},
+    }.get(representation, {})
+
+
 def engine_params(spec: EngineSpec, root: Path = EXPERIMENTS_DIR) -> dict:
     """Paramètres de construction repris de l'expérience source (θ retenu compris)."""
     config = source_config(spec, root)

@@ -144,16 +144,7 @@ def load_catalogue(root: Path) -> dict:
 
 def execution_file(spec: moteurs.EngineSpec, root: Path) -> Path:
     """execution_<périphérique>.json de l'exécution principale de l'expérience source."""
-    experiments = root / "experiments"
-    directory = moteurs.experiment_dir(spec.source_exp, experiments)
-    device = moteurs.source_device(spec, experiments)
-    main = directory / f"execution_{device}.json"
-    if main.is_file():
-        return main
-    others = sorted(directory.glob("execution_*.json"))
-    if not others:
-        raise moteurs.EngineUnavailable(f"{spec.source_exp} n'a pas encore été exécutée")
-    return others[0]
+    return moteurs.execution_path(spec, root / "experiments")
 
 
 def _common_normalisation(catalogue: dict, page: Page) -> Stage:
