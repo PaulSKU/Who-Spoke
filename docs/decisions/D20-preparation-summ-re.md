@@ -78,6 +78,8 @@ Il faudra peut-être une dépendance pour lire le Parquet (`pyarrow`), si elle n
 
 ## Amendement du 28/10/2026 (après la préparation)
 
+Statut : actée
+
 1. **Jetons non lexicaux exclus de la référence.** Les transcriptions contiennent des jetons non lexicaux au format SPPAS (`+` pause courte, `*` bruit, `@` rire). Les conventions d'annotation du projet (`conventions-annotation.md` §1) classent les rires, toux et bruits comme non-parole, et une pause n'est jamais de la parole. Tout jeton composé uniquement de ces symboles est donc retiré avant la construction des intervalles ; un mot qui contient un rire mêlé à du texte reste de la parole. Cela retire 2,73 % du temps de parole en dev et 1,11 % en test (mesure de la préparation). Les références, les UEM et le contrôle croisé sont regénérés. L'inventaire des jetons retirés est consigné dans `docs/corpus.md` §2.
 2. **Contrôle de synchronisation.** Chaque piste est corrélée au mélange des autres pistes, et un décalage n'est retenu que si la saillance du pic est d'au moins 10. Ce seuil est heuristique : il ne sert qu'au contrôle et n'affecte pas les données.
 3. **`temps.txt`.** Une réunion en présentiel et une réunion Zoom de test (007a_ECRH, 012c_EBPZ ; 39,5 min). Ce choix couvre les deux conditions de captation.

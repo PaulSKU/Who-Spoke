@@ -1,3 +1,10 @@
+---
+id: EXP-0004
+question: "Effet d'une détection de parole parfaite sur la baseline MFCC"
+verdict: informatif
+decisions: [D19]
+---
+
 # EXP-0004 — baseline MFCC, détection de parole oracle, AMI SDM (dev et test)
 
 ## Observations factuelles

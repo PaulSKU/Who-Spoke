@@ -1,3 +1,10 @@
+---
+id: EXP-0005
+question: "Gain possible d'une meilleure estimation du nombre de locuteurs pour pyannote (amélioration n° 1), AMI"
+verdict: informatif
+decisions: [D9, D18]
+---
+
 # EXP-0005 — pyannote community-1, nombre de locuteurs oracle par fichier, AMI SDM (dev et test)
 
 ## Observations factuelles

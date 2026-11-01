@@ -1,3 +1,10 @@
+---
+id: EXP-0009
+question: "Niveau de la baseline MFCC en français (SUMM-RE)"
+verdict: reference
+decisions: [D19, D20]
+---
+
 # EXP-0009 — baseline MFCC (D19), SUMM-RE (dev et test)
 
 ## Observations factuelles

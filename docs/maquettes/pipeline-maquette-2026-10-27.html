@@ -1,0 +1,241 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<title>Pipeline — pyannote community-1</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&amp;family=IBM+Plex+Sans:wght@400;500;600&amp;display=swap" rel="stylesheet">
+<style>
+body{margin:0;background:#F7F7F5}
+a{color:#1D4C8A}a:hover{color:#0F2F5A}
+</style>
+</helmet>
+<div style="box-sizing: border-box; max-width: 1240px; margin: 0 auto; padding: 40px 24px 56px; display: flex; flex-direction: column; gap: 24px; font-family: 'IBM Plex Sans', system-ui, sans-serif; color: #1B1B1F; background: #F7F7F5">
+
+<header style="display: flex; flex-wrap: wrap; align-items: flex-end; justify-content: space-between; gap: 16px">
+<div style="display: flex; flex-direction: column; gap: 6px">
+<p style="margin: 0; font-size: 13px; letter-spacing: 0.04em; color: #5E5D58">WHO SPOKE? · INSPECTION DU PIPELINE</p>
+<h1 style="margin: 0; font-size: 32px; font-weight: 600; line-height: 1.15">Pipeline</h1>
+<p style="margin: 0; font-size: 14px; color: #45443F">pyannote.audio 4.0.7 · modèle community-1 · périphérique MPS · dernière expérience : EXP-0001</p>
+</div>
+<div style="display: flex; flex-wrap: wrap; gap: 8px" role="group" aria-label="Moteur affiché">
+<button type="button" aria-disabled="true" style="font: inherit; font-size: 14px; padding: 10px 14px; min-height: 44px; border-radius: 8px; border: 1px solid #D9D8D3; background: #FFFFFF; color: #5E5D58; cursor: not-allowed">Baseline · à venir</button>
+<button type="button" aria-pressed="true" style="font: inherit; font-size: 14px; font-weight: 500; padding: 10px 14px; min-height: 44px; border-radius: 8px; border: 1px solid #1B1B1F; background: #1B1B1F; color: #FFFFFF">pyannote community-1</button>
+<button type="button" aria-disabled="true" style="font: inherit; font-size: 14px; padding: 10px 14px; min-height: 44px; border-radius: 8px; border: 1px solid #D9D8D3; background: #FFFFFF; color: #5E5D58; cursor: not-allowed">NeMo · à venir</button>
+</div>
+</header>
+
+<p style="margin: 0; padding: 12px 16px; border-radius: 8px; background: #FBF0DA; color: #6B4105; font-size: 14px; line-height: 1.5">Maquette. Valeurs de pyannote lues sur la pipeline chargée (describe(), 28 octobre 2026). « Lu sur la pipeline » : valeur effective, dont on ne sait pas si elle vient du code ou de la configuration de community-1.</p>
+
+<nav aria-label="Étapes du pipeline" style="display: flex; flex-wrap: wrap; align-items: stretch; gap: 10px">
+<sc-for list="{{stages}}" as="item" hint-placeholder-count="6">
+<div style="display: flex; align-items: center; gap: 10px">
+<button type="button" onClick="{{item.pick}}" aria-pressed="{{item.pressed}}" style="{{item.cardStyle}}">
+<span style="{{item.titleStyle}}">{{item.name}}</span>
+<span style="{{item.subStyle}}">{{item.sub}}</span>
+</button>
+<sc-if value="{{item.arrow}}" hint-placeholder-val="{{true}}">
+<span aria-hidden="true" style="font-size: 18px; color: #8A8984">→</span>
+</sc-if>
+</div>
+</sc-for>
+<div aria-hidden="true" style="width: 1px; align-self: stretch; background: #D9D8D3; margin: 0 6px"></div>
+<button type="button" onClick="{{evalStage.pick}}" aria-pressed="{{evalStage.pressed}}" style="{{evalStage.cardStyle}}">
+<span style="{{evalStage.titleStyle}}">{{evalStage.name}}</span>
+<span style="{{evalStage.subStyle}}">{{evalStage.sub}}</span>
+</button>
+</nav>
+
+<div style="display: flex; flex-wrap: wrap; gap: 16px; align-items: center; font-size: 13px; color: #45443F">
+<span>Joue sur :</span>
+<span style="padding: 3px 8px; border-radius: 6px; background: #FBE9E1; color: #7A2810">détection (parole manquée, fausse alarme)</span>
+<span style="padding: 3px 8px; border-radius: 6px; background: #DFF1EC; color: #0A4F46">attribution (confusion, nombre de locuteurs)</span>
+<span style="padding: 3px 8px; border-radius: 6px; background: #E8EDF5; color: #23406B">temps de calcul</span>
+<span style="padding: 3px 8px; border-radius: 6px; background: #ECEBE7; color: #3A3935">mesure seulement</span>
+</div>
+
+<section aria-labelledby="stage-title" style="display: flex; flex-direction: column; gap: 18px; padding: 28px; border-radius: 12px; border: 1px solid #D9D8D3; background: #FFFFFF">
+<div style="display: flex; flex-direction: column; gap: 8px">
+<span style="{{sel.tagStyle}}">{{sel.tag}}</span>
+<h2 id="stage-title" style="margin: 0; font-size: 24px; font-weight: 600">{{sel.name}}</h2>
+<p style="margin: 0; font-size: 16px; line-height: 1.55; color: #2C2C2A; max-width: 820px">{{sel.role}}</p>
+</div>
+<dl style="margin: 0; display: grid; grid-template-columns: minmax(140px, 180px) minmax(0, 1fr); gap: 8px 16px; font-size: 14px; line-height: 1.5">
+<dt style="color: #5E5D58">Modèle ou outil</dt>
+<dd style="margin: 0; font-family: 'IBM Plex Mono', ui-monospace, monospace; font-size: 13px; color: #1B1B1F">{{sel.model}}</dd>
+<dt style="color: #5E5D58">Erreurs produites</dt>
+<dd style="margin: 0; color: #1B1B1F">{{sel.errors}}</dd>
+<dt style="color: #5E5D58">Défini dans</dt>
+<dd style="margin: 0; font-family: 'IBM Plex Mono', ui-monospace, monospace; font-size: 13px; color: #1B1B1F">{{sel.where}}</dd>
+</dl>
+<sc-if value="{{sel.hasNote}}" hint-placeholder-val="{{false}}">
+<p style="margin: 0; padding: 10px 14px; border-radius: 8px; background: #F1F1EE; color: #3A3935; font-size: 14px; line-height: 1.5">{{sel.note}}</p>
+</sc-if>
+<div style="overflow-x: auto; border: 1px solid #E4E3DE; border-radius: 8px">
+<div role="table" aria-label="Réglages de l'étape" style="min-width: 960px">
+<div role="row" style="display: grid; grid-template-columns: minmax(150px, 1.1fr) minmax(170px, 1.3fr) minmax(150px, 1fr) minmax(260px, 2.4fr) minmax(170px, 1.3fr); gap: 16px; padding: 10px 16px; background: #F4F3F0; font-size: 12px; letter-spacing: 0.03em; color: #45443F">
+<span role="columnheader">RÉGLAGE</span>
+<span role="columnheader">VALEUR EN VIGUEUR</span>
+<span role="columnheader">ORIGINE</span>
+<span role="columnheader">CE QUE ÇA FAIT</span>
+<span role="columnheader">JOUE SUR</span>
+</div>
+<sc-for list="{{sel.params}}" as="p" hint-placeholder-count="4">
+<div role="row" style="display: grid; grid-template-columns: minmax(150px, 1.1fr) minmax(170px, 1.3fr) minmax(150px, 1fr) minmax(260px, 2.4fr) minmax(170px, 1.3fr); gap: 16px; padding: 14px 16px; border-top: 1px solid #E4E3DE; font-size: 14px; line-height: 1.45; align-items: start">
+<span role="cell" style="font-weight: 500">{{p.name}}</span>
+<span role="cell" style="font-family: 'IBM Plex Mono', ui-monospace, monospace; font-size: 13px">{{p.value}}</span>
+<span role="cell"><span style="{{p.originStyle}}">{{p.originLabel}}</span></span>
+<span role="cell" style="color: #2C2C2A">{{p.effect}}</span>
+<span role="cell" style="display: flex; flex-wrap: wrap; gap: 6px">
+<sc-for list="{{p.plays}}" as="c" hint-placeholder-count="2">
+<span style="{{c.style}}">{{c.label}}</span>
+</sc-for>
+</span>
+</div>
+</sc-for>
+</div>
+</div>
+</section>
+
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1280,"height":1240}}'>
+class Component extends DCLogic {
+  constructor(props) {
+    super(props);
+    this.state = { sel: 'reg' };
+  }
+  renderVals() {
+    const chip = {
+      det: 'padding: 3px 8px; border-radius: 6px; font-size: 12px; background: #FBE9E1; color: #7A2810',
+      att: 'padding: 3px 8px; border-radius: 6px; font-size: 12px; background: #DFF1EC; color: #0A4F46',
+      time: 'padding: 3px 8px; border-radius: 6px; font-size: 12px; background: #E8EDF5; color: #23406B',
+      meas: 'padding: 3px 8px; border-radius: 6px; font-size: 12px; background: #ECEBE7; color: #3A3935',
+      none: 'padding: 3px 8px; border-radius: 6px; font-size: 12px; background: #F1F1EE; color: #45443F'
+    };
+    const origin = {
+      chosen: 'display: inline-block; padding: 3px 8px; border-radius: 6px; font-size: 12px; background: #E6EEF9; color: #1D4C8A',
+      def: 'display: inline-block; padding: 3px 8px; border-radius: 6px; font-size: 12px; background: #EEEDE9; color: #3A3935',
+      model: 'display: inline-block; padding: 3px 8px; border-radius: 6px; font-size: 12px; background: #F1EEF9; color: #4A3A85',
+      confirm: 'display: inline-block; padding: 3px 8px; border-radius: 6px; font-size: 12px; background: #FBF0DA; color: #6B4105'
+    };
+    const c = (label, kind) => ({ label, style: chip[kind] });
+    const P = (name, value, o, originLabel, effect, plays) => ({ name, value, originLabel, originStyle: origin[o], effect, plays });
+
+    const data = [
+      { id: 'norm', name: 'Normalisation', sub: '16 kHz mono', cat: 'neutral', tag: 'Préparation du signal',
+        role: "Convertir tout fichier audio, quel que soit son format, en un signal unique que chaque moteur reçoit à l'identique.",
+        model: 'ffmpeg 9.0.2 (conda-forge), appelé en sous-processus',
+        errors: "Aucune erreur propre : garantit que les comparaisons portent sur le même signal.",
+        where: 'src/whospoke/audio.py · décisions D15, D16', note: '',
+        params: [
+          P('Fréquence', '16 000 Hz', 'chosen', 'Choisi · D15', "Fréquence attendue par les modèles ; tout fichier y est rééchantillonné.", [c('aucun effet sur le DER', 'none')]),
+          P('Canaux', 'mono (moyenne)', 'chosen', 'Choisi · D15', "Un enregistrement stéréo est ramené à une seule piste, comme le test réel.", [c('aucun effet sur le DER', 'none')]),
+          P('Format intermédiaire', 'WAV PCM 16 bits', 'chosen', 'Choisi · D15', "Format sans perte, lisible sans bibliothèque externe.", [c('aucun effet sur le DER', 'none')]),
+          P('Entrée de la pipeline', 'signal en mémoire', 'chosen', 'Choisi · D16', "Contourne le décodeur de pyannote (torchcodec), incompatible avec ffmpeg 9 sur cette machine.", [c('aucun effet sur le DER', 'none')])
+        ] },
+      { id: 'det', name: 'Détection de parole', sub: 'parole ou non ?', cat: 'det', tag: 'Détection',
+        role: "Décider, trame par trame, s'il y a de la voix. Une trame sans aucun locuteur actif est un silence.",
+        model: 'community-1 / segmentation (réseau de segmentation)',
+        errors: "Parole manquée (voix faible jugée silence) et fausse alarme (bruit jugé parole).",
+        where: 'pyannote/audio/pipelines/speaker_diarization.py',
+        note: "Dans pyannote, la détection de parole et la segmentation locale sont faites par le même réseau : elles sont séparées ici pour la lecture.",
+        params: [
+          P('Mode de sortie', 'powerset', 'model', 'Config du modèle', "Le réseau choisit directement une classe par trame (personne, A, B, A et B…) : aucun seuil de détection n'est réglable.", [c('parole manquée', 'det'), c('fausse alarme', 'det')]),
+          P('segmentation.min_duration_off', '0,0 s', 'model', 'Lu sur la pipeline', "Un silence plus court que cette durée est comblé : deux tours séparés par une micro-pause n'en font plus qu'un.", [c('fausse alarme', 'det'), c('frontières', 'det')])
+        ] },
+      { id: 'seg', name: 'Segmentation locale', sub: 'tours, chevauchements', cat: 'det', tag: 'Détection',
+        role: "Repérer qui parle sur de courtes fenêtres glissantes, y compris quand deux personnes parlent en même temps.",
+        model: 'community-1 / segmentation (réseau de segmentation)',
+        errors: "Parole manquée dans les chevauchements, frontières décalées.",
+        where: 'pyannote/audio/pipelines/speaker_diarization.py', note: '',
+        params: [
+          P('Durée de fenêtre', '10 s', 'model', 'Config du modèle', "Le réseau ne voit que cette durée à la fois ; les identités sont ensuite reliées entre fenêtres par le regroupement.", [c('parole manquée', 'det'), c('confusion', 'att')]),
+          P('segmentation_step', '0,1 (90 % de recouvrement)', 'def', 'Défaut du code', "Pas de la fenêtre glissante, en fraction de sa durée : plus petit, chaque instant est vu plus souvent, mais le calcul est plus long.", [c('frontières', 'det'), c('temps', 'time')]),
+          P('Locuteurs par fenêtre', '3 au plus, dont 2 simultanés', 'model', 'Config du modèle', "Au-delà de deux voix simultanées, le chevauchement ne peut pas être représenté entièrement.", [c('parole manquée', 'det')]),
+          P('segmentation_batch_size', '32', 'model', 'Lu sur la pipeline', "Nombre de fenêtres traitées ensemble : n'agit que sur la vitesse et la mémoire.", [c('temps', 'time')])
+        ] },
+      { id: 'emb', name: 'Empreintes vocales', sub: 'un vecteur par voix', cat: 'att', tag: 'Attribution',
+        role: "Résumer chaque tour local en un vecteur ; deux tours d'une même voix doivent donner des vecteurs proches.",
+        model: 'community-1 / embedding : WeSpeakerResNet34, vecteurs de dimension 256',
+        errors: "Confusion entre locuteurs aux voix proches.",
+        where: 'pyannote/audio/pipelines/speaker_diarization.py', note: '',
+        params: [
+          P('Modèle', 'WeSpeakerResNet34 (dim. 256)', 'model', 'Config du modèle', "Qualité de la représentation des voix : c'est elle qui sépare ou mélange deux personnes.", [c('confusion', 'att')]),
+          P('embedding_exclude_overlap', 'Oui', 'model', 'Config du modèle', "Les zones de chevauchement sont exclues du calcul des empreintes : vecteurs plus purs, mais moins de matière sur les tours courts.", [c('confusion', 'att')]),
+          P('embedding_batch_size', '32', 'model', 'Lu sur la pipeline', "N'agit que sur la vitesse et la mémoire.", [c('temps', 'time')])
+        ] },
+      { id: 'reg', name: 'Regroupement', sub: 'combien de personnes ?', cat: 'att', tag: 'Attribution',
+        role: "Rassembler les vecteurs proches en groupes : chaque groupe devient un locuteur, et leur nombre est le nombre de personnes estimé.",
+        model: 'VBxClustering (distance cosinus, affectation contrainte) : regroupement hiérarchique, puis affinage bayésien avec la PLDA de community-1 (dimension 128)',
+        errors: "Confusion, et mauvais nombre de locuteurs (fusion de deux personnes ou scission d'une seule).",
+        where: 'pyannote/audio/pipelines/clustering.py', note: '',
+        params: [
+          P('Méthode', 'VBxClustering', 'def', 'Défaut du code', "Regroupe d'abord par similarité, puis affine les groupes avec un modèle probabiliste des voix.", [c('confusion', 'att'), c('nb de locuteurs', 'att')]),
+          P('clustering.threshold', '0,6 (plage 0,5–0,8)', 'model', 'Lu sur la pipeline', "Seuil du regroupement initial : plus haut, on fusionne davantage et on trouve moins de locuteurs ; plus bas, on scinde.", [c('nb de locuteurs', 'att'), c('confusion', 'att')]),
+          P('clustering.Fa', '0,07', 'model', 'Lu sur la pipeline', "Paramètre de VBx : poids donné aux indices acoustiques face au modèle a priori (interprétation à vérifier).", [c('confusion', 'att')]),
+          P('clustering.Fb', '0,8', 'model', 'Lu sur la pipeline', "Paramètre de VBx : régularisation du nombre de locuteurs ; plus élevé, moins de locuteurs (interprétation à vérifier).", [c('nb de locuteurs', 'att')]),
+          P('Nombre de locuteurs', 'automatique (non imposé, non borné)', 'chosen', 'Choisi · D9', "Peut être imposé ou borné ; l'écart avec le mode imposé mesure le coût de l'estimation.", [c('nb de locuteurs', 'att')])
+        ] },
+      { id: 'out', name: 'Sortie', sub: 'fichier RTTM', cat: 'neutral', tag: 'Résultat',
+        role: "Écrire les tours de parole attribués, un par ligne, avec leur début, leur durée et leur locuteur.",
+        model: 'pyannote.core Annotation → RTTM',
+        errors: "Aucune erreur propre, sauf si l'on choisit la sortie sans chevauchement.",
+        where: 'scripts/run_experiment.py · protocole §2', note: '',
+        params: [
+          P('Format', 'RTTM, une ligne par tour', 'chosen', 'Choisi · protocole §2', "Format standard lu par l'évaluation et par l'interface.", [c('aucun effet sur le DER', 'none')]),
+          P('Sortie exclusive', 'disponible, non utilisée', 'def', 'Défaut du code', "Version sans chevauchement (un seul locuteur à la fois) ; l'utiliser ferait perdre la parole superposée.", [c('parole manquée', 'det')])
+        ] }
+    ];
+    const evalData = { id: 'eval', name: 'Évaluation', sub: 'mesure seulement', cat: 'eval', tag: 'Mesure (hors pipeline)',
+      role: "N'agit pas sur ce que l'outil produit, seulement sur la façon de le noter. Changer ces réglages change le score, pas le système.",
+      model: 'pyannote.metrics 4.2.0 · src/whospoke/evaluation/metrics.py',
+      errors: "Aucune : ces réglages définissent ce qui est compté comme erreur.",
+      where: 'docs/protocole-eval.md · décision D1', note: '',
+      params: [
+        P('collar', '0 (principal) et 0,5 (= ±0,25 s)', 'chosen', 'Choisi · D1', "Zone de tolérance autour des frontières de la référence ; sémantique vérifiée par test.", [c('mesure seulement', 'meas')]),
+        P('skip_overlap', 'Non : chevauchements comptés', 'chosen', 'Choisi · D1', "Les zones où deux personnes parlent restent dans le calcul.", [c('mesure seulement', 'meas')]),
+        P('UEM', 'fichier entier (AMI : UEM commun)', 'chosen', 'Choisi · corpus.md', "Intervalles sur lesquels porte l'évaluation.", [c('mesure seulement', 'meas')]),
+        P('Références', 'AMI only_words', 'chosen', 'Choisi · corpus.md §3', "Annotations de référence, issues du dépôt pyannote/AMI-diarization-setup.", [c('mesure seulement', 'meas')]),
+        P('Agrégation', 'rapport des sommes', 'chosen', 'Choisi · protocole §4', "Les durées d'erreur sont sommées sur tous les fichiers avant le rapport, pas moyennées fichier par fichier.", [c('mesure seulement', 'meas')])
+      ] };
+
+    const look = {
+      neutral: { bg: '#FFFFFF', border: '#D9D8D3', title: '#1B1B1F', sub: '#5E5D58', dash: 'solid', tag: 'background: #EEEDE9; color: #3A3935' },
+      det: { bg: '#FBEDE6', border: '#E2A88E', title: '#6E240D', sub: '#8A3A1D', dash: 'solid', tag: 'background: #FBE9E1; color: #7A2810' },
+      att: { bg: '#E6F4F0', border: '#93CBBB', title: '#0A4F46', sub: '#24645A', dash: 'solid', tag: 'background: #DFF1EC; color: #0A4F46' },
+      eval: { bg: '#FFFFFF', border: '#8A8984', title: '#3A3935', sub: '#5E5D58', dash: 'dashed', tag: 'background: #ECEBE7; color: #3A3935' }
+    };
+    const cur = this.state.sel;
+    const card = (s) => {
+      const l = look[s.cat];
+      const selected = s.id === cur;
+      return {
+        ...s,
+        pressed: selected ? 'true' : 'false',
+        pick: () => this.setState({ sel: s.id }),
+        cardStyle: 'font: inherit; text-align: left; display: flex; flex-direction: column; gap: 4px; width: 162px; min-height: 64px; padding: 12px 14px; border-radius: 10px; cursor: pointer; background: ' + l.bg + '; border: 1px ' + l.dash + ' ' + l.border + ';' + (selected ? ' outline: 2px solid #1B1B1F; outline-offset: 2px;' : ''),
+        titleStyle: 'font-size: 15px; font-weight: 600; color: ' + l.title,
+        subStyle: 'font-size: 13px; color: ' + l.sub
+      };
+    };
+    const stages = data.map((s, i) => ({ ...card(s), arrow: i < data.length - 1 }));
+    const evalStage = card(evalData);
+    const all = data.concat([evalData]);
+    const s = all.find((x) => x.id === cur) || all[0];
+    const sel = {
+      ...s,
+      hasNote: !!s.note,
+      tagStyle: 'align-self: flex-start; padding: 3px 10px; border-radius: 6px; font-size: 12px; letter-spacing: 0.03em; ' + look[s.cat].tag
+    };
+    return { stages, evalStage, sel };
+  }
+}
+</script>
+</body>
+</html>

@@ -1,3 +1,10 @@
+---
+id: EXP-0003
+question: "Effet d'un nombre de locuteurs parfait sur la baseline MFCC"
+verdict: informatif
+decisions: [D19]
+---
+
 # EXP-0003 — baseline MFCC, nombre de locuteurs oracle par fichier, AMI SDM (dev et test)
 
 ## Observations factuelles

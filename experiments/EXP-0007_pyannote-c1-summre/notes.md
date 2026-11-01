@@ -1,3 +1,10 @@
+---
+id: EXP-0007
+question: "Niveau de pyannote community-1 en français (SUMM-RE)"
+verdict: reference
+decisions: [D20]
+---
+
 # EXP-0007 — pyannote community-1, SUMM-RE (dev et test)
 
 ## Observations factuelles

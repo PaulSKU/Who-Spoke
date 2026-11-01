@@ -1,3 +1,10 @@
+---
+id: EXP-0006
+question: "Part de l'erreur due à la représentation MFCC, détection et nombre de locuteurs parfaits"
+verdict: informatif
+decisions: [D8, D19, D22]
+---
+
 # EXP-0006 — baseline MFCC, détection de parole oracle et nombre de locuteurs oracle, AMI SDM (dev et test)
 
 ## Observations factuelles

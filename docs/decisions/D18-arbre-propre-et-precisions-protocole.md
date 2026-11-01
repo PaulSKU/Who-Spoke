@@ -42,6 +42,8 @@ Les modifications portent sur `methode.md` §4.2 et §6, ainsi que sur `protocol
 
 ## Amendement du 28/10/2026 (après EXP-0005)
 
+Statut : actée
+
 **Exécutions d'une même expérience sur des commits différents.** C'est le cas d'EXP-0005 : exécution MPS au commit 3abe688, mesure CPU au commit e4701ba, des résultats d'autres expériences ayant été commités entre les deux. La requalification est admise si trois conditions sont réunies, et elle est alors consignée :
 
 1. chaque exécution est propre au sens de D18 ;
@@ -51,6 +53,14 @@ Les modifications portent sur `methode.md` §4.2 et §6, ainsi que sur `protocol
 Le bloc `requalification` consigne alors, en plus des champs prévus, la liste des commits et le résultat de la vérification du `git diff` (`"diff_chemins_controles": "vide"`). Si l'une des conditions n'est pas remplie, l'expérience est refaite sous un nouveau numéro.
 
 Vérification faite par le cockpit le 28/10/2026 pour EXP-0005 : les deux exécutions sont propres, le `git diff --stat 3abe688 e4701ba` sur les chemins contrôlés est vide, et `config_sha256` est identique (0e3666c06f5d…).
+
+## Amendement du 01/11/2026 — révisions des modèles
+
+Statut : actée
+
+**Constat.** Le moteur pyannote charge `pyannote/speaker-diarization-community-1` sans révision : il suit la branche `main` du dépôt Hugging Face, et la révision utilisée n'est consignée ni dans `config.yaml` ni dans `configuration_effective`. La baseline WeSpeaker et ECAPA, elles, ont une révision figée. Une mise à jour en amont changerait donc le moteur de démonstration et rendrait EXP-0001 et EXP-0007 non reproductibles à l'identique.
+
+**Règle.** Tout modèle chargé par un moteur est figé à un commit précis du dépôt Hugging Face. Ce commit est inscrit dans le code ou la configuration, et consigné dans `configuration_effective`. Pour pyannote community-1, le commit retenu est celui du cache local déjà utilisé par la baseline WeSpeaker (`3533c8c…`), à condition de vérifier que c'est le seul instantané présent dans le cache. Si c'est le cas, EXP-0001 et EXP-0007 ont été obtenues avec ce commit, ce qui est probable mais non démontré, et leur `notes.md` le mentionne. Les résultats existants ne sont pas modifiés.
 
 ## Liens
 

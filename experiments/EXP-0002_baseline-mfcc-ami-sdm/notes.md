@@ -1,3 +1,10 @@
+---
+id: EXP-0002
+question: "Niveau de la baseline MFCC sur AMI SDM"
+verdict: reference
+decisions: [D8, D19]
+---
+
 # EXP-0002 — baseline MFCC (D19), AMI SDM (dev et test)
 
 ## Observations factuelles

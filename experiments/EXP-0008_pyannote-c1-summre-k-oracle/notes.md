@@ -1,3 +1,10 @@
+---
+id: EXP-0008
+question: "Gain possible d'une meilleure estimation du nombre de locuteurs pour pyannote, en français"
+verdict: informatif
+decisions: [D9, D20]
+---
+
 # EXP-0008 — pyannote community-1, nombre de locuteurs oracle par fichier, SUMM-RE (dev et test)
 
 ## Observations factuelles

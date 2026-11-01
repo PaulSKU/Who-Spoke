@@ -1,6 +1,6 @@
 # Glossaire
 
-Concepts et vocabulaire du projet, au format de `docs/methode.md` §4.6, triés alphabétiquement. Version 1.0 du 27 octobre 2026 (séance de compréhension de la chaîne, cockpit).
+Concepts et vocabulaire du projet, au format de `docs/methode.md` §4.6, triés alphabétiquement. La ligne facultative « Formes courtes » liste les autres formes du terme reconnues par l'onglet Glossaire de l'interface (D26). Version 1.0 du 27 octobre 2026 (séance de compréhension de la chaîne, cockpit).
 
 **Légende de confiance.** **[certain]** : vérifié. **[probable]** : non revérifié. **[incertain]** : à vérifier.
 
@@ -11,6 +11,7 @@ Un système de diarisation suit six étapes : normaliser l'audio, détecter la p
 ---
 
 ### Appariement optimal (*optimal mapping*)
+Formes courtes : appariement.
 Définition : avant le calcul du DER, association des étiquettes arbitraires du système (`SPEAKER_00`…) aux locuteurs de la référence, choisie pour minimiser l'erreur.
 Rôle dans la chaîne : étape de l'évaluation, pas du système.
 Effet sur les métriques : le système n'a pas à trouver les noms, seulement à grouper correctement.
@@ -29,6 +30,7 @@ Effet sur les métriques : hausse de la parole manquée. Sur AMI, pyannote 2.1 p
 Source : fiche du modèle pyannote/speaker-diarization (version 2.1).
 
 ### Chevauchement (*overlapped speech*)
+Formes courtes : chevauchements.
 Définition : intervalle où au moins deux personnes parlent en même temps.
 Rôle dans la chaîne : doit être repéré par la segmentation ; les systèmes classiques l'ignorent.
 Effet sur les métriques : chaque locuteur compte séparément. Ne détecter qu'une personne sur deux coûte de la parole manquée. AMI contient environ 13,6 % de chevauchement **[probable]**.
@@ -41,6 +43,7 @@ Effet sur les métriques : il efface les erreurs de frontière. Sur V5, il retir
 Source : `docs/protocole-eval.md` §3.1.
 
 ### Confusion de locuteur (*speaker confusion*)
+Formes courtes : confusion.
 Définition : parole attribuée au mauvais locuteur, après appariement optimal.
 Rôle dans la chaîne : naît des empreintes vocales et du regroupement.
 Effet sur les métriques : un des trois composants du DER (4,3 points sur V5).
@@ -59,6 +62,7 @@ Effet sur les métriques : pondéré par le temps. Un locuteur qui parle peu pè
 Source : `docs/protocole-eval.md` §3.1.
 
 ### Détection d'activité vocale (VAD, *voice activity detection*)
+Formes courtes : détection de parole, détection d'activité vocale.
 Définition : décision, trame par trame, entre parole et non-parole.
 Rôle dans la chaîne : première étape de traitement. Baseline : seuil d'énergie ; pyannote : réseau de neurones.
 Effet sur les métriques : source principale de la parole manquée (parole jugée silence) et de la fausse alarme (bruit jugé parole).
@@ -71,12 +75,14 @@ Effet sur les métriques : mesurée par le DER et le JER.
 Source : sujet de la piscine.
 
 ### Empreinte vocale (*speaker embedding*)
+Formes courtes : empreinte, empreintes, empreintes vocales, embedding, embeddings.
 Définition : vecteur de quelques centaines de nombres résumant les caractéristiques d'une voix sur un segment ; deux segments d'une même voix donnent des vecteurs proches. Exemples : x-vector, ECAPA-TDNN.
 Rôle dans la chaîne : représentation sur laquelle opère le regroupement.
 Effet sur les métriques : sa qualité détermine la confusion.
 Source : `docs/cadrage.md` D8.
 
 ### Estimation du nombre de locuteurs
+Formes courtes : nombre de locuteurs.
 Définition : nombre de groupes retenu par le regroupement, quand on ne l'impose pas.
 Rôle dans la chaîne : sortie du regroupement, réglée par un seuil.
 Effet sur les métriques : une sous-estimation fusionne des personnes, une surestimation en scinde une. Mesurée par l'erreur absolue moyenne et le taux exact (§3.4).
@@ -89,6 +95,7 @@ Effet sur les métriques : un des trois composants du DER (4,5 points sur V5).
 Source : `docs/protocole-eval.md` §3.1.
 
 ### Hybride (système)
+Formes courtes : système hybride.
 Définition : système qui combine un réseau de neurones local (segmentation sur des fenêtres de quelques secondes) et un regroupement classique à l'échelle de l'enregistrement. C'est le cas de pyannote.
 Rôle dans la chaîne : gère le chevauchement localement, et le nombre de locuteurs globalement, sans maximum fixé.
 Effet sur les métriques : il évite la limite de locuteurs des systèmes de bout en bout.

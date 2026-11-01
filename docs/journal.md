@@ -302,3 +302,43 @@ Résultats : pyannote recouvre 84 % des pauses de 1 s au plus d'un même locuteu
 Décisions : convention de référence inchangée (200 ms), conformément à D21 §2 ; écarts de la session acceptés (conforme dans temps_cpu, détail de la catégorie (c), répartition à parts égales de la parole manquée en chevauchement partiel).
 Problèmes : aucun.
 Suite : empreintes neuronales (D8, fiche D22).
+
+## 2026-11-01 — Veille sur les modèles récents et file d'attente des moteurs (cockpit)
+
+Objectif : consigner la veille sur Nemotron 3.5 Transcribe, Voxtral Mini Transcribe 3 et Nemotron 3 Diarization, et organiser leur test.
+Réalisé : `docs/recherche/veille-2026-11-01-modeles-recents.md` ; fiche D23 (actée) ; planning en version 1.1 (file d'attente, coupes révisées).
+Résultats : la diarisation de Nemotron 3.5 est exploitable sans sa transcription (champ `diarization`), mais le modèle entier doit tourner sur un GPU de 80 Go. Voxtral Mini Transcribe 3 a des poids fermés (API). Nemotron 3 Diarization (100 M de paramètres, 8 locuteurs, poids ouverts) est le seul des trois utilisable en local.
+Décisions : D23 — tous les moteurs sont testés, l'un après l'autre, selon une file d'attente ; les moteurs cloud ou sur GPU loué sont des comparaisons, jamais le moteur de démonstration ; le corpus maison n'est jamais envoyé hors de la machine.
+Problèmes : les publications sur X ne sont pas lisibles automatiquement ; les informations sur Voxtral viennent d'une source secondaire, à confirmer.
+Suite : interprétation d'EXP-0013 à EXP-0015 ; prompt du rang 1 (NeMo Sortformer v2). Rangs 6 et 7 en attente d'une décision de la candidate (clé d'API et coût ; location d'un GPU).
+
+## 2026-11-01 — Prototype de l'onglet Analyse : arbitrages (cockpit)
+
+Objectif : trancher les points ouverts du rapport de la session interface.
+Réalisé : amendement 1 de D17 (proposé).
+Résultats : onglet Analyse fonctionnel avec le moteur factice ; contrôle réseau limité à 127.0.0.1 ; 162 tests réussis hors tests qui chargent des modèles.
+Décisions : voir l'amendement 1 de D17, en attente de validation par la candidate.
+Problèmes : vrais moteurs non essayés ; accès éventuel à Hugging Face au chargement des modèles.
+Suite : fusion après le lot WeSpeaker, suite de tests complète, essai avec les vrais moteurs, puis rang 1 de D23.
+
+## 2026-11-01 — Pages supplémentaires de l'interface (cockpit)
+
+Objectif : planifier les pages Pipeline et Avancement, et les fonctionnalités retenues par la candidate.
+Réalisé : fiche D26 (actée) ; maquette de la page Pipeline versionnée dans `docs/maquettes/`.
+Décisions : D26 — onglets Pipeline, Avancement et Glossaire ; carte des erreurs et comparaison de deux moteurs dans l'onglet Analyse ; en-tête YAML dans chaque `notes.md` ; ni enregistrement au micro, ni modification de réglage depuis l'interface. Les numéros D24 et D25 restent réservés à la robustesse et au faux chevauchement (D23).
+Suite : chantiers I1 à I5 dans la branche `interface`, puis vérification V après le lot WeSpeaker ; en-têtes des `notes.md` existants à l'interprétation du lot.
+
+## 2026-11-01 — Retour du chantier I0 (cockpit)
+
+Objectif : interpréter le rapport sur le préchargement, ECAPA et la palette.
+Réalisé : amendement de D18 (révisions des modèles) ; paragraphe « Couleurs » dans D26.
+Résultats : préchargement et lecture d'ECAPA dans le cache faits et testés sans réseau. La palette ne distingue par la seule couleur que 3 locuteurs en deutéranopie. Le moteur pyannote charge community-1 sans révision figée, et la révision n'est pas consignée dans les expériences.
+Décisions : forme d'onde neutre (D26) ; tout modèle figé à un commit et consigné dans `configuration_effective` (D18, amendement du 01/11).
+Suite : figer pyannote au chantier V, après le lot ; neutralisation de la forme d'onde en début d'I1.
+
+## 2026-11-01 — Bilan de la branche interface, chantiers I1 à I5 (cockpit)
+
+Objectif : trancher les points ouverts du récapitulatif de la branche `interface`.
+Réalisé : en-têtes YAML ajoutés aux 16 `notes.md` (15 expériences, A-0001) ; méthode §4.2 mise à jour ; lignes « Statut » ajoutées aux amendements de D18, D19, D20 et D22 ; « Formes courtes » ajoutées à 7 entrées du glossaire ; amendement de D26.
+Décisions : voir l'amendement du 01/11 de D26.
+Suite : petit chantier I6 dans `interface` (formes courtes, mention « sans collar ») ; chantier V à la fin d'EXP-0015.

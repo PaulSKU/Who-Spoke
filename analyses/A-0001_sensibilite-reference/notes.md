@@ -1,3 +1,10 @@
+---
+id: A-0001
+question: "Sensibilité de l'erreur sur SUMM-RE à la convention de construction de la référence"
+verdict: informatif
+decisions: [D21]
+---
+
 # A-0001 — sensibilité de la référence de SUMM-RE
 
 ## Observations factuelles

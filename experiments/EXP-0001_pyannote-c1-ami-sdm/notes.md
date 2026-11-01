@@ -1,3 +1,10 @@
+---
+id: EXP-0001
+question: "Reproduire le score publié de pyannote community-1 sur AMI SDM"
+verdict: reference
+decisions: [D9, D18]
+---
+
 # EXP-0001 — pyannote community-1 par défaut, AMI SDM (dev et test)
 
 ## Observations factuelles

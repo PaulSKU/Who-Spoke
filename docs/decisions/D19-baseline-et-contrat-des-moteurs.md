@@ -66,6 +66,8 @@ Fichiers concernés : `src/whospoke/pipelines/base.py`, `baseline.py` et `catalo
 
 ## Amendements du 28/10/2026 (après EXP-0002)
 
+Statut : actée
+
 1. **Filtres mel.** 40 filtres (`n_mels` = 40). Avec des trames de 25 ms, la valeur par défaut de librosa (128) laisse des filtres vides ; 40 est une valeur usuelle en traitement de la parole **[probable]**.
 2. **Fenêtres bornées à leur région de parole**, et statistiques calculées sur les seules trames de parole. Sinon, les fenêtres de bord débordent sur le silence ou sur la région suivante et forment des groupes parasites (constaté sur signal synthétique).
 3. **Temps CPU d'un moteur exécuté en CPU.** `temps_cpu` est tiré de l'exécution principale, restreinte aux fichiers de `temps.txt`.
