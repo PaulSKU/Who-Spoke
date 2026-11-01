@@ -1,0 +1,42 @@
+/* Visualiseur de l'onglet « Analyse » (D17) ; portée limitée au composant par Gradio. */
+.wsp-root {
+  --wsp-text: var(--body-text-color);
+  --wsp-muted: var(--body-text-color-subdued);
+  --wsp-line: var(--border-color-primary);
+  --wsp-label-w: 150px;
+  color: var(--wsp-text);
+}
+.wsp-empty .wsp-body { display: none; }
+.wsp-placeholder { display: none; color: var(--wsp-muted); padding: 24px 0; text-align: center; }
+.wsp-empty .wsp-placeholder { display: block; }
+.wsp-toolbar { display: flex; align-items: center; gap: 12px; margin-bottom: 8px; flex-wrap: wrap; }
+.wsp-play {
+  border: 1px solid var(--wsp-line); border-radius: 6px; padding: 4px 14px;
+  background: var(--button-secondary-background-fill); color: var(--wsp-text); cursor: pointer;
+}
+.wsp-time { font-variant-numeric: tabular-nums; }
+.wsp-hint { color: var(--wsp-muted); font-size: 0.9em; }
+.wsp-wave { margin-left: var(--wsp-label-w); }
+.wsp-lanes-wrap { position: relative; margin-top: 6px; }
+.wsp-lane { display: flex; align-items: center; height: 24px; }
+.wsp-label {
+  width: var(--wsp-label-w); flex: none; overflow: hidden; text-overflow: ellipsis;
+  white-space: nowrap; font-size: 0.9em; padding-right: 8px; box-sizing: border-box;
+}
+.wsp-swatch {
+  display: inline-block; width: 10px; height: 10px; border-radius: 2px;
+  margin-right: 6px; vertical-align: -1px;
+}
+.wsp-track { position: relative; flex: 1; height: 16px; border-bottom: 1px solid var(--wsp-line); }
+.wsp-seg {
+  position: absolute; top: 2px; height: 12px; min-width: 2px; padding: 0; border: none;
+  border-radius: 2px; cursor: pointer; box-shadow: 0 0 0 1px var(--background-fill-primary);
+}
+.wsp-seg:hover { top: 0; height: 16px; outline: 2px solid var(--wsp-text); outline-offset: 0; }
+.wsp-overlay {
+  position: absolute; top: 0; bottom: 0; left: var(--wsp-label-w); right: 0; pointer-events: none;
+}
+.wsp-playhead { position: absolute; top: 0; bottom: 0; width: 2px; background: var(--wsp-text); left: 0; }
+.wsp-axis { position: relative; height: 18px; margin-left: var(--wsp-label-w); color: var(--wsp-muted); font-size: 0.8em; }
+.wsp-tick { position: absolute; top: 2px; transform: translateX(-50%); font-variant-numeric: tabular-nums; }
+.wsp-tick:first-child { transform: none; }
