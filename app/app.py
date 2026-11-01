@@ -41,7 +41,8 @@ from html import escape
 import gradio as gr
 
 from app import avancement, glossaire, moteurs, pipeline, sortie, temps, theme
-from app.cache import ResultCache, annotation_from_tracks, annotation_tracks, audio_fingerprint, code_version, result_key
+from app.cache import (ResultCache, annotation_from_tracks, annotation_tracks, audio_fingerprint, code_version,
+                       engine_code_fingerprint, result_key)
 from whospoke.audio import AudioError, load_waveform, normalize
 from whospoke.device import select_device
 from whospoke.experiment import REPO_ROOT
@@ -730,6 +731,7 @@ def build_app(fake: bool = False, fake_max_s: float = 20.0, repo_root: Path = RE
     engines = EngineCache(fake, fake_max_s, experiments)
     store = ResultCache(cache_dir)
     code = code_version(REPO_ROOT)   # consigné dans le cache, hors de la clé
+    engine_code = engine_code_fingerprint(REPO_ROOT)   # dans la clé du cache
     availability = _availability(fake, experiments)
     choices = [
         (spec.label + ("" if availability[key] is None else " (indisponible)"), key)
@@ -824,7 +826,7 @@ def build_app(fake: bool = False, fake_max_s: float = 20.0, repo_root: Path = RE
                     "parametres": moteurs.engine_params(spec, experiments)}
         return result_key(prepared["empreinte"], spec.key, fake, settings,
                           moteurs.effective_configuration(spec, experiments),
-                          moteurs.model_revisions(spec, experiments))
+                          moteurs.model_revisions(spec, experiments), engine_code)
 
     def prepare(audio_path: str) -> dict:
         """Audio normalisé (D15, D16) dans le dossier de travail, durée et empreinte."""

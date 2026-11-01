@@ -26,7 +26,7 @@ REVISIONS = {"pyannote/speaker-diarization-community-1": "3533c8cf8e369892e6b79f
 
 def test_cle_sensible_a_chaque_composante():
     base = dict(fingerprint="a" * 64, engine="pyannote-community-1", fake=False, settings=SETTINGS,
-                configuration=CONFIGURATION, revisions=REVISIONS)
+                configuration=CONFIGURATION, revisions=REVISIONS, engine_code="e" * 64)
     key = cache.result_key(**base)
     assert len(key) == 64 and key == cache.result_key(**base)
     # Ordre des clés des réglages sans effet ; toute composante changée donne une autre clé.
@@ -36,8 +36,60 @@ def test_cle_sensible_a_chaque_composante():
                 dict(base, settings=dict(SETTINGS, parametres={"theta": 0.6})),
                 dict(base, settings=dict(SETTINGS, nombre_locuteurs={"mode": "impose", "valeur": 3})),
                 dict(base, configuration={"regroupement": [{"nom": "theta", "valeur": 0.6}]}),
-                dict(base, revisions={"pyannote/speaker-diarization-community-1": "0" * 40}), dict(base, revisions={})]
+                dict(base, revisions={"pyannote/speaker-diarization-community-1": "0" * 40}), dict(base, revisions={}),
+                dict(base, engine_code="f" * 64)]
     assert len({cache.result_key(**v) for v in variants} | {key}) == len(variants) + 1
+
+
+def _depot(root):
+    (root / "src" / "whospoke" / "pipelines" / "__pycache__").mkdir(parents=True)
+    (root / "src" / "whospoke" / "__init__.py").write_text("")
+    (root / "src" / "whospoke" / "pipelines" / "baseline.py").write_text("THETA = 0.5\n")
+    (root / "src" / "whospoke" / "pipelines" / "catalogue.yaml").write_text("etapes: {}\n")
+    (root / "app").mkdir()
+    (root / "app" / "moteurs.py").write_text("SPECS = {}\n")
+    (root / "app" / "app.py").write_text("# interface\n")
+    (root / "docs").mkdir()
+    (root / "docs" / "journal.md").write_text("# Journal\n")
+    return root
+
+
+def test_empreinte_du_code_des_moteurs(tmp_path):
+    """Décision du cockpit du 01/11 : un changement du code des moteurs (src/whospoke/,
+    app/moteurs.py) invalide le cache ; un document, l'interface ou un cache Python non."""
+    root = _depot(tmp_path)
+    reference = cache.engine_code_fingerprint(root)
+    assert len(reference) == 64 and cache.engine_code_fingerprint(root) == reference
+    # Sans effet : documents, reste de l'interface, caches Python.
+    (root / "docs" / "journal.md").write_text("# Journal\n\nNouvelle entrée.\n")
+    (root / "app" / "app.py").write_text("# interface modifiée\n")
+    (root / "src" / "whospoke" / "pipelines" / "__pycache__" / "baseline.cpython-311.pyc").write_bytes(b"\0")
+    (root / "src" / "whospoke" / "pipelines" / "ancien.pyc").write_bytes(b"\0")
+    assert cache.engine_code_fingerprint(root) == reference
+    # Avec effet : fichier du paquet modifié, ajouté ou supprimé, et app/moteurs.py.
+    changes = [
+        lambda: (root / "src" / "whospoke" / "pipelines" / "baseline.py").write_text("THETA = 0.6\n"),
+        lambda: (root / "src" / "whospoke" / "nouveau.py").write_text(""),
+        lambda: (root / "src" / "whospoke" / "pipelines" / "catalogue.yaml").unlink(),
+        lambda: (root / "app" / "moteurs.py").write_text("SPECS = {'x': 1}\n"),
+    ]
+    seen = {reference}
+    for change in changes:
+        change()
+        fingerprint = cache.engine_code_fingerprint(root)
+        assert fingerprint not in seen
+        seen.add(fingerprint)
+    # Un déplacement de contenu d'un fichier à l'autre change aussi l'empreinte.
+    a, b = _depot(tmp_path / "a"), _depot(tmp_path / "b")
+    (a / "src" / "whospoke" / "x.py").write_text("ab")
+    (b / "src" / "whospoke" / "x.py").write_text("a")
+    (b / "src" / "whospoke" / "y.py").write_text("b")
+    assert cache.engine_code_fingerprint(a) != cache.engine_code_fingerprint(b)
+
+
+def test_empreinte_du_code_du_depot():
+    assert cache.ENGINE_CODE == ("src/whospoke", "app/moteurs.py")
+    assert len(cache.engine_code_fingerprint(REPO_ROOT)) == 64
 
 
 def test_le_commit_n_entre_pas_dans_la_cle():
@@ -62,7 +114,7 @@ def test_pistes_avec_chevauchement_restituees_a_l_identique():
 def test_enregistrer_lire_vider(tmp_path):
     store = cache.ResultCache(tmp_path / "resultats")
     assert store.stats() == (0, 0) and store.get("0" * 64) is None and store.clear() == 0
-    key = cache.result_key("a" * 64, "baseline-mfcc", True, SETTINGS, CONFIGURATION, {})
+    key = cache.result_key("a" * 64, "baseline-mfcc", True, SETTINGS, CONFIGURATION, {}, "e" * 64)
     path = store.put(key, {"pistes": [[0.0, 1.0, "0", "S0"]], "calcul_s": 1.5})
     assert path.parent == tmp_path / "resultats" and path.name == f"{key}.json"
     entry = store.get(key)

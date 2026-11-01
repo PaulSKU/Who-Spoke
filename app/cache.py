@@ -9,12 +9,13 @@ les mêmes réglages et le même code. La clé est l'empreinte SHA-256 de :
 - les réglages : périphérique, nombre de locuteurs, paramètres repris de l'expérience
   source (θ retenu compris) ;
 - la configuration effective de l'expérience source (`configuration_effective`, celle
-  de la page Pipeline) et les révisions figées des modèles (D18, amendement du 01/11).
+  de la page Pipeline) et les révisions figées des modèles (D18, amendement du 01/11) ;
+- l'empreinte du code des moteurs (`engine_code_fingerprint`) : contenu des fichiers de
+  `src/whospoke/` et de `app/moteurs.py`.
 
-Le commit n'entre plus dans la clé (décision du cockpit du 01/11) : un commit de documents
-ne doit pas invalider le cache. Il est seulement consigné dans l'entrée. Un changement de
-code qui modifierait les résultats sans changer ni la configuration effective ni les
-révisions n'invalide donc pas le cache : le vider dans ce cas.
+Le commit n'entre pas dans la clé (décisions du cockpit du 01/11) : un commit de documents
+ne doit pas invalider le cache, un changement du code des moteurs si. Le commit est
+seulement consigné dans l'entrée.
 
 Le cache est rangé hors du dépôt, dans `~/.cache/whospoke/resultats/` (ou
 `$WHOSPOKE_CACHE_DIR/resultats/`), un fichier JSON par résultat. Il ne contient ni audio
@@ -33,7 +34,7 @@ from pathlib import Path
 
 import numpy as np
 
-FORMAT_VERSION = 2   # 2 : clé sans le commit, avec configuration et révisions
+FORMAT_VERSION = 3   # 3 : clé avec l'empreinte du code des moteurs, sans le commit
 
 
 def default_dir() -> Path:
@@ -58,17 +59,42 @@ def code_version(repo_root: Path) -> str:
     return commit + ("" if tree_is_clean(dirty) else "+modifie")
 
 
+ENGINE_CODE = ("src/whospoke", "app/moteurs.py")   # relatifs à la racine du dépôt
+_IGNORED_PARTS = {"__pycache__", ".DS_Store"}
+
+
+def engine_code_fingerprint(repo_root: Path, paths: tuple[str, ...] = ENGINE_CODE) -> str:
+    """Empreinte SHA-256 du code des moteurs : chemins relatifs et contenu de chaque
+    fichier de `paths` (dossiers parcourus récursivement), dans l'ordre des chemins ;
+    caches Python et fichiers compilés ignorés. Un fichier ajouté, retiré ou modifié
+    change l'empreinte."""
+    digest = hashlib.sha256()
+    files: list[Path] = []
+    for relative in paths:
+        path = repo_root / relative
+        if path.is_dir():
+            files += [f for f in path.rglob("*") if f.is_file() and f.suffix not in (".pyc", ".pyo")
+                      and not _IGNORED_PARTS & set(f.relative_to(repo_root).parts)]
+        elif path.is_file():
+            files.append(path)
+    for file in sorted(files, key=lambda f: f.relative_to(repo_root).as_posix()):
+        name = file.relative_to(repo_root).as_posix().encode()
+        content = file.read_bytes()
+        digest.update(len(name).to_bytes(4, "big") + name + len(content).to_bytes(8, "big") + content)
+    return digest.hexdigest()
+
+
 def audio_fingerprint(samples: np.ndarray) -> str:
     """Empreinte SHA-256 des échantillons de l'audio normalisé."""
     return hashlib.sha256(np.ascontiguousarray(samples).tobytes()).hexdigest()
 
 
 def result_key(fingerprint: str, engine: str, fake: bool, settings: dict, configuration: dict,
-               revisions: dict) -> str:
-    """Clé d'un résultat : empreinte de l'audio, moteur, réglages, configuration effective
-    et révisions des modèles."""
+               revisions: dict, engine_code: str) -> str:
+    """Clé d'un résultat : empreinte de l'audio, moteur, réglages, configuration effective,
+    révisions des modèles et empreinte du code des moteurs."""
     parts = {"audio": fingerprint, "moteur": engine, "factice": fake, "reglages": settings,
-             "configuration": configuration, "revisions": revisions}
+             "configuration": configuration, "revisions": revisions, "code_moteurs": engine_code}
     canonical = json.dumps(parts, sort_keys=True, ensure_ascii=False, default=str)
     return hashlib.sha256(canonical.encode()).hexdigest()
 
