@@ -111,7 +111,7 @@ Limites. Les libellés des composants Gradio (« Moteur », « Nombre de locuteu
 |---|---|
 | Normalisation de tout audio déposé en WAV 16 kHz mono (D15, D16) | `whospoke.audio.normalize`, dans un dossier de travail temporaire hors du dépôt |
 | Moteurs et expérience source de chaque moteur (paramètres, θ retenu, RTF) : EXP-0009 (MFCC), EXP-0012 (ECAPA), EXP-0007 (pyannote), EXP-0015 (WeSpeaker, indisponible tant qu'elle n'existe pas ou n'a pas tourné) ; `configs/demo.yaml` au gel | `app/moteurs.py` |
-| Temps restant estimé à partir du RTF mesuré (`results/leaderboard.csv`) : colonne du périphérique choisi (`rtf_cpu` en CPU, `rtf` sur le périphérique de l'expérience), plus grande valeur entre dev et test. Affichage seulement, pas une mesure au sens de D21 | `app/temps.py` |
+| Temps restant estimé par surcoût fixe du moteur + RTF × durée. RTF mesuré (`results/leaderboard.csv`) : colonne du périphérique choisi (`rtf_cpu` en CPU, `rtf` sur le périphérique de l'expérience), plus grande valeur entre dev et test. Surcoût fixe du premier appel après chargement, daté, par moteur et périphérique (`moteurs.FIXED_OVERHEAD`, `scripts/measure_overhead.py`) ; le panneau cite les deux. Affichage seulement, pas une mesure au sens de D21 | `app/temps.py`, `app/moteurs.py` |
 | Statistiques par locuteur, renommage, exports RTTM et JSON, DER face à une référence (deux conditions de collar, sur toute la durée du fichier, référence coupée à cette durée ; mention « durée entière du fichier, sans UEM : non comparable aux résultats sur corpus ») | `app/sortie.py`, `app/app.py` |
 | Forme d'onde neutre (D26) : seul le segment sélectionné, dernier cliqué, y est mis en évidence par une bande d'encre et entouré sur sa piste ; timeline par locuteur, écoute d'un segment au clic, zoom (curseur, boutons, Ctrl + molette ; jusqu'à 60 px par seconde) | `app/static/visualiseur.js` et `.css` |
 | Thème (teintes neutres, polices système) et feuille de style | `app/theme.py`, `app/static/interface.css` |
@@ -181,4 +181,34 @@ Branche `interface` fusionnée dans `main` ; `uv run pytest` complet : 258 réus
 | Modèle absent du cache | Cache d'ECAPA, puis de community-1, renommés temporairement : dans les deux cas, message « Modèle de … absent du cache local … uv run python scripts/prefetch_models.py » ; pyannote lève bien une erreur reconnue (l'incertitude est levée). Caches restaurés, préchargement revérifié hors ligne |
 | Zoom maximal, réunion de 26 min 48 s, avec référence | 3 181 segments dont 1 678 zones d'erreur ; largeur 96 465 px (60 px/s), 4 canevas seulement (rendu paresseux de wavesurfer) ; passage au zoom maximal en 66 ms ; défilement de bout en bout en 120 pas : 11,4 ms par image en médiane, 16,7 ms au 95e centile, 42,7 ms au plus ; lecture avec suivi : 12,6 ms en médiane, 18,7 ms au 95e centile ; tas JavaScript stable autour de 28 Mo ; pistes et forme d'onde restent alignées |
 
-Points relevés pendant la vérification : après une erreur (modèle absent), le panneau d'avancement reste sur l'étape en cours au lieu d'indiquer l'échec ; l'erreur s'affiche dans une notification.
+Points relevés pendant la vérification : après une erreur (modèle absent), le panneau d'avancement reste sur l'étape en cours au lieu d'indiquer l'échec ; l'erreur s'affiche dans une notification. Corrigé le même jour : le panneau passe à l'état « échec » sur l'étape en cause, avec le message dans le panneau (voir ci-dessous).
+
+## Temps restant avec surcoût fixe, et panneau après erreur (01/11/2026)
+
+Surcoût fixe mesuré par `scripts/measure_overhead.py mesure` : 3 processus neufs par moteur, chacun charge le moteur comme l'application puis traite 60 s de `summre__004c_PAPH` (dev, à partir de 600 s) ; surcoût = premier appel − RTF × 60 s. Sur secteur, charge moyenne de la machine de 2,7 à 3,8 (8,8 au plus pendant pyannote en CPU).
+
+| Moteur (périphérique) | RTF (source) | Premiers appels (s) | Second appel (s) | Surcoût retenu |
+|---|---|---|---|---|
+| Baseline MFCC (CPU) | 0,0009 (EXP-0009) | 1,86 ; 1,40 ; 1,40 | 0,02 à 0,03 | 1,5 s |
+| Baseline ECAPA (CPU) | 0,0163 (EXP-0012) | 2,71 ; 2,03 ; 2,09 | 1,07 à 1,49 | 1,3 s |
+| Baseline WeSpeaker (CPU) | 0,0194 (EXP-0015) | 2,84 ; 3,18 ; 2,28 | 1,26 à 1,54 | 1,6 s |
+| pyannote community-1 (MPS) | 0,0512 (EXP-0007) | 4,28 ; 3,95 ; 4,24 | 2,64 à 2,97 | 1,1 s |
+| pyannote community-1 (CPU) | 0,783 (EXP-0007) | 49,65 ; 56,75 ; 54,31 | 49,84 à 67,16 | 6,6 s (2,7 à 9,8 selon le lancement) |
+
+Vérification (`scripts/measure_overhead.py verification`) : un processus neuf par moteur et par fichier, premier appel après chargement, charge moyenne de 5,8 à 9,3 (application Claude et indexation de macOS actives).
+
+| Fichier | Moteur (périphérique) | Annoncé sans surcoût | Annoncé | Réel | Écart (avant → après) |
+|---|---|---|---|---|---|
+| Extrait de 3 min (mp3 stéréo 44,1 kHz normalisé) | MFCC (CPU) | 0,2 s | 1,7 s | 2,2 s | −93 % → −24 % |
+| | ECAPA (CPU) | 2,9 s | 4,2 s | 4,7 s | −38 % → −11 % |
+| | WeSpeaker (CPU) | 3,5 s | 5,1 s | 8,0 s | −56 % → −36 % |
+| | pyannote (MPS) | 9,2 s | 10,3 s | 11,8 s | −22 % → −13 % |
+| | pyannote (CPU) | 140,9 s | 147,5 s | 156,6 s | −10 % → −6 % |
+| Réunion de 26 min 48 s (`summre__036c_EAPH`) | MFCC (CPU) | 1,4 s | 2,9 s | 3,6 s | −60 % → −18 % |
+| | ECAPA (CPU) | 26,2 s | 27,5 s | 28,9 s | −9 % → −5 % |
+| | WeSpeaker (CPU) | 31,2 s | 32,8 s | 36,3 s | −14 % → −10 % |
+| | pyannote (MPS) | 82,3 s | 83,4 s | 101,6 s | −19 % → −18 % |
+
+L'annonce reste inférieure au réel dans tous les cas. Sur la réunion, l'écart de pyannote ne vient pas d'un coût fixe : le RTF obtenu est 0,0632, contre 0,0512 dans EXP-0007 (29/10). L'exécution de contrôle de D27 (même code, mêmes versions) donne aussi 0,059 sur deux réunions de dev, avec des RTTM identiques à l'octet à ceux d'EXP-0007 : le calcul est le même, la machine est plus lente ce jour-là. pyannote en CPU sur la réunion n'a pas été vérifié (environ 25 min de calcul).
+
+Panneau après erreur, vérifié dans le navigateur en mode factice : fichier `.wav` valide sans RTTM source → « Échec : Segmentation locale », normalisation et chargement « terminé », message dans le panneau ; fichier texte nommé `.mp3` → « Échec : Normalisation audio (ffmpeg) » avec le message de ffmpeg. Dans les deux cas la notification de Gradio s'affiche aussi.
