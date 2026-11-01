@@ -104,6 +104,54 @@ def test_describe_parametres_effectifs(pipeline):
     assert "hf_" not in repr(pipeline.describe_dict())
 
 
+def test_deux_sorties_produites(pipeline):
+    """D25 : la sortie évaluée suit le réglage `sortie`, l'autre est rendue à part."""
+    assert pipeline.sortie == "habituelle"
+    result = pipeline.run(synthetic_signal(), SAMPLE_RATE, uri="extrait")
+    assert set(result.autres_sorties) == {"exclusive"}
+    exclusive = result.autres_sorties["exclusive"]
+    assert exclusive.uri == "extrait"
+    # Sortie exclusive : aucun chevauchement entre locuteurs.
+    assert not exclusive.get_overlap()
+    pipeline.sortie = "exclusive"
+    try:
+        swapped = pipeline.run(synthetic_signal(), SAMPLE_RATE, uri="extrait")
+        assert set(swapped.autres_sorties) == {"habituelle"}
+        assert swapped.annotation == exclusive
+        assert swapped.autres_sorties["habituelle"] == result.annotation
+        described = {s.name: s.value for settings in pipeline.describe().values() for s in settings}
+        assert described["sortie.exclusive"] is True
+    finally:
+        pipeline.sortie = "habituelle"
+
+
+def test_sortie_inconnue_refusee():
+    from whospoke.pipelines.pyannote_community1 import PyannoteCommunity1
+
+    with pytest.raises(ValueError, match="Sortie inconnue"):
+        PyannoteCommunity1(device="cpu", sortie="mixte")
+
+
+def test_releve_vbx_et_kmeans(pipeline):
+    """D23 rang A2 : nombre de groupes de VBx et recours au KMeans relevés sans changer
+    le calcul ; le module de regroupement de pyannote est restauré après l'appel."""
+    import pyannote.audio.pipelines.clustering as module
+
+    original = (module.cluster_vbx, module.KMeans)
+    free = pipeline.run(synthetic_signal(), SAMPLE_RATE)
+    assert (module.cluster_vbx, module.KMeans) == original
+    assert set(free.infos) == {"n_locuteurs_vbx", "kmeans", "n_locuteurs_kmeans"}
+    assert free.infos["kmeans"] is False and free.infos["n_locuteurs_kmeans"] is None
+    k_vbx = free.infos["n_locuteurs_vbx"]
+    if k_vbx is None:
+        pytest.skip("VBx non appelé sur le signal synthétique (trop peu d'empreintes)")
+    forced = pipeline.run(synthetic_signal(), SAMPLE_RATE, num_speakers=k_vbx + 1)
+    assert forced.infos["n_locuteurs_vbx"] == k_vbx
+    assert forced.infos["kmeans"] is True
+    assert forced.infos["n_locuteurs_kmeans"] == k_vbx + 1
+    assert (module.cluster_vbx, module.KMeans) == original
+
+
 EXP_0001_RTTM = REPO_ROOT / "experiments" / "EXP-0001_pyannote-c1-ami-sdm" / "rttm" / "ami__ES2004a.rttm"
 
 

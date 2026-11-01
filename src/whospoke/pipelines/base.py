@@ -55,12 +55,17 @@ class Setting:
 @dataclass
 class Resultat:
     """Sortie d'un moteur : annotation, durée par étape (s), trace facultative et
-    informations à consigner dans run.log (par exemple les fenêtres trop courtes, D22)."""
+    informations à consigner dans run.log (par exemple les fenêtres trop courtes, D22).
+
+    `autres_sorties` : sorties produites par la même exécution mais non évaluées, par nom
+    (par exemple la sortie habituelle de pyannote quand la sortie exclusive est évaluée,
+    D25) ; enregistrées à part par le script d'exécution."""
 
     annotation: Annotation
     durees_etapes: dict[str, float] = field(default_factory=dict)
     trace: dict | None = None
     infos: dict = field(default_factory=dict)
+    autres_sorties: dict[str, Annotation] = field(default_factory=dict)
 
 
 def load_catalogue(path: Path = CATALOGUE_PATH) -> dict:

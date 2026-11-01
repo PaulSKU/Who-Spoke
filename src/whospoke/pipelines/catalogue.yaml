@@ -151,9 +151,9 @@ moteurs:
     sortie.exclusive:
       libelle: Sortie exclusive
       etape: sortie
-      effet: "Version sans chevauchement (un seul locuteur à la fois) ; l'utiliser ferait perdre la parole superposée."
-      composantes: [parole manquée]
-      decision: D1
+      effet: "Version sans chevauchement (un seul locuteur à la fois) : supprime le faux chevauchement, mais fait perdre la parole superposée. Les deux sorties sont produites ; ce réglage désigne celle qui est évaluée."
+      composantes: [parole manquée, fausse alarme]
+      decision: D1, D25
 
   baseline:
     frame_s:

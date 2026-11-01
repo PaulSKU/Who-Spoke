@@ -7,7 +7,14 @@ Usage :
 
 Mode normal : traite tous les fichiers des jeux de `config.yaml` sur le périphérique
 `device`, écrit un RTTM par fichier dans `rttm/`, le journal `run.log` et les mesures
-`execution_<périphérique>.json`.
+`execution_<périphérique>.json`. Si le moteur produit d'autres sorties que celle qui est
+évaluée (pyannote : sorties habituelle et exclusive, réglage `sortie`, D25), chacune est
+écrite dans `rttm_<nom>/` (par exemple `rttm_habituelle/`) ; seul `rttm/` est évalué.
+
+Nombre de locuteurs avant les bornes (D23, rang A2) : pour pyannote, le nombre de groupes
+retenus par VBx et le recours éventuel au KMeans sont consignés par fichier
+(`n_locuteurs_vbx`, `kmeans`, `n_locuteurs_kmeans` dans `execution_<périphérique>.json`)
+et dans run.log.
 
 Mode `--mesure-cpu` : traite en CPU seul le sous-ensemble de mesure du temps
 (`mesure_cpu.liste`), sans écrire de RTTM, et écrit `execution_cpu.json`. Inutile quand
@@ -251,8 +258,9 @@ def main() -> None:
         sys.exit(f"{output_json.relative_to(REPO_ROOT)} existe déjà : une expérience exécutée est immuable")
     rttm_dir = exp_dir / "rttm"
     if write_rttm:
-        if rttm_dir.exists() and any(rttm_dir.iterdir()):
-            sys.exit(f"{rttm_dir.relative_to(REPO_ROOT)} n'est pas vide : expérience déjà exécutée")
+        for existing in [rttm_dir, *exp_dir.glob("rttm_*")]:
+            if existing.is_dir() and any(existing.iterdir()):
+                sys.exit(f"{existing.relative_to(REPO_ROOT)} n'est pas vide : expérience déjà exécutée")
         rttm_dir.mkdir(parents=True, exist_ok=True)
     trace_dir = exp_dir / "trace"
 
@@ -322,6 +330,11 @@ def main() -> None:
         if write_rttm:
             with (rttm_dir / f"{uri}.rttm").open("w") as handle:
                 annotation.write_rttm(handle)
+            for name, other in result.autres_sorties.items():
+                other_dir = exp_dir / f"rttm_{name}"
+                other_dir.mkdir(exist_ok=True)
+                with (other_dir / f"{uri}.rttm").open("w") as handle:
+                    other.write_rttm(handle)
         if result.trace is not None:
             save_trace(result.trace, trace_dir / uri)
         per_file.append({
@@ -336,9 +349,14 @@ def main() -> None:
             logger.warning("%s : %d fenêtres sur %d trop courtes pour le modèle d'empreintes, "
                            "retirées du regroupement", uri, result.infos["fenetres_trop_courtes"],
                            result.infos["fenetres"] + result.infos["fenetres_trop_courtes"])
-        logger.info("[%d/%d] %s %s : %.1f s d'audio, %.2f s de calcul, RTF %.4f, %d locuteurs%s",
+        clustering = ""
+        if "n_locuteurs_vbx" in result.infos:
+            clustering = f", VBx : {result.infos['n_locuteurs_vbx']}"
+            if result.infos.get("kmeans"):
+                clustering += f", KMeans : {result.infos['n_locuteurs_kmeans']}"
+        logger.info("[%d/%d] %s %s : %.1f s d'audio, %.2f s de calcul, RTF %.4f, %d locuteurs%s%s",
                     index, len(jobs), partition, uri, audio_s, compute_s, compute_s / audio_s, n_hyp,
-                    "" if num_speakers is None else f" (imposé : {num_speakers})")
+                    "" if num_speakers is None else f" (imposé : {num_speakers})", clustering)
 
     last = power.stop()
     power_block = power.block()

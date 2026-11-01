@@ -5,12 +5,22 @@ utilisé. Le nombre de locuteurs est estimé par la pipeline, sauf s'il est impo
 l'appel (`num_speakers`, par fichier) ou à la construction (`num_speakers`,
 `min_speakers`, `max_speakers`, tous à None par défaut). La détection de parole oracle
 n'est pas prise en charge : la détection est faite par le réseau de segmentation.
+
+Sorties (D25) : chaque exécution produit la sortie habituelle (`speaker_diarization`, avec
+chevauchements) et la sortie exclusive (`exclusive_speaker_diarization`, au plus un
+locuteur par trame). Le réglage `sortie` désigne celle qui est évaluée (`annotation` du
+résultat) ; l'autre est rendue dans `autres_sorties`.
+
+Nombre de locuteurs (D23, rang A2) : pour chaque fichier, le nombre de groupes retenus par
+VBx avant l'application des bornes (`n_locuteurs_vbx`) et le recours éventuel au KMeans
+(`kmeans`, `n_locuteurs_kmeans`) sont relevés dans `infos`, sans changer le calcul.
 """
 
 from __future__ import annotations
 
 import os
 import time
+from contextlib import contextmanager
 from pathlib import Path
 
 import torch
@@ -26,6 +36,12 @@ MODEL_ID = "pyannote/speaker-diarization-community-1"
 # sous-modèle (segmentation, empreintes, PLDA), consignée dans describe() en `…@commit`.
 MODEL_REVISION = "3533c8cf8e369892e6b79ff1bf80f7b0286a54ee"
 REPO_ROOT = Path(__file__).resolve().parents[3]
+
+# Sorties de la pipeline (D25) : nom dans la configuration -> attribut de DiarizeOutput.
+SORTIES = {
+    "habituelle": "speaker_diarization",
+    "exclusive": "exclusive_speaker_diarization",
+}
 
 # Étape du contrat atteinte quand pyannote appelle son hook avec un artefact non nul.
 _HOOK_STEPS = {
@@ -44,6 +60,36 @@ def _hf_token() -> str:
     if token is None:
         raise RuntimeError("HF_TOKEN absent ou vide dans .env (modèle à accès restreint)")
     return token
+
+
+@contextmanager
+def _clustering_probe(record: dict):
+    """Relève le nombre de groupes de VBx et le recours au KMeans pendant un appel.
+
+    Remplace temporairement `cluster_vbx` et `KMeans` dans le module de regroupement de
+    pyannote par des enveloppes qui transmettent les arguments et les résultats tels
+    quels : le calcul est inchangé. Le nombre de groupes de VBx est celui que pyannote
+    retient (poids `sp` > 1e-7), avant toute borne sur le nombre de locuteurs.
+    """
+    import pyannote.audio.pipelines.clustering as module
+
+    original_vbx, original_kmeans = module.cluster_vbx, module.KMeans
+
+    def cluster_vbx(*args, **kwargs):
+        q, sp = original_vbx(*args, **kwargs)
+        record["n_locuteurs_vbx"] = int((sp > 1e-7).sum())
+        return q, sp
+
+    def KMeans(*args, **kwargs):  # fabrique, pas une sous-classe (paramètres de scikit-learn)
+        record["kmeans"] = True
+        record["n_locuteurs_kmeans"] = int(kwargs.get("n_clusters", args[0] if args else 8))
+        return original_kmeans(*args, **kwargs)
+
+    module.cluster_vbx, module.KMeans = cluster_vbx, KMeans
+    try:
+        yield record
+    finally:
+        module.cluster_vbx, module.KMeans = original_vbx, original_kmeans
 
 
 def _checkpoint(spec: dict | str) -> str:
@@ -67,10 +113,15 @@ class PyannoteCommunity1(Engine):
         max_speakers: int | None = None,
         speaker_mode: str | None = None,
         trace: bool = False,
+        sortie: str | None = None,
     ) -> None:
         from pyannote.audio import Pipeline
 
         super().__init__(speaker_mode=speaker_mode, trace=trace)
+        if sortie is not None and sortie not in SORTIES:
+            raise ValueError(f"Sortie inconnue : {sortie!r} (attendu : {', '.join(SORTIES)})")
+        self._sortie_imposee = sortie is not None
+        self.sortie = sortie or "habituelle"
         self.device = select_device(device)
         self.num_speakers = num_speakers
         self.min_speakers = min_speakers
@@ -130,24 +181,28 @@ class PyannoteCommunity1(Engine):
             if progress is not None:
                 progress(step, 1.0)
 
-        output = self._pipeline(
-            as_pipeline_input(waveform, sample_rate),
-            num_speakers=num_speakers if num_speakers is not None else self.num_speakers,
-            min_speakers=self.min_speakers,
-            max_speakers=self.max_speakers,
-            hook=hook,
-        )
+        record = {"n_locuteurs_vbx": None, "kmeans": False, "n_locuteurs_kmeans": None}
+        with _clustering_probe(record):
+            output = self._pipeline(
+                as_pipeline_input(waveform, sample_rate),
+                num_speakers=num_speakers if num_speakers is not None else self.num_speakers,
+                min_speakers=self.min_speakers,
+                max_speakers=self.max_speakers,
+                hook=hook,
+            )
         self.synchronize()
-        # pyannote.audio 4 renvoie un DiarizeOutput ; on garde la diarisation avec
-        # chevauchements (et non `exclusive_speaker_diarization`), conformément au
-        # protocole qui compte les chevauchements.
-        annotation = getattr(output, "speaker_diarization", output)
-        if uri is not None:
-            annotation.uri = uri
+        # pyannote.audio 4 renvoie un DiarizeOutput portant les deux sorties (D25) : la
+        # sortie habituelle garde les chevauchements, la sortie exclusive n'en a pas.
+        sorties = {name: getattr(output, attribute) for name, attribute in SORTIES.items()}
+        for annotation in sorties.values():
+            if uri is not None:
+                annotation.uri = uri
+        annotation = sorties.pop(self.sortie)
         durations["sortie"] = time.perf_counter() - last[0]
         if progress is not None:
             progress("sortie", 1.0)
-        return Resultat(annotation=annotation, durees_etapes=durations)
+        return Resultat(annotation=annotation, durees_etapes=durations, infos=record,
+                        autres_sorties=sorties)
 
     def describe(self) -> dict[str, list[Setting]]:
         """Paramètres effectifs lus sur la pipeline chargée."""
@@ -193,6 +248,7 @@ class PyannoteCommunity1(Engine):
                 Setting("n_locuteurs", speakers, "experience"),
             ],
             "sortie": [
-                Setting("sortie.exclusive", False, "code"),
+                Setting("sortie.exclusive", self.sortie == "exclusive",
+                        "experience" if self._sortie_imposee else "defaut"),
             ],
         }
