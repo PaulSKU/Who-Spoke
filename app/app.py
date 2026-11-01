@@ -216,7 +216,33 @@ def _viewer_value(result: dict) -> dict:
         "locuteurs": [{"id": label, "nom": names[label], "couleur": colors[label][0],
                        "couleur_sombre": colors[label][1]} for label in labels],
         "segments": sortie.segments(result["annotation"]),
+        "erreurs": result.get("erreurs"),
     }
+
+
+ERROR_LABELS = {"manquee": "Parole manquée", "fausse_alarme": "Fausse alarme", "confusion": "Confusion"}
+
+
+def _error_map(result: dict, reference_path: str | None) -> dict | None:
+    """Carte des erreurs pour le visualiseur (D26, I4), ou None sans référence utilisable.
+
+    Totaux en secondes et en part de la parole de référence, formatés comme le tableau du
+    DER (sans collar) : les deux affichent les mêmes nombres.
+    """
+    if not reference_path:
+        return None
+    try:
+        errors = sortie.error_map(sortie.read_reference(reference_path), result["annotation"], result["duree_s"])
+    except ValueError:
+        return None
+    totals = errors["totaux"]
+    reference = totals["reference"] or 1.0
+    errors["rangees"] = [
+        {"type": kind, "libelle": label, "duree": f"{_num(totals[kind], 2)} s",
+         "part": _pct(100 * totals[kind] / reference, 2)}
+        for kind, label in ERROR_LABELS.items()
+    ]
+    return errors
 
 
 def _exports(result: dict) -> list[str]:
@@ -329,6 +355,7 @@ VIEWER_TEMPLATE = (
     '<div class="wsp-rows"><div class="wsp-labels"></div>'
     '<div class="wsp-viewport"><div class="wsp-canvas"><div class="wsp-lanes"></div>'
     '<div class="wsp-axis" aria-hidden="true"></div><div class="wsp-playhead"></div></div></div></div>'
+    '<p class="wsp-errsum" hidden></p>'
     '<p class="wsp-hint">Cliquez sur un segment pour l\'écouter et le repérer sur la forme d\'onde. Zoom : curseur, boutons, ou Ctrl + molette ; '
     'défilement : pavé tactile, Maj + molette ou barre de défilement de la forme d\'onde.</p></div></div>'
 )
@@ -511,6 +538,7 @@ def build_app(fake: bool = False, fake_max_s: float = 20.0, repo_root: Path = RE
             f"{n_speakers} locuteur{'s' if n_speakers > 1 else ''} en {temps.format_duration(calcul_s)}",
             f"{Path(audio_path).name}, {temps.format_duration(duration_s)} d'audio, {spec.label}, "
             f"RTF {_num(calcul_s / duration_s, 4)}", 1.0)
+        result["erreurs"] = _error_map(result, reference_path)
         names_rows = [[label, ""] for label in sortie.speaker_labels(result["annotation"])]
         yield (done, _viewer_value(result), _stats_html(result),
                gr.update(value=names_rows, visible=True, row_limits=(len(names_rows), len(names_rows))),
@@ -654,7 +682,13 @@ def build_app(fake: bool = False, fake_max_s: float = 20.0, repo_root: Path = RE
             concurrency_limit=1, show_progress="hidden",  # l'avancement est dans le panneau d'état
         )
         names.input(rename, [names, result_state], [viewer, stats, exports, result_state])
-        reference.change(lambda path, result: _der_html(result, path), [reference, result_state], der)
+        def reference_changed(path, result):
+            if result is None:
+                return _der_html(None, path), gr.skip(), gr.skip()
+            result = dict(result, erreurs=_error_map(result, path))
+            return _der_html(result, path), _viewer_value(result), result
+
+        reference.change(reference_changed, [reference, result_state], [der, viewer, result_state])
     return app
 
 

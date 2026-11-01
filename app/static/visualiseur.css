@@ -64,3 +64,19 @@
   .wsp-zoom { margin-left: 0; width: 100%; }
   .wsp-zoom-range { flex: 1; }
 }
+
+/* Carte des erreurs (D26, I4) : motifs d'encre, la rangée nommée porte l'identité. */
+.wsp-err-caption { color: var(--ws-slate); font-size: 0.75rem; height: 20px; margin-top: 6px; }
+.wsp-err-spacer { height: 20px; margin-top: 6px; border-top: 1px solid var(--ws-line); }
+.wsp-seg.wsp-err-manquee, .wsp-swatch.wsp-err-manquee { background: var(--ws-ink); }
+.wsp-seg.wsp-err-fausse_alarme, .wsp-swatch.wsp-err-fausse_alarme {
+  background: repeating-linear-gradient(135deg, var(--ws-ink) 0 2px, transparent 2px 5px);
+  box-shadow: inset 0 0 0 1px var(--ws-ink);
+}
+.wsp-seg.wsp-err-confusion, .wsp-swatch.wsp-err-confusion {
+  background: var(--ws-surface); box-shadow: inset 0 0 0 1.5px var(--ws-ink);
+}
+.wsp-errsum { margin: 8px 0 0; font-size: 0.85rem; color: var(--ws-ink); }
+.wsp-seg.wsp-err-fausse_alarme.wsp-selected, .wsp-seg.wsp-err-confusion.wsp-selected {
+  box-shadow: inset 0 0 0 1.5px var(--ws-ink), 0 0 0 2px var(--ws-surface), 0 0 0 4px var(--ws-ink);
+}

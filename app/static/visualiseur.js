@@ -6,6 +6,9 @@
 // que la partie visible ; pistes, axe et tête de lecture suivent son défilement.
 // Couleurs (D26) : la forme d'onde est neutre ; seul le segment sélectionné (dernier
 // segment cliqué) y est mis en évidence, par une bande d'encre, et entouré sur sa piste.
+// Carte des erreurs (D26, I4) : avec une référence, trois rangées sous les locuteurs
+// (parole manquée, fausse alarme, confusion), dans le même canevas que les pistes, donc
+// soumises au même zoom ; chaque zone s'écoute au clic, comme un segment.
 // Variables fournies par Gradio : element, props, watch.
 
 const MAX_PX_PER_S = 60;   // zoom maximal : 60 px par seconde d'audio
@@ -53,6 +56,13 @@ function selectSegment(seg) {
 function isSelected(seg) {
   const s = element._selected;
   return !!s && s.debut === seg.debut && s.fin === seg.fin && s.locuteur === seg.locuteur;
+}
+
+// Segments des locuteurs et zones de la carte des erreurs : tout ce qui se sélectionne.
+function selectables(v) {
+  const zones = (v.erreurs ? v.erreurs.zones : [])
+    .map((zone, index) => ({ debut: zone.debut, fin: zone.fin, locuteur: 'erreur:' + index }));
+  return v.segments.concat(zones);
 }
 
 function markSelected() {
@@ -126,7 +136,7 @@ function drawSelection() {
   if (!regions || !v || !element._ready) return;
   regions.clearRegions();
   const s = element._selected;
-  if (!s || !v.segments.some(isSelected)) return;
+  if (!s || !selectables(v).some(isSelected)) return;
   regions.addRegion({
     start: s.debut, end: s.fin, color: isDark() ? 'rgba(236,236,233,0.16)' : 'rgba(24,25,29,0.10)',
     drag: false, resize: false,
@@ -156,6 +166,7 @@ function drawLanes(v) {
     lanes.appendChild(track);
     tracks[spk.id] = track;
   });
+  drawErrors(v, labels, lanes, names);
   v.segments.forEach((seg) => {
     const bar = document.createElement('button');
     bar.type = 'button';
@@ -170,6 +181,62 @@ function drawLanes(v) {
     bar.addEventListener('click', () => selectSegment(seg));
     tracks[seg.locuteur].appendChild(bar);
   });
+}
+
+const ERROR_TEXT = {
+  manquee: (z, names) => 'Parole manquée : ' + z.reference + ' (référence)',
+  fausse_alarme: (z, names) => 'Fausse alarme : ' + (names[z.hypothese] || z.hypothese),
+  confusion: (z, names) => 'Confusion : parole de ' + z.reference + ' (référence) attribuée à '
+    + (names[z.hypothese] || z.hypothese),
+};
+
+function drawErrors(v, labels, lanes, names) {
+  const summary = $('.wsp-errsum');
+  const errors = v.erreurs;
+  if (!errors) {
+    summary.hidden = true;
+    summary.textContent = '';
+    return;
+  }
+  const caption = document.createElement('div');
+  caption.className = 'wsp-label wsp-err-caption';
+  caption.textContent = 'Erreurs';
+  caption.title = 'Après appariement optimal des locuteurs, sans collar, chevauchements comptés';
+  labels.appendChild(caption);
+  const spacer = document.createElement('div');
+  spacer.className = 'wsp-err-spacer';
+  lanes.appendChild(spacer);
+  const tracks = {};
+  errors.rangees.forEach((row) => {
+    const label = document.createElement('div');
+    label.className = 'wsp-label';
+    const swatch = document.createElement('span');
+    swatch.className = 'wsp-swatch wsp-err-' + row.type;
+    label.appendChild(swatch);
+    label.appendChild(document.createTextNode(row.libelle));
+    label.title = row.libelle + ' : ' + row.duree + ' (' + row.part + ' du DER sans collar)';
+    labels.appendChild(label);
+    const track = document.createElement('div');
+    track.className = 'wsp-track';
+    lanes.appendChild(track);
+    tracks[row.type] = track;
+  });
+  errors.zones.forEach((zone, index) => {
+    const bar = document.createElement('button');
+    bar.type = 'button';
+    bar.className = 'wsp-seg wsp-err-' + zone.type;
+    bar.style.left = (100 * zone.debut / v.duree_s) + '%';
+    bar.style.width = (100 * (zone.fin - zone.debut) / v.duree_s) + '%';
+    const text = ERROR_TEXT[zone.type](zone, names) + ', ' + fmt(zone.debut) + ' – ' + fmt(zone.fin);
+    bar.setAttribute('aria-label', text);
+    bar.title = text + ' (' + (zone.fin - zone.debut).toFixed(1).replace('.', ',') + ' s). Cliquer pour écouter.';
+    bar._seg = { debut: zone.debut, fin: zone.fin, locuteur: 'erreur:' + index };
+    bar.addEventListener('click', () => selectSegment(bar._seg));
+    tracks[zone.type].appendChild(bar);
+  });
+  summary.textContent = 'Erreurs sans collar : ' + errors.rangees
+    .map((row) => row.libelle.toLowerCase() + ' ' + row.duree + ' (' + row.part + ')').join(' · ') + '.';
+  summary.hidden = false;
 }
 
 function render() {

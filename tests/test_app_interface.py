@@ -77,3 +77,31 @@ def test_forme_d_onde_neutre_seul_le_segment_selectionne():
     region = script[script.index("addRegion("):script.index("addRegion(") + 200]
     assert "_colors" not in region and "couleur" not in region
     assert "function selectSegment" in script and "aria-pressed" in script
+
+
+def test_carte_des_erreurs_affiche_les_nombres_du_der(tmp_path):
+    """Les totaux de la carte, formatés pour l'écran, sont ceux du tableau du DER sans collar."""
+    from pyannote.core import Annotation, Segment
+
+    hypothesis = Annotation(uri="essai")
+    hypothesis[Segment(0.0, 5.5)] = "X"
+    hypothesis[Segment(7.0, 11.0)] = "Y"
+    reference = tmp_path / "ref.rttm"
+    reference.write_text("SPEAKER ref 1 0.0 4.0 <NA> <NA> A <NA> <NA>\n"
+                         "SPEAKER ref 1 3.0 5.0 <NA> <NA> B <NA> <NA>\n")
+    result = {"annotation": hypothesis, "duree_s": 12.0, "names": {}}
+    errors = interface._error_map(result, str(reference))
+    import re
+
+    der_row = interface._der_html(result, str(reference)).split("Sans collar (principale)")[1].split("</tr>")[0]
+    cells = re.findall(r'<td class="num[^"]*">([^<]+)</td>', der_row)   # DER, manquée, FA, confusion, JER
+    # Manquée 2,5 s, fausse alarme 3 s, confusion 1,5 s, sur 9 s de parole de référence
+    # (A 4 s et B 5 s : le chevauchement 3–4 compte pour chacun).
+    assert [row["part"] for row in errors["rangees"]] == cells[1:4] == ["27,78 %", "33,33 %", "16,67 %"]
+    assert [row["duree"] for row in errors["rangees"]] == ["2,50 s", "3,00 s", "1,50 s"]
+    assert [row["libelle"] for row in errors["rangees"]] == ["Parole manquée", "Fausse alarme", "Confusion"]
+    assert interface._error_map(result, None) is None
+    assert "wsp-errsum" in interface.VIEWER_TEMPLATE
+    script = (interface.STATIC_DIR / "visualiseur.js").read_text()
+    assert "function drawErrors" in script and "selectSegment(bar._seg)" in script
+    assert "selectables(v).some(isSelected)" in script   # une zone d'erreur se repère aussi sur la forme d'onde
