@@ -16,8 +16,9 @@ Le dépôt ne contient **aucun poids de modèle ni aucun audio**. Les modèles s
 |---|---|---|---|---|
 | `pyannote/speaker-diarization-community-1` | Moteur pyannote (segmentation, empreintes WeSpeaker ResNet34, regroupement) ; empreintes WeSpeaker de la baseline | `3533c8cf8e36` | **CC-BY-4.0** ; modèle à accès restreint (conditions à accepter sur le Hub) | Fiche et API du Hub, 01/11/2026 **[certain]** |
 | `speechbrain/spkrec-ecapa-voxceleb` | Empreintes ECAPA-TDNN de la baseline (D22) | `0f99f2d0ebe8` | **Apache-2.0** | Fiche et API du Hub, 01/11/2026 **[certain]** |
-| DiariZen (BUT Speech@FIT) | Non intégré ; essai prévu (D23, rang A5) | — | **CC BY-NC 4.0** pour les poids d'après l'audit du 01/11 ; usage non commercial seulement | À revérifier avant intégration **[probable]** |
-| Nemotron 3 Diarization (NVIDIA) | Non intégré ; essai prévu (D23, rang A4) | — | À consigner avant intégration (`docs/corpus.md` §9) | — |
+| `BUT-FIT/diarizen-wavlm-large-s80-md-v2` (DiariZen) | Moteur DiariZen, environnement séparé (D23, rang A5 ; enveloppe préparée, chantier E4) | `027b3e221b9d` | **CC BY-NC 4.0** : usage non commercial (recherche, démonstration de la piscine) ; code DiariZen sous MIT (commit `844f5555b0a9`) | Fiche, `MODEL_LICENSE` et API du Hub, 01/11/2026 **[certain]** |
+| `pyannote/wespeaker-voxceleb-resnet34-LM` | Empreintes de DiariZen | `837717ddb9ff` | **CC-BY-4.0** | API du Hub, 01/11/2026 **[certain]** |
+| `nvidia/Nemotron-3-Diarization` | Moteur Nemotron 3, environnement séparé (D23, rang A4 ; enveloppe préparée, chantier E4) | `f667ed73aee5` | **OpenMDW-1.1** (licence ouverte de NVIDIA pour les modèles) ; non restreint | Fiche et API du Hub, 01/11/2026 **[certain]** |
 
 CC-BY-4.0 impose de citer l'auteur, de donner un lien vers la licence et d'indiquer les modifications, en cas de partage du modèle ou d'une œuvre adaptée. Le projet ne redistribue pas les poids et ne les modifie pas. L'attribution est faite par ce tableau, auquel renvoie le README : auteur, identifiant, révision et licence de chaque modèle.
 
@@ -52,6 +53,8 @@ Versions figées par `uv.lock`, licences lues dans les métadonnées des paquets
 | pytest (développement) | 9.1.1 | MIT |
 
 Aucune de ces licences n'empêche la publication du dépôt sous MIT : aucune n'est copyleft.
+
+Environnements séparés des moteurs externes (`envs/`, hors du dépôt ; versions dans `scripts/envs/*.txt`) : transformers 5.22.1 (Apache-2.0) et torch 2.15.0 pour Nemotron 3 ; torch 2.1.1, fork de pyannote.audio 3.1.1 (MIT, fourni par DiariZen) et lightning 2.6.6 (Apache-2.0) pour DiariZen. Explorés sans être retenus : NeMo 3.0.0 (Apache-2.0) et NeMo-Speech.cpp 0.3.0 (Apache-2.0).
 
 ## 5. Corpus
 
