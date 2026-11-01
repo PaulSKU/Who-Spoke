@@ -44,3 +44,26 @@ def test_etat_d_avancement():
     assert "terminé" in html and "50 %" in html and "en attente" in html and "Détection de parole" in html
     assert 'aria-live="polite"' in html and 'aria-valuenow="50"' in html
     assert interface._step_fraction(["analyse", "detection"], {"analyse": 1.0, "detection": 0.5}) == 0.75
+
+
+def test_der_dans_les_deux_conditions_avec_mention_sans_uem(tmp_path):
+    from pyannote.core import Annotation, Segment
+
+    hypothesis = Annotation(uri="essai")
+    hypothesis[Segment(0.0, 4.0)] = "SPK_00"
+    hypothesis[Segment(4.0, 8.0)] = "SPK_01"
+    reference = tmp_path / "ref.rttm"
+    reference.write_text("SPEAKER ref 1 0.0 4.0 <NA> <NA> A <NA> <NA>\n"
+                         "SPEAKER ref 1 4.0 4.0 <NA> <NA> B <NA> <NA>\n")
+    html = interface._der_html({"annotation": hypothesis, "duree_s": 10.0}, str(reference))
+    assert "Durée entière du fichier, sans UEM : non comparable aux résultats sur corpus." in html
+    assert "Sans collar (principale)" in html and "Collar ± 0,25 s" in html
+    assert "0,00 %" in html
+
+
+def test_visualiseur_avec_zoom():
+    template = interface.VIEWER_TEMPLATE
+    for name in ("wsp-zoom-in", "wsp-zoom-out", "wsp-zoom-range", "wsp-zoom-fit"):
+        assert name in template
+    script = (interface.STATIC_DIR / "visualiseur.js").read_text()
+    assert "ws.zoom(" in script and "setScroll" in script

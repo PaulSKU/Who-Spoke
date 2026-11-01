@@ -9,28 +9,38 @@
 .wsp-empty .wsp-placeholder { display: block; }
 
 .wsp-toolbar { display: flex; align-items: center; gap: 12px; margin-bottom: 12px; flex-wrap: wrap; }
-.wsp-play {
-  min-width: 84px; height: 32px; padding: 0 14px; border: none; border-radius: 8px; cursor: pointer;
+.wsp-play, .wsp-zoom button {
+  height: 32px; padding: 0 12px; border: none; border-radius: 8px; cursor: pointer;
   font: inherit; font-size: 0.875rem; font-weight: 500;
   background: var(--ws-surface); color: var(--ws-ink);
   box-shadow: 0 1px 2px -1px rgba(0,0,0,0.08), 0 0 0 1px var(--ws-line);
   transition: transform 100ms cubic-bezier(0.23, 1, 0.32, 1), background-color 150ms ease;
 }
-.wsp-play:active { transform: scale(0.97); }
-@media (hover: hover) and (pointer: fine) { .wsp-play:hover { background: var(--ws-canvas); } }
+.wsp-play { min-width: 84px; }
+.wsp-zoom-in, .wsp-zoom-out { width: 32px; padding: 0 !important; font-size: 1rem !important; }
+.wsp-play:active, .wsp-zoom button:active { transform: scale(0.97); }
+.wsp-zoom button:disabled { opacity: 0.4; cursor: default; transform: none; }
+@media (hover: hover) and (pointer: fine) {
+  .wsp-play:hover, .wsp-zoom button:not(:disabled):hover { background: var(--ws-canvas); }
+}
 .wsp-time { font-variant-numeric: tabular-nums; font-size: 0.875rem; }
-.wsp-hint { color: var(--ws-slate); font-size: 0.85rem; margin-left: auto; }
+.wsp-zoom { display: flex; align-items: center; gap: 8px; margin-left: auto; }
+.wsp-zoom-range { width: 140px; accent-color: var(--ws-ink); }
+.wsp-zoom-fit { white-space: nowrap; }
+.wsp-hint { color: var(--ws-slate); font-size: 0.8rem; margin: 10px 0 0; }
 
 .wsp-wave { margin-left: var(--wsp-label-w); }
-.wsp-lanes-wrap { position: relative; margin-top: 10px; display: grid; gap: 4px; }
-.wsp-lanes { display: grid; gap: 4px; }
-.wsp-lane { display: flex; align-items: center; height: 24px; }
+.wsp-rows { display: grid; grid-template-columns: var(--wsp-label-w) minmax(0, 1fr); margin-top: 10px; }
+.wsp-labels, .wsp-lanes { display: grid; gap: 4px; align-content: start; }
 .wsp-label {
-  width: var(--wsp-label-w); flex: none; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+  height: 24px; display: flex; align-items: center; overflow: hidden; white-space: nowrap;
   font-size: 0.85rem; padding-right: 12px; box-sizing: border-box;
 }
-.wsp-swatch { display: inline-block; width: 8px; height: 8px; border-radius: 2px; margin-right: 8px; vertical-align: 1px; }
-.wsp-track { position: relative; flex: 1; height: 14px; border-radius: 4px; background: var(--ws-track); }
+.wsp-label { text-overflow: ellipsis; }
+.wsp-swatch { flex: none; display: inline-block; width: 8px; height: 8px; border-radius: 2px; margin-right: 8px; }
+.wsp-viewport { position: relative; overflow: hidden; }
+.wsp-canvas { position: relative; will-change: transform; }
+.wsp-lanes > .wsp-track { position: relative; height: 14px; margin: 5px 0; border-radius: 4px; background: var(--ws-track); }
 .wsp-seg {
   position: absolute; top: 0; height: 14px; min-width: 2px; padding: 0; border: none;
   border-radius: 3px; cursor: pointer;
@@ -41,12 +51,15 @@
 @media (hover: hover) and (pointer: fine) {
   .wsp-seg:hover { box-shadow: 0 0 0 2px var(--ws-surface), 0 0 0 3.5px var(--ws-ink); z-index: 1; }
 }
-.wsp-overlay { position: absolute; top: 0; bottom: 0; left: var(--wsp-label-w); right: 0; pointer-events: none; }
-.wsp-playhead { position: absolute; top: -4px; bottom: -4px; width: 2px; border-radius: 1px; background: var(--ws-ink); left: 0; }
-.wsp-axis { position: relative; height: 20px; margin: 6px 0 0 var(--wsp-label-w); color: var(--ws-slate); font-size: 0.75rem; }
-.wsp-tick { position: absolute; top: 2px; transform: translateX(-50%); font-variant-numeric: tabular-nums; }
+.wsp-playhead {
+  position: absolute; top: 0; bottom: 20px; width: 2px; border-radius: 1px; background: var(--ws-ink);
+  left: 0; pointer-events: none;
+}
+.wsp-axis { position: relative; height: 20px; margin-top: 6px; color: var(--ws-slate); font-size: 0.75rem; }
+.wsp-tick { position: absolute; top: 2px; transform: translateX(-50%); font-variant-numeric: tabular-nums; white-space: nowrap; }
 .wsp-tick:first-child { transform: none; }
 @media (max-width: 640px) {
   .wsp-root { --wsp-label-w: 88px; }
-  .wsp-hint { margin-left: 0; width: 100%; }
+  .wsp-zoom { margin-left: 0; width: 100%; }
+  .wsp-zoom-range { flex: 1; }
 }

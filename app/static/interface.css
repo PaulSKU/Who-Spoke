@@ -161,6 +161,10 @@ button.primary:active, button.secondary:active, .wsp-play:active { transform: sc
 .ws-share { display: flex; align-items: center; gap: 10px; justify-content: flex-end; }
 .ws-share-bar { width: 72px; height: 6px; border-radius: 999px; background: var(--ws-track); overflow: hidden; }
 .ws-share-bar > span { display: block; height: 100%; border-radius: 999px; }
+.ws-scope {
+  font-size: 0.85rem; color: var(--ws-ink); background: var(--ws-canvas);
+  border-radius: 8px; padding: 8px 12px; margin: 0 0 12px; line-height: 1.5;
+}
 .ws-caption { color: var(--ws-slate); font-size: 0.85rem; margin: 10px 0 0; line-height: 1.5; }
 .ws-callout {
   font-size: 0.85rem; color: var(--ws-slate); background: var(--ws-canvas);

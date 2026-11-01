@@ -5,29 +5,37 @@ Lancement :
     uv run python -m app.app --factice      # moteur factice, sans aucune inférence
 
 Tout audio déposé est normalisé en WAV 16 kHz mono (D15, D16) dans un dossier de travail
-temporaire, hors du dépôt. L'interface fonctionne hors ligne : wavesurfer.js est servi
-depuis app/static/, le thème n'utilise que des polices locales et la télémétrie de Gradio
-est désactivée.
+temporaire, hors du dépôt, supprimé à la fermeture (D17, amendement 1). L'interface
+fonctionne hors ligne : wavesurfer.js est servi depuis app/static/, le thème n'utilise que
+des polices système, la télémétrie de Gradio est désactivée et, hors mode factice, les
+modèles sont lus dans le cache local (HF_HUB_OFFLINE=1, voir app/travail.py).
 """
 
 from __future__ import annotations
 
 import os
-
-# Avant l'import de gradio : aucune télémétrie (D17, hors ligne).
-os.environ.setdefault("GRADIO_ANALYTICS_ENABLED", "False")
-
-import argparse
-import json
 import sys
-import tempfile
-import threading
-import time
-from html import escape
 from pathlib import Path
 
 if __package__ in (None, ""):  # uv run python app/app.py
     sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
+
+from app import travail
+
+if __name__ == "__main__":
+    # Avant tout import de gradio, huggingface_hub, pyannote ou speechbrain.
+    RUN_DIR = travail.configure_environment(os.environ, sys.argv[1:])
+else:
+    os.environ.setdefault("GRADIO_ANALYTICS_ENABLED", "False")
+    RUN_DIR = travail.run_dir()
+
+import argparse
+import atexit
+import json
+import signal
+import threading
+import time
+from html import escape
 
 import gradio as gr
 
@@ -38,7 +46,6 @@ from whospoke.pipelines.base import load_catalogue
 
 STATIC_DIR = Path(__file__).resolve().with_name("static")
 WAVESURFER_DIR = STATIC_DIR / "wavesurfer-7.12.12"
-WORK_ROOT = Path(tempfile.gettempdir()) / "whospoke-app"
 
 # Palette catégorielle validée (skill dataviz, ordre fixe), clair et sombre ; au-delà de
 # huit locuteurs, un gris neutre : chaque piste porte le nom, la couleur n'est pas seule.
@@ -50,6 +57,9 @@ SPEAKER_MODES = ("Automatique", "Imposé", "Fourchette")
 DEVICES = ("auto", "cpu", "mps", "cuda")
 PRE_STEPS = ("normalisation_audio", "chargement")
 PRE_LABELS = {"normalisation_audio": "Normalisation audio (ffmpeg)", "chargement": "Chargement du modèle"}
+
+# Résolution de l'enveloppe de la forme d'onde : 10 valeurs par seconde, pour le zoom.
+PEAKS_PER_S = 10
 
 STEP_LABELS = {key: value["libelle"] for key, value in load_catalogue()["etapes"].items()}
 
@@ -73,6 +83,10 @@ def _num(value: float, digits: int = 3) -> str:
     return f"{value:.{digits}f}".replace(".", ",")
 
 
+class ModelMissing(RuntimeError):
+    """Modèle absent du cache local, en fonctionnement hors ligne."""
+
+
 class EngineCache:
     """Moteurs chargés une seule fois par (moteur, périphérique), comme dans les expériences."""
 
@@ -88,7 +102,13 @@ class EngineCache:
         if key in self._engines:
             return self._engines[key], None
         start = time.perf_counter()
-        engine = moteurs.FakeEngine(spec) if self.fake else moteurs.build_engine(spec, device)
+        try:
+            engine = moteurs.FakeEngine(spec) if self.fake else moteurs.build_engine(spec, device)
+        except Exception as error:
+            message = moteurs.missing_model_message(error, spec)
+            if message is None:
+                raise
+            raise ModelMissing(message) from error
         self._engines[key] = engine
         return engine, time.perf_counter() - start
 
@@ -253,15 +273,19 @@ def _der_html(result: dict | None, reference_path: str | None) -> str:
     zone = {key: None if value is None else value["der"] for key, value in report["zones"].items()}
     counts = report["n_locuteurs"]
     return (
+        f'<p class="ws-scope">{DER_SCOPE}</p>'
         '<div class="ws-table-wrap"><table class="ws-table"><thead><tr><th scope="col">Condition</th><th scope="col" class="num">DER</th>'
         '<th scope="col" class="num">Parole manquée</th><th scope="col" class="num">Fausse alarme</th>'
         '<th scope="col" class="num">Confusion</th><th scope="col" class="num">JER</th></tr></thead>'
         f'<tbody>{"".join(rows)}</tbody></table></div>'
         f'<p class="ws-caption">DER sans collar par zone : {_pct(zone["sans_chevauchement"], 2)} hors '
         f'chevauchement, {_pct(zone["chevauchement"], 2)} en chevauchement. {counts["hypothese"]} locuteurs '
-        f'estimés pour {counts["reference"]} dans la référence. Évaluation sur toute la durée de l\'audio '
-        'analysé, chevauchements comptés (protocole §3).</p>'
+        f'estimés pour {counts["reference"]} dans la référence. Référence coupée à la durée de l\'audio, '
+        'chevauchements comptés, deux conditions de collar (protocole §3.1).</p>'
     )
+
+
+DER_SCOPE = "Durée entière du fichier, sans UEM : non comparable aux résultats sur corpus."
 
 
 def _header_html(fake: bool) -> str:
@@ -278,11 +302,18 @@ VIEWER_TEMPLATE = (
     '<div class="wsp-body"><div class="wsp-toolbar">'
     '<button type="button" class="wsp-play">Lecture</button>'
     '<span class="wsp-time" aria-live="off"></span>'
-    '<span class="wsp-hint">Cliquez sur un segment pour l\'écouter.</span></div>'
+    '<div class="wsp-zoom" role="group" aria-label="Zoom de la timeline">'
+    '<button type="button" class="wsp-zoom-out" aria-label="Dézoomer">−</button>'
+    '<input type="range" class="wsp-zoom-range" min="0" max="100" step="1" value="0" '
+    'aria-label="Niveau de zoom">'
+    '<button type="button" class="wsp-zoom-in" aria-label="Zoomer">+</button>'
+    '<button type="button" class="wsp-zoom-fit">Tout afficher</button></div></div>'
     '<div class="wsp-wave"></div>'
-    '<div class="wsp-lanes-wrap"><div class="wsp-lanes"></div>'
-    '<div class="wsp-overlay"><div class="wsp-playhead"></div></div></div>'
-    '<div class="wsp-axis" aria-hidden="true"></div></div></div>'
+    '<div class="wsp-rows"><div class="wsp-labels"></div>'
+    '<div class="wsp-viewport"><div class="wsp-canvas"><div class="wsp-lanes"></div>'
+    '<div class="wsp-axis" aria-hidden="true"></div><div class="wsp-playhead"></div></div></div></div>'
+    '<p class="wsp-hint">Cliquez sur un segment pour l\'écouter. Zoom : curseur, boutons, ou Ctrl + molette ; '
+    'défilement : pavé tactile, Maj + molette ou barre de défilement de la forme d\'onde.</p></div></div>'
 )
 
 ENGINE_INFO_DEVICE = "auto : CUDA, puis MPS, puis CPU (D15)."
@@ -349,7 +380,7 @@ def build_app(fake: bool = False, fake_max_s: float = 20.0) -> gr.Blocks:
         yield (_status_html(steps, state, "Normalisation de l'audio", fraction=0.0), *empty)
 
         uri = Path(audio_path).stem
-        work = sortie.new_work_dir(WORK_ROOT)
+        work = sortie.new_work_dir(RUN_DIR)
         start = time.perf_counter()
         try:
             wav = normalize(audio_path, work / f"{sortie.rttm_name(uri)}.wav")
@@ -369,6 +400,8 @@ def build_app(fake: bool = False, fake_max_s: float = 20.0) -> gr.Blocks:
                                 fraction=_step_fraction(steps, state)), *skip)
             try:
                 engine, loading_s = cache.get(spec, device)
+            except ModelMissing as error:
+                raise gr.Error(str(error), duration=None) from error
             except Exception as error:  # chargement des modèles : message affiché tel quel
                 raise gr.Error(f"Le modèle n'a pas pu être chargé. Détail : {error}") from error
             state["chargement"] = 1.0
@@ -416,7 +449,7 @@ def build_app(fake: bool = False, fake_max_s: float = 20.0) -> gr.Blocks:
 
         result = {
             "uri": uri, "dir": work, "wav": wav, "duree_s": duration_s,
-            "peaks": sortie.peaks(waveform[0].numpy()),
+            "peaks": sortie.peaks(waveform[0].numpy(), n_points=max(4000, int(PEAKS_PER_S * duration_s))),
             "annotation": resultat.annotation, "names": {},
             "moteur": f"factice ({spec.key})" if fake else spec.key,
             "configuration": {
@@ -530,12 +563,17 @@ def main(argv: list[str] | None = None) -> None:
                         help="durée maximale simulée d'une analyse en mode factice (s)")
     parser.add_argument("--port", type=int, default=7860, help="port local (défaut : 7860)")
     args = parser.parse_args(argv)
-    WORK_ROOT.mkdir(parents=True, exist_ok=True)
+    for stale in travail.remove_stale():
+        print(f"Dossier temporaire d'un lancement interrompu supprimé : {stale}")
+    RUN_DIR.mkdir(parents=True, exist_ok=True)
+    # Suppression à la fermeture : sortie normale, Ctrl+C ou SIGTERM.
+    atexit.register(travail.cleanup, RUN_DIR)
+    signal.signal(signal.SIGTERM, lambda *_: sys.exit(0))
     gr.set_static_paths([STATIC_DIR])
     app = build_app(fake=args.factice, fake_max_s=args.factice_max_s)
     app.launch(
         server_name="127.0.0.1", server_port=args.port, share=False,
-        allowed_paths=[str(WORK_ROOT)], theme=theme.build_theme(), css=theme.css(),
+        allowed_paths=[str(RUN_DIR)], theme=theme.build_theme(), css=theme.css(),
         footer_links=["settings"], mcp_server=False, ssr_mode=False,
     )
 
