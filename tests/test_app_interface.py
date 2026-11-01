@@ -104,4 +104,7 @@ def test_carte_des_erreurs_affiche_les_nombres_du_der(tmp_path):
     assert "wsp-errsum" in interface.VIEWER_TEMPLATE
     script = (interface.STATIC_DIR / "visualiseur.js").read_text()
     assert "function drawErrors" in script and "selectSegment(bar._seg)" in script
-    assert "selectables(v).some(isSelected)" in script   # une zone d'erreur se repère aussi sur la forme d'onde
+    assert "selectables(v).some(isSelected)" in script
+    # La carte est sans collar seulement, et l'écran le dit à côté d'elle (légende et totaux).
+    assert "const title = 'Erreurs sans collar'" in script
+    assert script.count("erreurs sans collar : ") + script.count("Erreurs sans collar : ") >= 2   # une zone d'erreur se repère aussi sur la forme d'onde

@@ -234,7 +234,8 @@ function drawErrors(v, labels, lanes) {
     const names = {};
     group.locuteurs.forEach((spk) => { names[spk.id] = spk.nom; });
     const errors = group.erreurs;
-    const title = withErrors.length > 1 || v.groupes.length > 1 ? 'Erreurs, ' + group.titre : 'Erreurs';
+    // La carte est calculée sans collar seulement : l'écran le dit (D26, amendement du 01/11).
+    const title = 'Erreurs sans collar' + (withErrors.length > 1 || v.groupes.length > 1 ? ', ' + group.titre : '');
     caption(labels, lanes, title, 'Après appariement optimal des locuteurs, sans collar, chevauchements comptés');
     const tracks = {};
     errors.rangees.forEach((row) => {
@@ -258,7 +259,7 @@ function drawErrors(v, labels, lanes) {
     });
     const line = document.createElement('span');
     line.className = 'wsp-errline';
-    line.textContent = (withErrors.length > 1 ? group.titre + ' : ' : 'Erreurs sans collar : ') + errors.rangees
+    line.textContent = (withErrors.length > 1 ? group.titre + ', erreurs sans collar : ' : 'Erreurs sans collar : ') + errors.rangees
       .map((row) => row.libelle.toLowerCase() + ' ' + row.duree + ' (' + row.part + ')').join(' · ') + '.';
     summary.appendChild(line);
   });
