@@ -6,6 +6,10 @@ importer que la bibliothèque standard.
 - Hors mode factice, `HF_HUB_OFFLINE=1` : les modèles sont lus dans le cache local, sans
   aucune requête au Hub. La variable doit être posée avant l'import de huggingface_hub,
   qui la lit une fois pour toutes.
+- Toujours, `PYANNOTE_METRICS_ENABLED=false` : pyannote.audio 4 envoie par défaut une
+  télémétrie OpenTelemetry à otel.pyannote.ai (chargement des modèles et des pipelines,
+  durée de chaque fichier analysé, nombre de locuteurs demandé). Constaté au chantier V
+  de D26 par le relevé réseau ; désactivée avant tout import de pyannote.audio.
 - Chaque lancement travaille dans `<tmp>/whospoke-app/run-<pid>/` : audio normalisé,
   exports, et fichiers déposés ou servis par Gradio (`GRADIO_TEMP_DIR`). Le dossier est
   supprimé à la fermeture ; ceux d'un lancement interrompu brutalement (processus absent)
@@ -36,6 +40,7 @@ def configure_environment(environ: MutableMapping[str, str], argv: Sequence[str]
     work = run_dir(root)
     environ.setdefault("GRADIO_ANALYTICS_ENABLED", "False")
     environ["GRADIO_TEMP_DIR"] = str(work / "gradio")
+    environ["PYANNOTE_METRICS_ENABLED"] = "false"
     if "--factice" not in argv:
         environ["HF_HUB_OFFLINE"] = "1"
     return work

@@ -14,6 +14,7 @@ def test_hors_ligne_hors_mode_factice(tmp_path):
     environ: dict[str, str] = {}
     work = travail.configure_environment(environ, ["--port", "7861"], root=tmp_path)
     assert environ["HF_HUB_OFFLINE"] == "1"
+    assert environ["PYANNOTE_METRICS_ENABLED"] == "false"
     assert environ["GRADIO_TEMP_DIR"] == str(work / "gradio")
     assert work == tmp_path / f"run-{os.getpid()}"
 
@@ -22,6 +23,7 @@ def test_mode_factice_sans_contrainte_sur_le_hub(tmp_path):
     environ: dict[str, str] = {}
     travail.configure_environment(environ, ["--factice"], root=tmp_path)
     assert "HF_HUB_OFFLINE" not in environ
+    assert environ["PYANNOTE_METRICS_ENABLED"] == "false"     # télémétrie coupée dans tous les modes
 
 
 @pytest.mark.parametrize("argv, offline", [([], "True"), (["--factice"], "False")])
@@ -36,10 +38,13 @@ def test_variable_posee_avant_l_import_du_hub(argv, offline):
         "    runpy.run_module('app.app', run_name='__main__')\n"
         "except SystemExit:\n"
         "    pass\n"
+        "from pyannote.audio.telemetry.metrics import is_metrics_enabled\n"
+        "assert not is_metrics_enabled(), 'télémétrie de pyannote active'\n"
         "import huggingface_hub.constants as c\n"
         "print(c.HF_HUB_OFFLINE)\n"
     )
-    environ = {key: value for key, value in os.environ.items() if key != "HF_HUB_OFFLINE"}
+    environ = {key: value for key, value in os.environ.items()
+               if key not in ("HF_HUB_OFFLINE", "PYANNOTE_METRICS_ENABLED")}
     completed = subprocess.run([sys.executable, "-c", code], cwd=REPO_ROOT, env=environ,
                                capture_output=True, text=True, timeout=120)
     assert completed.returncode == 0, completed.stderr

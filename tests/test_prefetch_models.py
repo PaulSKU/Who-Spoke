@@ -70,7 +70,7 @@ def test_verification_lancee_hors_ligne_depuis_un_dossier_vide():
         return subprocess.CompletedProcess(command, 0)
 
     assert prefetch.run_offline_check(runner=runner) is True
-    assert seen["env"]["HF_HUB_OFFLINE"] == "1"
+    assert seen["env"]["HF_HUB_OFFLINE"] == "1" and seen["env"]["PYANNOTE_METRICS_ENABLED"] == "false"
     assert seen["command"][-1] == "--verification-hors-ligne"
     assert seen["cwd"] != str(REPO_ROOT)
 
@@ -104,9 +104,11 @@ def test_verification_enfant_avec_chargements_simules(offline, expected):
     )
     import os
 
-    env = {key: value for key, value in os.environ.items() if key != "HF_HUB_OFFLINE"}
+    env = {key: value for key, value in os.environ.items()
+           if key not in ("HF_HUB_OFFLINE", "PYANNOTE_METRICS_ENABLED")}
     if offline:
         env["HF_HUB_OFFLINE"] = offline
+        env["PYANNOTE_METRICS_ENABLED"] = "false"
     completed = subprocess.run([sys.executable, "-c", code], env=env, capture_output=True, text=True,
                                timeout=120)
     assert completed.returncode == 0, completed.stderr

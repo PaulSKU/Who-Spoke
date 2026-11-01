@@ -17,7 +17,8 @@ doivent donc se trouver dans le cache Hugging Face (`~/.cache/huggingface/hub`, 
    - `speechbrain/spkrec-ecapa-voxceleb` à sa révision figée : baseline ECAPA.
    La baseline MFCC n'utilise aucun modèle.
 2. vérifie le chargement de chaque modèle dans un processus séparé, avec
-   `HF_HUB_OFFLINE=1` posé avant tout import et un dossier courant vide, exactement comme
+   `HF_HUB_OFFLINE=1` et `PYANNOTE_METRICS_ENABLED=false` (télémétrie de pyannote.audio)
+   posés avant tout import et un dossier courant vide, exactement comme
    l'application le fera : aucun accès réseau, aucun fichier écrit dans le dossier de
    lancement. Le chargement des empreintes (ECAPA, WeSpeaker) passe une seconde de bruit
    dans le réseau pour mesurer sa dimension, comme dans les expériences.
@@ -112,8 +113,9 @@ def default_loaders() -> dict[str, Callable[[], object]]:
 
 def verify_offline(loaders: dict[str, Callable[[], object]] | None = None, out=print) -> list[str]:
     """Charge chaque modèle sans réseau (processus enfant) ; renvoie la liste des échecs."""
-    if os.environ.get("HF_HUB_OFFLINE") != "1":
-        raise RuntimeError("Vérification à lancer avec HF_HUB_OFFLINE=1 (processus enfant de ce script)")
+    if os.environ.get("HF_HUB_OFFLINE") != "1" or os.environ.get("PYANNOTE_METRICS_ENABLED") != "false":
+        raise RuntimeError("Vérification à lancer avec HF_HUB_OFFLINE=1 et PYANNOTE_METRICS_ENABLED=false "
+                           "(processus enfant de ce script)")
     import huggingface_hub.constants
 
     if not huggingface_hub.constants.HF_HUB_OFFLINE:
@@ -136,7 +138,7 @@ def run_offline_check(runner: Callable = subprocess.run, out=print) -> bool:
     Vrai si le chargement réussit et si le dossier courant de l'enfant est resté vide
     (aucun `pretrained_models/` ni autre fichier écrit à côté du lancement).
     """
-    env = dict(os.environ, HF_HUB_OFFLINE="1")
+    env = dict(os.environ, HF_HUB_OFFLINE="1", PYANNOTE_METRICS_ENABLED="false")
     with tempfile.TemporaryDirectory(prefix="prefetch-") as launch:
         completed = runner([sys.executable, str(SCRIPT), "--verification-hors-ligne"],
                            cwd=launch, env=env)
