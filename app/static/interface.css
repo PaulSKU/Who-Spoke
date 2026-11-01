@@ -248,6 +248,33 @@ button.primary:active, button.secondary:active, .wsp-play:active { transform: sc
 @media (hover: hover) and (pointer: fine) { .av-notes:hover { background: var(--ws-canvas); } }
 .av-notes-view { max-width: 90ch; }
 
+/* --- Glossaire (D26, I3) ----------------------------------------------------------- */
+a.gl-link {
+  padding: 0 !important; margin: 0 !important; background: none !important; border: none !important;
+  font: inherit; color: inherit !important; text-decoration: underline dotted; text-decoration-thickness: 1px;
+  text-underline-offset: 3px; text-decoration-color: var(--ws-slate); cursor: help;
+}
+@media (hover: hover) and (pointer: fine) { a.gl-link:hover { text-decoration-style: solid; text-decoration-color: var(--ws-ink); } }
+.gl-root { display: grid; gap: 14px; }
+.gl-indexes { display: flex; flex-wrap: wrap; gap: 6px; }
+a.gl-index {
+  padding: 3px 10px !important; border-radius: 999px; font-size: 0.8rem; text-decoration: none; color: var(--ws-ink);
+  background: var(--ws-canvas); box-shadow: 0 0 0 1px var(--ws-line);
+}
+@media (hover: hover) and (pointer: fine) { a.gl-index:hover { box-shadow: 0 0 0 1px var(--ws-ink); } }
+.gl-part { margin: 10px 0 0; font-size: 1rem; }
+.gl-part-text { margin: 0; max-width: 80ch; line-height: 1.55; }
+.gl-term { padding: 12px 0; border-top: 1px solid var(--ws-line); scroll-margin-top: 16px; border-radius: 6px; }
+.gl-term h4 { margin: 0 0 6px; font-size: 1rem; letter-spacing: -0.01em; }
+.gl-en { color: var(--ws-slate); font-weight: 400; font-style: italic; }
+.gl-alias { color: var(--ws-slate); font-weight: 400; font-size: 0.85rem; margin-left: 6px; }
+.gl-term dl { display: grid; grid-template-columns: minmax(120px, 170px) minmax(0, 1fr); gap: 4px 16px; margin: 0; }
+.gl-term dt { color: var(--ws-slate); font-size: 0.85rem; }
+.gl-term dd { margin: 0; line-height: 1.5; max-width: 80ch; }
+.gl-target { animation: gl-flash 1.6s ease-out; }
+@keyframes gl-flash { from { background: var(--ws-canvas); box-shadow: 0 0 0 8px var(--ws-canvas); } to { background: transparent; box-shadow: none; } }
+@media (max-width: 640px) { .gl-term dl { grid-template-columns: 1fr; } }
+
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after { transition-duration: 0.01ms !important; animation-duration: 0.01ms !important; animation-iteration-count: 1 !important; }
 }

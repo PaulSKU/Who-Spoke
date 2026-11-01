@@ -39,7 +39,7 @@ from html import escape
 
 import gradio as gr
 
-from app import avancement, moteurs, pipeline, sortie, temps, theme
+from app import avancement, glossaire, moteurs, pipeline, sortie, temps, theme
 from whospoke.audio import AudioError, load_waveform, normalize
 from whospoke.device import select_device
 from whospoke.experiment import REPO_ROOT
@@ -339,8 +339,22 @@ ENGINE_INFO_DEVICE = "auto : CUDA, puis MPS, puis CPU (D15)."
 # --- Application ----------------------------------------------------------------------
 
 
+# Rendus dont la sortie passe par le glossaire (D26, I3) dans build_app.
+LINKED_RENDERERS = ("_title", "_status_html", "_stats_html", "_times_html", "_der_html")
+
+
+def _linked(linker: glossaire.Linker) -> tuple:
+    """Versions des rendus de LINKED_RENDERERS dont les termes renvoient au glossaire."""
+    def wrap(render):
+        return lambda *args, **kwargs: linker.link(render(*args, **kwargs))
+    return tuple(wrap(globals()[name]) for name in LINKED_RENDERERS)
+
+
 def build_app(fake: bool = False, fake_max_s: float = 20.0, repo_root: Path = REPO_ROOT) -> gr.Blocks:
-    """Application ; expériences, résultats et catalogue lus sous `repo_root` (lecture seule)."""
+    """Application ; expériences, résultats, catalogue et documents lus sous `repo_root` (lecture seule)."""
+    glossary = glossaire.read_glossary(repo_root / glossaire.GLOSSARY_RELATIVE)
+    linker = glossaire.Linker(glossary)
+    _title, _status_html, _stats_html, _times_html, _der_html = _linked(linker)
     experiments = repo_root / "experiments"
     leaderboard = repo_root / "results" / "leaderboard.csv"
     cache = EngineCache(fake, fake_max_s, experiments)
@@ -354,9 +368,12 @@ def build_app(fake: bool = False, fake_max_s: float = 20.0, repo_root: Path = RE
 
     def pipeline_page(key: str) -> str:
         try:
-            return pipeline.render(pipeline.load_page(moteurs.SPECS[key], repo_root))
+            return linker.link(pipeline.render(pipeline.load_page(moteurs.SPECS[key], repo_root)))
         except (OSError, ValueError, KeyError, moteurs.EngineUnavailable) as error:
             return _empty(f"Page indisponible : {error}")
+
+    def progress_sections() -> dict[str, str]:
+        return {name: linker.link(html) for name, html in avancement.render(repo_root).items()}
 
     def engine_info(key: str) -> str:
         spec = moteurs.SPECS[key]
@@ -583,7 +600,7 @@ def build_app(fake: bool = False, fake_max_s: float = 20.0, repo_root: Path = RE
                         js_on_load=(STATIC_DIR / "pipeline.js").read_text(), elem_classes="pl-view")
 
             with gr.Tab("Avancement") as progress_tab:
-                sections = avancement.render(repo_root)
+                sections = progress_sections()
                 with gr.Column(elem_classes="ws-card"):
                     gr.HTML(_title("Avancement", "Généré depuis le dépôt à chaque ouverture de l'onglet : "
                                    "en-têtes des notes.md, results, fiches de décision, planning."),
@@ -607,11 +624,17 @@ def build_app(fake: bool = False, fake_max_s: float = 20.0, repo_root: Path = RE
                     gr.HTML(_title("File d'attente (D23)"), js_on_load=None)
                     progress_queue = gr.HTML(sections["file"], js_on_load=None)
 
+            with gr.Tab(glossaire.TAB_LABEL):
+                with gr.Column(elem_classes="ws-card"):
+                    gr.HTML(_title("Glossaire", "Généré depuis docs/glossaire.md. Les termes soulignés en "
+                                   "pointillé dans les autres onglets renvoient ici."), js_on_load=None)
+                    gr.HTML(glossaire.render(glossary, linker), js_on_load=None)
+
         engine.change(engine_changed, engine, [engine, mode, device])
         pipeline_engine.change(pipeline_page, pipeline_engine, pipeline_view)
 
         def refresh_progress():
-            sections = avancement.render(repo_root)
+            sections = progress_sections()
             return (sections["resume"], sections["frise"], sections["oracles"], sections["decisions"],
                     sections["file"])
 
@@ -660,6 +683,7 @@ def main(argv: list[str] | None = None) -> None:
     app.launch(
         server_name="127.0.0.1", server_port=args.port, share=False,
         allowed_paths=[str(RUN_DIR)], theme=theme.build_theme(), css=theme.css(),
+        head=f"<script>{(STATIC_DIR / 'glossaire.js').read_text()}</script>",
         footer_links=["settings"], mcp_server=False, ssr_mode=False,
     )
 
