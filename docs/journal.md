@@ -430,3 +430,16 @@ Résultats : aucune expérience.
 Décisions : aucune ; choix soumis au cockpit : second moteur et référence en gris neutre, référence affichée aussi en analyse simple, statistiques et renommage limités au premier moteur.
 Problèmes : aucun.
 Suite : vérification V (fusion dans `main`, suite complète, préchargement réel, essai avec les vrais moteurs).
+
+## 2026-11-01 — D26, amendement du 01/11 : chantier I6, branche `interface` (Claude Code)
+
+Objectif : appliquer l'amendement du 01/11 de D26 (lu dans `~/Dev/Who-Spoke`, en lecture seule), sans fusion ni modèle.
+Réalisé :
+- Glossaire : ligne facultative « Formes courtes : a, b, c. » lue sous le titre d'une entrée (point final facultatif), non affichée comme champ mais sous le titre ; chaque forme renvoie à l'entrée avec les mêmes règles (mot entier, pluriel, plus long d'abord) ; une forme revendiquée par deux entrées renvoie à la première et est signalée (`Linker.conflicts`). Glossaire du dépôt principal : 7 entrées portent des formes courtes, aucun conflit ; « Confusion » (en-tête du tableau du DER) renvoie désormais à « Confusion de locuteur », « Détection de parole » à « Détection d'activité vocale ».
+- Carte des erreurs : légende « Erreurs sans collar » (« Erreurs sans collar, <moteur> » en comparaison) et ligne des totaux qui le répète.
+- Onglet Avancement contrôlé sur le dépôt principal avec les vrais en-têtes et statuts : 16 en-têtes lus sans problème (id, verdict, décisions), 0 « en-tête manquant » ou « illisible », 0 « statut non indiqué » (7 amendements, tous « actée »), 0 verdict inconnu. Restent affichés, à juste titre : « fiche D24 absente » et « fiche D25 absente » (file D23, rangs 4 et 5), DER « — » pour EXP-0015 (non exécutée). Corrigé : accord du résumé (« 1 analyse »).
+- 8 tests (formes courtes, conflits, mention sans collar, résumé, dépôt principal). Suite sans les trois fichiers qui chargent des modèles : 233 réussis, 1 ignoré. Toutes les requêtes du navigateur vers 127.0.0.1.
+Résultats : aucune expérience.
+Décisions : aucune.
+Problèmes : deux tests lisent le dépôt principal voisin (`../Who-Spoke`) s'il existe et sont ignorés sinon.
+Suite : vérification V ; déplacement de l'étape Normalisation dans `catalogue.yaml` au chantier V (amendement du 01/11 de D26).

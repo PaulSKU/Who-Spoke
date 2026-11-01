@@ -32,7 +32,7 @@ La baseline MFCC n'utilise aucun modèle. Le script vérifie ensuite, dans un pr
 
 ## Carte des erreurs (D26, chantier I4)
 
-Quand une référence RTTM est déposée, avant ou après l'analyse, trois rangées s'ajoutent sous les pistes des locuteurs : parole manquée (encre pleine), fausse alarme (hachures), confusion (contour). La rangée nommée porte l'identité, le motif la double. Chaque zone s'écoute au clic et se repère sur la forme d'onde, comme un segment ; l'infobulle donne le locuteur de référence et, pour une confusion, le locuteur auquel la parole a été attribuée. Les rangées sont dans le même canevas que les pistes : elles suivent le zoom. Une ligne donne la durée totale et la part de chaque type.
+Quand une référence RTTM est déposée, avant ou après l'analyse, trois rangées, légendées « Erreurs sans collar », s'ajoutent sous les pistes des locuteurs : parole manquée (encre pleine), fausse alarme (hachures), confusion (contour). La rangée nommée porte l'identité, le motif la double. Chaque zone s'écoute au clic et se repère sur la forme d'onde, comme un segment ; l'infobulle donne le locuteur de référence et, pour une confusion, le locuteur auquel la parole a été attribuée. Les rangées sont dans le même canevas que les pistes : elles suivent le zoom. Une ligne donne la durée totale et la part de chaque type.
 
 Calcul (`sortie.error_map`), sans collar, chevauchements comptés, sur toute la durée du fichier comme le DER affiché : rien n'est recodé. Les étapes de `DiarizationErrorRate.compute_components` de pyannote.metrics sont reprises dans le même ordre (restriction à l'UEM, étiquettes renommées, appariement hongrois `optimal_mapping`), puis `IdentificationErrorAnalysis.difference` donne le statut de chaque segment sur l'hypothèse appariée. Les durées sont cumulées comme le fait le DER (durée × nombre d'erreurs du segment). Les tests exigent l'égalité stricte (`==`, sans tolérance) des trois durées et de la parole de référence avec les composantes du DER sans collar, sur des cas construits et sur 25 paires d'annotations aléatoires, ainsi que l'égalité des parts affichées avec les cellules du tableau du DER.
 
@@ -80,7 +80,7 @@ Récapitulatif de la conduite du projet, régénéré à chaque ouverture de l'o
 | Décisions et statuts, amendements compris | D1 à D15 : tableau du §0 et phrase « Statut » de `docs/cadrage.md` (points restés ouverts compris) ; D16 et suivantes : ligne `Statut :` de chaque fiche et de ses amendements (« statut non indiqué » à défaut) |
 | File d'attente de D23, avec un « État constaté » calculé : expériences citées créées ou ayant des résultats, fiches citées présentes ou absentes | Tableau « File d'attente » de `docs/planning.md`, dossiers d'expériences, fiches |
 
-Un `notes.md` sans en-tête s'affiche « en-tête manquant », un en-tête mal formé « en-tête illisible » ; un `id` qui ne correspond pas au dossier ou un verdict hors de la liste de D26 §2 sont signalés à côté de la question. Un résultat portant un bloc `invalidee` est marqué « invalidée ». Au 01/11, sur le dépôt principal, les 16 `notes.md` sont sans en-tête.
+Contrôle du 01/11 sur le dépôt principal, après l'ajout des en-têtes et des lignes « Statut » d'amendement : 16 en-têtes lus sans problème, aucun « en-tête manquant », aucun « statut non indiqué » ; restent signalés les fiches D24 et D25 absentes (file D23) et l'absence de DER pour EXP-0015, non exécutée. Un `notes.md` sans en-tête s'affiche « en-tête manquant », un en-tête mal formé « en-tête illisible » ; un `id` qui ne correspond pas au dossier ou un verdict hors de la liste de D26 §2 sont signalés à côté de la question. Un résultat portant un bloc `invalidee` est marqué « invalidée ». 
 
 ## Glossaire intégré (D26, chantier I3)
 
@@ -90,14 +90,14 @@ Renvois dans les onglets Analyse (titres, panneau d'avancement, tableaux des loc
 
 | Règle | Exemple |
 |---|---|
-| Variantes d'un terme : terme français, termes anglais en italique, éléments entre parenthèses contenant une majuscule | « VAD » renvoie à « Détection d'activité vocale », « Sortformer » à « Bout en bout » ; « (système) » dans « Hybride (système) » n'est pas une variante |
+| Variantes d'un terme : terme français, termes anglais en italique, éléments entre parenthèses contenant une majuscule, formes de la ligne facultative « Formes courtes : a, b, c. » sous le titre de l'entrée (D26, amendement du 01/11) | « VAD » renvoie à « Détection d'activité vocale », « Sortformer » à « Bout en bout », « Confusion » à « Confusion de locuteur » ; « (système) » dans « Hybride (système) » n'est pas une variante ; une forme revendiquée par deux entrées renvoie à la première et est signalée (`Linker.conflicts`) |
 | Mot entier seulement, jamais dans un identifiant ou une expression | rien dans `der_c0`, `clustering.threshold`, `VBxClustering`, `collar=0.5` ; « DER sans collar » donne deux liens, DER et collar |
 | Pluriel accepté mot à mot | « Empreintes vocales », « chevauchements » |
 | Plus long d'abord à une même position | « Parole manquée » plutôt que « Parole » si les deux sont des termes |
 | Sigles sensibles à la casse, autres termes non | « DER » oui, « der » non ; « Regroupement » et « regroupement » oui |
 | Jamais dans du code, un bouton, un lien ni un attribut | les boutons d'étape de l'onglet Pipeline et les libellés des composants Gradio (listes, cases) ne sont pas liés |
 
-Limites. Les libellés des composants Gradio (« Moteur », « Nombre de locuteurs »…) et la timeline dessinée en JavaScript ne portent pas de renvois. Un terme qui n'apparaît dans l'interface que sous une forme abrégée n'est pas reconnu : « Confusion » seul (en-tête du tableau du DER) ne renvoie pas à « Confusion de locuteur », « Détection de parole » ne renvoie pas à « Détection d'activité vocale ».
+Limites. Les libellés des composants Gradio (« Moteur », « Nombre de locuteurs »…) et la timeline dessinée en JavaScript ne portent pas de renvois. Une forme abrégée n'est reconnue que si elle figure dans la ligne « Formes courtes » de son entrée.
 
 ## Fonctionnement hors ligne et dossiers temporaires (D17, amendement 1)
 
