@@ -39,7 +39,7 @@ from html import escape
 
 import gradio as gr
 
-from app import moteurs, pipeline, sortie, temps, theme
+from app import avancement, moteurs, pipeline, sortie, temps, theme
 from whospoke.audio import AudioError, load_waveform, normalize
 from whospoke.device import select_device
 from whospoke.experiment import REPO_ROOT
@@ -287,6 +287,20 @@ def _der_html(result: dict | None, reference_path: str | None) -> str:
         'chevauchements comptés, deux conditions de collar (protocole §3.1).</p>'
     )
 
+
+# Onglet Avancement : un clic sur « notes.md » demande au serveur le contenu des notes.
+NOTES_JS = """
+element.addEventListener('click', (event) => {
+  const button = event.target.closest('.av-notes');
+  if (!button) return;
+  trigger('click', { notes: button.dataset.id });
+  // Les notes s'affichent sous la frise : on les amène à l'écran une fois chargées.
+  setTimeout(() => {
+    const view = document.querySelector('.av-notes-view');
+    if (view) view.scrollIntoView({ block: 'start' });
+  }, 500);
+});
+"""
 
 DER_SCOPE = "Durée entière du fichier, sans UEM : non comparable aux résultats sur corpus."
 
@@ -568,8 +582,48 @@ def build_app(fake: bool = False, fake_max_s: float = 20.0, repo_root: Path = RE
                         pipeline_page("pyannote-community-1"),
                         js_on_load=(STATIC_DIR / "pipeline.js").read_text(), elem_classes="pl-view")
 
+            with gr.Tab("Avancement") as progress_tab:
+                sections = avancement.render(repo_root)
+                with gr.Column(elem_classes="ws-card"):
+                    gr.HTML(_title("Avancement", "Généré depuis le dépôt à chaque ouverture de l'onglet : "
+                                   "en-têtes des notes.md, results, fiches de décision, planning."),
+                            js_on_load=None)
+                    progress_summary = gr.HTML(sections["resume"], js_on_load=None)
+                with gr.Column(elem_classes="ws-card"):
+                    gr.HTML(_title("Expériences et analyses", "Dans l'ordre chronologique. DER sans collar, "
+                                   "chevauchements comptés ; en dessous, avec collar de 0,25 s."), js_on_load=None)
+                    progress_timeline = gr.HTML(sections["frise"], js_on_load=NOTES_JS)
+                with gr.Column(elem_classes="ws-card", visible=False) as notes_card:
+                    notes_view = gr.Markdown(elem_classes="av-notes-view")
+                with gr.Column(elem_classes="ws-card"):
+                    gr.HTML(_title("Décomposition de l'erreur par les oracles",
+                                   "Chaque expérience ne change qu'une variable par rapport à sa référence."),
+                            js_on_load=None)
+                    progress_oracles = gr.HTML(sections["oracles"], js_on_load=None)
+                with gr.Column(elem_classes="ws-card"):
+                    gr.HTML(_title("Décisions"), js_on_load=None)
+                    progress_decisions = gr.HTML(sections["decisions"], js_on_load=None)
+                with gr.Column(elem_classes="ws-card"):
+                    gr.HTML(_title("File d'attente (D23)"), js_on_load=None)
+                    progress_queue = gr.HTML(sections["file"], js_on_load=None)
+
         engine.change(engine_changed, engine, [engine, mode, device])
         pipeline_engine.change(pipeline_page, pipeline_engine, pipeline_view)
+
+        def refresh_progress():
+            sections = avancement.render(repo_root)
+            return (sections["resume"], sections["frise"], sections["oracles"], sections["decisions"],
+                    sections["file"])
+
+        def show_notes(evt: gr.EventData):
+            item_id = (getattr(evt, "_data", None) or {}).get("notes")
+            if not item_id:
+                return gr.skip(), gr.skip()
+            return avancement.notes_markdown(repo_root, item_id), gr.update(visible=True)
+
+        progress_tab.select(refresh_progress, None, [progress_summary, progress_timeline, progress_oracles,
+                                                     progress_decisions, progress_queue])
+        progress_timeline.click(show_notes, None, [notes_view, notes_card])
         mode.change(mode_changed, mode, [k, range_row])
         run.click(
             analyse, [audio, engine, mode, k, k_min, k_max, device, reference],

@@ -228,6 +228,26 @@ button.primary:active, button.secondary:active, .wsp-play:active { transform: sc
 .pl-rev-missing { font-style: italic; }
 .pl-uncatalogued td { background: var(--ws-canvas) !important; }
 
+/* --- Onglet Avancement (D26, I2) --------------------------------------------------- */
+.av-table td { vertical-align: top; font-size: 0.875rem; }
+.av-table td:nth-child(2) { min-width: 220px; line-height: 1.45; }
+.av-missing { color: var(--ws-slate); font-style: italic; }
+.av-flag {
+  display: inline-block; margin-top: 4px; padding: 1px 8px; border-radius: 999px; font-size: 0.75rem;
+  box-shadow: 0 0 0 1px var(--ws-ink); color: var(--ws-ink);
+}
+.av-verdict { white-space: nowrap; }
+.av-reference, .av-retenu { font-weight: 600; }
+.av-notes {
+  height: 28px; padding: 0 10px; border: none; border-radius: 8px; cursor: pointer; font: inherit;
+  font-size: 0.8rem; background: var(--ws-surface); color: var(--ws-ink); white-space: nowrap;
+  box-shadow: 0 1px 2px -1px rgba(0,0,0,0.08), 0 0 0 1px var(--ws-line);
+  transition: transform 100ms var(--ws-ease), background-color 150ms ease;
+}
+.av-notes:active { transform: scale(0.97); }
+@media (hover: hover) and (pointer: fine) { .av-notes:hover { background: var(--ws-canvas); } }
+.av-notes-view { max-width: 90ch; }
+
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after { transition-duration: 0.01ms !important; animation-duration: 0.01ms !important; animation-iteration-count: 1 !important; }
 }
