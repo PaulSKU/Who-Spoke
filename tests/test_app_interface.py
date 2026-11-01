@@ -21,6 +21,16 @@ def test_bibliotheques_javascript_embarquees():
         assert "http://" not in path.read_text() and "https://" not in path.read_text(), path
 
 
+def test_noms_saisis_echappes_dans_les_tableaux():
+    from pyannote.core import Annotation, Segment
+
+    annotation = Annotation(uri="essai")
+    annotation[Segment(0.0, 2.0)] = "SPK_00"
+    result = {"annotation": annotation, "names": {"SPK_00": "<b>Alice</b>"}}
+    html = interface._stats_html(result)
+    assert "&lt;b&gt;Alice&lt;/b&gt;" in html and "<b>Alice</b>" not in html
+
+
 def test_couleurs_en_ordre_fixe_puis_gris():
     colors = interface._speaker_colors([f"S{i}" for i in range(10)])
     assert colors["S0"] == (interface.PALETTE_LIGHT[0], interface.PALETTE_DARK[0])
@@ -30,5 +40,7 @@ def test_couleurs_en_ordre_fixe_puis_gris():
 def test_etat_d_avancement():
     html = interface._status_html(["analyse", "detection", "attribution"],
                                   {"analyse": 1.0, "detection": 0.5}, "En cours", fraction=0.5)
-    assert "✓" in html and "50 %" in html and "Détection de parole" in html
+    # L'état de chaque étape est écrit en toutes lettres, pas porté par la seule couleur.
+    assert "terminé" in html and "50 %" in html and "en attente" in html and "Détection de parole" in html
+    assert 'aria-live="polite"' in html and 'aria-valuenow="50"' in html
     assert interface._step_fraction(["analyse", "detection"], {"analyse": 1.0, "detection": 0.5}) == 0.75

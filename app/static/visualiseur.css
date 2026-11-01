@@ -1,42 +1,52 @@
-/* Visualiseur de l'onglet « Analyse » (D17) ; portée limitée au composant par Gradio. */
+/* Visualiseur de l'onglet « Analyse » (D17) ; portée limitée au composant par Gradio.
+   Teintes neutres de interface.css (--ws-*) ; la couleur vient des seuls locuteurs. */
 .wsp-root {
-  --wsp-text: var(--body-text-color);
-  --wsp-muted: var(--body-text-color-subdued);
-  --wsp-line: var(--border-color-primary);
-  --wsp-label-w: 150px;
-  color: var(--wsp-text);
+  --wsp-label-w: 132px;
+  color: var(--ws-ink);
 }
 .wsp-empty .wsp-body { display: none; }
-.wsp-placeholder { display: none; color: var(--wsp-muted); padding: 24px 0; text-align: center; }
+.wsp-placeholder { display: none; color: var(--ws-slate); font-size: 0.9rem; margin: 0; padding: 4px 0; }
 .wsp-empty .wsp-placeholder { display: block; }
-.wsp-toolbar { display: flex; align-items: center; gap: 12px; margin-bottom: 8px; flex-wrap: wrap; }
+
+.wsp-toolbar { display: flex; align-items: center; gap: 12px; margin-bottom: 12px; flex-wrap: wrap; }
 .wsp-play {
-  border: 1px solid var(--wsp-line); border-radius: 6px; padding: 4px 14px;
-  background: var(--button-secondary-background-fill); color: var(--wsp-text); cursor: pointer;
+  min-width: 84px; height: 32px; padding: 0 14px; border: none; border-radius: 8px; cursor: pointer;
+  font: inherit; font-size: 0.875rem; font-weight: 500;
+  background: var(--ws-surface); color: var(--ws-ink);
+  box-shadow: 0 1px 2px -1px rgba(0,0,0,0.08), 0 0 0 1px var(--ws-line);
+  transition: transform 100ms cubic-bezier(0.23, 1, 0.32, 1), background-color 150ms ease;
 }
-.wsp-time { font-variant-numeric: tabular-nums; }
-.wsp-hint { color: var(--wsp-muted); font-size: 0.9em; }
+.wsp-play:active { transform: scale(0.97); }
+@media (hover: hover) and (pointer: fine) { .wsp-play:hover { background: var(--ws-canvas); } }
+.wsp-time { font-variant-numeric: tabular-nums; font-size: 0.875rem; }
+.wsp-hint { color: var(--ws-slate); font-size: 0.85rem; margin-left: auto; }
+
 .wsp-wave { margin-left: var(--wsp-label-w); }
-.wsp-lanes-wrap { position: relative; margin-top: 6px; }
+.wsp-lanes-wrap { position: relative; margin-top: 10px; display: grid; gap: 4px; }
+.wsp-lanes { display: grid; gap: 4px; }
 .wsp-lane { display: flex; align-items: center; height: 24px; }
 .wsp-label {
-  width: var(--wsp-label-w); flex: none; overflow: hidden; text-overflow: ellipsis;
-  white-space: nowrap; font-size: 0.9em; padding-right: 8px; box-sizing: border-box;
+  width: var(--wsp-label-w); flex: none; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+  font-size: 0.85rem; padding-right: 12px; box-sizing: border-box;
 }
-.wsp-swatch {
-  display: inline-block; width: 10px; height: 10px; border-radius: 2px;
-  margin-right: 6px; vertical-align: -1px;
-}
-.wsp-track { position: relative; flex: 1; height: 16px; border-bottom: 1px solid var(--wsp-line); }
+.wsp-swatch { display: inline-block; width: 8px; height: 8px; border-radius: 2px; margin-right: 8px; vertical-align: 1px; }
+.wsp-track { position: relative; flex: 1; height: 14px; border-radius: 4px; background: var(--ws-track); }
 .wsp-seg {
-  position: absolute; top: 2px; height: 12px; min-width: 2px; padding: 0; border: none;
-  border-radius: 2px; cursor: pointer; box-shadow: 0 0 0 1px var(--background-fill-primary);
+  position: absolute; top: 0; height: 14px; min-width: 2px; padding: 0; border: none;
+  border-radius: 3px; cursor: pointer;
 }
-.wsp-seg:hover { top: 0; height: 16px; outline: 2px solid var(--wsp-text); outline-offset: 0; }
-.wsp-overlay {
-  position: absolute; top: 0; bottom: 0; left: var(--wsp-label-w); right: 0; pointer-events: none;
+/* Zone de clic agrandie à 24 px de haut sans changer le dessin. */
+.wsp-seg::before { content: ""; position: absolute; left: 0; right: 0; top: -5px; bottom: -5px; }
+.wsp-seg:focus-visible { outline: 2px solid var(--ws-ink); outline-offset: 2px; z-index: 1; }
+@media (hover: hover) and (pointer: fine) {
+  .wsp-seg:hover { box-shadow: 0 0 0 2px var(--ws-surface), 0 0 0 3.5px var(--ws-ink); z-index: 1; }
 }
-.wsp-playhead { position: absolute; top: 0; bottom: 0; width: 2px; background: var(--wsp-text); left: 0; }
-.wsp-axis { position: relative; height: 18px; margin-left: var(--wsp-label-w); color: var(--wsp-muted); font-size: 0.8em; }
+.wsp-overlay { position: absolute; top: 0; bottom: 0; left: var(--wsp-label-w); right: 0; pointer-events: none; }
+.wsp-playhead { position: absolute; top: -4px; bottom: -4px; width: 2px; border-radius: 1px; background: var(--ws-ink); left: 0; }
+.wsp-axis { position: relative; height: 20px; margin: 6px 0 0 var(--wsp-label-w); color: var(--ws-slate); font-size: 0.75rem; }
 .wsp-tick { position: absolute; top: 2px; transform: translateX(-50%); font-variant-numeric: tabular-nums; }
 .wsp-tick:first-child { transform: none; }
+@media (max-width: 640px) {
+  .wsp-root { --wsp-label-w: 88px; }
+  .wsp-hint { margin-left: 0; width: 100%; }
+}

@@ -23,6 +23,7 @@ import sys
 import tempfile
 import threading
 import time
+from html import escape
 from pathlib import Path
 
 if __package__ in (None, ""):  # uv run python app/app.py
@@ -30,7 +31,7 @@ if __package__ in (None, ""):  # uv run python app/app.py
 
 import gradio as gr
 
-from app import moteurs, sortie, temps
+from app import moteurs, sortie, temps, theme
 from whospoke.audio import AudioError, load_waveform, normalize
 from whospoke.device import select_device
 from whospoke.pipelines.base import load_catalogue
@@ -109,26 +110,30 @@ def _availability(fake: bool) -> dict[str, str | None]:
 # --- Affichage de la progression ------------------------------------------------------
 
 
-def _status_html(steps: list[str], state: dict[str, float], headline: str, detail: str = "",
+def _status_html(steps: list[str], state: dict[str, float], title: str, detail: str = "",
                  fraction: float | None = None) -> str:
+    """Panneau d'avancement : l'état de chaque étape est écrit, pas seulement dessiné."""
     rows = []
     for step in steps:
         value = state.get(step, 0.0)
         if value >= 1.0:
-            icon, cls, text = "✓", "done", "terminé"
+            cls, text = "done", "terminé"
         elif value > 0.0:
-            icon, cls, text = "◐", "run", f"{int(100 * value)} %"
+            cls, text = "run", f"{int(100 * value)} %"
         else:
-            icon, cls, text = "○", "todo", ""
+            cls, text = "todo", "en attente"
         label = PRE_LABELS.get(step) or STEP_LABELS.get(step, step)
-        rows.append(f'<li class="st-{cls}"><span class="st-icon">{icon}</span>{label}'
-                    f'<span class="st-val">{text}</span></li>')
+        rows.append(f'<li class="st-{cls}"><span class="st-mark" aria-hidden="true"></span>'
+                    f'<span class="st-label">{escape(label)}</span><span class="st-val">{text}</span></li>')
     bar = ""
     if fraction is not None:
-        bar = (f'<div class="st-bar" role="progressbar" aria-valuenow="{int(100 * fraction)}">'
-               f'<div style="width:{100 * min(1.0, fraction):.1f}%"></div></div>')
-    return (f'<div class="st-root"><div class="st-head">{headline}</div>{bar}'
-            f'<div class="st-detail">{detail}</div><ol class="st-steps">{"".join(rows)}</ol></div>')
+        percent = int(100 * min(1.0, fraction))
+        bar = (f'<div class="st-bar" role="progressbar" aria-label="Avancement" aria-valuemin="0" '
+               f'aria-valuemax="100" aria-valuenow="{percent}"><div style="width:{percent}%"></div></div>')
+    steps_html = f'<ol class="st-steps">{"".join(rows)}</ol>' if rows else ""
+    return (f'<div class="st-root"><div class="st-head" aria-live="polite">'
+            f'<p class="st-title">{escape(title)}</p><span class="st-detail">{escape(detail)}</span></div>'
+            f'{bar}{steps_html}</div>')
 
 
 def _step_fraction(steps: list[str], state: dict[str, float]) -> float:
@@ -138,20 +143,43 @@ def _step_fraction(steps: list[str], state: dict[str, float]) -> float:
 # --- Résultats ------------------------------------------------------------------------
 
 
-def _stats_rows(result: dict) -> list[list]:
+def _title(text: str, note: str = "") -> str:
+    note_html = f'<p class="ws-note">{note}</p>' if note else ""
+    return f'<h2 class="ws-section-title">{escape(text)}</h2>{note_html}'
+
+
+def _empty(text: str) -> str:
+    return f'<p class="ws-empty-note">{escape(text)}</p>'
+
+
+def _stats_html(result: dict | None) -> str:
+    if result is None:
+        return _empty("Les statistiques par locuteur s'afficheront après l'analyse.")
     stats = sortie.speaker_stats(result["annotation"], result["names"])
     total = sum(row["temps_parole_s"] for row in stats) or 1.0
     colors = _speaker_colors([row["id"] for row in stats])
     rows = []
     for row in stats:
-        swatch = (f'<span style="display:inline-block;width:10px;height:10px;border-radius:2px;'
-                  f'background:{colors[row["id"]][0]};margin-right:6px"></span>')
-        rows.append([
-            swatch + row["nom"], row["id"], temps.format_duration(row["temps_parole_s"]),
-            _pct(100 * row["temps_parole_s"] / total), row["n_interventions"],
-            _pct(100 * row["part_chevauchement"]),
-        ])
-    return rows
+        color = colors[row["id"]][0]
+        share = 100 * row["temps_parole_s"] / total
+        sub = f'<span class="sub">{escape(row["id"])}</span>' if row["nom"] != row["id"] else ""
+        rows.append(
+            f'<tr><td><span class="ws-swatch" style="background:{color}" aria-hidden="true"></span>'
+            f'<span class="strong">{escape(row["nom"])}</span>{sub}</td>'
+            f'<td class="num">{temps.format_duration(row["temps_parole_s"])}</td>'
+            f'<td class="num"><span class="ws-share"><span class="ws-share-bar" aria-hidden="true">'
+            f'<span style="width:{share:.1f}%;background:{color}"></span></span>{_pct(share)}</span></td>'
+            f'<td class="num">{row["n_interventions"]}</td>'
+            f'<td class="num">{_pct(100 * row["part_chevauchement"])}</td></tr>'
+        )
+    return (
+        '<div class="ws-table-wrap"><table class="ws-table"><thead><tr><th scope="col">Locuteur</th>'
+        '<th scope="col" class="num">Temps de parole</th><th scope="col" class="num">Part</th>'
+        '<th scope="col" class="num">Interventions</th><th scope="col" class="num">Chevauchement</th>'
+        f'</tr></thead><tbody>{"".join(rows)}</tbody></table></div>'
+        '<p class="ws-caption">Chevauchement : part du temps de parole du locuteur pendant laquelle '
+        'au moins une autre personne parle.</p>'
+    )
 
 
 def _viewer_value(result: dict) -> dict:
@@ -177,58 +205,87 @@ def _exports(result: dict) -> list[str]:
     return [str(path) for path in paths]
 
 
-def _times_md(result: dict) -> str:
-    lines = [
-        "| Étape | Durée |", "|---|---|",
-        f"| Normalisation audio (ffmpeg) | {_num(result['normalisation_s'], 2)} s |",
-        "| Chargement du modèle | " + ("déjà chargé" if result["chargement_s"] is None
-                                     else f"{_num(result['chargement_s'], 2)} s (non compté dans le RTF)") + " |",
-    ]
-    for step, seconds in result["durees_etapes"].items():
-        lines.append(f"| {STEP_LABELS.get(step, step)} | {_num(seconds, 2)} s |")
-    rtf = result["calcul_s"] / result["duree_s"] if result["duree_s"] else 0.0
-    lines.append(f"| **Calcul total** | **{_num(result['calcul_s'], 2)} s** |")
-    measured = result["rtf_mesure"]
-    summary = (f"Audio de {temps.format_duration(result['duree_s'])}, RTF obtenu **{_num(rtf, 4)}**"
-               + (f" (RTF mesuré : {_num(measured['rtf'], 4)}, {measured['source']})" if measured else "")
-               + f", périphérique `{result['device']}`.")
-    note = ""
-    if result["factice"]:
-        note = (f"\n\n> **Moteur factice** : aucune inférence ; segments repris de "
-                f"`{result['rttm_source']}`, temps de calcul simulé"
-                + (", contrainte sur le nombre de locuteurs ignorée."
-                   if result["configuration"]["nombre_locuteurs"]["mode"] != "automatique" else "."))
-    return summary + note + "\n\n" + "\n".join(lines)
-
-
-def _der_md(result: dict | None, reference_path: str | None) -> str:
-    if not reference_path:
-        return "*Déposer une référence RTTM pour afficher le DER décomposé.*"
+def _times_html(result: dict | None) -> str:
     if result is None:
-        return "*Référence chargée : le DER s'affichera après l'analyse.*"
+        return _empty("Les durées de chaque étape s'afficheront après l'analyse.")
+    rows = [("Normalisation audio (ffmpeg)", f"{_num(result['normalisation_s'], 2)} s")]
+    rows.append(("Chargement du modèle", "déjà chargé" if result["chargement_s"] is None
+                 else f"{_num(result['chargement_s'], 2)} s"))
+    rows += [(STEP_LABELS.get(step, step), f"{_num(seconds, 2)} s")
+             for step, seconds in result["durees_etapes"].items()]
+    body = "".join(f'<tr><td>{escape(label)}</td><td class="num">{value}</td></tr>' for label, value in rows)
+    body += f'<tr><td class="strong">Calcul total</td><td class="num strong">{_num(result["calcul_s"], 2)} s</td></tr>'
+    rtf = result["calcul_s"] / result["duree_s"] if result["duree_s"] else 0.0
+    measured = result["rtf_mesure"]
+    caption = (f"Audio de {temps.format_duration(result['duree_s'])} sur <code>{escape(result['device'])}</code> : "
+               f"RTF obtenu {_num(rtf, 4)}"
+               + (f", RTF mesuré {_num(measured['rtf'], 4)} ({escape(measured['source'])})" if measured else "")
+               + ". Le chargement du modèle n'entre pas dans le RTF.")
+    callout = ""
+    if result["factice"]:
+        ignored = result["configuration"]["nombre_locuteurs"]["mode"] != "automatique"
+        callout = ('<div class="ws-callout">Moteur factice : aucune inférence. Segments repris de '
+                   f'<code>{escape(result["rttm_source"] or "")}</code>, temps de calcul simulé'
+                   + (", contrainte sur le nombre de locuteurs ignorée." if ignored else ".") + "</div>")
+    return (f'{callout}<div class="ws-table-wrap"><table class="ws-table"><thead><tr><th scope="col">Étape</th>'
+            f'<th scope="col" class="num">Durée</th></tr></thead><tbody>{body}</tbody></table></div>'
+            f'<p class="ws-caption">{caption}</p>')
+
+
+def _der_html(result: dict | None, reference_path: str | None) -> str:
+    if not reference_path:
+        return _empty("Déposez une référence RTTM dans les réglages pour afficher le DER décomposé.")
+    if result is None:
+        return _empty("Référence chargée : le DER s'affichera après l'analyse.")
     try:
         reference = sortie.read_reference(reference_path)
         report = sortie.der_report(reference, result["annotation"], result["duree_s"])
     except ValueError as error:
-        return f"**Référence inutilisable** : {error}"
-    lines = [
-        "| Condition | DER | Parole manquée | Fausse alarme | Confusion | JER |",
-        "|---|---|---|---|---|---|",
-    ]
+        return f'<div class="ws-callout">Référence inutilisable : {escape(str(error))}</div>'
+    rows = []
     for name, title in (("collar_0", "Sans collar (principale)"), ("collar_0_25", "Collar ± 0,25 s")):
         r = report[name]
-        lines.append(f"| {title} | **{_pct(r['der'], 2)}** | {_pct(r['manquee'], 2)} | "
-                     f"{_pct(r['fausse_alarme'], 2)} | {_pct(r['confusion'], 2)} | {_pct(r['jer'], 2)} |")
-    zones = report["zones"]
-    zone = {key: None if value is None else value["der"] for key, value in zones.items()}
+        rows.append(
+            f'<tr><td>{title}</td><td class="num strong">{_pct(r["der"], 2)}</td>'
+            f'<td class="num">{_pct(r["manquee"], 2)}</td><td class="num">{_pct(r["fausse_alarme"], 2)}</td>'
+            f'<td class="num">{_pct(r["confusion"], 2)}</td><td class="num">{_pct(r["jer"], 2)}</td></tr>'
+        )
+    zone = {key: None if value is None else value["der"] for key, value in report["zones"].items()}
     counts = report["n_locuteurs"]
     return (
-        "\n".join(lines)
-        + f"\n\nDER sans collar par zone : sans chevauchement {_pct(zone['sans_chevauchement'], 2)}, "
-        + f"chevauchement {_pct(zone['chevauchement'], 2)}. "
-        + f"Locuteurs : {counts['hypothese']} estimés pour {counts['reference']} dans la référence. "
-        + "Évaluation sur toute la durée de l'audio analysé, chevauchements comptés (protocole §3)."
+        '<div class="ws-table-wrap"><table class="ws-table"><thead><tr><th scope="col">Condition</th><th scope="col" class="num">DER</th>'
+        '<th scope="col" class="num">Parole manquée</th><th scope="col" class="num">Fausse alarme</th>'
+        '<th scope="col" class="num">Confusion</th><th scope="col" class="num">JER</th></tr></thead>'
+        f'<tbody>{"".join(rows)}</tbody></table></div>'
+        f'<p class="ws-caption">DER sans collar par zone : {_pct(zone["sans_chevauchement"], 2)} hors '
+        f'chevauchement, {_pct(zone["chevauchement"], 2)} en chevauchement. {counts["hypothese"]} locuteurs '
+        f'estimés pour {counts["reference"]} dans la référence. Évaluation sur toute la durée de l\'audio '
+        'analysé, chevauchements comptés (protocole §3).</p>'
     )
+
+
+def _header_html(fake: bool) -> str:
+    badge = '<span class="ws-badge">Moteur factice : aucune inférence</span>' if fake else ""
+    return ('<header class="ws-header"><div><h1>Who Spoke?</h1>'
+            "<p>Qui parle, et quand. L'analyse tourne sur cette machine : l'audio ne la quitte pas.</p>"
+            f"</div>{badge}</header>")
+
+
+VIEWER_TEMPLATE = (
+    '<div class="wsp-root wsp-empty">'
+    '<p class="wsp-placeholder">Déposez un fichier audio puis lancez l\'analyse : '
+    'la forme d\'onde et une piste par locuteur s\'afficheront ici.</p>'
+    '<div class="wsp-body"><div class="wsp-toolbar">'
+    '<button type="button" class="wsp-play">Lecture</button>'
+    '<span class="wsp-time" aria-live="off"></span>'
+    '<span class="wsp-hint">Cliquez sur un segment pour l\'écouter.</span></div>'
+    '<div class="wsp-wave"></div>'
+    '<div class="wsp-lanes-wrap"><div class="wsp-lanes"></div>'
+    '<div class="wsp-overlay"><div class="wsp-playhead"></div></div></div>'
+    '<div class="wsp-axis" aria-hidden="true"></div></div></div>'
+)
+
+ENGINE_INFO_DEVICE = "auto : CUDA, puis MPS, puis CPU (D15)."
 
 
 # --- Application ----------------------------------------------------------------------
@@ -238,19 +295,23 @@ def build_app(fake: bool = False, fake_max_s: float = 20.0) -> gr.Blocks:
     cache = EngineCache(fake, fake_max_s)
     availability = _availability(fake)
     choices = [
-        (spec.label + ("" if availability[key] is None else " — indisponible"), key)
+        (spec.label + ("" if availability[key] is None else " (indisponible)"), key)
         for key, spec in moteurs.SPECS.items()
     ]
     head = "".join(f'<script src="{_file_url(WAVESURFER_DIR / name)}"></script>'
                    for name in ("wavesurfer.min.js", "regions.min.js"))
 
+    def engine_info(key: str) -> str:
+        spec = moteurs.SPECS[key]
+        reason = availability[key]
+        return f"Indisponible : {reason}" if reason else f"Configuration reprise de {spec.source_exp}."
+
     def engine_changed(key: str):
         spec = moteurs.SPECS[key]
         modes = list(SPEAKER_MODES if spec.supports_range else SPEAKER_MODES[:2])
-        info = availability[key] or f"Configuration reprise de {spec.source_exp}."
         device = (gr.update(value="cpu", interactive=False, info="CPU seul pour ce moteur (D19, D22).")
-                  if spec.cpu_only else gr.update(interactive=True, info="auto : CUDA, puis MPS, puis CPU (D15)."))
-        return gr.update(choices=modes, value="Automatique"), device, gr.update(value=f"*{info}*")
+                  if spec.cpu_only else gr.update(interactive=True, info=ENGINE_INFO_DEVICE))
+        return gr.update(info=engine_info(key)), gr.update(choices=modes, value="Automatique"), device
 
     def mode_changed(mode: str):
         return gr.update(visible=mode == "Imposé"), gr.update(visible=mode == "Fourchette")
@@ -258,32 +319,34 @@ def build_app(fake: bool = False, fake_max_s: float = 20.0) -> gr.Blocks:
     def analyse(audio_path, key, mode, k, k_min, k_max, device_choice, reference_path):
         spec = moteurs.SPECS[key]
         if not audio_path:
-            raise gr.Error("Déposer d'abord un fichier audio.")
+            raise gr.Error("Aucun fichier audio : déposez-en un dans les réglages, puis relancez.")
         if availability[key] is not None:
-            raise gr.Error(f"{spec.label} indisponible : {availability[key]}")
+            raise gr.Error(f"{spec.label} est indisponible ({availability[key]}). Choisissez un autre moteur.")
         num_speakers = None
         speaker_conf: dict = {"mode": "automatique"}
         if mode == "Imposé":
             if not k or int(k) < 1:
-                raise gr.Error("Nombre de locuteurs imposé : entier ≥ 1 attendu.")
+                raise gr.Error("Nombre de locuteurs imposé : saisissez un entier supérieur ou égal à 1.")
             num_speakers = int(k)
             speaker_conf = {"mode": "impose", "valeur": num_speakers}
         elif mode == "Fourchette":
             if not spec.supports_range:
-                raise gr.Error(f"{spec.label} : fourchette non prise en charge.")
+                raise gr.Error(f"{spec.label} ne prend pas en charge une fourchette : imposez un nombre.")
             if not k_min or not k_max or int(k_min) < 1 or int(k_min) > int(k_max):
-                raise gr.Error("Fourchette : 1 ≤ minimum ≤ maximum attendu.")
+                raise gr.Error("Fourchette : le minimum doit valoir au moins 1 et ne pas dépasser le maximum.")
             speaker_conf = {"mode": "fourchette", "min": int(k_min), "max": int(k_max)}
         try:
             device = "cpu" if spec.cpu_only else select_device(device_choice).type
         except (RuntimeError, ValueError) as error:
-            raise gr.Error(str(error)) from error
+            raise gr.Error(f"{error}. Choisissez « auto » ou « cpu ».") from error
 
         steps = list(PRE_STEPS) + list(spec.steps)
         state: dict[str, float] = {}
-        skip = (gr.skip(),) * 7
-        empty = (None, [], [], "", _der_md(None, reference_path), None, None)
-        yield (_status_html(steps, state, "Normalisation de l'audio…"), *empty)
+        skip = (gr.skip(),) * 8
+        empty = (None, _stats_html(None), gr.update(value=[], visible=False), _times_html(None),
+                 _der_html(None, reference_path), gr.update(value=None, visible=False),
+                 gr.update(visible=True), None)
+        yield (_status_html(steps, state, "Normalisation de l'audio", fraction=0.0), *empty)
 
         uri = Path(audio_path).stem
         work = sortie.new_work_dir(WORK_ROOT)
@@ -291,7 +354,7 @@ def build_app(fake: bool = False, fake_max_s: float = 20.0) -> gr.Blocks:
         try:
             wav = normalize(audio_path, work / f"{sortie.rttm_name(uri)}.wav")
         except AudioError as error:
-            raise gr.Error(f"Audio illisible : {error}") from error
+            raise gr.Error(f"Ce fichier n'a pas pu être lu comme de l'audio. Détail : {error}") from error
         normalisation_s = time.perf_counter() - start
         state["normalisation_audio"] = 1.0
         waveform, sample_rate = load_waveform(wav)
@@ -299,14 +362,15 @@ def build_app(fake: bool = False, fake_max_s: float = 20.0) -> gr.Blocks:
 
         measured = temps.measured_rtf(spec.source_exp, device, moteurs.source_device(spec))
         rtf = measured.rtf if measured else None
-        estimate = temps.format_duration(rtf * duration_s) if rtf else "inconnue (RTF non mesuré)"
+        estimate = temps.format_duration(rtf * duration_s) if rtf else None
 
         with cache.lock:
-            yield (_status_html(steps, state, f"Chargement du modèle {spec.label}…"), *skip)
+            yield (_status_html(steps, state, f"Chargement de {spec.label}",
+                                fraction=_step_fraction(steps, state)), *skip)
             try:
                 engine, loading_s = cache.get(spec, device)
             except Exception as error:  # chargement des modèles : message affiché tel quel
-                raise gr.Error(f"Chargement impossible : {error}") from error
+                raise gr.Error(f"Le modèle n'a pas pu être chargé. Détail : {error}") from error
             state["chargement"] = 1.0
             if fake:
                 engine.simulated_s = min(fake_max_s, max(2.0, (rtf or 0.05) * duration_s))
@@ -333,20 +397,21 @@ def build_app(fake: bool = False, fake_max_s: float = 20.0) -> gr.Blocks:
                 elapsed = time.perf_counter() - t0
                 remaining = temps.remaining_s(rtf, duration_s, elapsed)
                 if remaining is None:
-                    left = "temps restant inconnu (RTF non mesuré pour ce périphérique)"
+                    left = "temps restant inconnu (RTF non mesuré sur ce périphérique)"
                 elif remaining > 0:
-                    left = f"≈ {temps.format_duration(remaining)} restantes"
+                    left = f"environ {temps.format_duration(remaining)} restantes"
                 else:
                     left = "estimation dépassée, calcul en cours"
-                detail = (f"Écoulé : {temps.format_duration(elapsed)} · {left} · durée estimée {estimate}"
-                          + (f" (RTF {_num(rtf, 4)}, {measured.source()})" if measured else ""))
-                yield (_status_html(steps, state, f"Analyse de {Path(audio_path).name} — {spec.label}",
+                detail = (f"{temps.format_duration(elapsed)} écoulées, {left}"
+                          + (f" (estimation {estimate}, RTF {_num(rtf, 4)} mesuré par {measured.exp_id})"
+                             if measured else ""))
+                yield (_status_html(steps, state, f"Analyse de {Path(audio_path).name} avec {spec.label}",
                                     detail, _step_fraction(steps, state)), *skip)
                 thread.join(0.3)
             calcul_s = time.perf_counter() - t0
             describe = engine.describe_dict()
         if "error" in outcome:
-            raise gr.Error(f"Échec de l'analyse : {outcome['error']}")
+            raise gr.Error(f"L'analyse a échoué. Détail : {outcome['error']}")
         resultat = outcome["result"]
 
         result = {
@@ -364,13 +429,16 @@ def build_app(fake: bool = False, fake_max_s: float = 20.0) -> gr.Blocks:
             "rtf_mesure": {"rtf": measured.rtf, "source": measured.source()} if measured else None,
         }
         n_speakers = len(sortie.speaker_labels(result["annotation"]))
-        done = _status_html(steps, {step: 1.0 for step in steps},
-                            f"Analyse terminée : {n_speakers} locuteur(s) en {temps.format_duration(calcul_s)}",
-                            f"Audio de {temps.format_duration(duration_s)} · RTF obtenu {_num(calcul_s / duration_s, 4)}",
-                            1.0)
+        done = _status_html(
+            steps, {step: 1.0 for step in steps},
+            f"{n_speakers} locuteur{'s' if n_speakers > 1 else ''} en {temps.format_duration(calcul_s)}",
+            f"{Path(audio_path).name}, {temps.format_duration(duration_s)} d'audio, {spec.label}, "
+            f"RTF {_num(calcul_s / duration_s, 4)}", 1.0)
         names_rows = [[label, ""] for label in sortie.speaker_labels(result["annotation"])]
-        yield (done, _viewer_value(result), _stats_rows(result), names_rows, _times_md(result),
-               _der_md(result, reference_path), _exports(result), result)
+        yield (done, _viewer_value(result), _stats_html(result),
+               gr.update(value=names_rows, visible=True, row_limits=(len(names_rows), len(names_rows))),
+               _times_html(result), _der_html(result, reference_path),
+               gr.update(value=_exports(result), visible=True), gr.update(visible=False), result)
 
     def rename(rows, result):
         if result is None:
@@ -379,98 +447,79 @@ def build_app(fake: bool = False, fake_max_s: float = 20.0) -> gr.Blocks:
         try:
             sortie.resolve_names(sortie.speaker_labels(result["annotation"]), names)
         except ValueError as error:
-            gr.Warning(str(error))
+            gr.Warning(f"{error} : choisissez un nom différent pour chaque locuteur.")
             return gr.skip(), gr.skip(), gr.skip(), gr.skip()
         result = dict(result, names=names)
-        return _viewer_value(result), _stats_rows(result), _exports(result), result
+        return _viewer_value(result), _stats_html(result), _exports(result), result
 
     with gr.Blocks(title="Who Spoke?") as app:
         result_state = gr.State(None)
-        gr.Markdown("# Who Spoke? — qui parle, et quand ?"
-                    + ("\n\n**Mode factice** : aucune inférence, résultats repris des expériences."
-                       if fake else ""))
+        gr.HTML(_header_html(fake), js_on_load=None)
         with gr.Tabs():
             with gr.Tab("Analyse"):
                 with gr.Row(equal_height=False):
-                    with gr.Column(scale=1, min_width=300):
-                        audio = gr.File(label="Fichier audio (tout format : wav, mp3, m4a, mp4, ogg…)",
-                                        file_count="single", type="filepath")
-                        engine = gr.Dropdown(choices, value="pyannote-community-1", label="Moteur")
-                        engine_info = gr.Markdown(f"*Configuration reprise de "
-                                                  f"{moteurs.SPECS['pyannote-community-1'].source_exp}.*")
+                    with gr.Column(scale=4, min_width=300, elem_classes="ws-card"):
+                        gr.HTML(_title("Nouvelle analyse",
+                                       "Tout format audio ou vidéo, normalisé en WAV 16 kHz mono."),
+                                js_on_load=None)
+                        audio = gr.File(label="Fichier audio", file_count="single", type="filepath", height=150)
+                        engine = gr.Dropdown(choices, value="pyannote-community-1", label="Moteur",
+                                             info=engine_info("pyannote-community-1"))
                         mode = gr.Radio(list(SPEAKER_MODES), value="Automatique", label="Nombre de locuteurs")
                         k = gr.Number(value=2, precision=0, minimum=1, label="Nombre imposé", visible=False)
                         with gr.Row(visible=False) as range_row:
                             k_min = gr.Number(value=2, precision=0, minimum=1, label="Minimum")
                             k_max = gr.Number(value=6, precision=0, minimum=1, label="Maximum")
                         device = gr.Dropdown(list(DEVICES), value="auto", label="Périphérique",
-                                             info="auto : CUDA, puis MPS, puis CPU (D15).")
-                        reference = gr.File(label="Référence RTTM (facultative)", file_types=[".rttm"],
-                                            type="filepath")
-                        run = gr.Button("Analyser", variant="primary")
-                    with gr.Column(scale=2, min_width=360):
-                        status = gr.HTML(_status_html([], {}, "En attente d'un fichier audio."),
-                                         js_on_load=None, elem_classes="st-panel")
-                        viewer = gr.HTML(
-                            None,
-                            html_template=(
-                                '<div class="wsp-root wsp-empty">'
-                                '<div class="wsp-placeholder">La timeline des locuteurs apparaîtra ici.</div>'
-                                '<div class="wsp-body"><div class="wsp-toolbar">'
-                                '<button type="button" class="wsp-play">Lecture</button>'
-                                '<span class="wsp-time"></span>'
-                                '<span class="wsp-hint">Cliquer sur un segment pour l\'écouter</span></div>'
-                                '<div class="wsp-wave"></div>'
-                                '<div class="wsp-lanes-wrap"><div class="wsp-lanes"></div>'
-                                '<div class="wsp-overlay"><div class="wsp-playhead"></div></div></div>'
-                                '<div class="wsp-axis"></div></div></div>'
-                            ),
-                            css_template=(STATIC_DIR / "visualiseur.css").read_text(),
-                            js_on_load=(STATIC_DIR / "visualiseur.js").read_text(),
-                            head=head,
-                        )
-                        stats = gr.Dataframe(
-                            headers=["Locuteur", "Identifiant", "Temps de parole", "Part du temps",
-                                     "Interventions", "Chevauchement"],
-                            datatype=["html", "str", "str", "str", "number", "str"],
-                            interactive=False, label="Statistiques par locuteur",
-                        )
-                        names = gr.Dataframe(
-                            headers=["Identifiant", "Nom"], datatype=["str", "str"], interactive=True,
-                            static_columns=[0], label="Renommer les locuteurs (colonne Nom)",
-                        )
-                        with gr.Accordion("Temps de traitement", open=True):
-                            times = gr.Markdown()
-                        with gr.Accordion("DER face à la référence", open=True):
-                            der = gr.Markdown(_der_md(None, None))
-                        exports = gr.File(label="Exports (RTTM et JSON)", file_count="multiple",
-                                          interactive=False)
+                                             info=ENGINE_INFO_DEVICE)
+                        reference = gr.File(label="Référence RTTM (facultative, pour le DER)",
+                                            file_types=[".rttm"], type="filepath", height=96)
+                        run = gr.Button("Analyser", variant="primary", size="lg", elem_classes="ws-run")
+                    with gr.Column(scale=8, min_width=360):
+                        with gr.Column(elem_classes="ws-card"):
+                            status = gr.HTML(
+                                _status_html([], {}, "Prêt", "Déposez un fichier audio, choisissez un "
+                                             "moteur, puis lancez l'analyse."),
+                                js_on_load=None)
+                        with gr.Column(elem_classes="ws-card"):
+                            gr.HTML(_title("Timeline"), js_on_load=None)
+                            viewer = gr.HTML(
+                                None, html_template=VIEWER_TEMPLATE,
+                                css_template=(STATIC_DIR / "visualiseur.css").read_text(),
+                                js_on_load=(STATIC_DIR / "visualiseur.js").read_text(), head=head,
+                            )
+                        with gr.Column(elem_classes="ws-card"):
+                            gr.HTML(_title("Locuteurs"), js_on_load=None)
+                            stats = gr.HTML(_stats_html(None), js_on_load=None)
+                            names = gr.Dataframe(
+                                headers=["Identifiant", "Nom"], datatype=["str", "str"], interactive=True,
+                                static_columns=[0], label="Renommer : saisissez un nom dans la colonne Nom",
+                                elem_classes="ws-names", visible=False,
+                            )
+                        with gr.Column(elem_classes="ws-card"):
+                            gr.HTML(_title("Évaluation", "DER face à la référence déposée."), js_on_load=None)
+                            der = gr.HTML(_der_html(None, None), js_on_load=None)
+                        with gr.Row(equal_height=False):
+                            with gr.Column(elem_classes="ws-card"):
+                                gr.HTML(_title("Temps de traitement"), js_on_load=None)
+                                times = gr.HTML(_times_html(None), js_on_load=None)
+                            with gr.Column(elem_classes="ws-card"):
+                                gr.HTML(_title("Exports", "RTTM et JSON, avec les noms choisis."),
+                                        js_on_load=None)
+                                exports = gr.File(show_label=False, file_count="multiple", interactive=False,
+                                                  visible=False, elem_classes="ws-exports")
+                                exports_empty = gr.HTML(_empty("Disponibles après l'analyse."), js_on_load=None)
 
-        engine.change(engine_changed, engine, [mode, device, engine_info])
+        engine.change(engine_changed, engine, [engine, mode, device])
         mode.change(mode_changed, mode, [k, range_row])
         run.click(
             analyse, [audio, engine, mode, k, k_min, k_max, device, reference],
-            [status, viewer, stats, names, times, der, exports, result_state],
-            concurrency_limit=1,
+            [status, viewer, stats, names, times, der, exports, exports_empty, result_state],
+            concurrency_limit=1, show_progress="hidden",  # l'avancement est dans le panneau d'état
         )
         names.input(rename, [names, result_state], [viewer, stats, exports, result_state])
-        reference.change(lambda path, result: _der_md(result, path), [reference, result_state], der)
+        reference.change(lambda path, result: _der_html(result, path), [reference, result_state], der)
     return app
-
-
-STATUS_CSS = """
-.st-root { padding: 4px 2px; }
-.st-head { font-weight: 600; margin-bottom: 6px; }
-.st-detail { color: var(--body-text-color-subdued); font-size: 0.9em; margin: 4px 0 8px; }
-.st-bar { height: 6px; border-radius: 3px; background: var(--border-color-primary); overflow: hidden; }
-.st-bar > div { height: 100%; background: var(--color-accent); transition: width 0.3s; }
-.st-steps { list-style: none; padding: 0; margin: 0; columns: 2; font-size: 0.92em; }
-.st-steps li { padding: 2px 0; break-inside: avoid; }
-.st-icon { display: inline-block; width: 1.4em; }
-.st-val { color: var(--body-text-color-subdued); margin-left: 6px; font-variant-numeric: tabular-nums; }
-.st-todo { color: var(--body-text-color-subdued); }
-.st-run { font-weight: 600; }
-"""
 
 
 def main(argv: list[str] | None = None) -> None:
@@ -486,8 +535,7 @@ def main(argv: list[str] | None = None) -> None:
     app = build_app(fake=args.factice, fake_max_s=args.factice_max_s)
     app.launch(
         server_name="127.0.0.1", server_port=args.port, share=False,
-        allowed_paths=[str(WORK_ROOT)], css=STATUS_CSS,
-        theme=gr.themes.Default(),  # polices locales uniquement (LocalFont et polices système)
+        allowed_paths=[str(WORK_ROOT)], theme=theme.build_theme(), css=theme.css(),
         footer_links=["settings"], mcp_server=False, ssr_mode=False,
     )
 

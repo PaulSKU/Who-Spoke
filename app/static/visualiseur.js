@@ -19,9 +19,11 @@ function rgba(hex, alpha) {
   return 'rgba(' + (n >> 16) + ',' + ((n >> 8) & 255) + ',' + (n & 255) + ',' + alpha + ')';
 }
 
-function tickStep(duration) {
+function tickStep(duration, width) {
+  // Au plus une graduation tous les 56 px, et dix au total.
+  const maxTicks = Math.max(2, Math.min(10, Math.floor(width / 56)));
   const steps = [1, 2, 5, 10, 15, 30, 60, 120, 300, 600, 900, 1800, 3600];
-  return steps.find((s) => duration / s <= 10) || 3600;
+  return steps.find((s) => duration / s <= maxTicks) || 3600;
 }
 
 function destroy() {
@@ -37,13 +39,14 @@ function playSegment(start, end) {
 
 function drawRegions() {
   const v = props.value;
+  const dark = isDark();
   const regions = element._regions;
-  if (!regions || !v) return;
+  if (!regions || !v || !element._ready) return;
   regions.clearRegions();
   const colors = element._colors;
   v.segments.forEach((seg) => {
     regions.addRegion({
-      start: seg.debut, end: seg.fin, color: rgba(colors[seg.locuteur], 0.22),
+      start: seg.debut, end: seg.fin, color: rgba(colors[seg.locuteur], dark ? 0.22 : 0.18),
       drag: false, resize: false,
     });
   });
@@ -83,12 +86,13 @@ function drawLanes(v) {
     bar.style.left = (100 * seg.debut / v.duree_s) + '%';
     bar.style.width = (100 * (seg.fin - seg.debut) / v.duree_s) + '%';
     bar.style.background = element._colors[seg.locuteur];
+    bar.setAttribute('aria-label', names[seg.locuteur] + ', ' + fmt(seg.debut) + ' à ' + fmt(seg.fin));
     bar.title = names[seg.locuteur] + ' : ' + fmt(seg.debut) + ' – ' + fmt(seg.fin)
-      + ' (' + (seg.fin - seg.debut).toFixed(1).replace('.', ',') + ' s) — cliquer pour écouter';
+      + ' (' + (seg.fin - seg.debut).toFixed(1).replace('.', ',') + ' s). Cliquer pour écouter.';
     bar.addEventListener('click', () => playSegment(seg.debut, seg.fin));
     tracks[seg.locuteur].appendChild(bar);
   });
-  const step = tickStep(v.duree_s);
+  const step = tickStep(v.duree_s, axis.clientWidth || 600);
   for (let t = 0; t <= v.duree_s; t += step) {
     const tick = document.createElement('span');
     tick.className = 'wsp-tick';
@@ -122,10 +126,10 @@ function render() {
     const regions = WaveSurfer.Regions.create();
     ws = WaveSurfer.create({
       container: wave,
-      height: 88,
-      waveColor: dark ? '#8a8985' : '#b5b4af',
-      progressColor: dark ? '#c3c2b7' : '#52514e',
-      cursorColor: dark ? '#f0efec' : '#0b0b0b',
+      height: 80,
+      waveColor: dark ? '#4a4b50' : '#c9c9c4',
+      progressColor: dark ? '#a3a49e' : '#5f616a',
+      cursorColor: dark ? '#ecece9' : '#18191d',
       cursorWidth: 2,
       barWidth: 2,
       barGap: 1,
@@ -136,6 +140,7 @@ function render() {
       plugins: [regions],
     });
     element._ws = ws;
+    element._ready = false;
     element._regions = regions;
     element._url = v.audio_url;
     regions.on('region-clicked', (region, event) => {
@@ -153,8 +158,7 @@ function render() {
     ws.on('timeupdate', show);
     ws.on('play', () => { button.textContent = 'Pause'; });
     ws.on('pause', () => { button.textContent = 'Lecture'; });
-    ws.on('decode', drawRegions);
-    ws.on('ready', drawRegions);
+    ws.once('ready', () => { element._ready = true; drawRegions(); });
     if (resume > 0) ws.once('ready', () => ws.setTime(resume));
     show(resume);
   }
