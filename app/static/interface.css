@@ -165,6 +165,8 @@ button.primary:active, button.secondary:active, .wsp-play:active { transform: sc
   font-size: 0.85rem; color: var(--ws-ink); background: var(--ws-canvas);
   border-radius: 8px; padding: 8px 12px; margin: 0 0 12px; line-height: 1.5;
 }
+.ws-subtitle { margin: 4px 0 8px; font-size: 0.9rem; font-weight: 600; }
+.ws-subtitle:not(:first-child) { margin-top: 18px; }
 .ws-caption { color: var(--ws-slate); font-size: 0.85rem; margin: 10px 0 0; line-height: 1.5; }
 .ws-callout {
   font-size: 0.85rem; color: var(--ws-slate); background: var(--ws-canvas);

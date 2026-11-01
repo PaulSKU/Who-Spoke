@@ -59,10 +59,22 @@ function isSelected(seg) {
 }
 
 // Segments des locuteurs et zones de la carte des erreurs : tout ce qui se sélectionne.
+// Clés uniques par groupe (moteur 1, moteur 2, référence) : « a:SPK_00 », « erreur:b:12 ».
 function selectables(v) {
-  const zones = (v.erreurs ? v.erreurs.zones : [])
-    .map((zone, index) => ({ debut: zone.debut, fin: zone.fin, locuteur: 'erreur:' + index }));
-  return v.segments.concat(zones);
+  const all = [];
+  v.groupes.forEach((group) => {
+    group.segments.forEach((seg) => all.push(segKey(group, seg)));
+    (group.erreurs ? group.erreurs.zones : []).forEach((zone, index) => all.push(zoneKey(group, zone, index)));
+  });
+  return all;
+}
+
+function segKey(group, seg) {
+  return { debut: seg.debut, fin: seg.fin, locuteur: group.id + ':' + seg.locuteur };
+}
+
+function zoneKey(group, zone, index) {
+  return { debut: zone.debut, fin: zone.fin, locuteur: 'erreur:' + group.id + ':' + index };
 }
 
 function markSelected() {
@@ -143,44 +155,67 @@ function drawSelection() {
   });
 }
 
+function caption(labels, lanes, text, title) {
+  const label = document.createElement('div');
+  label.className = 'wsp-label wsp-caption';
+  label.textContent = text;
+  if (title) label.title = title;
+  labels.appendChild(label);
+  const spacer = document.createElement('div');
+  spacer.className = 'wsp-spacer';
+  lanes.appendChild(spacer);
+}
+
+function addRow(labels, lanes, text, title, swatchClass, swatchColor) {
+  const label = document.createElement('div');
+  label.className = 'wsp-label';
+  const swatch = document.createElement('span');
+  swatch.className = 'wsp-swatch' + (swatchClass ? ' ' + swatchClass : '');
+  if (swatchColor) swatch.style.background = swatchColor;
+  label.appendChild(swatch);
+  label.appendChild(document.createTextNode(text));
+  label.title = title;
+  labels.appendChild(label);
+  const track = document.createElement('div');
+  track.className = 'wsp-track';
+  lanes.appendChild(track);
+  return track;
+}
+
+// Groupes superposés dans le même canevas (D26, I5) : pistes de chaque groupe, puis la
+// carte des erreurs de chaque moteur. Un seul groupe sans erreurs : pas de légende.
 function drawLanes(v) {
   const labels = $('.wsp-labels');
   const lanes = $('.wsp-lanes');
   labels.innerHTML = '';
   lanes.innerHTML = '';
-  const names = {};
-  const tracks = {};
-  v.locuteurs.forEach((spk) => {
-    names[spk.id] = spk.nom;
-    const label = document.createElement('div');
-    label.className = 'wsp-label';
-    const swatch = document.createElement('span');
-    swatch.className = 'wsp-swatch';
-    swatch.style.background = element._colors[spk.id];
-    label.appendChild(swatch);
-    label.appendChild(document.createTextNode(spk.nom));
-    label.title = spk.nom + ' (' + spk.id + ')';
-    labels.appendChild(label);
-    const track = document.createElement('div');
-    track.className = 'wsp-track';
-    lanes.appendChild(track);
-    tracks[spk.id] = track;
+  const several = v.groupes.length > 1;
+  v.groupes.forEach((group) => {
+    if (several) caption(labels, lanes, group.titre, group.titre);
+    const names = {};
+    const tracks = {};
+    group.locuteurs.forEach((spk) => {
+      names[spk.id] = spk.nom;
+      tracks[spk.id] = addRow(labels, lanes, spk.nom, spk.nom + ' (' + spk.id + ')', '',
+                              element._colors[group.id + ':' + spk.id]);
+    });
+    group.segments.forEach((seg) => {
+      const bar = document.createElement('button');
+      bar.type = 'button';
+      bar.className = 'wsp-seg';
+      bar.style.left = (100 * seg.debut / v.duree_s) + '%';
+      bar.style.width = (100 * (seg.fin - seg.debut) / v.duree_s) + '%';
+      bar.style.background = element._colors[group.id + ':' + seg.locuteur];
+      const who = (several ? group.titre + ', ' : '') + names[seg.locuteur];
+      bar.setAttribute('aria-label', who + ', ' + fmt(seg.debut) + ' à ' + fmt(seg.fin));
+      bar.title = who + ' : ' + fmt(seg.debut) + ' – ' + fmt(seg.fin)
+        + ' (' + (seg.fin - seg.debut).toFixed(1).replace('.', ',') + ' s). Cliquer pour écouter.';
+      bar._seg = segKey(group, seg);
+      bar.addEventListener('click', () => selectSegment(bar._seg));
+      tracks[seg.locuteur].appendChild(bar);
+    });
   });
-  drawErrors(v, labels, lanes, names);
-  v.segments.forEach((seg) => {
-    const bar = document.createElement('button');
-    bar.type = 'button';
-    bar.className = 'wsp-seg';
-    bar.style.left = (100 * seg.debut / v.duree_s) + '%';
-    bar.style.width = (100 * (seg.fin - seg.debut) / v.duree_s) + '%';
-    bar.style.background = element._colors[seg.locuteur];
-    bar.setAttribute('aria-label', names[seg.locuteur] + ', ' + fmt(seg.debut) + ' à ' + fmt(seg.fin));
-    bar.title = names[seg.locuteur] + ' : ' + fmt(seg.debut) + ' – ' + fmt(seg.fin)
-      + ' (' + (seg.fin - seg.debut).toFixed(1).replace('.', ',') + ' s). Cliquer pour écouter.';
-    bar._seg = seg;
-    bar.addEventListener('click', () => selectSegment(seg));
-    tracks[seg.locuteur].appendChild(bar);
-  });
+  drawErrors(v, labels, lanes);
 }
 
 const ERROR_TEXT = {
@@ -190,53 +225,43 @@ const ERROR_TEXT = {
     + (names[z.hypothese] || z.hypothese),
 };
 
-function drawErrors(v, labels, lanes, names) {
+function drawErrors(v, labels, lanes) {
   const summary = $('.wsp-errsum');
-  const errors = v.erreurs;
-  if (!errors) {
-    summary.hidden = true;
-    summary.textContent = '';
-    return;
-  }
-  const caption = document.createElement('div');
-  caption.className = 'wsp-label wsp-err-caption';
-  caption.textContent = 'Erreurs';
-  caption.title = 'Après appariement optimal des locuteurs, sans collar, chevauchements comptés';
-  labels.appendChild(caption);
-  const spacer = document.createElement('div');
-  spacer.className = 'wsp-err-spacer';
-  lanes.appendChild(spacer);
-  const tracks = {};
-  errors.rangees.forEach((row) => {
-    const label = document.createElement('div');
-    label.className = 'wsp-label';
-    const swatch = document.createElement('span');
-    swatch.className = 'wsp-swatch wsp-err-' + row.type;
-    label.appendChild(swatch);
-    label.appendChild(document.createTextNode(row.libelle));
-    label.title = row.libelle + ' : ' + row.duree + ' (' + row.part + ' du DER sans collar)';
-    labels.appendChild(label);
-    const track = document.createElement('div');
-    track.className = 'wsp-track';
-    lanes.appendChild(track);
-    tracks[row.type] = track;
+  const withErrors = v.groupes.filter((group) => group.erreurs);
+  summary.innerHTML = '';
+  summary.hidden = !withErrors.length;
+  withErrors.forEach((group) => {
+    const names = {};
+    group.locuteurs.forEach((spk) => { names[spk.id] = spk.nom; });
+    const errors = group.erreurs;
+    const title = withErrors.length > 1 || v.groupes.length > 1 ? 'Erreurs, ' + group.titre : 'Erreurs';
+    caption(labels, lanes, title, 'Après appariement optimal des locuteurs, sans collar, chevauchements comptés');
+    const tracks = {};
+    errors.rangees.forEach((row) => {
+      tracks[row.type] = addRow(labels, lanes, row.libelle,
+                                row.libelle + ' : ' + row.duree + ' (' + row.part + ' du DER sans collar)',
+                                'wsp-err-' + row.type, null);
+    });
+    errors.zones.forEach((zone, index) => {
+      const bar = document.createElement('button');
+      bar.type = 'button';
+      bar.className = 'wsp-seg wsp-err-' + zone.type;
+      bar.style.left = (100 * zone.debut / v.duree_s) + '%';
+      bar.style.width = (100 * (zone.fin - zone.debut) / v.duree_s) + '%';
+      const text = (withErrors.length > 1 ? group.titre + ', ' : '') + ERROR_TEXT[zone.type](zone, names)
+        + ', ' + fmt(zone.debut) + ' – ' + fmt(zone.fin);
+      bar.setAttribute('aria-label', text);
+      bar.title = text + ' (' + (zone.fin - zone.debut).toFixed(1).replace('.', ',') + ' s). Cliquer pour écouter.';
+      bar._seg = zoneKey(group, zone, index);
+      bar.addEventListener('click', () => selectSegment(bar._seg));
+      tracks[zone.type].appendChild(bar);
+    });
+    const line = document.createElement('span');
+    line.className = 'wsp-errline';
+    line.textContent = (withErrors.length > 1 ? group.titre + ' : ' : 'Erreurs sans collar : ') + errors.rangees
+      .map((row) => row.libelle.toLowerCase() + ' ' + row.duree + ' (' + row.part + ')').join(' · ') + '.';
+    summary.appendChild(line);
   });
-  errors.zones.forEach((zone, index) => {
-    const bar = document.createElement('button');
-    bar.type = 'button';
-    bar.className = 'wsp-seg wsp-err-' + zone.type;
-    bar.style.left = (100 * zone.debut / v.duree_s) + '%';
-    bar.style.width = (100 * (zone.fin - zone.debut) / v.duree_s) + '%';
-    const text = ERROR_TEXT[zone.type](zone, names) + ', ' + fmt(zone.debut) + ' – ' + fmt(zone.fin);
-    bar.setAttribute('aria-label', text);
-    bar.title = text + ' (' + (zone.fin - zone.debut).toFixed(1).replace('.', ',') + ' s). Cliquer pour écouter.';
-    bar._seg = { debut: zone.debut, fin: zone.fin, locuteur: 'erreur:' + index };
-    bar.addEventListener('click', () => selectSegment(bar._seg));
-    tracks[zone.type].appendChild(bar);
-  });
-  summary.textContent = 'Erreurs sans collar : ' + errors.rangees
-    .map((row) => row.libelle.toLowerCase() + ' ' + row.duree + ' (' + row.part + ')').join(' · ') + '.';
-  summary.hidden = false;
 }
 
 function render() {
@@ -251,7 +276,9 @@ function render() {
   root.classList.remove('wsp-empty');
   const dark = isDark();
   element._colors = {};
-  v.locuteurs.forEach((spk) => { element._colors[spk.id] = dark ? spk.couleur_sombre : spk.couleur; });
+  v.groupes.forEach((group) => group.locuteurs.forEach((spk) => {
+    element._colors[group.id + ':' + spk.id] = dark ? spk.couleur_sombre : spk.couleur;
+  }));
 
   const wave = $('.wsp-wave');
   let ws = element._ws;
