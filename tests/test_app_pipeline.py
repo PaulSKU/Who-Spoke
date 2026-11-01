@@ -42,7 +42,18 @@ EFFECTIVE = {
 }
 
 
-def make_root(tmp_path, execution=True):
+def _with_common(catalogue):
+    """Catalogue fabriqué complété des entrées communes du vrai catalogue (normalisation)."""
+    from whospoke.pipelines.base import load_catalogue
+
+    real = load_catalogue()
+    catalogue = json.loads(json.dumps(catalogue))
+    catalogue["etapes"]["normalisation"] = real["etapes"]["normalisation"]
+    catalogue["communs"] = real["communs"]
+    return catalogue
+
+
+def make_root(tmp_path, execution=True, catalogue=None):
     root = tmp_path / "depot"
     directory = root / "experiments" / "EXP-0099_essai"
     directory.mkdir(parents=True)
@@ -55,9 +66,9 @@ def make_root(tmp_path, execution=True):
             "device": "mps", "date_fin": "2026-10-29T14:11:49+01:00", "git_commit": "568efbb7730f",
             "versions": {"python": "3.11", "pyannote.audio": "4.0.7"}, "configuration_effective": EFFECTIVE,
         }))
-    catalogue = root / pipeline.CATALOGUE_RELATIVE
-    catalogue.parent.mkdir(parents=True)
-    catalogue.write_text(yaml.safe_dump(CATALOGUE, allow_unicode=True))
+    catalogue_path = root / pipeline.CATALOGUE_RELATIVE
+    catalogue_path.parent.mkdir(parents=True, exist_ok=True)
+    catalogue_path.write_text(yaml.safe_dump(catalogue or _with_common(CATALOGUE), allow_unicode=True))
     return root
 
 
@@ -148,3 +159,29 @@ def test_experiences_reelles_du_depot(key, expected_missing):
     assert page.unavailable is None
     assert page.not_catalogued == [] and page.wrong_step == []
     assert page.not_configured == expected_missing
+
+
+def test_normalisation_lue_dans_le_code_et_le_catalogue(tmp_path):
+    """D26, amendement du 01/11 : valeurs de whospoke.audio, textes du catalogue."""
+    from whospoke import audio
+
+    page = pipeline.load_page(SPEC, make_root(tmp_path))
+    stage = page.stages[0]
+    rows = {row.name: row for row in stage.rows}
+    assert [s["nom"] for s in audio.describe_normalisation()] == list(rows)
+    assert rows["audio.frequence_hz"].value == f"{audio.SAMPLE_RATE} Hz"
+    assert rows["audio.canaux"].value == str(audio.CHANNELS)
+    assert rows["audio.codec"].value == f"WAV {audio.CODEC}"
+    assert rows["audio.entree_moteurs"].value == "signal en mémoire (waveform, sample_rate)"
+    assert rows["audio.canaux"].label == "Canaux" and rows["audio.canaux"].decision == "D15"
+    assert stage.label == "Normalisation" and stage.role and stage.defined_in.startswith("src/whospoke/audio.py")
+    assert all(row.catalogued for row in stage.rows)
+
+
+def test_normalisation_sans_entree_au_catalogue_signalee(tmp_path):
+    catalogue = _with_common(CATALOGUE)
+    del catalogue["communs"]["audio.canaux"]
+    catalogue["communs"]["audio.ancien_reglage"] = dict(catalogue["communs"]["audio.codec"])
+    page = pipeline.load_page(SPEC, make_root(tmp_path, catalogue=catalogue))
+    assert "audio.canaux (normalisation)" in page.not_catalogued
+    assert "audio.ancien_reglage (communs)" in page.not_configured

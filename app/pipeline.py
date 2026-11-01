@@ -6,9 +6,10 @@ La page est générée, jamais rédigée à la main :
   `execution_<périphérique>.json` de l'expérience source du moteur (`app/moteurs.py`) ;
 - leur libellé, leur effet, les composantes du DER concernées et la décision qui les
   fixe viennent de `src/whospoke/pipelines/catalogue.yaml` ;
-- les étapes communes à tous les moteurs (normalisation, évaluation) lisent leurs valeurs
-  dans le code (`whospoke.audio`, `whospoke.evaluation.metrics`) et dans le config.yaml
-  de l'expérience source.
+- l'étape Normalisation, commune à tous les moteurs, lit ses valeurs dans le code
+  (`whospoke.audio.describe_normalisation`) et ses textes dans la section `communs` du
+  catalogue (D26, amendement du 01/11) ; l'étape Évaluation lit ses valeurs dans
+  `whospoke.evaluation.metrics` et dans le config.yaml de l'expérience source.
 
 Tout est lu depuis une racine de dépôt configurable (`--depot` de app/app.py), sans
 jamais y écrire, ni charger de modèle. Les réglages présents dans la configuration mais
@@ -30,7 +31,7 @@ from pathlib import Path
 import yaml
 
 from app import moteurs
-from whospoke.audio import SAMPLE_RATE
+from whospoke import audio
 from whospoke.evaluation.metrics import CONDITIONS, DiarizationEvaluator
 
 CATALOGUE_RELATIVE = Path("src") / "whospoke" / "pipelines" / "catalogue.yaml"
@@ -118,7 +119,7 @@ def format_value(name: str, value) -> str:
         text = f"{value:.6g}".replace(".", ",")
         return text + (" s" if name.endswith("_s") else "")
     if isinstance(value, int):
-        return str(value) + (" s" if name.endswith("_s") else "")
+        return str(value) + (" s" if name.endswith("_s") else " Hz" if name.endswith("_hz") else "")
     return str(value)
 
 
@@ -155,21 +156,41 @@ def execution_file(spec: moteurs.EngineSpec, root: Path) -> Path:
     return others[0]
 
 
-def _common_normalisation() -> Stage:
-    rows = [
-        Row("frequence", "Fréquence d'échantillonnage", f"{SAMPLE_RATE} Hz", "code", "D15",
-            "Fréquence attendue par les modèles ; tout fichier y est rééchantillonné.", ["aucun effet sur le DER"]),
-        Row("canaux", "Canaux", "mono", "code", "D15",
-            "Un enregistrement stéréo est ramené à une seule piste.", ["aucun effet sur le DER"]),
-        Row("format", "Format intermédiaire", "WAV PCM 16 bits", "code", "D15",
-            "Format sans perte, lu sans bibliothèque de décodage.", ["aucun effet sur le DER"]),
-        Row("entree", "Entrée des moteurs", "signal en mémoire", "code", "D16",
-            "Aucun chemin de fichier n'est passé aux moteurs (décodeur de pyannote contourné).",
-            ["aucun effet sur le DER"]),
-    ]
-    return Stage("normalisation", "Normalisation", "Préparation",
-                 "Convertir tout fichier audio, quel que soit son format, en un signal unique que "
-                 "chaque moteur reçoit à l'identique.", "src/whospoke/audio.py (ffmpeg en sous-processus)", rows)
+def _common_normalisation(catalogue: dict, page: Page) -> Stage:
+    """Étape Normalisation : valeurs lues dans `whospoke.audio`, textes dans le catalogue
+    (`communs`) ; rien d'écrit ici (D26, amendement du 01/11)."""
+    entries = catalogue.get("communs") or {}
+    step = (catalogue.get("etapes") or {}).get("normalisation", {})
+    settings = audio.describe_normalisation()
+    rows = []
+    for setting in settings:
+        entry = entries.get(setting["nom"])
+        if entry is None:
+            page.not_catalogued.append(f"{setting['nom']} (normalisation)")
+        elif entry["etape"] != "normalisation":
+            page.wrong_step.append(f"{setting['nom']} : étape « normalisation » dans le code, "
+                                   f"« {entry['etape']} » au catalogue")
+        rows.append(_row(setting, settings, entry))
+    described = {setting["nom"] for setting in settings}
+    page.not_configured += sorted(f"{name} (communs)" for name, entry in entries.items()
+                                  if entry.get("etape") == "normalisation" and name not in described)
+    return Stage("normalisation", step.get("libelle", "Normalisation"), "Préparation", step.get("role", ""),
+                 f"src/{audio.__name__.replace('.', '/')}.py (ffmpeg en sous-processus)", rows)
+
+
+def _row(setting: dict, settings: list[dict], entry: dict | None) -> Row:
+    name = setting["nom"]
+    return Row(
+        name=name,
+        label=(entry or {}).get("libelle", name),
+        value=format_value(name, setting["valeur"]),
+        origin=setting.get("origine", ""),
+        decision=(entry or {}).get("decision"),
+        effect=(entry or {}).get("effet"),
+        components=list((entry or {}).get("composantes", [])),
+        revision=revision_of(setting, settings) if name.endswith(".modele") else None,
+        catalogued=entry is not None,
+    )
 
 
 def _evaluation(config: dict) -> Stage:
@@ -223,7 +244,7 @@ def load_page(spec: moteurs.EngineSpec, root: Path) -> Page:
     page.date = execution.get("date_fin", "")
     page.commit = (execution.get("git_commit") or "")[:7]
     page.versions = execution.get("versions") or {}
-    page.stages.append(_common_normalisation())
+    page.stages.append(_common_normalisation(catalogue, page))
     configured = set()
     for step, settings in effective.items():
         if step not in steps:
@@ -239,22 +260,12 @@ def load_page(spec: moteurs.EngineSpec, root: Path) -> Page:
                 page.wrong_step.append(f"{name} : étape « {step} » dans la configuration, « {entry['etape']} » au catalogue")
             if name.endswith(".revision"):
                 continue  # affiché avec son modèle
-            rows.append(Row(
-                name=name,
-                label=(entry or {}).get("libelle", name),
-                value=format_value(name, setting["valeur"]),
-                origin=setting.get("origine", ""),
-                decision=(entry or {}).get("decision"),
-                effect=(entry or {}).get("effet"),
-                components=list((entry or {}).get("composantes", [])),
-                revision=revision_of(setting, settings) if name.endswith(".modele") else None,
-                catalogued=entry is not None,
-            ))
+            rows.append(_row(setting, settings, entry))
         page.stages.append(Stage(
             id=step, label=steps.get(step, {}).get("libelle", step), family=FAMILIES.get(step, "Autre"),
             role=steps.get(step, {}).get("role", ""), defined_in=SOURCE_FILES.get(spec.pipeline, ""), rows=rows,
         ))
-    page.not_configured = sorted(set(entries) - configured)
+    page.not_configured += sorted(set(entries) - configured)
     page.evaluation = _evaluation(config)
     return page
 

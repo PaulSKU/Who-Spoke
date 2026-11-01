@@ -16,6 +16,9 @@ import torch
 from scipy.io import wavfile
 
 SAMPLE_RATE = 16000
+CHANNELS = 1                 # mono
+CODEC = "pcm_s16le"          # WAV PCM 16 bits (codec ffmpeg)
+SAMPLE_DTYPE = np.int16      # type des échantillons du WAV normalisé
 
 
 class AudioError(RuntimeError):
@@ -42,7 +45,7 @@ def normalize(
     command = [ffmpeg, "-nostdin", "-hide_banner", "-loglevel", "error", "-y", "-i", str(src)]
     if duration is not None:
         command += ["-t", str(duration)]
-    command += ["-vn", "-ac", "1", "-ar", str(SAMPLE_RATE), "-c:a", "pcm_s16le", str(tmp)]
+    command += ["-vn", "-ac", str(CHANNELS), "-ar", str(SAMPLE_RATE), "-c:a", CODEC, str(tmp)]
     try:
         completed = subprocess.run(command, capture_output=True, text=True)
     except FileNotFoundError as error:
@@ -70,9 +73,9 @@ def load_waveform(path: str | Path) -> tuple[torch.Tensor, int]:
         raise AudioError(f"Lecture WAV impossible : {path} ({error})") from error
     if sample_rate != SAMPLE_RATE:
         raise AudioError(f"{path} : {SAMPLE_RATE} Hz attendus, {sample_rate} Hz trouvés")
-    if data.ndim != 1:
+    if data.ndim != CHANNELS:
         raise AudioError(f"{path} : mono attendu, {data.shape[1]} canaux trouvés")
-    if data.dtype != np.int16:
+    if data.dtype != SAMPLE_DTYPE:
         raise AudioError(f"{path} : PCM 16 bits attendu, {data.dtype} trouvé")
     waveform = torch.from_numpy(data.astype(np.float32) / 32768.0).unsqueeze(0)
     return waveform, int(sample_rate)
@@ -81,3 +84,19 @@ def load_waveform(path: str | Path) -> tuple[torch.Tensor, int]:
 def as_pipeline_input(waveform: torch.Tensor, sample_rate: int) -> dict:
     """Dictionnaire d'entrée en mémoire accepté par les pipelines pyannote (D16)."""
     return {"waveform": waveform, "sample_rate": sample_rate}
+
+
+def describe_normalisation() -> list[dict]:
+    """Réglages effectifs de la normalisation, au format de `Engine.describe_dict()`.
+
+    Valeurs lues dans les constantes qu'utilisent `normalize`, `load_waveform` et
+    `as_pipeline_input` : la page Pipeline n'en écrit aucune à la main (D17 ; D26,
+    amendement du 01/11). Les libellés et effets sont dans le catalogue (`communs`).
+    """
+    keys = ", ".join(as_pipeline_input(torch.zeros(1, 1), SAMPLE_RATE))
+    return [
+        {"nom": "audio.frequence_hz", "valeur": SAMPLE_RATE, "origine": "code"},
+        {"nom": "audio.canaux", "valeur": CHANNELS, "origine": "code"},
+        {"nom": "audio.codec", "valeur": f"WAV {CODEC}", "origine": "code"},
+        {"nom": "audio.entree_moteurs", "valeur": f"signal en mémoire ({keys})", "origine": "code"},
+    ]

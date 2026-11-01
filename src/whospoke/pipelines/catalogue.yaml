@@ -9,6 +9,7 @@
 # temps, aucun effet sur le DER.
 
 etapes:
+  normalisation: {libelle: Normalisation, role: "Convertir tout fichier audio, quel que soit son format, en un signal unique que chaque moteur reçoit à l'identique."}
   analyse: {libelle: Analyse, role: "Découper le signal en trames et en extraire l'énergie et les MFCC."}
   normalisation_cepstrale: {libelle: Normalisation cepstrale, role: "Retirer des MFCC ce qui est constant sur le fichier (canal, salle)."}
   detection: {libelle: Détection de parole, role: "Décider, trame par trame, s'il y a de la voix. Une trame sans aucun locuteur actif est un silence."}
@@ -317,3 +318,32 @@ moteurs:
       effet: "Un seul locuteur à la fois, par construction : le second locuteur de chaque chevauchement est manqué."
       composantes: [parole manquée]
       decision: D19
+
+# Réglages communs à tous les moteurs, décrits par le code hors des moteurs
+# (`whospoke.audio.describe_normalisation`) : étape Normalisation de la page Pipeline
+# (D26, amendement du 01/11).
+communs:
+  audio.frequence_hz:
+    libelle: Fréquence d'échantillonnage
+    etape: normalisation
+    effet: "Fréquence attendue par les modèles ; tout fichier y est rééchantillonné par ffmpeg."
+    composantes: [aucun effet sur le DER]
+    decision: D15
+  audio.canaux:
+    libelle: Canaux
+    etape: normalisation
+    effet: "Un enregistrement stéréo ou multicanal est ramené à une seule piste (mono), comme la cible."
+    composantes: [aucun effet sur le DER]
+    decision: D15
+  audio.codec:
+    libelle: Format intermédiaire
+    etape: normalisation
+    effet: "WAV PCM 16 bits, sans perte, lu sans bibliothèque de décodage."
+    composantes: [aucun effet sur le DER]
+    decision: D15
+  audio.entree_moteurs:
+    libelle: Entrée des moteurs
+    etape: normalisation
+    effet: "Aucun chemin de fichier n'est passé aux moteurs : le décodeur de pyannote (torchcodec) est contourné."
+    composantes: [aucun effet sur le DER]
+    decision: D16

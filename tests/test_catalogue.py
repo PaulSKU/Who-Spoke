@@ -51,3 +51,17 @@ def test_catalogue_pyannote():
 
     described, catalogued = check_engine(PyannoteCommunity1(device="cpu"))
     assert described == catalogued
+
+
+def test_reglages_communs_de_la_normalisation():
+    """D26, amendement du 01/11 : chaque réglage décrit par whospoke.audio a son entrée
+    dans `communs`, et inversement."""
+    from whospoke.audio import describe_normalisation
+
+    entries = CATALOGUE["communs"]
+    for name, entry in entries.items():
+        assert REQUIRED <= set(entry), name
+        assert entry["etape"] in CATALOGUE["etapes"], name
+    described = {s["nom"] for s in describe_normalisation()}
+    assert described == {n for n, e in entries.items() if e["etape"] == "normalisation"}
+    assert all(s["origine"] in ORIGINS for s in describe_normalisation())
