@@ -182,6 +182,52 @@ button.primary:active, button.secondary:active, .wsp-play:active { transform: sc
 .ws-exports td.filename .stem { max-width: none !important; overflow: visible !important; text-overflow: clip !important; }
 .ws-exports tr.file { font-size: 0.9rem; }
 
+/* --- Onglet Pipeline (D17, D26) -------------------------------------------------- */
+.pl-root { display: grid; gap: 16px; }
+.pl-meta { color: var(--ws-slate); font-size: 0.85rem; margin: 0; line-height: 1.6; }
+.pl-meta code, .pl-facts code, .pl-table code { font-size: 0.8rem; }
+.pl-issues {
+  font-size: 0.85rem; background: var(--ws-canvas); border-radius: 8px; padding: 10px 14px;
+  box-shadow: inset 3px 0 0 var(--ws-ink);
+}
+.pl-issues p { margin: 0 0 4px; }
+.pl-issues ul { margin: 0; padding-left: 18px; color: var(--ws-slate); }
+.pl-flow { display: flex; flex-wrap: wrap; align-items: stretch; gap: 8px; }
+.pl-arrow { align-self: center; color: var(--ws-slate); }
+.pl-sep { width: 1px; background: var(--ws-line); margin: 0 8px; align-self: stretch; }
+.pl-step {
+  display: flex; flex-direction: column; gap: 2px; text-align: left; cursor: pointer;
+  min-width: 128px; padding: 10px 12px; border: none; border-radius: 10px; font: inherit;
+  background: var(--ws-surface); color: var(--ws-ink);
+  box-shadow: 0 1px 2px -1px rgba(0,0,0,0.08), 0 0 0 1px var(--ws-line);
+  transition: transform 100ms var(--ws-ease), background-color 150ms ease;
+}
+.pl-step:active { transform: scale(0.97); }
+@media (hover: hover) and (pointer: fine) { .pl-step:hover { background: var(--ws-canvas); } }
+.pl-step[aria-pressed="true"] { box-shadow: 0 0 0 2px var(--ws-ink); }
+.pl-eval { box-shadow: 0 0 0 1px var(--ws-line); outline: 1px dashed var(--ws-slate); outline-offset: -4px; }
+.pl-eval[aria-pressed="true"] { box-shadow: 0 0 0 2px var(--ws-ink); }
+.pl-step-name { font-weight: 600; font-size: 0.9rem; }
+.pl-step-family { color: var(--ws-slate); font-size: 0.78rem; }
+.pl-sheet h3 { margin: 2px 0 6px; font-size: 1.1rem; letter-spacing: -0.01em; }
+.pl-family { margin: 0; color: var(--ws-slate); font-size: 0.8rem; }
+.pl-role { margin: 0 0 12px; max-width: 72ch; line-height: 1.5; }
+.pl-facts { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 8px 24px; margin: 0 0 14px; }
+.pl-facts dt { color: var(--ws-slate); font-size: 0.8rem; }
+.pl-facts dd { margin: 2px 0 0; font-size: 0.9rem; }
+.pl-facts ul { margin: 0; padding-left: 16px; }
+.pl-table td { vertical-align: top; font-size: 0.875rem; }
+.pl-table td:first-child { white-space: normal; min-width: 160px; }
+.pl-table td:nth-child(3) { white-space: nowrap; }
+.pl-table td:nth-child(4) { min-width: 260px; line-height: 1.45; }
+.pl-chip {
+  display: inline-block; margin: 0 4px 4px 0; padding: 2px 8px; border-radius: 999px;
+  font-size: 0.75rem; background: var(--ws-canvas); box-shadow: 0 0 0 1px var(--ws-line); white-space: nowrap;
+}
+.pl-rev { display: block; color: var(--ws-slate); font-size: 0.78rem; margin-top: 2px; }
+.pl-rev-missing { font-style: italic; }
+.pl-uncatalogued td { background: var(--ws-canvas) !important; }
+
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after { transition-duration: 0.01ms !important; animation-duration: 0.01ms !important; animation-iteration-count: 1 !important; }
 }

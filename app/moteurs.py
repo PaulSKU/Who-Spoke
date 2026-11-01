@@ -111,9 +111,9 @@ def engine_params(spec: EngineSpec, root: Path = EXPERIMENTS_DIR) -> dict:
     return params
 
 
-def build_engine(spec: EngineSpec, device: str) -> Engine:
+def build_engine(spec: EngineSpec, device: str, root: Path = EXPERIMENTS_DIR) -> Engine:
     """Moteur réel, modèles chargés (long : à mettre en cache par l'appelant)."""
-    params = engine_params(spec)
+    params = engine_params(spec, root)
     if spec.pipeline == "baseline":
         from whospoke.pipelines.baseline import Baseline
 

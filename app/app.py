@@ -39,9 +39,10 @@ from html import escape
 
 import gradio as gr
 
-from app import moteurs, sortie, temps, theme
+from app import moteurs, pipeline, sortie, temps, theme
 from whospoke.audio import AudioError, load_waveform, normalize
 from whospoke.device import select_device
+from whospoke.experiment import REPO_ROOT
 from whospoke.pipelines.base import load_catalogue
 
 STATIC_DIR = Path(__file__).resolve().with_name("static")
@@ -90,8 +91,9 @@ class ModelMissing(RuntimeError):
 class EngineCache:
     """Moteurs chargés une seule fois par (moteur, périphérique), comme dans les expériences."""
 
-    def __init__(self, fake: bool, fake_max_s: float) -> None:
+    def __init__(self, fake: bool, fake_max_s: float, experiments: Path = moteurs.EXPERIMENTS_DIR) -> None:
         self.fake = fake
+        self.experiments = experiments
         self.fake_max_s = fake_max_s
         self._engines: dict[tuple[str, str], object] = {}
         self.lock = threading.Lock()
@@ -103,7 +105,8 @@ class EngineCache:
             return self._engines[key], None
         start = time.perf_counter()
         try:
-            engine = moteurs.FakeEngine(spec) if self.fake else moteurs.build_engine(spec, device)
+            engine = (moteurs.FakeEngine(spec, self.experiments) if self.fake
+                      else moteurs.build_engine(spec, device, self.experiments))
         except Exception as error:
             message = moteurs.missing_model_message(error, spec)
             if message is None:
@@ -113,13 +116,13 @@ class EngineCache:
         return engine, time.perf_counter() - start
 
 
-def _availability(fake: bool) -> dict[str, str | None]:
+def _availability(fake: bool, experiments: Path = moteurs.EXPERIMENTS_DIR) -> dict[str, str | None]:
     """Raison de l'indisponibilité de chaque moteur (None s'il est utilisable)."""
     reasons: dict[str, str | None] = {}
     for key, spec in moteurs.SPECS.items():
         try:
-            moteurs.engine_params(spec)
-            if fake and not (moteurs.experiment_dir(spec.source_exp) / "rttm").is_dir():
+            moteurs.engine_params(spec, experiments)
+            if fake and not (moteurs.experiment_dir(spec.source_exp, experiments) / "rttm").is_dir():
                 raise moteurs.EngineUnavailable(f"{spec.source_exp} n'a encore produit aucun RTTM")
             reasons[key] = None
         except moteurs.EngineUnavailable as error:
@@ -312,7 +315,7 @@ VIEWER_TEMPLATE = (
     '<div class="wsp-rows"><div class="wsp-labels"></div>'
     '<div class="wsp-viewport"><div class="wsp-canvas"><div class="wsp-lanes"></div>'
     '<div class="wsp-axis" aria-hidden="true"></div><div class="wsp-playhead"></div></div></div></div>'
-    '<p class="wsp-hint">Cliquez sur un segment pour l\'écouter. Zoom : curseur, boutons, ou Ctrl + molette ; '
+    '<p class="wsp-hint">Cliquez sur un segment pour l\'écouter et le repérer sur la forme d\'onde. Zoom : curseur, boutons, ou Ctrl + molette ; '
     'défilement : pavé tactile, Maj + molette ou barre de défilement de la forme d\'onde.</p></div></div>'
 )
 
@@ -322,15 +325,24 @@ ENGINE_INFO_DEVICE = "auto : CUDA, puis MPS, puis CPU (D15)."
 # --- Application ----------------------------------------------------------------------
 
 
-def build_app(fake: bool = False, fake_max_s: float = 20.0) -> gr.Blocks:
-    cache = EngineCache(fake, fake_max_s)
-    availability = _availability(fake)
+def build_app(fake: bool = False, fake_max_s: float = 20.0, repo_root: Path = REPO_ROOT) -> gr.Blocks:
+    """Application ; expériences, résultats et catalogue lus sous `repo_root` (lecture seule)."""
+    experiments = repo_root / "experiments"
+    leaderboard = repo_root / "results" / "leaderboard.csv"
+    cache = EngineCache(fake, fake_max_s, experiments)
+    availability = _availability(fake, experiments)
     choices = [
         (spec.label + ("" if availability[key] is None else " (indisponible)"), key)
         for key, spec in moteurs.SPECS.items()
     ]
     head = "".join(f'<script src="{_file_url(WAVESURFER_DIR / name)}"></script>'
                    for name in ("wavesurfer.min.js", "regions.min.js"))
+
+    def pipeline_page(key: str) -> str:
+        try:
+            return pipeline.render(pipeline.load_page(moteurs.SPECS[key], repo_root))
+        except (OSError, ValueError, KeyError, moteurs.EngineUnavailable) as error:
+            return _empty(f"Page indisponible : {error}")
 
     def engine_info(key: str) -> str:
         spec = moteurs.SPECS[key]
@@ -391,7 +403,8 @@ def build_app(fake: bool = False, fake_max_s: float = 20.0) -> gr.Blocks:
         waveform, sample_rate = load_waveform(wav)
         duration_s = waveform.shape[1] / sample_rate
 
-        measured = temps.measured_rtf(spec.source_exp, device, moteurs.source_device(spec))
+        measured = temps.measured_rtf(spec.source_exp, device, moteurs.source_device(spec, experiments),
+                                      leaderboard)
         rtf = measured.rtf if measured else None
         estimate = temps.format_duration(rtf * duration_s) if rtf else None
 
@@ -543,7 +556,20 @@ def build_app(fake: bool = False, fake_max_s: float = 20.0) -> gr.Blocks:
                                                   visible=False, elem_classes="ws-exports")
                                 exports_empty = gr.HTML(_empty("Disponibles après l'analyse."), js_on_load=None)
 
+            with gr.Tab("Pipeline"):
+                with gr.Column(elem_classes="ws-card"):
+                    gr.HTML(_title("Pipeline", "Consultation en lecture seule : réglages effectifs de "
+                                   "l'expérience source de chaque moteur, expliqués par le catalogue."),
+                            js_on_load=None)
+                    pipeline_engine = gr.Dropdown(
+                        [(spec.label, key) for key, spec in moteurs.SPECS.items()],
+                        value="pyannote-community-1", label="Moteur", elem_classes="pl-engine")
+                    pipeline_view = gr.HTML(
+                        pipeline_page("pyannote-community-1"),
+                        js_on_load=(STATIC_DIR / "pipeline.js").read_text(), elem_classes="pl-view")
+
         engine.change(engine_changed, engine, [engine, mode, device])
+        pipeline_engine.change(pipeline_page, pipeline_engine, pipeline_view)
         mode.change(mode_changed, mode, [k, range_row])
         run.click(
             analyse, [audio, engine, mode, k, k_min, k_max, device, reference],
@@ -562,6 +588,9 @@ def main(argv: list[str] | None = None) -> None:
     parser.add_argument("--factice-max-s", type=float, default=20.0,
                         help="durée maximale simulée d'une analyse en mode factice (s)")
     parser.add_argument("--port", type=int, default=7860, help="port local (défaut : 7860)")
+    parser.add_argument("--depot", type=Path, default=REPO_ROOT,
+                        help="racine du dépôt dont sont lus expériences, résultats et catalogue, en lecture "
+                             "seule (défaut : ce dépôt ; en développement : ~/Dev/Who-Spoke)")
     args = parser.parse_args(argv)
     for stale in travail.remove_stale():
         print(f"Dossier temporaire d'un lancement interrompu supprimé : {stale}")
@@ -570,7 +599,10 @@ def main(argv: list[str] | None = None) -> None:
     atexit.register(travail.cleanup, RUN_DIR)
     signal.signal(signal.SIGTERM, lambda *_: sys.exit(0))
     gr.set_static_paths([STATIC_DIR])
-    app = build_app(fake=args.factice, fake_max_s=args.factice_max_s)
+    depot = args.depot.expanduser().resolve()
+    if not (depot / "experiments").is_dir():
+        parser.error(f"--depot : {depot} ne contient pas de dossier experiments/")
+    app = build_app(fake=args.factice, fake_max_s=args.factice_max_s, repo_root=depot)
     app.launch(
         server_name="127.0.0.1", server_port=args.port, share=False,
         allowed_paths=[str(RUN_DIR)], theme=theme.build_theme(), css=theme.css(),
