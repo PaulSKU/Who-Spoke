@@ -36,6 +36,21 @@ Quand une référence RTTM est déposée, avant ou après l'analyse, trois rang�
 
 Calcul (`sortie.error_map`), sans collar, chevauchements comptés, sur toute la durée du fichier comme le DER affiché : rien n'est recodé. Les étapes de `DiarizationErrorRate.compute_components` de pyannote.metrics sont reprises dans le même ordre (restriction à l'UEM, étiquettes renommées, appariement hongrois `optimal_mapping`), puis `IdentificationErrorAnalysis.difference` donne le statut de chaque segment sur l'hypothèse appariée. Les durées sont cumulées comme le fait le DER (durée × nombre d'erreurs du segment). Les tests exigent l'égalité stricte (`==`, sans tolérance) des trois durées et de la parole de référence avec les composantes du DER sans collar, sur des cas construits et sur 25 paires d'annotations aléatoires, ainsi que l'égalité des parts affichées avec les cellules du tableau du DER.
 
+## Comparaison de deux moteurs (D26, chantier I5)
+
+Case « Comparer avec un second moteur » dans les réglages de l'onglet Analyse. Le nombre de locuteurs et le périphérique sont communs aux deux moteurs (une fourchette est refusée si l'un des deux ne la prend pas en charge ; ECAPA et WeSpeaker restent en CPU). Les deux moteurs tournent l'un après l'autre sur le même fichier normalisé :
+
+| Élément | Comportement |
+|---|---|
+| Avancement | Étapes des deux moteurs, préfixées par leur nom ; temps restant cumulé (`temps.cumulative_remaining_s`) : reste du moteur en cours plus estimation complète du suivant, d'après leurs RTF mesurés ; inconnu si un RTF manque |
+| Timeline | Groupes superposés dans le même canevas, donc alignés et zoomés ensemble : premier moteur (couleurs des locuteurs), second moteur et référence (gris neutre : la même couleur dans deux groupes laisserait croire au même locuteur), puis la carte des erreurs de chaque moteur. Chaque segment ou zone s'écoute et se repère sur la forme d'onde |
+| Comparaison | Tableau côte à côte : nombre de locuteurs (et celui de la référence), DER sans collar et avec collar de 0,25 s si une référence est déposée, temps de calcul, RTF |
+| Temps de traitement, DER | Un bloc par moteur |
+| Exports | RTTM et JSON des deux moteurs, suffixés par le moteur (`007a_ECRH_pyannote-community-1.rttm`…) ; hors comparaison, au nom du fichier seul |
+| Statistiques et renommage | Premier moteur seulement |
+
+La référence, quand elle est déposée, est aussi affichée comme groupe de la timeline en analyse simple.
+
 ## Onglet « Pipeline » (D17, D26 chantier I1)
 
 Consultation en lecture seule de la configuration de chaque moteur, générée à l'ouverture, jamais rédigée à la main (`app/pipeline.py`, `app/static/pipeline.js`) :

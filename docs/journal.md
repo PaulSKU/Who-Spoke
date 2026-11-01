@@ -416,3 +416,17 @@ Résultats : aucune expérience.
 Décisions : aucune.
 Problèmes : la carte est sans collar seulement ; les identifiants de référence de SUMM-RE sont des numéros (« 023 »), affichés tels quels.
 Suite : chantier I5 (comparaison de deux moteurs).
+
+## 2026-11-01 — D26 : comparaison de deux moteurs (chantier I5), branche `interface` (Claude Code)
+
+Objectif : chantier I5 de D26, option « comparer avec un second moteur » de l'onglet Analyse, mêmes règles (moteur factice, aucun modèle).
+Réalisé :
+- `temps.cumulative_remaining_s` : temps restant de moteurs exécutés l'un après l'autre (reste du moteur en cours, estimation complète des suivants, inconnu si un RTF manque). 1 test.
+- `app/app.py` : analyse en une ou deux passes sur le même fichier normalisé, avancement commun (étapes préfixées par le moteur) ; nombre de locuteurs et périphérique communs, fourchette refusée si l'un des moteurs ne la prend pas en charge. Résultat principal (statistiques, renommage) et second résultat ; référence et cartes des erreurs des deux moteurs calculées à l'analyse ou au dépôt ultérieur de la référence. Carte « Comparaison » : locuteurs, DER dans les deux conditions de collar, temps de calcul, RTF. Temps de traitement et DER par moteur. Exports des deux résultats, suffixés par moteur.
+- Visualiseur : groupes superposés dans le même canevas (premier moteur en couleurs ; second moteur et référence en gris neutre ; cartes des erreurs des deux moteurs), alignés et zoomés ensemble, avec une légende par groupe ; clés de sélection propres à chaque groupe. La référence est aussi affichée en analyse simple.
+- 5 tests de la comparaison sur des résultats fabriqués (groupes, couleurs, cartes égales aux composantes du DER de chaque moteur, tableau, exports, avancement, temps et DER par moteur). Suite sans les trois fichiers qui chargent des modèles : 227 réussis, 1 ignoré.
+- Vérifié dans le navigateur (pyannote community-1 puis baseline ECAPA, extrait de 3 min, avec référence) : temps restant « pour les deux moteurs » pendant le premier ; 23 libellés et 23 pistes alignés ; tableau 12,81 % / 4,62 % (pyannote) et 16,71 % / 8,38 % (ECAPA) ; zoom × 5,8 commun ; segment du second moteur sélectionné et repéré sur la forme d'onde ; 4 fichiers d'export. Mode simple inchangé. Corrigé pendant la vérification : légendes de groupe tronquées. Toutes les requêtes vers 127.0.0.1.
+Résultats : aucune expérience.
+Décisions : aucune ; choix soumis au cockpit : second moteur et référence en gris neutre, référence affichée aussi en analyse simple, statistiques et renommage limités au premier moteur.
+Problèmes : aucun.
+Suite : vérification V (fusion dans `main`, suite complète, préchargement réel, essai avec les vrais moteurs).
