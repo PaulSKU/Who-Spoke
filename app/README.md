@@ -30,6 +30,12 @@ uv run python scripts/prefetch_models.py --verifier   # vérification hors ligne
 
 La baseline MFCC n'utilise aucun modèle. Le script vérifie ensuite, dans un processus séparé avec `HF_HUB_OFFLINE=1` et un dossier courant vide, que chaque modèle se charge sans réseau et que rien n'est écrit dans le dossier de lancement. Les fichiers d'ECAPA sont lus en place dans le cache, jamais copiés dans un `pretrained_models/` du dossier courant (`whospoke.embeddings.ecapa_load_options`).
 
+## Carte des erreurs (D26, chantier I4)
+
+Quand une référence RTTM est déposée, avant ou après l'analyse, trois rangées s'ajoutent sous les pistes des locuteurs : parole manquée (encre pleine), fausse alarme (hachures), confusion (contour). La rangée nommée porte l'identité, le motif la double. Chaque zone s'écoute au clic et se repère sur la forme d'onde, comme un segment ; l'infobulle donne le locuteur de référence et, pour une confusion, le locuteur auquel la parole a été attribuée. Les rangées sont dans le même canevas que les pistes : elles suivent le zoom. Une ligne donne la durée totale et la part de chaque type.
+
+Calcul (`sortie.error_map`), sans collar, chevauchements comptés, sur toute la durée du fichier comme le DER affiché : rien n'est recodé. Les étapes de `DiarizationErrorRate.compute_components` de pyannote.metrics sont reprises dans le même ordre (restriction à l'UEM, étiquettes renommées, appariement hongrois `optimal_mapping`), puis `IdentificationErrorAnalysis.difference` donne le statut de chaque segment sur l'hypothèse appariée. Les durées sont cumulées comme le fait le DER (durée × nombre d'erreurs du segment). Les tests exigent l'égalité stricte (`==`, sans tolérance) des trois durées et de la parole de référence avec les composantes du DER sans collar, sur des cas construits et sur 25 paires d'annotations aléatoires, ainsi que l'égalité des parts affichées avec les cellules du tableau du DER.
+
 ## Onglet « Pipeline » (D17, D26 chantier I1)
 
 Consultation en lecture seule de la configuration de chaque moteur, générée à l'ouverture, jamais rédigée à la main (`app/pipeline.py`, `app/static/pipeline.js`) :

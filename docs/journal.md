@@ -402,3 +402,17 @@ Résultats : aucune expérience.
 Décisions : aucune.
 Problèmes : les formes abrégées ne sont pas reconnues (« Confusion » seul, en-tête du tableau du DER, ne renvoie pas à « Confusion de locuteur » ; « Détection de parole » pas à « Détection d'activité vocale ») ; les libellés des composants Gradio et la timeline n'ont pas de renvois.
 Suite : chantier I4 (carte des erreurs).
+
+## 2026-11-01 — D26 : carte des erreurs (chantier I4), branche `interface` (Claude Code)
+
+Objectif : chantier I4 de D26, piste des erreurs sous la timeline quand une référence est déposée, mêmes règles (moteur factice, aucun modèle).
+Réalisé :
+- Examen de pyannote.metrics : `IdentificationErrorAnalysis.difference` donne le statut de chaque segment (correct, confusion, parole manquée, fausse alarme) mais compare les étiquettes telles quelles ; l'appariement vient de `DiarizationErrorRate.optimal_mapping` (hongrois). `sortie.error_map` reprend les étapes de `DiarizationErrorRate.compute_components` dans le même ordre (UEM, étiquettes renommées, appariement), puis `difference` sur l'hypothèse appariée ; durées cumulées segment par segment comme le DER. Aucun appariement recodé.
+- Égalité stricte (`==`) des trois durées et de la parole de référence avec les composantes du DER sans collar : cas construit avec chevauchement, hypothèse parfaite, 25 paires d'annotations aléatoires ; parts affichées égales aux cellules du tableau du DER. Sur l'extrait de 3 min (EXP-0007 face à la référence SUMM-RE) : 5,557 s de parole manquée, 10,163 s de fausse alarme, 3,779 s de confusion, égales au bit près.
+- Visualiseur : trois rangées nommées (encre pleine, hachures, contour) dans le canevas des pistes, donc soumises au zoom ; zones écoutables au clic et repérées sur la forme d'onde ; infobulle avec locuteur de référence et locuteur attribué ; ligne de totaux. Carte calculée à l'analyse ou au dépôt ultérieur de la référence. Corrigé pendant la vérification : la zone d'erreur sélectionnée n'était pas repérée sur la forme d'onde.
+- Vérifié dans le navigateur : 123 zones (36 manquées, 70 fausses alarmes, 17 confusions) ; parts 3,65 %, 6,67 %, 2,48 % identiques au tableau ; zoom × 5,8 avec pistes et erreurs alignées sur la forme d'onde (3 327 et 3 328 px). Toutes les requêtes vers 127.0.0.1.
+- Suite sans les trois fichiers qui chargent des modèles : 221 réussis, 1 ignoré.
+Résultats : aucune expérience.
+Décisions : aucune.
+Problèmes : la carte est sans collar seulement ; les identifiants de référence de SUMM-RE sont des numéros (« 023 »), affichés tels quels.
+Suite : chantier I5 (comparaison de deux moteurs).
