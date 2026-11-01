@@ -10,10 +10,9 @@ doivent donc se trouver dans le cache Hugging Face (`~/.cache/huggingface/hub`, 
 
 1. télécharge les dépôts nécessaires, avec le jeton `HF_TOKEN` lu dans `.env` (jamais
    affiché) :
-   - `pyannote/speaker-diarization-community-1`, révision `main` : pipeline pyannote
-     (segmentation, empreintes, PLDA) ;
-   - le même dépôt à la révision figée de la baseline WeSpeaker : les empreintes
-     WeSpeakerResNet34 sont le sous-dossier `embedding` de community-1 (pas de dépôt
+   - `pyannote/speaker-diarization-community-1` à sa révision figée (D18, amendement du
+     01/11) : pipeline pyannote (segmentation, empreintes, PLDA) et baseline WeSpeaker,
+     dont les empreintes WeSpeakerResNet34 sont le sous-dossier `embedding` (pas de dépôt
      séparé ; `embedding: $model/embedding` dans son config.yaml) ;
    - `speechbrain/spkrec-ecapa-voxceleb` à sa révision figée : baseline ECAPA.
    La baseline MFCC n'utilise aucun modèle.
@@ -41,6 +40,7 @@ from pathlib import Path
 
 from whospoke.embeddings import ECAPA_REVISION, ECAPA_SOURCE, WESPEAKER_REVISION, WESPEAKER_SOURCE
 from whospoke.pipelines.pyannote_community1 import MODEL_ID as PYANNOTE_ID
+from whospoke.pipelines.pyannote_community1 import MODEL_REVISION as PYANNOTE_REVISION
 
 SCRIPT = Path(__file__).resolve()
 
@@ -54,9 +54,12 @@ class Repo:
     used_by: str
 
 
+if (WESPEAKER_SOURCE, WESPEAKER_REVISION) != (PYANNOTE_ID, PYANNOTE_REVISION):
+    raise RuntimeError("WeSpeaker et pyannote doivent venir du même instantané de community-1")
+
 REPOS = (
-    Repo(PYANNOTE_ID, "main", "pyannote community-1 (segmentation, empreintes WeSpeaker, PLDA)"),
-    Repo(WESPEAKER_SOURCE, WESPEAKER_REVISION, "baseline WeSpeaker (sous-dossier embedding de community-1)"),
+    Repo(PYANNOTE_ID, PYANNOTE_REVISION,
+         "pyannote community-1 (segmentation, empreintes, PLDA) et baseline WeSpeaker (sous-dossier embedding)"),
     Repo(ECAPA_SOURCE, ECAPA_REVISION, "baseline ECAPA"),
 )
 

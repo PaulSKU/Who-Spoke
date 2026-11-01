@@ -20,12 +20,13 @@ TOKEN = "hf_jeton_de_test"
 
 def test_depots_de_tous_les_moteurs():
     repos = {(repo.repo_id, repo.revision) for repo in prefetch.REPOS}
-    # WeSpeaker n'est pas un dépôt à part : c'est community-1 à la révision figée.
+    # WeSpeaker n'est pas un dépôt à part : c'est community-1, à la même révision figée que
+    # la pipeline pyannote (D18, amendement du 01/11) ; plus aucune révision « main ».
     assert repos == {
-        ("pyannote/speaker-diarization-community-1", "main"),
         ("pyannote/speaker-diarization-community-1", WESPEAKER_REVISION),
         (ECAPA_SOURCE, ECAPA_REVISION),
     }
+    assert all(repo.revision != "main" and len(repo.revision) == 40 for repo in prefetch.REPOS)
 
 
 def test_telechargement_simule_avec_le_jeton(capsys):
