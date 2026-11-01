@@ -12,6 +12,15 @@ Statistiques d'un locuteur, calculées sur l'annotation du moteur :
 Renommage : les identifiants du moteur (`SPK_00`, `SPEAKER_00`…) restent la clé des
 segments dans le JSON ; le nom choisi n'apparaît que dans `locuteurs[].nom` et dans le
 RTTM exporté, où les blancs sont remplacés par `_` (un champ RTTM ne contient pas d'espace).
+
+Fusion (audit R-U9) : `merge_speakers` verse la parole d'un locuteur dans celle d'un
+autre, sur une copie de l'annotation ; l'annotation du moteur (et le cache) n'est jamais
+modifiée, et chaque fusion s'annule en la retirant de la liste.
+
+Étiquettes Audacity (audit R-U11) : une ligne par tour, `début<TAB>fin<TAB>code`, le
+code `S1`, `S2`… étant attribué dans l'ordre de première prise de parole ; c'est le
+format que lit la chaîne du corpus maison (`whospoke.maison.reference.read_labels`,
+conventions-annotation.md §3), qui tire le locuteur du texte de chaque étiquette.
 """
 
 from __future__ import annotations
@@ -121,6 +130,49 @@ def to_rttm(annotation: Annotation, uri: str, names: dict[str, str] | None = Non
     buffer = io.StringIO()
     renamed.write_rttm(buffer)
     return buffer.getvalue()
+
+
+def merge_speakers(annotation: Annotation, fusions: list[tuple[str, str]]) -> Annotation:
+    """Copie de `annotation` où chaque fusion `(source, cible)`, dans l'ordre, verse la
+    parole de la source dans la cible (qui garde son identifiant). La parole de chaque
+    locuteur ayant reçu une fusion est réunie (segments qui se recouvrent ou se touchent
+    fusionnés) ; celle des autres locuteurs est gardée telle quelle.
+
+    Lève `ValueError` pour une fusion d'un locuteur avec lui-même ou absent."""
+    mapping: dict[str, str] = {}
+    present = set(annotation.labels())
+    for source, target in fusions:
+        current = {mapping.get(label, label) for label in present}
+        if source == target or source not in current or target not in current:
+            raise ValueError(f"Fusion impossible : {source!r} dans {target!r}")
+        mapping = {label: (target if mapped == source else mapped) for label, mapped in mapping.items()}
+        mapping[source] = target
+    if not mapping:
+        return annotation.copy()
+    renamed = annotation.rename_labels(mapping)
+    targets = set(mapping.values())
+    merged = Annotation(uri=annotation.uri)
+    for segment, track, label in renamed.itertracks(yield_label=True):
+        if label not in targets:
+            merged[segment, track] = label
+    for label in sorted(targets):
+        for index, segment in enumerate(renamed.label_timeline(label, copy=True).support()):
+            merged[segment, f"fusion-{label}-{index}"] = label
+    return merged
+
+
+def audacity_codes(annotation: Annotation) -> dict[str, str]:
+    """Code `S1`, `S2`… de chaque locuteur, dans l'ordre de première prise de parole."""
+    return {label: f"S{index}" for index, label in enumerate(speaker_labels(annotation), start=1)}
+
+
+def to_audacity(annotation: Annotation) -> str:
+    """Étiquettes Audacity : une ligne par tour (plage disjointe de la parole d'un
+    locuteur), triées par début, `début<TAB>fin<TAB>code` en secondes à six décimales."""
+    codes = audacity_codes(annotation)
+    rows = [(segment.start, segment.end, codes[label])
+            for label in codes for segment in annotation.label_timeline(label, copy=True).support()]
+    return "".join(f"{start:.6f}\t{end:.6f}\t{code}\n" for start, end, code in sorted(rows))
 
 
 def peaks(waveform: np.ndarray, n_points: int = 4000) -> list[float]:
@@ -374,14 +426,19 @@ def typical_excerpts(annotation: Annotation, max_s: float = EXCERPT_MAX_S) -> di
     return excerpts
 
 
-def write_exports(directory: Path, stem: str, rttm: str, json_text: str) -> tuple[Path, Path]:
-    """Écrit les deux exports dans `directory` et renvoie leurs chemins."""
+def write_exports(directory: Path, stem: str, rttm: str, json_text: str,
+                  extra: dict[str, str] | None = None) -> tuple[Path, ...]:
+    """Écrit les exports dans `directory` et renvoie leurs chemins : RTTM, JSON, puis un
+    fichier `<stem><suffixe>` par entrée de `extra` (suffixe → contenu)."""
     directory.mkdir(parents=True, exist_ok=True)
-    rttm_path = directory / f"{stem}.rttm"
-    json_path = directory / f"{stem}.json"
-    rttm_path.write_text(rttm)
-    json_path.write_text(json_text)
-    return rttm_path, json_path
+    files = {f"{stem}.rttm": rttm, f"{stem}.json": json_text}
+    files.update({f"{stem}{suffix}": text for suffix, text in (extra or {}).items()})
+    paths = []
+    for name, text in files.items():
+        path = directory / name
+        path.write_text(text, encoding="utf-8")
+        paths.append(path)
+    return tuple(paths)
 
 
 def new_work_dir(root: Path | None = None) -> Path:

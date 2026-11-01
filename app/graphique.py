@@ -5,8 +5,10 @@ SVG généré côté serveur, sans bibliothèque ni ressource distante. Méthode
 dataviz : barres horizontales empilées (une seule échelle), 20 px d'épaisseur, 2 px de
 surface entre segments, bout arrondi de 4 px côté données seulement, grille en filet ;
 couleurs = trois premiers emplacements de la palette catégorielle de l'application,
-validés en clair et en sombre (`validate_palette.js`), doublés de motifs (plein, hachures
-à 45° et à 135°) ; légende toujours présente ; valeur du DER écrite au bout de chaque
+validés en clair et en sombre (`validate_palette.js`, contraste ≥ 3:1 compris), doublés
+des motifs de la carte des erreurs de l'Analyse (parole manquée pleine, fausse alarme
+hachurée, confusion en contour : un même type d'erreur a la même apparence partout,
+décision du cockpit du 01/11) ; légende toujours présente ; valeur du DER écrite au bout de chaque
 barre ; titre et description pour les lecteurs d'écran, info-bulle par segment, et
 tableau des valeurs. Les teintes sont des variables CSS (`--av-err-*` dans
 `interface.css`) : le même SVG se lit en clair et en sombre.
@@ -22,7 +24,9 @@ from dataclasses import dataclass
 from html import escape
 
 KINDS = (("manquee", "Parole manquée"), ("fausse_alarme", "Fausse alarme"), ("confusion", "Confusion"))
-PATTERNS = {"manquee": None, "fausse_alarme": 45, "confusion": 135}   # hachures (degrés)
+# Motifs de la carte des erreurs (`visualiseur.css`) : plein, hachures, contour.
+STYLES = {"manquee": "plein", "fausse_alarme": "hachures", "confusion": "contour"}
+OUTLINE = 1.5     # épaisseur du contour (hachures et contour), comme la carte des erreurs
 
 BAR = 20          # épaisseur d'une barre
 GAP = 2           # surface entre deux segments
@@ -56,19 +60,36 @@ def _ticks(maximum: int) -> list[int]:
     return list(range(0, maximum + 1, step))
 
 
+def _paint(kind: str, uid: str) -> str:
+    """Remplissage et trait d'un segment ou d'une pastille de légende, selon son motif."""
+    color = f"var(--av-err-{kind})"
+    style = STYLES[kind]
+    if style == "plein":
+        return f"fill:{color}"
+    fill = f"url(#{uid}-{kind})" if style == "hachures" else "var(--ws-surface)"
+    return f"fill:{fill};stroke:{color};stroke-width:{OUTLINE}"
+
+
+def _shape(x: float, y: float, width: float, height: float, rounded: bool) -> str:
+    """Chemin d'un rectangle, bout droit arrondi de 4 px si `rounded`."""
+    r = min(RADIUS, width, height / 2) if rounded else 0
+    if r <= 0:
+        return f"M{x:.2f},{y:.2f} H{x + width:.2f} V{y + height:.2f} H{x:.2f} Z"
+    right = x + width
+    return (f"M{x:.2f},{y:.2f} H{right - r:.2f} Q{right:.2f},{y:.2f} {right:.2f},{y + r:.2f} "
+            f"V{y + height - r:.2f} Q{right:.2f},{y + height:.2f} {right - r:.2f},{y + height:.2f} H{x:.2f} Z")
+
+
 def _segment(x: float, y: float, width: float, kind: str, last: bool, uid: str, tip: str) -> str:
-    """Un segment ; le dernier porte le bout arrondi de 4 px, les autres sont droits."""
-    fill = f"url(#{uid}-{kind})" if PATTERNS[kind] else f"var(--av-err-{kind})"
-    title = f"<title>{escape(tip)}</title>"
+    """Un segment ; le dernier porte le bout arrondi de 4 px, les autres sont droits. Le
+    contour est tracé à l'intérieur du segment (rectangle rentré d'un demi-trait)."""
     if width <= 0:
         return ""
-    if not last or width <= RADIUS:
-        return (f'<rect class="av-seg" x="{x:.1f}" y="{y}" width="{width:.1f}" height="{BAR}" '
-                f'style="fill:{fill}">{title}</rect>')
-    r = RADIUS
-    path = (f"M{x:.1f},{y} H{x + width - r:.1f} Q{x + width:.1f},{y} {x + width:.1f},{y + r} "
-            f"V{y + BAR - r} Q{x + width:.1f},{y + BAR} {x + width - r:.1f},{y + BAR} H{x:.1f} Z")
-    return f'<path class="av-seg" d="{path}" style="fill:{fill}">{title}</path>'
+    inset = OUTLINE / 2 if STYLES[kind] != "plein" else 0.0
+    if width <= 2 * inset:
+        inset = 0.0
+    path = _shape(x + inset, y + inset, width - 2 * inset, BAR - 2 * inset, last and width > RADIUS)
+    return f'<path class="av-seg" d="{path}" style="{_paint(kind, uid)}"><title>{escape(tip)}</title></path>'
 
 
 def _bar(x0: float, y: float, span: float, maximum: int, bar: Bar, corpus: str, uid: str) -> str:
@@ -85,22 +106,24 @@ def _bar(x0: float, y: float, span: float, maximum: int, bar: Bar, corpus: str, 
 
 
 def _defs(uid: str) -> str:
+    """Hachures de la fausse alarme : traits de 2 px tous les 5 px, inclinés comme ceux de
+    la carte des erreurs, sur la surface."""
     patterns = []
-    for kind, angle in PATTERNS.items():
-        if angle is None:
+    for kind, style in STYLES.items():
+        if style != "hachures":
             continue
         patterns.append(
-            f'<pattern id="{uid}-{kind}" width="6" height="6" patternUnits="userSpaceOnUse" '
-            f'patternTransform="rotate({angle})"><rect width="6" height="6" style="fill:var(--av-err-{kind})"/>'
-            f'<line x1="0" y1="0" x2="0" y2="6" style="stroke:var(--av-err-{kind}-ink)" stroke-width="2.5"/></pattern>')
+            f'<pattern id="{uid}-{kind}" width="5" height="5" patternUnits="userSpaceOnUse" '
+            f'patternTransform="rotate(45)"><rect width="5" height="5" style="fill:var(--ws-surface)"/>'
+            f'<rect width="2" height="5" style="fill:var(--av-err-{kind})"/></pattern>')
     return f"<defs>{''.join(patterns)}</defs>"
 
 
 def _legend(x: float, y: float, vertical: bool, uid: str) -> tuple[str, float]:
     items, cx, cy = [], x, y
     for kind, label in KINDS:
-        fill = f"url(#{uid}-{kind})" if PATTERNS[kind] else f"var(--av-err-{kind})"
-        items.append(f'<rect x="{cx:.1f}" y="{cy}" width="14" height="14" rx="3" style="fill:{fill}"/>'
+        items.append(f'<rect x="{cx + 0.75:.2f}" y="{cy + 0.75}" width="12.5" height="12.5" rx="3" '
+                     f'style="{_paint(kind, uid)}"/>'
                      f'<text class="av-txt" x="{cx + 20:.1f}" y="{cy + 11}">{escape(label)}</text>')
         if vertical:
             cy += 20

@@ -40,7 +40,8 @@ from html import escape
 
 import gradio as gr
 
-from app import avancement, glossaire, moteurs, pipeline, sortie, temps, theme
+from app import (avancement, glossaire, image, interactions, moteurs, pipeline, reproductibilite, sortie, temps,
+                 theme)
 from app.cache import (ResultCache, annotation_from_tracks, annotation_tracks, audio_fingerprint, code_version,
                        engine_code_fingerprint, result_key)
 from whospoke.audio import AudioError, load_waveform, normalize
@@ -78,6 +79,20 @@ def _speaker_colors(labels: list[str]) -> dict[str, tuple[str, str]]:
         label: (PALETTE_LIGHT[i], PALETTE_DARK[i]) if i < len(PALETTE_LIGHT) else (OTHER_LIGHT, OTHER_DARK)
         for i, label in enumerate(labels)
     }
+
+
+def _result_colors(result: dict) -> dict[str, tuple[str, str]]:
+    """Couleurs des locuteurs du premier moteur, attribuées sur l'annotation d'origine : une
+    fusion ne repeint pas les locuteurs restants (la couleur suit le locuteur, pas son rang)."""
+    return _speaker_colors(sortie.speaker_labels(result.get("annotation_origine", result["annotation"])))
+
+
+def _signed(value: float, digits: int = 2) -> str:
+    """« +0,42 s », « −0,18 s » ; « 0,00 s », sans signe, pour une valeur qui s'arrondit à zéro."""
+    shown = _num(abs(value), digits)
+    if float(shown.replace(",", ".")) == 0:
+        return shown + " s"
+    return ("−" if value < 0 else "+") + shown + " s"
 
 
 def _pct(value: float | None, digits: int = 1) -> str:
@@ -321,7 +336,8 @@ def _stats_html(result: dict | None) -> str:
     stats = sortie.speaker_stats(result["annotation"], names)
     excerpts = sortie.typical_excerpts(result["annotation"])
     total = sum(row["temps_parole_s"] for row in stats) or 1.0
-    colors = _speaker_colors([row["id"] for row in stats])
+    colors = _result_colors(result)
+    shown_names = {row["id"]: row["nom"] for row in stats}
     rows = []
     for row in stats:
         color = colors[row["id"]][0]
@@ -347,19 +363,130 @@ def _stats_html(result: dict | None) -> str:
             f'<td class="num"><span class="ws-share"><span class="ws-share-bar" aria-hidden="true">'
             f'<span style="width:{share:.1f}%;background:{color}"></span></span>{_pct(share)}</span></td>'
             f'<td class="num">{row["n_interventions"]}</td>'
-            f'<td class="num">{_pct(100 * row["part_chevauchement"])}</td></tr>'
+            f'<td class="num">{_pct(100 * row["part_chevauchement"])}</td>'
+            f'<td>{_merge_select(row["id"], shown_names)}</td></tr>'
         )
     return (
         '<div class="ws-table-wrap"><table class="ws-table ws-speakers"><thead><tr><th scope="col">Locuteur</th>'
         '<th scope="col"><span class="ws-sr">Extrait</span></th>'
         '<th scope="col" class="num">Temps de parole</th><th scope="col" class="num">Part</th>'
         '<th scope="col" class="num">Interventions</th><th scope="col" class="num">Chevauchement</th>'
+        '<th scope="col">Fusion</th>'
         f'</tr></thead><tbody>{"".join(rows)}</tbody></table></div>'
+        f'{_merges_html(result)}'
         '<p class="ws-caption">Renommer : saisissez un nom, puis Entrée ou quittez le champ ; vide, '
         "l'identifiant du moteur est gardé. ▶ : extrait typique, le plus long tour sans chevauchement "
         f'({_num(sortie.EXCERPT_MAX_S, 0)} s au plus), lu dans la timeline. Chevauchement : part du temps de parole '
-        'du locuteur pendant laquelle au moins une autre personne parle.</p>'
+        'du locuteur pendant laquelle au moins une autre personne parle. Fusionner : la parole du locuteur de la '
+        'ligne rejoint celle du locuteur choisi, qui garde son nom et sa couleur ; statistiques, timeline, exports '
+        'et DER sont recalculés, le résultat en cache reste celui du moteur.</p>'
     )
+
+
+def _merge_select(ident: str, shown_names: dict[str, str]) -> str:
+    """Liste « Fusionner avec… » d'une ligne du tableau des locuteurs (R-U9)."""
+    others = [(other, name) for other, name in shown_names.items() if other != ident]
+    if not others:
+        return '<span class="sub">—</span>'
+    options = "".join(f'<option value="{escape(other, quote=True)}">{escape(name)}</option>' for other, name in others)
+    return (f'<select class="ws-merge" data-id="{escape(ident, quote=True)}" '
+            f'aria-label="Fusionner {escape(shown_names[ident], quote=True)} avec un autre locuteur">'
+            f'<option value="" selected>Fusionner avec…</option>{options}</select>')
+
+
+def _merges_html(result: dict) -> str:
+    """Fusions en vigueur, dans l'ordre, et bouton pour annuler la dernière."""
+    fusions = result.get("fusions") or []
+    if not fusions:
+        return ""
+    labels = sortie.speaker_labels(result.get("annotation_origine", result["annotation"]))
+    names = {label: (result["names"].get(label) or "").strip() or label for label in labels}
+    items = "".join(f"<li>{escape(names.get(source, source))} → {escape(names.get(target, target))}</li>"
+                    for source, target in fusions)
+    source, target = fusions[-1]
+    return (f'<div class="ws-merges" role="status"><span class="ws-merges-title">Fusions en vigueur</span>'
+            f'<ol class="ws-merges-list">{items}</ol>'
+            f'<button type="button" class="ws-merge-undo">Annuler la dernière fusion '
+            f'({escape(names.get(source, source))} → {escape(names.get(target, target))})</button></div>')
+
+
+def _interactions_html(result: dict | None) -> str:
+    """Indicateurs d'interaction du premier moteur (R-U10) : plus long monologue, tours,
+    latence médiane de réponse par locuteur et matrice « qui suit qui »."""
+    if result is None:
+        return _empty("Les indicateurs d'interaction s'afficheront après l'analyse.")
+    data = interactions.report(result["annotation"])
+    labels = data["ordre"]
+    names = sortie.resolve_names(labels, result["names"])
+    colors = _result_colors(result)
+
+    def who(label: str) -> str:
+        return (f'<span class="ws-swatch" style="background:{colors[label][0]}" aria-hidden="true"></span>'
+                f'{escape(names[label])}')
+
+    longest = data["plus_long_monologue"]
+    head = ""
+    if longest:
+        end = min(longest["fin"], longest["debut"] + sortie.EXCERPT_MAX_S)
+        head = (f'<p class="ws-monologue"><span class="ws-monologue-label">Plus long monologue</span>'
+                f'<span class="ws-who">{who(longest["locuteur"])}</span>'
+                f'<span class="strong">{temps.format_duration(longest["duree_s"])}</span>'
+                f'<span class="sub">à {image.clock(longest["debut"])}</span>'
+                f'<button type="button" class="ws-excerpt" data-debut="{longest["debut"]}" data-fin="{end}" '
+                f'aria-label="Écouter le début du plus long monologue ({_num(end - longest["debut"], 1)} s)" '
+                f'title="Écouter le début ({_num(end - longest["debut"], 1)} s)">▶</button></p>')
+    rows = []
+    for row in data["locuteurs"]:
+        latency = ("—" if row["latence_mediane_s"] is None
+                   else f'{_signed(row["latence_mediane_s"])}<span class="sub">{row["n_reponses"]} réponse'
+                        f'{"s" if row["n_reponses"] > 1 else ""}</span>')
+        mean = "—" if row["duree_moyenne_tour_s"] is None else f'{_num(row["duree_moyenne_tour_s"], 1)} s'
+        rows.append(f'<tr><td class="ws-who">{who(row["id"])}</td><td class="num">{row["n_tours"]}</td>'
+                    f'<td class="num">{mean}</td>'
+                    f'<td class="num">{temps.format_duration(row["plus_long_tour_s"])}</td>'
+                    f'<td class="num ws-latency">{latency}</td></tr>')
+    table = ('<div class="ws-table-wrap"><table class="ws-table ws-interactions"><thead><tr>'
+             '<th scope="col">Locuteur</th><th scope="col" class="num">Tours</th>'
+             '<th scope="col" class="num">Durée moyenne d\'un tour</th><th scope="col" class="num">Plus long tour</th>'
+             '<th scope="col" class="num">Latence médiane de réponse</th></tr></thead>'
+             f'<tbody>{"".join(rows)}</tbody></table></div>')
+    return (head + table + _follow_matrix_html(data, names, who)
+            + '<p class="ws-caption">Sans transcription, sur les tours du premier moteur (erreurs comprises). Tour : '
+              'plage continue de parole d\'un locuteur, comme une intervention du tableau des locuteurs. Un locuteur '
+              'prend la parole quand son tour finit après celui de qui l\'avait ; un tour inclus dans celui d\'un '
+              'autre (acquiescement, chevauchement bref) ne compte pas. Latence : début du tour moins fin du tour '
+              'précédent, négative quand le locuteur commence avant que l\'autre ait fini.</p>')
+
+
+def _follow_matrix_html(data: dict, names: dict[str, str], who) -> str:
+    """Matrice « qui suit qui » (R-U10) : un vrai tableau (en-têtes de ligne et de colonne),
+    effectif écrit dans chaque case, teinte d'encre proportionnelle en plus."""
+    labels, matrix = data["ordre"], data["qui_suit_qui"]
+    if len(labels) < 2:
+        return ""
+    top = max((count for row in matrix for count in row), default=0) or 1
+    head = "".join(f'<th scope="col" class="num">{escape(names[label])}</th>' for label in labels)
+    body = []
+    for i, before in enumerate(labels):
+        cells = []
+        for j, after in enumerate(labels):
+            if i == j:
+                cells.append('<td class="num ws-mx-diag"><span aria-hidden="true">—</span>'
+                             '<span class="ws-sr">sans objet</span></td>')
+                continue
+            count = matrix[i][j]
+            shade = round(4 + 26 * count / top) if count else 0
+            style = f' style="--mx:{shade}%"' if count else ""
+            cells.append(f'<td class="num ws-mx"{style}>{count}</td>')
+        body.append(f'<tr><th scope="row" class="ws-who">{who(before)}</th>{"".join(cells)}</tr>')
+    return ('<h3 class="ws-subtitle">Qui suit qui</h3>'
+            '<div class="ws-table-wrap"><table class="ws-table ws-matrix">'
+            f'<caption class="ws-sr">Qui suit qui : nombre de passages de parole, du locuteur de la ligne, qui avait '
+            f'la parole, au locuteur de la colonne, qui la prend ; {data["n_passages"]} passages en tout.</caption>'
+            '<thead><tr><th scope="col"><span class="ws-mx-corner">Avait la parole ↓ · prend la parole →</span></th>'
+            f'{head}</tr></thead><tbody>{"".join(body)}</tbody></table></div>'
+            f'<p class="ws-caption">{data["n_passages"]} passages de parole. Ligne : qui avait la parole ; colonne : '
+            'qui la prend. Plus la case est marquée, plus le passage est fréquent ; l\'effectif est écrit dans la case.</p>')
 
 
 def _times_all_html(times_html, result: dict) -> str:
@@ -385,10 +512,11 @@ def _der_all_html(der_html, result: dict | None, reference_path: str | None) -> 
 NEUTRAL_LIGHT, NEUTRAL_DARK = "#7d7f86", "#8f908a"
 
 
-def _group(group_id: str, title: str, annotation, names: dict, colored: bool, errors: dict | None) -> dict:
+def _group(group_id: str, title: str, annotation, names: dict, colored: bool, errors: dict | None,
+           colors: dict | None = None) -> dict:
     labels = sortie.speaker_labels(annotation)
     resolved = sortie.resolve_names(labels, names)
-    colors = (_speaker_colors(labels) if colored
+    colors = ((colors or _speaker_colors(labels)) if colored
               else {label: (NEUTRAL_LIGHT, NEUTRAL_DARK) for label in labels})
     return {
         "id": group_id, "titre": title,
@@ -407,7 +535,7 @@ def _reference_group(result: dict) -> dict:
     errors = result.get("erreurs")
     pairs = errors.get("appariement") if errors else None
     hyp_labels = sortie.speaker_labels(result["annotation"])
-    hyp_colors = _speaker_colors(hyp_labels)
+    hyp_colors = {label: color for label, color in _result_colors(result).items() if label in hyp_labels}
     hyp_names = sortie.resolve_names(hyp_labels, result["names"])
     speakers = []
     for label in sortie.speaker_labels(reference):
@@ -426,7 +554,7 @@ def _viewer_value(result: dict) -> dict:
     """Timeline : premier moteur, second moteur éventuel, référence éventuelle (D26, I5),
     chacun avec sa carte des erreurs ; tous dans le même canevas, donc le même zoom."""
     groups = [_group("a", result.get("libelle", ""), result["annotation"], result["names"], True,
-                     result.get("erreurs"))]
+                     result.get("erreurs"), _result_colors(result))]
     other = result.get("comparaison")
     if other:
         groups.append(_group("b", other["libelle"], other["annotation"], other.get("names", {}), False,
@@ -527,21 +655,54 @@ def _with_reference(result: dict, reference_path: str | None) -> dict:
 
 
 def _export_one(result: dict, stem: str) -> list[str]:
+    """RTTM, JSON (avec la fiche de reproductibilité, R-D5) et étiquettes Audacity (R-U11)
+    d'un moteur."""
+    names = result.get("names", {})
     data = sortie.to_json(result["annotation"], result["uri"], result["duree_s"], result["moteur"],
-                          result["configuration"], result["calcul_s"], result.get("names", {}))
-    rttm = sortie.to_rttm(result["annotation"], result["uri"], result.get("names", {}))
-    paths = sortie.write_exports(result["dir"] / "exports", stem, rttm, json.dumps(data, ensure_ascii=False, indent=2))
+                          result["configuration"], result["calcul_s"], names)
+    labels = sortie.speaker_labels(result["annotation"])
+    resolved = sortie.resolve_names(labels, names)
+    data["etiquettes_audacity"] = {code: {"id": label, "nom": resolved[label]}
+                                   for label, code in sortie.audacity_codes(result["annotation"]).items()}
+    data["reproductibilite"] = reproductibilite.sheet(result)
+    rttm = sortie.to_rttm(result["annotation"], result["uri"], names)
+    paths = sortie.write_exports(result["dir"] / "exports", stem, rttm, json.dumps(data, ensure_ascii=False, indent=2),
+                                 {"_audacity.txt": sortie.to_audacity(result["annotation"])})
     return [str(path) for path in paths]
 
 
+def _timeline_svg(result: dict) -> str:
+    """Image de la timeline (R-U11) : tous ses groupes, comme dans l'onglet Analyse."""
+    title = f"{result['uri']} : qui parle, et quand"
+    return image.timeline_svg(_viewer_value(result)["groupes"], result["duree_s"], title)
+
+
 def _exports(result: dict) -> list[str]:
-    """RTTM et JSON du résultat ; en comparaison, ceux des deux moteurs, suffixés par moteur."""
+    """Exports du résultat ; en comparaison, ceux des deux moteurs, suffixés par moteur ;
+    puis l'image de la timeline, une seule pour tous ses groupes."""
     stem = sortie.rttm_name(result["uri"])
     other = result.get("comparaison")
     if not other:
-        return _export_one(result, stem)
-    return (_export_one(result, f"{stem}_{result['moteur_cle']}")
-            + _export_one(other, f"{stem}_{other['moteur_cle']}"))
+        paths = _export_one(result, stem)
+    else:
+        paths = (_export_one(result, f"{stem}_{result['moteur_cle']}")
+                 + _export_one(other, f"{stem}_{other['moteur_cle']}"))
+    picture = result["dir"] / "exports" / f"{stem}_timeline.svg"
+    picture.write_text(_timeline_svg(result), encoding="utf-8")
+    return paths + [str(picture)]
+
+
+def _image_html(result: dict | None) -> str:
+    """Bouton « Image PNG de la timeline » : le navigateur tire le PNG du SVG (canevas),
+    sans dépendance (IMAGE_JS)."""
+    if result is None:
+        return ""
+    name = f"{sortie.rttm_name(result['uri'])}_timeline.png"
+    return (f'<div class="ws-image-export"><button type="button" class="ws-png" data-name="{escape(name, quote=True)}" '
+            f'data-svg="{escape(_timeline_svg(result), quote=True)}">Image PNG de la timeline</button>'
+            '<span class="ws-png-status" role="status"></span></div>'
+            '<p class="ws-caption">Image en mode clair, toute la durée sur une seule échelle. Le SVG est dans la '
+            'liste ci-dessus ; le PNG (deux fois plus fin) est tiré de ce SVG par le navigateur.</p>')
 
 
 def _comparison_html(result: dict | None) -> str:
@@ -647,7 +808,7 @@ def _der_html(result: dict | None, reference_path: str | None) -> str:
     zone = {key: None if value is None else value["der"] for key, value in report["zones"].items()}
     counts = report["n_locuteurs"]
     return (
-        f'<p class="ws-scope">{DER_SCOPE}</p>'
+        f'<p class="ws-scope">{DER_SCOPE}</p>{_merge_der_html(result, reference, reference_path, report)}'
         '<div class="ws-table-wrap"><table class="ws-table"><thead><tr><th scope="col">Condition</th><th scope="col" class="num">DER</th>'
         '<th scope="col" class="num">Parole manquée</th><th scope="col" class="num">Fausse alarme</th>'
         '<th scope="col" class="num">Confusion</th><th scope="col" class="num">JER</th></tr></thead>'
@@ -659,6 +820,28 @@ def _der_html(result: dict | None, reference_path: str | None) -> str:
         + _matching_html(sortie.matching_report(reference, result["annotation"], result["duree_s"]),
                          result.get("names", {}))
     )
+
+
+def _merge_der_html(result: dict, reference, reference_path: str, after: dict) -> str:
+    """DER avant → après les fusions de locuteurs (R-U9) ; vide sans fusion. `after` : DER
+    du résultat fusionné, déjà calculé. Le DER d'avant, celui de l'annotation du moteur, ne
+    change pas tant que la référence est la même : il est gardé dans le résultat."""
+    if not result.get("fusions") or result.get("annotation_origine") is None:
+        return ""
+    kept = result.get("der_avant")
+    if kept and kept["reference"] == reference_path:
+        before = kept["rapport"]
+    else:
+        before = sortie.der_report(reference, result["annotation_origine"], result["duree_s"])
+        result["der_avant"] = {"reference": reference_path, "rapport": before}
+    n = len(result["fusions"])
+    parts = [f'{label} {_pct(before[name]["der"], 2)} → <span class="strong">{_pct(after[name]["der"], 2)}</span>'
+             for name, label in (("collar_0", "sans collar"), ("collar_0_25", "collar ± 0,25 s"))]
+    delta = after["collar_0"]["der"] - before["collar_0"]["der"]
+    trend = "baisse" if delta < 0 else ("hausse" if delta > 0 else "inchangé")
+    return (f'<div class="ws-callout ws-merge-der" role="status">Après {n} fusion{"s" if n > 1 else ""} : DER '
+            f'{parts[0]} ({trend}{"" if delta == 0 else " de " + _num(abs(delta), 2) + " point" + ("s" if abs(delta) >= 2 else "")})'
+            f' ; {parts[1]}. Le tableau ci-dessous est celui d\'après les fusions.</div>')
 
 
 def _matching_html(rows: list[dict], names: dict) -> str:
@@ -690,6 +873,8 @@ def _matching_html(rows: list[dict], names: dict) -> str:
 
 # Tableau des locuteurs : renommage dans le tableau (R-U6). Un nom validé (Entrée ou
 # sortie du champ) envoie tous les noms au serveur ; Échap rétablit le nom affiché.
+# Fusion (R-U9) : le choix d'un locuteur dans « Fusionner avec… » envoie la fusion ; le
+# bouton d'annulation retire la dernière.
 STATS_JS = """
 const send = () => {
   const names = {};
@@ -698,11 +883,57 @@ const send = () => {
 };
 element.addEventListener('change', (event) => {
   if (event.target.matches('.ws-name-input')) send();
+  else if (event.target.matches('.ws-merge') && event.target.value) {
+    const merge = { source: event.target.dataset.id, target: event.target.value };
+    // La liste revient à « Fusionner avec… » : le tableau redessiné peut réutiliser ce nœud.
+    event.target.value = '';
+    trigger('input', { merge });
+  }
+});
+element.addEventListener('click', (event) => {
+  if (event.target.closest('.ws-merge-undo')) trigger('input', { undo: true });
 });
 element.addEventListener('keydown', (event) => {
   if (!event.target.matches('.ws-name-input')) return;
   if (event.key === 'Enter') event.target.blur();
   else if (event.key === 'Escape') { event.target.value = event.target.defaultValue; event.target.blur(); }
+});
+"""
+
+# Image PNG de la timeline (R-U11) : le SVG du serveur est dessiné dans un canevas, deux
+# fois plus fin, puis enregistré ; aucune bibliothèque.
+IMAGE_JS = """
+element.addEventListener('click', (event) => {
+  const button = event.target.closest('.ws-png');
+  if (!button) return;
+  const status = element.querySelector('.ws-png-status');
+  const say = (text) => { if (status) status.textContent = text; };
+  const source = URL.createObjectURL(new Blob([button.dataset.svg], { type: 'image/svg+xml;charset=utf-8' }));
+  const picture = new Image();
+  picture.onload = () => {
+    const scale = 2;
+    const canvas = document.createElement('canvas');
+    canvas.width = picture.naturalWidth * scale;
+    canvas.height = picture.naturalHeight * scale;
+    const context = canvas.getContext('2d');
+    context.scale(scale, scale);
+    context.drawImage(picture, 0, 0);
+    URL.revokeObjectURL(source);
+    canvas.toBlob((png) => {
+      if (!png) { say('Image PNG impossible dans ce navigateur : utilisez le SVG.'); return; }
+      const link = document.createElement('a');
+      link.href = URL.createObjectURL(png);
+      link.download = button.dataset.name;
+      element._lastPng = { size: png.size, width: canvas.width, height: canvas.height };
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+      setTimeout(() => URL.revokeObjectURL(link.href), 10000);
+      say(`Image enregistrée : ${button.dataset.name} (${canvas.width} × ${canvas.height} px).`);
+    }, 'image/png');
+  };
+  picture.onerror = () => { URL.revokeObjectURL(source); say('Image PNG impossible : utilisez le SVG.'); };
+  picture.src = source;
 });
 """
 
@@ -1033,11 +1264,13 @@ def build_app(fake: bool = False, fake_max_s: float = 20.0, repo_root: Path = RE
 
     def result_item(run: dict, prepared: dict, annotation, durations: dict, calcul_s: float,
                     loading_s: float | None, settings: dict, rttm_source: str | None,
-                    cached: str | None = None) -> dict:
+                    cached: str | None = None, commit: str | None = None) -> dict:
         spec, measured = run["spec"], run["measured"]
         return {
             "uri": prepared["uri"], "dir": prepared["dir"], "wav": prepared["wav"], "duree_s": prepared["duree_s"],
             "libelle": spec.label, "moteur_cle": spec.key, "annotation": annotation, "names": {},
+            # Annotation du moteur, jamais modifiée : les fusions (R-U9) s'appliquent à une copie.
+            "annotation_origine": annotation, "fusions": [],
             "moteur": f"factice ({spec.key})" if fake else spec.key,
             "configuration": {
                 "experience_source": spec.source_exp, "peripherique": run["device"],
@@ -1047,6 +1280,15 @@ def build_app(fake: bool = False, fake_max_s: float = 20.0, repo_root: Path = RE
             "durees_etapes": durations, "device": run["device"], "factice": fake, "rttm_source": rttm_source,
             "rtf_mesure": {"rtf": measured.rtf, "source": measured.source()} if measured else None,
             "cache": cached,
+            # Fiche de reproductibilité (R-D5) : ce qui est connu au moment de l'analyse ; le
+            # commit d'un résultat réaffiché est celui de son calcul.
+            "tracabilite": {
+                "date_analyse": datetime.now().isoformat(timespec="seconds"),
+                "commit": commit or code, "empreinte_code_moteurs": engine_code,
+                "empreinte_audio": prepared["empreinte"],
+                "revisions_modeles": moteurs.model_revisions(spec, experiments),
+                "configuration_effective": moteurs.effective_configuration(spec, experiments),
+            },
         }
 
     def analyse(prepared, audio_path, key, compare, key2, mode, k, k_min, k_max, device_choice,
@@ -1068,8 +1310,9 @@ def build_app(fake: bool = False, fake_max_s: float = 20.0, repo_root: Path = RE
             return _status_html(steps, state, title, detail, fraction, labels=labels)
 
         yield {status_box: status("Normalisation de l'audio", fraction=0.0), viewer: None,
-               stats: _stats_html(None), times: _times_html(None),
+               stats: _stats_html(None), interactions_view: _interactions_html(None), times: _times_html(None),
                der: _der_html(None, reference_path), exports: gr.update(value=None, visible=False),
+               image_export: "",
                exports_empty: gr.update(visible=True), comparison: "", comparison_card: gr.update(visible=False),
                result_state: None}
 
@@ -1110,7 +1353,7 @@ def build_app(fake: bool = False, fake_max_s: float = 20.0, repo_root: Path = RE
                         results.append(result_item(
                             run, prepared, annotation_from_tracks(entry["pistes"], prepared["uri"]),
                             entry["durees_etapes"], entry["calcul_s"], None, entry["reglages"],
-                            entry.get("rttm_source"), cached=entry["date"]))
+                            entry.get("rttm_source"), cached=entry["date"], commit=entry.get("code")))
                         continue
                     yield {status_box: status(f"Chargement de {spec.label}", fraction=_step_fraction(steps, state))}
                     try:
@@ -1197,8 +1440,10 @@ def build_app(fake: bool = False, fake_max_s: float = 20.0, repo_root: Path = RE
             done = _status_html(steps, {step: 1.0 for step in steps}, title, detail, 1.0, labels=labels,
                                 badges=_cache_badges(results))
             yield {status_box: done, viewer: _viewer_value(result), stats: _stats_html(result),
+                   interactions_view: _interactions_html(result),
                    times: _times_all(result), der: _der_all(result, reference_path),
                    exports: gr.update(value=_exports(result), visible=True), exports_empty: gr.update(visible=False),
+                   image_export: _image_html(result),
                    comparison: _comparison_html(result), comparison_card: gr.update(visible=bool(result.get("comparaison"))),
                    result_state: result, prepared_state: prepared,
                    # Réglages repliés, timeline en pleine largeur (R-U1).
@@ -1218,21 +1463,52 @@ def build_app(fake: bool = False, fake_max_s: float = 20.0, repo_root: Path = RE
                 raise
             raise gr.Error(f"L'analyse a échoué. Détail : {message}") from error
 
-    def rename(result, reference_path, evt: gr.EventData):
-        """Noms saisis dans le tableau des locuteurs ; noms en double refusés (le tableau
-        revient aux noms en vigueur)."""
+    def speakers_changed(result, reference_path, evt: gr.EventData):
+        """Tableau des locuteurs : noms saisis (noms en double refusés, le tableau revient aux
+        noms en vigueur), fusion de deux locuteurs, ou annulation de la dernière fusion (R-U9).
+        Une fusion s'applique à une copie de l'annotation du moteur : le résultat en cache
+        n'est jamais modifié."""
+        skipped = tuple(gr.skip() for _ in range(8))
         data = getattr(evt, "_data", None) or {}
-        if result is None or not isinstance(data.get("names"), dict):
-            return gr.skip(), gr.skip(), gr.skip(), gr.skip(), gr.skip()
-        labels = sortie.speaker_labels(result["annotation"])
-        names = {label: str(data["names"].get(label, "") or "").strip()[:60] for label in labels}
-        try:
-            sortie.resolve_names(labels, names)
-        except ValueError as error:
-            gr.Warning(f"{error} : choisissez un nom différent pour chaque locuteur.")
-            return gr.skip(), _stats_html(result), gr.skip(), gr.skip(), gr.skip()
-        result = dict(result, names=names)
-        return (_viewer_value(result), gr.skip(), _exports(result), _der_all(result, reference_path), result)
+        if result is None:
+            return skipped
+        if isinstance(data.get("names"), dict):
+            labels = sortie.speaker_labels(result["annotation"])
+            typed = {label: str(data["names"].get(label, "") or "").strip()[:60] for label in labels}
+            try:
+                sortie.resolve_names(labels, typed)
+            except ValueError as error:
+                gr.Warning(f"{error} : choisissez un nom différent pour chaque locuteur.")
+                return (gr.skip(), _stats_html(result), *skipped[2:])
+            result = dict(result, names={**result["names"], **typed})
+        elif isinstance(data.get("merge"), dict) or data.get("undo"):
+            fusions = list(result.get("fusions") or [])
+            if data.get("undo"):
+                if not fusions:
+                    return skipped
+                restored = fusions.pop()[0]
+            else:
+                pair = (str(data["merge"].get("source", "")), str(data["merge"].get("target", "")))
+                fusions.append(pair)
+                restored = None
+            origin = result.get("annotation_origine", result["annotation"])
+            try:
+                merged = sortie.merge_speakers(origin, fusions)
+            except ValueError as error:
+                gr.Warning(str(error))
+                return (gr.skip(), _stats_html(result), *skipped[2:])
+            names = dict(result["names"])
+            if restored is not None:
+                try:
+                    sortie.resolve_names(sortie.speaker_labels(merged), names)
+                except ValueError:
+                    gr.Warning(f"Le nom de {restored} est déjà pris : {restored} retrouve son identifiant.")
+                    names.pop(restored, None)
+            result = _with_reference(dict(result, annotation=merged, fusions=fusions, names=names), reference_path)
+        else:
+            return skipped
+        return (_viewer_value(result), _stats_html(result), _interactions_html(result), _exports(result),
+                _der_all(result, reference_path), _comparison_html(result), _image_html(result), result)
 
     with gr.Blocks(title="Who Spoke?") as app:
         result_state = gr.State(None)
@@ -1300,17 +1576,23 @@ def build_app(fake: bool = False, fake_max_s: float = 20.0, repo_root: Path = RE
                                     js_on_load=None)
                             stats = gr.HTML(_stats_html(None), js_on_load=STATS_JS)
                         with gr.Column(elem_classes="ws-card"):
+                            gr.HTML(_title("Interactions", "Qui prend la parole après qui, et en combien de temps ; "
+                                           "sans transcription, du premier moteur."), js_on_load=None)
+                            interactions_view = gr.HTML(_interactions_html(None), js_on_load=None)
+                        with gr.Column(elem_classes="ws-card"):
                             gr.HTML(_title("Évaluation", "DER face à la référence déposée."), js_on_load=None)
                             der = gr.HTML(_der_html(None, None), js_on_load=None)
-                        with gr.Row(equal_height=False):
+                        with gr.Row(equal_height=False, elem_classes="ws-pair"):
                             with gr.Column(elem_classes="ws-card"):
                                 gr.HTML(_title("Temps de traitement"), js_on_load=None)
                                 times = gr.HTML(_times_html(None), js_on_load=None)
                             with gr.Column(elem_classes="ws-card"):
-                                gr.HTML(_title("Exports", "RTTM et JSON, avec les noms choisis."),
+                                gr.HTML(_title("Exports", "RTTM, JSON avec fiche de reproductibilité, étiquettes "
+                                               "Audacity et image de la timeline ; noms et fusions compris."),
                                         js_on_load=None)
                                 exports = gr.File(show_label=False, file_count="multiple", interactive=False,
                                                   visible=False, elem_classes="ws-exports")
+                                image_export = gr.HTML("", js_on_load=IMAGE_JS)
                                 exports_empty = gr.HTML(_empty("Disponibles après l'analyse."), js_on_load=None)
 
             with gr.Tab("Pipeline"):
@@ -1413,18 +1695,24 @@ def build_app(fake: bool = False, fake_max_s: float = 20.0, repo_root: Path = RE
         run.click(
             analyse, [prepared_state, audio, engine, compare, engine2, mode, k, k_min, k_max, device, reference,
                       use_cache],
-            [status_box, viewer, stats, times, der, exports, exports_empty, comparison, comparison_card,
-             result_state, prepared_state, settings_col, band, band_text, cache_info, estimate],
+            [status_box, viewer, stats, interactions_view, times, der, exports, exports_empty, image_export,
+             comparison, comparison_card, result_state, prepared_state, settings_col, band, band_text, cache_info,
+             estimate],
             concurrency_limit=1, show_progress="hidden",  # l'avancement est dans le panneau d'état
         )
-        stats.input(rename, [result_state, reference], [viewer, stats, exports, der, result_state])
+        stats.input(speakers_changed, [result_state, reference],
+                    [viewer, stats, interactions_view, exports, der, comparison, image_export, result_state])
+
         def reference_changed(path, result):
             if result is None:
-                return _der_html(None, path), gr.skip(), gr.skip(), gr.skip()
+                return _der_html(None, path), gr.skip(), gr.skip(), gr.skip(), gr.skip(), gr.skip()
             result = _with_reference(result, path)
-            return _der_all(result, path), _viewer_value(result), _comparison_html(result), result
+            # Exports refaits : l'image de la timeline montre la référence et la carte des erreurs.
+            return (_der_all(result, path), _viewer_value(result), _comparison_html(result), _exports(result),
+                    _image_html(result), result)
 
-        reference.change(reference_changed, [reference, result_state], [der, viewer, comparison, result_state])
+        reference.change(reference_changed, [reference, result_state],
+                         [der, viewer, comparison, exports, image_export, result_state])
         compare.change(lambda on: gr.update(visible=on), compare, engine2)
     return app
 

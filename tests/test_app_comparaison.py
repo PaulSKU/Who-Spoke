@@ -95,14 +95,16 @@ def test_tableau_cote_a_cote(compared, reference):
 
 def test_exports_des_deux_resultats(compared):
     paths = [Path(p) for p in interface._exports(compared)]
-    assert sorted(p.name for p in paths) == ["essai_baseline-mfcc.json", "essai_baseline-mfcc.rttm",
-                                             "essai_pyannote-community-1.json", "essai_pyannote-community-1.rttm"]
+    assert sorted(p.name for p in paths) == [
+        "essai_baseline-mfcc.json", "essai_baseline-mfcc.rttm", "essai_baseline-mfcc_audacity.txt",
+        "essai_pyannote-community-1.json", "essai_pyannote-community-1.rttm",
+        "essai_pyannote-community-1_audacity.txt", "essai_timeline.svg"]
     data = {p.name: json.loads(p.read_text()) for p in paths if p.suffix == ".json"}
     assert data["essai_baseline-mfcc.json"]["moteur"] == "factice (baseline-mfcc)"
     assert data["essai_pyannote-community-1.json"]["moteur"] == "factice (pyannote-community-1)"
     # Hors comparaison, le nom reste celui du fichier.
     single = [Path(p).name for p in interface._exports(dict(compared, comparaison=None))]
-    assert sorted(single) == ["essai.json", "essai.rttm"]
+    assert sorted(single) == ["essai.json", "essai.rttm", "essai_audacity.txt", "essai_timeline.svg"]
 
 
 def test_avancement_temps_et_der_des_deux_moteurs(compared, reference):

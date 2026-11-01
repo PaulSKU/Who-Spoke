@@ -133,24 +133,44 @@ def test_renommage_dans_le_tableau_et_echappement():
     assert "gr.Dataframe" not in (interface.STATIC_DIR.parent / "app.py").read_text()
 
 
-def test_renommage_envoye_par_le_tableau(tmp_path):
-    blocks = interface.build_app(fake=True, cache_dir=tmp_path)
-    rename = next(f.fn for f in blocks.fns.values() if getattr(f.fn, "__name__", "") == "rename")
-    result = dict(_result(), uri="essai", wav=tmp_path / "essai.wav", dir=tmp_path, peaks=[0.0],
-                  moteur="factice", configuration={}, calcul_s=1.0, moteur_cle="pyannote-community-1")
+def handler(blocks, name):
+    return next(f.fn for f in blocks.fns.values() if getattr(f.fn, "__name__", "") == name)
+
+
+def full_result(tmp_path, names=None):
+    """Résultat complet d'une analyse (sans audio), tel que `analyse` le range dans l'état."""
+    return dict(_result(names), uri="essai", wav=tmp_path / "essai.wav", dir=tmp_path, peaks=[0.0],
+                moteur="factice", configuration={"experience_source": "EXP-0001", "peripherique": "cpu",
+                                                 "nombre_locuteurs": {"mode": "automatique"},
+                                                 "moteur_factice": True, "reglages": {}},
+                calcul_s=1.0, moteur_cle="pyannote-community-1", annotation_origine=HYPOTHESIS, fusions=[],
+                factice=True, device="cpu", normalisation_s=0.1, chargement_s=None,
+                durees_etapes={"segmentation": 0.5}, cache=None,
+                tracabilite={"date_analyse": "2026-11-01T10:00:00", "commit": "abc", "empreinte_audio": "f" * 64})
+
+
+def write_reference(tmp_path):
     reference = tmp_path / "ref.rttm"
     reference.write_text("".join(f"SPEAKER essai 1 {s.start} {s.duration} <NA> <NA> {label} <NA> <NA>\n"
                                  for s, _, label in REFERENCE.itertracks(yield_label=True)))
-    viewer, stats, exports, der, updated = rename(result, str(reference),
-                                                  SimpleNamespace(_data={"names": {"S0": "  Alice ", "S9": "x"}}))
+    return reference
+
+
+def test_renommage_envoye_par_le_tableau(tmp_path):
+    blocks = interface.build_app(fake=True, cache_dir=tmp_path)
+    changed = handler(blocks, "speakers_changed")
+    result = full_result(tmp_path)
+    reference = write_reference(tmp_path)
+    viewer, stats, inter, exports, der, comparison, image_html, updated = changed(
+        result, str(reference), SimpleNamespace(_data={"names": {"S0": "  Alice ", "S9": "x"}}))
     assert updated["names"] == {"S0": "Alice", "S1": "", "S2": ""}
     assert any(s["nom"] == "Alice" for s in viewer["groupes"][0]["locuteurs"])
     assert "A ↔ Alice" in {s["nom"] for s in viewer["groupes"][-1]["locuteurs"]}
-    assert "Alice" in der and len(exports) == 2
+    assert "Alice" in der and "Alice" in inter and len(exports) == 4
     # Noms en double refusés : le tableau revient aux noms en vigueur, rien d'autre ne change.
-    refused = rename(updated, str(reference), SimpleNamespace(_data={"names": {"S0": "Alice", "S1": "Alice"}}))
+    refused = changed(updated, str(reference), SimpleNamespace(_data={"names": {"S0": "Alice", "S1": "Alice"}}))
     assert 'value="Alice"' in refused[1] and 'value=""' in refused[1]
-    assert all(refused[i].get("__type__") == "update" for i in (0, 2, 3, 4))
+    assert all(refused[i].get("__type__") == "update" for i in (0, 2, 3, 4, 5, 6, 7))
     # Évènement sans données (mise à jour du composant) : ignoré.
-    ignored = rename(updated, None, SimpleNamespace(_data=None))
+    ignored = changed(updated, None, SimpleNamespace(_data=None))
     assert all(isinstance(value, dict) and value.get("__type__") == "update" for value in ignored)

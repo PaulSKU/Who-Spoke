@@ -129,17 +129,26 @@ def test_graphique_accessible_et_proportionnel(depot):
     assert 'role="img"' in svg and 'aria-labelledby="t-t t-d"' in svg
     assert "<title id=\"t-t\">DER test sans collar des systèmes de référence, par corpus</title>" in svg
     assert "Baseline MFCC 64,38 % (parole manquée 32,28 %, fausse alarme 4,99 %, confusion 27,11 %)" in svg
-    # Motifs en plus des couleurs : hachures à 45° (fausse alarme) et 135° (confusion).
-    assert 'id="t-fausse_alarme"' in svg and "rotate(45)" in svg and "rotate(135)" in svg
+    # Motifs de la carte des erreurs en plus des couleurs : parole manquée pleine, fausse
+    # alarme hachurée, confusion en contour (fond de surface, trait de la couleur).
+    assert 'style="fill:var(--av-err-manquee)"' in svg
+    assert 'id="t-fausse_alarme"' in svg and "rotate(45)" in svg
+    assert "fill:url(#t-fausse_alarme);stroke:var(--av-err-fausse_alarme)" in svg
+    assert "fill:var(--ws-surface);stroke:var(--av-err-confusion);stroke-width:1.5" in svg
+    assert "t-confusion" not in svg and "t-manquee" not in svg
     assert "var(--av-err-manquee)" in svg and "#" not in re.sub(r'(id|href)="[^"]*"|url\(#[^)]*\)', "", svg)
     # Valeur du DER écrite au bout de chaque barre ; une info-bulle par segment.
     for _, bars in groups:
         for bar in bars:
             assert f">{graphique._pct(bar.der)}</text>" in svg
     assert svg.count('class="av-seg"') == sum(len(bars) * 3 for _, bars in groups)
-    # Longueur totale d'une barre proportionnelle au DER (segments + écarts de 2 px).
-    widths = [float(w) for w in re.findall(r'class="av-seg" x="[\d.]+" y="\d+" width="([\d.]+)"', svg)]
-    assert widths and all(w > 0 for w in widths)
+    # Longueur totale d'une barre proportionnelle au DER : la barre la plus longue finit à
+    # x0 + portée × DER / maximum (au demi-trait près pour un contour).
+    paths = re.findall(r'class="av-seg" d="([^"]+)"', svg)
+    xs = [float(x) for d in paths for x in re.findall(r"[MHQ ]([\d.]+),", d)]
+    longest = max(bar.der for _, bars in groups for bar in bars)
+    maximum = graphique._scale_max(groups)
+    assert max(xs) == pytest.approx(214 + (760 - 214 - 66) * longest / maximum, abs=0.8)
     narrow = graphique.svg(groups, narrow=True, uid="n")
     assert 'viewBox="0 0 340 ' in narrow and 'viewBox="0 0 760 ' in svg
     figure = graphique.figure(groups)
