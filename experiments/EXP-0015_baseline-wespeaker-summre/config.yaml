@@ -1,0 +1,54 @@
+# EXP-0015 — baseline à empreintes WeSpeakerResNet34 de community-1 (D22), SUMM-RE : balayage de θ sur dev, puis
+# dev et test avec le θ retenu. Seule variable par rapport à EXP-0009 : la représentation des
+# fenêtres ; θ est balayé à nouveau, l'échelle des distances changeant avec elle (D22).
+exp_id: EXP-0015
+slug: baseline-wespeaker-summre
+reference: EXP-0009
+variable_modifiee: representation
+graine: 0                     # baseline déterministe ; graine consignée par convention
+
+pipeline:
+  nom: baseline               # src/whospoke/pipelines/baseline.py, valeurs de D19 §2 hors représentation
+  vad: energie                # seuil sur l'énergie logarithmique (α = 0,3)
+  parametres:
+    representation: wespeaker        # WeSpeakerResNet34 de community-1 (src/whospoke/embeddings.py), seule variable (D22)
+    normalisation: fichier      # centrage-réduction sur le fichier, comme les MFCC (amendement 1 de D22)
+
+mode_n_locuteurs: estime      # coupe de l'arbre au seuil θ
+detection_oracle: false
+
+# Balayage de θ (distance cosinus, lien moyen) sur SUMM-RE dev ; valeur de plus faible DER
+# sans collar retenue, puis seule utilisée pour l'exécution de dev et de test.
+balayage:
+  parametre: theta
+  debut: 0.10
+  fin: 1.50
+  pas: 0.05
+  partition: dev
+
+device: cpu                   # empreintes en CPU : NaN intermittents en MPS (amendement 2 de D22)
+prechauffage_s: 60            # extrait du premier fichier, non compté (protocole §3.5)
+
+jeux:
+  - corpus: summre
+    partition: dev
+    liste: data/splits/summre/dev.txt
+  - corpus: summre
+    partition: test
+    liste: data/splits/summre/test.txt
+
+# Sous-ensemble de mesure du temps (protocole §3.5) : device étant cpu, temps_cpu est
+# tiré de l'exécution principale restreinte à ces fichiers.
+mesure_cpu:
+  corpus: summre
+  liste: data/splits/summre/temps.txt
+
+evaluation:
+  references: data/processed/summre/rttm   # mots alignés, fusion à 200 ms, sans jetons non lexicaux (D20 §3, amendement 1)
+  uem: data/splits/summre/uem              # premier mot − 1 s, dernier mot + 1 s (D20 §3)
+  conditions: {collar_0: 0.0, collar_0_25: 0.5}
+  skip_overlap: false
+
+materiel:
+  machine: MacBook Pro M2 Pro
+  ram_go: 16
