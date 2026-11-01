@@ -46,7 +46,8 @@ Masque en deux temps :
   - seuil : {0,35 ; 0,5 ; 0,65} ;
   - silence minimal rouvert : {0,2 ; 0,4 ; 0,8} s ;
   - marge : {0,03 ; 0,1 ; 0,2} s.
-- **Point retenu** : DER sans collar le plus bas sur dev. Une alerte est levée si son DER avec collar dépasse celui de la source. Les conditions de D25 se jugent ensuite sur test, AMI et D24, par le bootstrap apparié.
+- **Point retenu** (décision du cockpit du 02/11) : DER sans collar le plus bas sur dev, **parmi les points dont le DER avec collar ne dépasse pas celui d'EXP-0007 (10,76 %)**, comparé au centième. C'est une contrainte, conforme à la règle 2 de D25 : sans point admissible, rien n'est retenu et V3 n'est pas évaluée. Les conditions de D25 se jugent ensuite sur test, AMI et D24, par le bootstrap apparié.
+- **Élargissement, une seule fois.** Si le point retenu est à une extrémité d'un axe, cet axe est prolongé d'un pas. Le pas est symétrique du pas voisin ; le seuil reste dans [0,05 ; 0,95] et les durées restent positives ou nulles. Par exemple, une marge retenue de 0,2 s ajoute 0,3 s, et un silence retenu de 0,2 s ajoute 0 s. Seuls les nouveaux points sont évalués, puis le choix est refait sur toute la grille. Un point encore au bord est signalé, sans second élargissement.
 - **V3** : sortie exclusive d'EXP-0016 avec le réglage retenu pour V2 (D25 : « réglage de V2 repris »).
 - **Sorties** : `results/reglage_silero/<date>_<heure>/` contient `reglage.json`, `grille.csv` et `reglage.md`.
 
@@ -85,12 +86,12 @@ Masque en deux temps :
    ```
 
    pyannote est relancé : les temps du protocole incluent ainsi Silero (`detection_fine` dans `etapes_s`).
-7. **Expériences V3** : même chose avec la sortie exclusive (`sortie: exclusive` de l'enveloppe de `main`), en référence à EXP-0016 et EXP-0017. Avec l'enveloppe à deux sorties, une seule exécution produit V3 (`rttm/`) et V2 (`rttm_habituelle/`, même masque) : au cockpit de dire si ce double usage est admis, ou s'il faut deux expériences.
+7. **Expériences V3, et exécution partagée avec V2** (décision du cockpit du 02/11). Une seule exécution par corpus, avec `sortie: exclusive` (enveloppe à deux sorties de `main`) et le masque : V3 sort dans `rttm/`, V2 dans `rttm_habituelle/`, sous le même masque. Elle donne **deux expériences distinctes**, V3 (référence EXP-0016, ou EXP-0017 pour AMI) et V2 (référence EXP-0007, ou EXP-0001). Chacune a son dossier, son `config.yaml` et sa ligne au leaderboard, et chaque `config.yaml` mentionne l'exécution partagée (numéro de l'autre expérience, dossier qui porte `execution_*.json`). **Le temps de calcul n'est rapporté qu'une fois.** À préparer par la piste A sur `main` : `scripts/evaluate.py` exige `execution_<périphérique>.json` dans le dossier de l'expérience, avec son `config_sha256` ; l'expérience sans exécution propre doit le lire dans l'autre dossier, ou recevoir une copie marquée comme partagée, sans temps reporté. Ce choix revient à la piste A ou au cockpit ; rien n'est codé ici, `evaluate.py` étant sur `main`.
 8. **Règle de choix de D25** : bootstrap apparié sur SUMM-RE test et AMI test, puis conditions de D24 dès qu'elles existent.
 
 ## 5. Risques et points ouverts
 
 - **Granularité.** Silero décide par fenêtres de 32 ms : les frontières rouvertes sont au mieux à 32 ms près, ce qui pèse sur le DER sans collar, pas avec collar.
 - **Parole faible ou superposée.** Silero ne connaît pas les locuteurs : un masque qui coupe une voix faible coupe tous les locuteurs à cet instant. Le DER par zone (avec ou sans chevauchement) des expériences complètes le montrera.
-- **Choix sur dev.** Le critère « DER sans collar minimal » est une proposition, à confirmer par le cockpit : D25 ne fixe que les conditions sur test.
+- **Choix sur dev.** Tranché par le cockpit le 02/11 : contrainte sur le DER avec collar, élargissement unique (§3).
 - **Pas de vérification réelle ici.** Lancer, dans l'environnement principal, la fonction de binarisation tirée de la roue téléchargée a été refusé (code externe non encore admis comme dépendance). Le sens des réglages est donc vérifié par lecture du code 6.2.3 et par un masque simulé. Le test sur la vraie fonction (étape 2 du pas-à-pas) le confirmera après le `uv add`.
