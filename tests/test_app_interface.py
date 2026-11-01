@@ -124,7 +124,7 @@ def test_vue_d_ensemble_raccourcis_et_pastille():
     for key in ("' '", "'ArrowLeft'", "'ArrowRight'", "/^[0-9]$/", "'?'", "'Escape'"):
         assert key in script
     typing = script[script.index("const TYPING"):script.index("function typing")]
-    for selector in ("input", "textarea", "select", "contenteditable", ".ws-names"):
+    for selector in ("input", "textarea", "select", "contenteditable"):
         assert selector in typing
     assert "document.removeEventListener('keydown', element._onKey)" in script   # un seul écouteur
     assert "'parle : '" in script and "'parlent : '" in script

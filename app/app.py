@@ -313,19 +313,36 @@ def _empty(text: str) -> str:
 
 
 def _stats_html(result: dict | None) -> str:
+    """Statistiques par locuteur du premier moteur, avec le renommage dans le tableau (un
+    champ par ligne, R-U6) et un bouton ▶ qui lit son extrait typique dans la timeline."""
     if result is None:
         return _empty("Les statistiques par locuteur s'afficheront après l'analyse.")
-    stats = sortie.speaker_stats(result["annotation"], result["names"])
+    names = result["names"]
+    stats = sortie.speaker_stats(result["annotation"], names)
+    excerpts = sortie.typical_excerpts(result["annotation"])
     total = sum(row["temps_parole_s"] for row in stats) or 1.0
     colors = _speaker_colors([row["id"] for row in stats])
     rows = []
     for row in stats:
         color = colors[row["id"]][0]
         share = 100 * row["temps_parole_s"] / total
-        sub = f'<span class="sub">{escape(row["id"])}</span>' if row["nom"] != row["id"] else ""
+        ident, shown = escape(row["id"], quote=True), escape(row["nom"], quote=True)
+        excerpt = excerpts.get(row["id"])
+        if excerpt is None:
+            play = ('<button type="button" class="ws-excerpt" disabled title="Toute la parole de ce '
+                    'locuteur est en chevauchement">▶</button>')
+        else:
+            length = f"{_num(excerpt[1] - excerpt[0], 1)} s"
+            play = (f'<button type="button" class="ws-excerpt" data-debut="{excerpt[0]}" data-fin="{excerpt[1]}" '
+                    f'data-id="{ident}" aria-label="Écouter un extrait typique de {shown} ({length})" '
+                    f'title="Plus long tour sans chevauchement, {length}">▶</button>')
         rows.append(
-            f'<tr><td><span class="ws-swatch" style="background:{color}" aria-hidden="true"></span>'
-            f'<span class="strong">{escape(row["nom"])}</span>{sub}</td>'
+            f'<tr><td class="ws-speaker"><span class="ws-swatch" style="background:{color}" aria-hidden="true"></span>'
+            f'<span class="ws-speaker-name"><input type="text" class="ws-name-input" data-id="{ident}" '
+            f'value="{escape(names.get(row["id"], ""), quote=True)}" placeholder="{ident}" maxlength="60" '
+            f'autocomplete="off" spellcheck="false" aria-label="Nom de {ident}">'
+            f'<span class="sub">{escape(row["id"])}</span></span></td>'
+            f'<td class="ws-play-cell">{play}</td>'
             f'<td class="num">{temps.format_duration(row["temps_parole_s"])}</td>'
             f'<td class="num"><span class="ws-share"><span class="ws-share-bar" aria-hidden="true">'
             f'<span style="width:{share:.1f}%;background:{color}"></span></span>{_pct(share)}</span></td>'
@@ -333,12 +350,15 @@ def _stats_html(result: dict | None) -> str:
             f'<td class="num">{_pct(100 * row["part_chevauchement"])}</td></tr>'
         )
     return (
-        '<div class="ws-table-wrap"><table class="ws-table"><thead><tr><th scope="col">Locuteur</th>'
+        '<div class="ws-table-wrap"><table class="ws-table ws-speakers"><thead><tr><th scope="col">Locuteur</th>'
+        '<th scope="col"><span class="ws-sr">Extrait</span></th>'
         '<th scope="col" class="num">Temps de parole</th><th scope="col" class="num">Part</th>'
         '<th scope="col" class="num">Interventions</th><th scope="col" class="num">Chevauchement</th>'
         f'</tr></thead><tbody>{"".join(rows)}</tbody></table></div>'
-        '<p class="ws-caption">Chevauchement : part du temps de parole du locuteur pendant laquelle '
-        'au moins une autre personne parle.</p>'
+        '<p class="ws-caption">Renommer : saisissez un nom, puis Entrée ou quittez le champ ; vide, '
+        "l'identifiant du moteur est gardé. ▶ : extrait typique, le plus long tour sans chevauchement "
+        f'({_num(sortie.EXCERPT_MAX_S, 0)} s au plus), lu dans la timeline. Chevauchement : part du temps de parole '
+        'du locuteur pendant laquelle au moins une autre personne parle.</p>'
     )
 
 
@@ -379,6 +399,29 @@ def _group(group_id: str, title: str, annotation, names: dict, colored: bool, er
     }
 
 
+def _reference_group(result: dict) -> dict:
+    """Groupe de la référence (R-U4) : chaque locuteur de référence prend la couleur du
+    locuteur du premier moteur qui lui est apparié (appariement optimal du DER) et
+    l'étiquette « ↔ nom » ; non apparié, il reste gris et le dit."""
+    reference = result["reference"]
+    errors = result.get("erreurs")
+    pairs = errors.get("appariement") if errors else None
+    hyp_labels = sortie.speaker_labels(result["annotation"])
+    hyp_colors = _speaker_colors(hyp_labels)
+    hyp_names = sortie.resolve_names(hyp_labels, result["names"])
+    speakers = []
+    for label in sortie.speaker_labels(reference):
+        found = pairs.get(label) if pairs else None
+        if found in hyp_colors:
+            (light, dark), text = hyp_colors[found], f"{label} ↔ {hyp_names[found]}"
+        else:
+            (light, dark), text = (NEUTRAL_LIGHT, NEUTRAL_DARK), (f"{label} (non apparié)" if pairs is not None else label)
+        speakers.append({"id": label, "nom": text, "couleur": light, "couleur_sombre": dark, "apparie": found})
+    title = "Référence" if pairs is None else f"Référence, appariée à {result.get('libelle', '')}"
+    return {"id": "ref", "titre": title, "locuteurs": speakers, "segments": sortie.segments(reference),
+            "erreurs": None}
+
+
 def _viewer_value(result: dict) -> dict:
     """Timeline : premier moteur, second moteur éventuel, référence éventuelle (D26, I5),
     chacun avec sa carte des erreurs ; tous dans le même canevas, donc le même zoom."""
@@ -389,7 +432,7 @@ def _viewer_value(result: dict) -> dict:
         groups.append(_group("b", other["libelle"], other["annotation"], other.get("names", {}), False,
                              other.get("erreurs")))
     if result.get("reference") is not None:
-        groups.append(_group("ref", "Référence", result["reference"], {}, False, None))
+        groups.append(_reference_group(result))
     return {
         "audio_url": _file_url(result["wav"]),
         "duree_s": result["duree_s"],
@@ -416,7 +459,39 @@ def _errors_for(reference, result: dict) -> dict | None:
          "part": _pct(100 * totals[kind] / total, 2)}
         for kind, label in ERROR_LABELS.items()
     ]
+    for zone in errors["zones"]:
+        zone["constats"] = _context_sentences(zone["contexte"], zone["fin"] - zone["debut"])
     return errors
+
+
+def _context_sentences(context: dict, duration_s: float) -> list[str]:
+    """Constats factuels sur la référence autour d'une zone d'erreur (« Expliquer cette
+    erreur », R-U4) : jamais une cause affirmée."""
+    sentences = []
+    overlap = context["chevauchement_s"]
+    if overlap > 0:
+        if duration_s > 0 and overlap >= 0.99 * duration_s:
+            sentences.append("La zone tombe dans un chevauchement de la référence.")
+        else:
+            share = _pct(100 * overlap / duration_s, 0) if duration_s > 0 else "—"
+            sentences.append(f"La zone recoupe un chevauchement de la référence sur {_num(overlap, 2)} s "
+                             f"({share} de sa durée).")
+    short = context["tour_court"]
+    if short:
+        sentences.append(f"Elle recoupe un tour de la référence de moins de {_num(sortie.SHORT_TURN_S, 1)} s "
+                         f"({short['locuteur']}, {_num(short['duree_s'], 2)} s).")
+    pause = context["pause"]
+    if pause:
+        verb = "recoupe" if pause["relation"] == "recoupe" else "est contiguë à"
+        sentences.append(f"Elle {verb} une pause de la référence de moins de {_num(sortie.SHORT_PAUSE_S, 0)} s "
+                         f"({_num(pause['duree_s'], 2)} s).")
+    if context["frontiere_s"] is not None:
+        sentences.append(f"Un de ses bords est à moins de {_num(sortie.BOUNDARY_S, 2)} s d'une frontière de tour "
+                         f"de la référence (écart {_num(context['frontiere_s'], 2)} s).")
+    if not sentences:
+        sentences.append("Aucun de ces contextes : ni chevauchement, ni tour court, ni pause courte, ni frontière "
+                         "de tour à proximité dans la référence.")
+    return sentences
 
 
 def _read_reference(reference_path: str | None):
@@ -581,8 +656,55 @@ def _der_html(result: dict | None, reference_path: str | None) -> str:
         f'chevauchement, {_pct(zone["chevauchement"], 2)} en chevauchement. {counts["hypothese"]} locuteurs '
         f'estimés pour {counts["reference"]} dans la référence. Référence coupée à la durée de l\'audio, '
         'chevauchements comptés, deux conditions de collar (protocole §3.1).</p>'
+        + _matching_html(sortie.matching_report(reference, result["annotation"], result["duree_s"]),
+                         result.get("names", {}))
     )
 
+
+def _matching_html(rows: list[dict], names: dict) -> str:
+    """Tableau d'appariement (R-U4) : locuteur de référence, locuteur trouvé apparié,
+    temps commun, couverture et pureté par locuteur (pyannote.metrics)."""
+    hyp_names = sortie.resolve_names(sorted({r["hypothese"] for r in rows if r["hypothese"] is not None}), names)
+    body = []
+    for row in rows:
+        ref = escape(str(row["reference"])) if row["reference"] is not None else '<span class="sub">aucun</span>'
+        found = (escape(hyp_names[row["hypothese"]]) if row["hypothese"] is not None
+                 else '<span class="sub">non apparié</span>')
+        common = f"{_num(row['commun_s'], 1)} s" if row["reference"] is not None and row["hypothese"] is not None else "—"
+        coverage = "—" if row["couverture"] is None else _pct(100 * row["couverture"])
+        purity = "—" if row["purete"] is None else _pct(100 * row["purete"])
+        body.append(f'<tr><td>{ref}</td><td>{found}</td><td class="num">{common}</td>'
+                    f'<td class="num">{coverage}</td><td class="num">{purity}</td></tr>')
+    return (
+        '<h3 class="ws-subtitle">Appariement des locuteurs</h3>'
+        '<div class="ws-table-wrap"><table class="ws-table ws-matching"><thead><tr><th scope="col">Référence</th>'
+        '<th scope="col">Locuteur trouvé</th><th scope="col" class="num">Temps commun</th>'
+        '<th scope="col" class="num">Couverture</th><th scope="col" class="num">Pureté</th></tr></thead>'
+        f'<tbody>{"".join(body)}</tbody></table></div>'
+        '<p class="ws-caption">Appariement optimal utilisé par le DER (pyannote.metrics), sans collar, '
+        'chevauchements comptés ; c\'est lui qui colore les pistes de la référence. Couverture : part de la parole '
+        'du locuteur de référence couverte par le locuteur trouvé qui en couvre le plus. Pureté : part de la '
+        'parole du locuteur trouvé attribuable au locuteur de référence qui y domine.</p>'
+    )
+
+
+# Tableau des locuteurs : renommage dans le tableau (R-U6). Un nom validé (Entrée ou
+# sortie du champ) envoie tous les noms au serveur ; Échap rétablit le nom affiché.
+STATS_JS = """
+const send = () => {
+  const names = {};
+  element.querySelectorAll('.ws-name-input').forEach((input) => { names[input.dataset.id] = input.value; });
+  trigger('input', { names });
+};
+element.addEventListener('change', (event) => {
+  if (event.target.matches('.ws-name-input')) send();
+});
+element.addEventListener('keydown', (event) => {
+  if (!event.target.matches('.ws-name-input')) return;
+  if (event.key === 'Enter') event.target.blur();
+  else if (event.key === 'Escape') { event.target.value = event.target.defaultValue; event.target.blur(); }
+});
+"""
 
 # Onglet Avancement : un clic sur « notes.md » demande au serveur le contenu des notes.
 NOTES_JS = """
@@ -689,7 +811,13 @@ VIEWER_TEMPLATE = (
     '<div class="wsp-viewport"><div class="wsp-canvas"><div class="wsp-lanes"></div>'
     '<div class="wsp-axis" aria-hidden="true"></div><div class="wsp-playhead"></div></div></div></div>'
     '<p class="wsp-errsum" hidden></p>'
-    '<p class="wsp-hint">Cliquez sur un segment pour l\'écouter et le repérer sur la forme d\'onde. Zoom : curseur, boutons, ou Ctrl + molette ; '
+    '<section class="wsp-explain" id="wsp-explain" aria-live="polite" aria-label="Expliquer cette erreur" hidden>'
+    '<div class="wsp-explain-head"><h3 class="wsp-explain-title"></h3>'
+    '<button type="button" class="wsp-explain-close" aria-label="Fermer l\'explication">×</button></div>'
+    '<dl class="wsp-explain-facts"></dl><p class="wsp-explain-sub">Contexte dans la référence</p>'
+    '<ul class="wsp-explain-context"></ul>'
+    '<p class="wsp-explain-note">Constats sur la référence autour de la zone, pas une cause établie.</p></section>'
+    '<p class="wsp-hint">Cliquez sur un segment pour l\'écouter et le repérer sur la forme d\'onde, sur une zone d\'erreur pour l\'expliquer. Zoom : curseur, boutons, ou Ctrl + molette ; '
     'défilement : vue d\'ensemble, pavé tactile ou Maj + molette. Raccourcis : <kbd>Espace</kbd>, <kbd>←</kbd> <kbd>→</kbd>, '
     '<kbd>1</kbd> à <kbd>9</kbd>, <kbd>0</kbd>, <kbd>?</kbd> pour l\'aide.</p></div></div>'
 )
@@ -940,7 +1068,7 @@ def build_app(fake: bool = False, fake_max_s: float = 20.0, repo_root: Path = RE
             return _status_html(steps, state, title, detail, fraction, labels=labels)
 
         yield {status_box: status("Normalisation de l'audio", fraction=0.0), viewer: None,
-               stats: _stats_html(None), names: gr.update(value=[], visible=False), times: _times_html(None),
+               stats: _stats_html(None), times: _times_html(None),
                der: _der_html(None, reference_path), exports: gr.update(value=None, visible=False),
                exports_empty: gr.update(visible=True), comparison: "", comparison_card: gr.update(visible=False),
                result_state: None}
@@ -1068,9 +1196,7 @@ def build_app(fake: bool = False, fake_max_s: float = 20.0, repo_root: Path = RE
                 detail += f", {result['libelle']}, RTF {_num(total_s / duration_s, 4)}"
             done = _status_html(steps, {step: 1.0 for step in steps}, title, detail, 1.0, labels=labels,
                                 badges=_cache_badges(results))
-            names_rows = [[label, ""] for label in sortie.speaker_labels(result["annotation"])]
             yield {status_box: done, viewer: _viewer_value(result), stats: _stats_html(result),
-                   names: gr.update(value=names_rows, visible=True, row_limits=(len(names_rows), len(names_rows))),
                    times: _times_all(result), der: _der_all(result, reference_path),
                    exports: gr.update(value=_exports(result), visible=True), exports_empty: gr.update(visible=False),
                    comparison: _comparison_html(result), comparison_card: gr.update(visible=bool(result.get("comparaison"))),
@@ -1092,17 +1218,21 @@ def build_app(fake: bool = False, fake_max_s: float = 20.0, repo_root: Path = RE
                 raise
             raise gr.Error(f"L'analyse a échoué. Détail : {message}") from error
 
-    def rename(rows, result):
-        if result is None:
-            return gr.skip(), gr.skip(), gr.skip(), gr.skip()
-        names = {str(row[0]): str(row[1] or "") for row in (rows.values.tolist() if hasattr(rows, "values") else rows)}
+    def rename(result, reference_path, evt: gr.EventData):
+        """Noms saisis dans le tableau des locuteurs ; noms en double refusés (le tableau
+        revient aux noms en vigueur)."""
+        data = getattr(evt, "_data", None) or {}
+        if result is None or not isinstance(data.get("names"), dict):
+            return gr.skip(), gr.skip(), gr.skip(), gr.skip(), gr.skip()
+        labels = sortie.speaker_labels(result["annotation"])
+        names = {label: str(data["names"].get(label, "") or "").strip()[:60] for label in labels}
         try:
-            sortie.resolve_names(sortie.speaker_labels(result["annotation"]), names)
+            sortie.resolve_names(labels, names)
         except ValueError as error:
             gr.Warning(f"{error} : choisissez un nom différent pour chaque locuteur.")
-            return gr.skip(), gr.skip(), gr.skip(), gr.skip()
+            return gr.skip(), _stats_html(result), gr.skip(), gr.skip(), gr.skip()
         result = dict(result, names=names)
-        return _viewer_value(result), _stats_html(result), _exports(result), result
+        return (_viewer_value(result), gr.skip(), _exports(result), _der_all(result, reference_path), result)
 
     with gr.Blocks(title="Who Spoke?") as app:
         result_state = gr.State(None)
@@ -1166,14 +1296,9 @@ def build_app(fake: bool = False, fake_max_s: float = 20.0, repo_root: Path = RE
                                     js_on_load=None)
                             comparison = gr.HTML("", js_on_load=None)
                         with gr.Column(elem_classes="ws-card"):
-                            gr.HTML(_title("Locuteurs", "Statistiques et renommage ; en comparaison, du premier moteur."),
+                            gr.HTML(_title("Locuteurs", "Statistiques, extraits et renommage ; en comparaison, du premier moteur."),
                                     js_on_load=None)
-                            stats = gr.HTML(_stats_html(None), js_on_load=None)
-                            names = gr.Dataframe(
-                                headers=["Identifiant", "Nom"], datatype=["str", "str"], interactive=True,
-                                static_columns=[0], label="Renommer : saisissez un nom dans la colonne Nom",
-                                elem_classes="ws-names", visible=False,
-                            )
+                            stats = gr.HTML(_stats_html(None), js_on_load=STATS_JS)
                         with gr.Column(elem_classes="ws-card"):
                             gr.HTML(_title("Évaluation", "DER face à la référence déposée."), js_on_load=None)
                             der = gr.HTML(_der_html(None, None), js_on_load=None)
@@ -1280,11 +1405,11 @@ def build_app(fake: bool = False, fake_max_s: float = 20.0, repo_root: Path = RE
         run.click(
             analyse, [prepared_state, audio, engine, compare, engine2, mode, k, k_min, k_max, device, reference,
                       use_cache],
-            [status_box, viewer, stats, names, times, der, exports, exports_empty, comparison, comparison_card,
+            [status_box, viewer, stats, times, der, exports, exports_empty, comparison, comparison_card,
              result_state, prepared_state, settings_col, band, band_text, cache_info, estimate],
             concurrency_limit=1, show_progress="hidden",  # l'avancement est dans le panneau d'état
         )
-        names.input(rename, [names, result_state], [viewer, stats, exports, result_state])
+        stats.input(rename, [result_state, reference], [viewer, stats, exports, der, result_state])
         def reference_changed(path, result):
             if result is None:
                 return _der_html(None, path), gr.skip(), gr.skip(), gr.skip()

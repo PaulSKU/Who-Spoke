@@ -247,9 +247,33 @@ button.primary:active, button.secondary:active, .wsp-play:active { transform: sc
 }
 .ws-callout code { font-size: 0.8rem; }
 
-/* Tableau éditable des noms : police du texte, pas de monospace. */
-.ws-names { --font-mono: var(--font); }
-.ws-names * { font-family: var(--font) !important; }
+/* Tableau des locuteurs : nom éditable dans la ligne, extrait typique (R-U6). */
+.ws-speakers td.ws-speaker { white-space: nowrap; }
+.ws-speaker { display: flex; align-items: center; }
+.ws-speaker-name { display: inline-flex; flex-direction: column; min-width: 0; }
+.ws-name-input {
+  width: min(12em, 40vw); max-width: 100%; height: 30px; padding: 0 8px; border-radius: 6px; font: inherit; font-weight: 600;
+  color: var(--ws-ink); background: var(--ws-surface); border: 1px solid transparent;
+  box-shadow: 0 0 0 1px var(--ws-line); transition: box-shadow 150ms ease;
+}
+.ws-name-input::placeholder { color: var(--ws-ink); opacity: 1; }
+.ws-name-input:hover { box-shadow: 0 0 0 1px var(--ws-slate); }
+.ws-name-input:focus { outline: none; box-shadow: 0 0 0 2px var(--ws-ink); }
+.ws-name-input:focus::placeholder { color: var(--ws-slate); }
+.ws-speakers .ws-speaker .sub { margin: 2px 0 0 8px; }
+.ws-play-cell { width: 1%; }
+.ws-excerpt {
+  width: 32px; height: 32px; border: none; border-radius: 50%; cursor: pointer; font: inherit; font-size: 0.75rem;
+  background: var(--ws-surface); color: var(--ws-ink); box-shadow: 0 0 0 1px var(--ws-line);
+  transition: transform 100ms var(--ws-ease), background-color 150ms ease;
+}
+.ws-excerpt:active:not(:disabled) { transform: scale(0.94); }
+.ws-excerpt:disabled { opacity: 0.35; cursor: default; }
+@media (hover: hover) and (pointer: fine) { .ws-excerpt:not(:disabled):hover { background: var(--ws-canvas); } }
+.ws-sr {
+  position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden;
+  clip: rect(0 0 0 0); white-space: nowrap; border: 0;
+}
 
 /* Exports : liste en lecture seule, noms complets, sans bouton de retrait. */
 .ws-exports .label-clear-button { display: none !important; }

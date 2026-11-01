@@ -59,10 +59,17 @@ def test_groupes_superposes_avec_reference_et_deux_cartes(compared, reference):
     value = interface._viewer_value(interface._with_reference(compared, reference))
     groups = {g["id"]: g for g in value["groupes"]}
     assert list(groups) == ["a", "b", "ref"]
-    assert groups["b"]["titre"] == "Baseline MFCC" and groups["ref"]["titre"] == "Référence"
-    # Premier moteur en couleurs ; second moteur et référence en gris neutre.
+    assert groups["b"]["titre"] == "Baseline MFCC"
+    assert groups["ref"]["titre"] == "Référence, appariée à pyannote community-1"
+    # Premier moteur en couleurs ; second moteur en gris neutre ; référence aux couleurs du
+    # locuteur du premier moteur qui lui est apparié (R-U4).
     assert groups["a"]["locuteurs"][0]["couleur"] == interface.PALETTE_LIGHT[0]
-    assert {s["couleur"] for s in groups["b"]["locuteurs"] + groups["ref"]["locuteurs"]} == {interface.NEUTRAL_LIGHT}
+    assert {s["couleur"] for s in groups["b"]["locuteurs"]} == {interface.NEUTRAL_LIGHT}
+    pairs = groups["a"]["erreurs"]["appariement"]
+    colors = {s["id"]: s["couleur"] for s in groups["a"]["locuteurs"]}
+    for speaker in groups["ref"]["locuteurs"]:
+        assert speaker["apparie"] == pairs.get(speaker["id"])
+        assert speaker["couleur"] == colors.get(speaker["apparie"], interface.NEUTRAL_LIGHT)
     # Référence coupée à la durée de l'audio : C disparaît.
     assert [s["id"] for s in groups["ref"]["locuteurs"]] == ["A", "B"]
     assert groups["a"]["erreurs"] and groups["b"]["erreurs"] and groups["ref"]["erreurs"] is None

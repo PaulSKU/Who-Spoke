@@ -13,6 +13,11 @@
 // fenêtre visible se déplace à la souris, au doigt ou au clavier (← →), un clic ailleurs
 // y amène la lecture. La vue suit la lecture (autoScroll et autoCenter de wavesurfer),
 // sauf si on la déplace à la main ; le bouton « Suivre la lecture » le rétablit.
+// Appariement (R-U4) : les pistes de la référence portent la couleur et le nom (« ↔ X ») du
+// locuteur trouvé apparié ; un clic sur une zone d'erreur ouvre « Expliquer cette erreur »
+// (type, durée, locuteurs après appariement, constats calculés côté serveur).
+// Extrait typique (R-U6) : les boutons ▶ du tableau des locuteurs, hors de ce composant,
+// sont écoutés sur le document et lus ici.
 // Raccourcis (R-U3) : Espace, ← →, 1 à 9, 0, ? ; inactifs quand le focus est dans un champ
 // de saisie, ou quand l'onglet Analyse n'est pas affiché. Pastille « parle : X » pendant
 // la lecture, d'après le premier moteur.
@@ -339,6 +344,84 @@ function jumpTurn(direction) {
   showSpeaking(target.debut);
 }
 
+// --- « Expliquer cette erreur » (R-U4) ----------------------------------------------
+
+const ERROR_TITLES = { manquee: 'Parole manquée', fausse_alarme: 'Fausse alarme', confusion: 'Confusion' };
+
+function seconds(value) {
+  return value.toFixed(2).replace('.', ',') + ' s';
+}
+
+// « 1:30,4 » : au dixième de seconde, pour les zones courtes.
+function fmtTenths(t) {
+  const tenths = Math.round(t * 10);
+  return fmt(Math.floor(tenths / 10)) + ',' + (tenths % 10);
+}
+
+function explain(group, index) {
+  const panel = $('.wsp-explain');
+  const errors = group && group.erreurs;
+  const zone = errors && errors.zones[index];
+  if (!panel || !zone) return;
+  element._explained = { group: group.id, index };
+  const names = {};
+  group.locuteurs.forEach((spk) => { names[spk.id] = spk.nom; });
+  const pairs = errors.appariement || {};
+  const pairedRef = {};
+  Object.entries(pairs).forEach(([ref, hyp]) => { pairedRef[hyp] = ref; });
+  const refText = (ref) => {
+    if (!ref) return '—';
+    const hyp = pairs[ref];
+    return ref + (hyp ? ' (apparié à ' + (names[hyp] || hyp) + ')' : ' (non apparié)');
+  };
+  const hypText = (hyp) => {
+    if (!hyp) return '— (aucun locuteur trouvé sur cette parole)';
+    const ref = pairedRef[hyp];
+    return (names[hyp] || hyp) + (ref ? ' (apparié à ' + ref + ')' : ' (non apparié)');
+  };
+  const several = props.value.groupes.filter((g) => g.erreurs).length > 1;
+  $('.wsp-explain-title').textContent = (several ? group.titre + ' : ' : '') + ERROR_TITLES[zone.type]
+    + ', ' + fmtTenths(zone.debut) + ' – ' + fmtTenths(zone.fin);
+  const facts = $('.wsp-explain-facts');
+  facts.innerHTML = '';
+  [['Type', ERROR_TITLES[zone.type]],
+   ['Durée', seconds(zone.fin - zone.debut) + ' (de ' + fmtTenths(zone.debut) + ' à ' + fmtTenths(zone.fin) + ')'],
+   ['Locuteur de référence', refText(zone.reference)],
+   ['Locuteur trouvé', hypText(zone.hypothese)]].forEach(([term, value]) => {
+    const dt = document.createElement('dt');
+    dt.textContent = term;
+    const dd = document.createElement('dd');
+    dd.textContent = value;
+    facts.appendChild(dt);
+    facts.appendChild(dd);
+  });
+  const list = $('.wsp-explain-context');
+  list.innerHTML = '';
+  (zone.constats || []).forEach((text) => {
+    const item = document.createElement('li');
+    item.textContent = text;
+    list.appendChild(item);
+  });
+  panel.hidden = false;
+}
+
+function closeExplain() {
+  const panel = $('.wsp-explain');
+  if (panel) panel.hidden = true;
+  element._explained = null;
+}
+
+// Extrait typique : lu comme un segment, repéré par une bande sur la forme d'onde.
+function playExcerpt(start, end) {
+  const ws = element._ws;
+  if (!ws) return;
+  element._selected = { debut: start, fin: end, locuteur: 'extrait', extrait: true };
+  markSelected();
+  drawSelection();
+  reveal(start);
+  playSegment(start, end);
+}
+
 function toggleHelp(open) {
   const help = $('.wsp-help');
   const button = $('.wsp-help-toggle');
@@ -371,7 +454,7 @@ function drawSelection() {
   if (!regions || !v || !element._ready) return;
   regions.clearRegions();
   const s = element._selected;
-  if (!s || !selectables(v).some(isSelected)) return;
+  if (!s || (!s.extrait && !selectables(v).some(isSelected))) return;
   regions.addRegion({
     start: s.debut, end: s.fin, color: isDark() ? 'rgba(236,236,233,0.16)' : 'rgba(24,25,29,0.10)',
     drag: false, resize: false,
@@ -449,6 +532,10 @@ function drawLanes(v) {
   drawErrors(v, labels, lanes);
   applyIsolation();
   fillHelpSpeakers(v);
+  const open = element._explained;
+  const group = open && v.groupes.find((g) => g.id === open.group);
+  if (group && group.erreurs && group.erreurs.zones[open.index]) explain(group, open.index);
+  else closeExplain();
 }
 
 const ERROR_TEXT = {
@@ -485,9 +572,13 @@ function drawErrors(v, labels, lanes) {
       const text = (withErrors.length > 1 ? group.titre + ', ' : '') + ERROR_TEXT[zone.type](zone, names)
         + ', ' + fmt(zone.debut) + ' – ' + fmt(zone.fin);
       bar.setAttribute('aria-label', text);
-      bar.title = text + ' (' + (zone.fin - zone.debut).toFixed(1).replace('.', ',') + ' s). Cliquer pour écouter.';
+      bar.title = text + ' (' + (zone.fin - zone.debut).toFixed(1).replace('.', ',') + ' s). Cliquer pour écouter et expliquer.';
       bar._seg = zoneKey(group, zone, index);
-      bar.addEventListener('click', () => selectSegment(bar._seg));
+      bar.setAttribute('aria-controls', 'wsp-explain');
+      bar.addEventListener('click', () => {
+        selectSegment(bar._seg);
+        explain(group, index);
+      });
       tracks[zone.type].appendChild(bar);
     });
     const line = document.createElement('span');
@@ -508,6 +599,7 @@ function render() {
     return;
   }
   root.classList.remove('wsp-empty');
+  root.classList.toggle('wsp-wide', v.groupes.some((group) => group.id === 'ref'));
   const dark = isDark();
   element._colors = {};
   v.groupes.forEach((group) => group.locuteurs.forEach((spk) => {
@@ -524,6 +616,7 @@ function render() {
     if (!same) {
       element._selected = null;  // nouveau fichier : aucune sélection
       element._iso = null;
+      element._explained = null;
     }
     if (element._follow === undefined) element._follow = true;
     destroy();
@@ -604,7 +697,8 @@ function render() {
 element.addEventListener('click', (event) => {
   const target = event.target.closest('button');
   if (!target || !element._ws) return;
-  if (target.classList.contains('wsp-help-toggle')) toggleHelp();
+  if (target.classList.contains('wsp-explain-close')) closeExplain();
+  else if (target.classList.contains('wsp-help-toggle')) toggleHelp();
   else if (target.classList.contains('wsp-follow')) setFollow(!element._follow);
   else if (target.classList.contains('wsp-play')) element._ws.playPause();
   else if (target.classList.contains('wsp-zoom-in')) setZoom((element._zoom || 0) + ZOOM_STEP);
@@ -636,7 +730,7 @@ element.addEventListener('wheel', (event) => {
 // ou quand le visualiseur n'est pas affiché (autre onglet, aucun résultat).
 
 const TYPING = 'input, textarea, select, [contenteditable=""], [contenteditable="true"], '
-  + '[role="textbox"], [role="combobox"], [role="listbox"], [role="spinbutton"], .ws-names';
+  + '[role="textbox"], [role="combobox"], [role="listbox"], [role="spinbutton"]';
 
 function typing(node) {
   return node instanceof Element && !!node.closest(TYPING);
@@ -666,14 +760,25 @@ function onKey(event) {
   } else if (key === '?') {
     event.preventDefault();
     toggleHelp();
-  } else if (key === 'Escape' && !$('.wsp-help').hidden) {
-    toggleHelp(false);
+  } else if (key === 'Escape') {
+    if (!$('.wsp-help').hidden) toggleHelp(false);
+    else if (!$('.wsp-explain').hidden) closeExplain();
   }
 }
 
 if (element._onKey) document.removeEventListener('keydown', element._onKey);
 element._onKey = onKey;
 document.addEventListener('keydown', onKey);
+
+function onExcerpt(event) {
+  const button = event.target instanceof Element && event.target.closest('.ws-excerpt[data-debut]');
+  if (!button || !element._ws) return;
+  playExcerpt(Number(button.dataset.debut), Number(button.dataset.fin));
+}
+
+if (element._onExcerpt) document.removeEventListener('click', element._onExcerpt);
+element._onExcerpt = onExcerpt;
+document.addEventListener('click', onExcerpt);
 
 if (typeof ResizeObserver === 'function') {
   let lastWidth = 0;

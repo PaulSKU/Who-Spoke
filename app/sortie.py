@@ -181,6 +181,122 @@ def _evaluation_inputs(reference: Annotation, hypothesis: Annotation, duration_s
     return reference, uem
 
 
+class _Matching:
+    """Entrées de la carte des erreurs et de l'appariement : référence et hypothèse
+    restreintes à l'UEM comme le fait le DER, étiquettes renommées, appariement hongrois."""
+
+    def __init__(self, reference: Annotation, hypothesis: Annotation, duration_s: float) -> None:
+        from pyannote.metrics.diarization import DiarizationErrorRate
+
+        reference, uem = _evaluation_inputs(reference, hypothesis, duration_s)
+        self.metric = DiarizationErrorRate(collar=0.0, skip_overlap=False)
+        self.reference, self.hypothesis, self.uem = self.metric.uemify(
+            reference, hypothesis, uem=uem, collar=0.0, skip_overlap=False, returns_uem=True)
+        self.ref_names: dict = {}
+        self.renamed_ref = self.reference.rename_labels(generator="string")
+        for (_, _, label), (_, _, new) in zip(self.reference.itertracks(yield_label=True),
+                                              self.renamed_ref.itertracks(yield_label=True)):
+            self.ref_names[new] = label
+        self.hyp_names: dict = {}
+        self.renamed_hyp = self.hypothesis.rename_labels(generator="int")
+        for (_, _, label), (_, _, new) in zip(self.hypothesis.itertracks(yield_label=True),
+                                              self.renamed_hyp.itertracks(yield_label=True)):
+            self.hyp_names[new] = label
+        # Appariement optimal de pyannote.metrics, celui du DER : étiquette d'hypothèse -> de référence.
+        self.mapping = self.metric.optimal_mapping(self.renamed_ref, self.renamed_hyp)
+
+    def pairs(self) -> dict[str, str]:
+        """Locuteur de référence -> locuteur trouvé apparié (noms d'origine)."""
+        return {self.ref_names[ref]: self.hyp_names[hyp] for hyp, ref in self.mapping.items()}
+
+
+def pairing(reference: Annotation, hypothesis: Annotation, duration_s: float) -> dict[str, str]:
+    """Appariement optimal utilisé par le DER : locuteur de référence -> locuteur trouvé.
+    Un locuteur absent du dictionnaire n'est pas apparié."""
+    return _Matching(reference, hypothesis, duration_s).pairs()
+
+
+def matching_report(reference: Annotation, hypothesis: Annotation, duration_s: float) -> list[dict]:
+    """Tableau d'appariement (audit R-U4), sans recoder les métriques de pyannote.metrics.
+
+    Une ligne par locuteur de référence (apparié ou non), puis une par locuteur trouvé non
+    apparié. `commun_s` : temps où les deux locuteurs appariés parlent ensemble
+    (cooccurrence de pyannote.core) ; `couverture` : `DiarizationCoverage` restreinte au
+    locuteur de référence (part de sa parole couverte par le locuteur trouvé qui en couvre
+    le plus) ; `purete` : `DiarizationPurity` restreinte au locuteur trouvé (part de sa
+    parole attribuable au locuteur de référence qui y domine). Fractions entre 0 et 1.
+    """
+    from pyannote.metrics.diarization import DiarizationCoverage, DiarizationPurity
+
+    match = _Matching(reference, hypothesis, duration_s)
+    ref, hyp = match.reference, match.hypothesis
+    purity, coverage = DiarizationPurity(), DiarizationCoverage()
+    pairs = match.pairs()
+
+    def purity_of(label):
+        return float(purity(ref, hyp.subset([label])))
+
+    rows = []
+    for label in sorted(ref.labels(), key=str):
+        found = pairs.get(label)
+        common = float((ref.subset([label]) * hyp.subset([found]))[0, 0]) if found is not None else 0.0
+        rows.append({"reference": label, "hypothese": found, "commun_s": common,
+                     "duree_reference_s": float(ref.label_duration(label)),
+                     "couverture": float(coverage(ref.subset([label]), hyp)),
+                     "purete": purity_of(found) if found is not None else None})
+    for label in sorted(set(hyp.labels()) - set(pairs.values()), key=str):
+        rows.append({"reference": None, "hypothese": label, "commun_s": 0.0, "duree_reference_s": 0.0,
+                     "couverture": None, "purete": purity_of(label)})
+    return rows
+
+
+# Contexte d'une zone d'erreur (« Expliquer cette erreur », audit R-U4) : seuils affichés.
+SHORT_TURN_S = 0.5      # tour de référence court
+SHORT_PAUSE_S = 1.0     # pause courte entre deux plages de parole de la référence
+BOUNDARY_S = 0.25       # proximité d'une frontière de tour (la valeur du collar du protocole)
+TOUCH_S = 0.05          # une pause « contiguë » à la zone
+
+
+class _Context:
+    """Faits de la référence autour d'une zone : chevauchement, tours courts, pauses
+    courtes, frontières de tour. Calculés une fois par carte, en tableaux triés."""
+
+    def __init__(self, reference: Annotation, duration_s: float) -> None:
+        overlap = reference.get_overlap()
+        self.overlap = np.array([[s.start, s.end] for s in overlap]).reshape(-1, 2)
+        turns = [(s.start, s.end, str(label)) for s, _, label in reference.itertracks(yield_label=True)]
+        self.short = [(a, b, label) for a, b, label in turns if b - a < SHORT_TURN_S]
+        speech = reference.get_timeline().support()
+        gaps = speech.gaps(support=Segment(0.0, duration_s))
+        # Pauses entre deux plages de parole (ni avant la première ni après la dernière).
+        first, last = (speech[0].start, speech[-1].end) if len(speech) else (0.0, 0.0)
+        self.pauses = [(g.start, g.end) for g in gaps
+                       if g.duration < SHORT_PAUSE_S and g.start >= first and g.end <= last]
+        self.boundaries = np.array(sorted({t for a, b, _ in turns for t in (a, b)}))
+
+    def describe(self, start: float, end: float) -> dict:
+        overlap = 0.0
+        if len(self.overlap):
+            overlap = float(np.clip(np.minimum(self.overlap[:, 1], end) - np.maximum(self.overlap[:, 0], start),
+                                    0.0, None).sum())
+        short = next(((label, b - a) for a, b, label in self.short if min(b, end) - max(a, start) > 0), None)
+        pause = None
+        for a, b in self.pauses:
+            if min(b, end) - max(a, start) > 0:
+                pause = (b - a, "recoupe")
+                break
+            if pause is None and (abs(a - end) <= TOUCH_S or abs(b - start) <= TOUCH_S):
+                pause = (b - a, "contigue")
+        boundary = None
+        if len(self.boundaries):
+            boundary = float(min(np.abs(self.boundaries - start).min(), np.abs(self.boundaries - end).min()))
+            boundary = boundary if boundary <= BOUNDARY_S else None
+        return {"chevauchement_s": round(overlap, 3),
+                "tour_court": None if short is None else {"locuteur": short[0], "duree_s": round(short[1], 3)},
+                "pause": None if pause is None else {"duree_s": round(pause[0], 3), "relation": pause[1]},
+                "frontiere_s": None if boundary is None else round(boundary, 3)}
+
+
 def error_map(reference: Annotation, hypothesis: Annotation, duration_s: float) -> dict:
     """Carte des erreurs sans collar, chevauchements comptés, après appariement optimal.
 
@@ -191,29 +307,18 @@ def error_map(reference: Annotation, hypothesis: Annotation, duration_s: float) 
     le DER (durée × nombre d'erreurs du segment) : elles redonnent ses composantes.
 
     Renvoie `{"totaux": {manquee, fausse_alarme, confusion, reference} en s,
-    "zones": [{type, debut, fin, reference, hypothese}]}` ; zones contiguës de même type
-    et de mêmes locuteurs fusionnées pour l'affichage ; noms d'origine des locuteurs.
+    "zones": [{type, debut, fin, reference, hypothese, contexte}],
+    "appariement": {référence: trouvé}}` ; zones contiguës de même type et de mêmes
+    locuteurs fusionnées pour l'affichage ; noms d'origine des locuteurs ; `contexte` :
+    faits de la référence autour de la zone (`_Context.describe`).
     """
-    from pyannote.metrics.diarization import DiarizationErrorRate
     from pyannote.metrics.errors.identification import IdentificationErrorAnalysis
 
-    reference, uem = _evaluation_inputs(reference, hypothesis, duration_s)
-    metric = DiarizationErrorRate(collar=0.0, skip_overlap=False)
-    reference, hypothesis, uem = metric.uemify(reference, hypothesis, uem=uem, collar=0.0,
-                                               skip_overlap=False, returns_uem=True)
-    ref_names = {}
-    renamed_ref = reference.rename_labels(generator="string")
-    for (segment, track, label), (_, _, new) in zip(reference.itertracks(yield_label=True),
-                                                    renamed_ref.itertracks(yield_label=True)):
-        ref_names[new] = label
-    hyp_names = {}
-    renamed_hyp = hypothesis.rename_labels(generator="int")
-    for (_, _, label), (_, _, new) in zip(hypothesis.itertracks(yield_label=True),
-                                          renamed_hyp.itertracks(yield_label=True)):
-        hyp_names[new] = label
-    mapping = metric.optimal_mapping(renamed_ref, renamed_hyp)
-    mapped = renamed_hyp.rename_labels(mapping=mapping)
-    errors = IdentificationErrorAnalysis(collar=0.0, skip_overlap=False).difference(renamed_ref, mapped, uem=uem)
+    match = _Matching(reference, hypothesis, duration_s)
+    metric, mapping, ref_names, hyp_names = match.metric, match.mapping, match.ref_names, match.hyp_names
+    mapped = match.renamed_hyp.rename_labels(mapping=mapping)
+    errors = IdentificationErrorAnalysis(collar=0.0, skip_overlap=False).difference(
+        match.renamed_ref, mapped, uem=match.uem)
 
     # Étiquette de l'hypothèse appariée -> nom d'origine (appariée : étiquette de référence).
     inverse = {ref: hyp for hyp, ref in mapping.items()}
@@ -243,10 +348,30 @@ def error_map(reference: Annotation, hypothesis: Annotation, duration_s: float) 
     for segment, by_kind in counts.items():
         for kind, count in by_kind.items():
             totals[kind] += segment.duration * count
-    totals["reference"] = metric(reference, hypothesis, uem=uem, detailed=True)["total"]
+    totals["reference"] = metric(match.reference, match.hypothesis, uem=match.uem, detailed=True)["total"]
+    context = _Context(match.reference, duration_s)
     for zone in zones:
+        zone["contexte"] = context.describe(zone["debut"], zone["fin"])
         zone["debut"], zone["fin"] = round(zone["debut"], 3), round(zone["fin"], 3)
-    return {"totaux": totals, "zones": sorted(zones, key=lambda z: (z["debut"], z["type"]))}
+    return {"totaux": totals, "zones": sorted(zones, key=lambda z: (z["debut"], z["type"])),
+            "appariement": match.pairs()}
+
+
+EXCERPT_MAX_S = 10.0
+
+
+def typical_excerpts(annotation: Annotation, max_s: float = EXCERPT_MAX_S) -> dict[str, tuple[float, float] | None]:
+    """Extrait typique de chaque locuteur (audit R-U6) : son plus long tour hors de tout
+    chevauchement, limité à ses `max_s` premières secondes ; None si toute sa parole est
+    en chevauchement."""
+    overlap = annotation.get_overlap()
+    excerpts: dict[str, tuple[float, float] | None] = {}
+    for label in speaker_labels(annotation):
+        clean = annotation.label_timeline(label).support().extrude(overlap)
+        longest = max(clean, key=lambda s: (s.duration, -s.start), default=None)
+        excerpts[label] = (None if longest is None or longest.duration <= 0
+                           else (round(longest.start, 3), round(min(longest.end, longest.start + max_s), 3)))
+    return excerpts
 
 
 def write_exports(directory: Path, stem: str, rttm: str, json_text: str) -> tuple[Path, Path]:
