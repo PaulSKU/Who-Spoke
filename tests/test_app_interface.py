@@ -67,3 +67,13 @@ def test_visualiseur_avec_zoom():
         assert name in template
     script = (interface.STATIC_DIR / "visualiseur.js").read_text()
     assert "ws.zoom(" in script and "setScroll" in script
+
+
+def test_forme_d_onde_neutre_seul_le_segment_selectionne():
+    """D26, « Couleurs » : aucune teinte par locuteur sur la forme d'onde ; une seule
+    bande, d'encre, pour le segment sélectionné."""
+    script = (interface.STATIC_DIR / "visualiseur.js").read_text()
+    assert script.count("addRegion(") == 1
+    region = script[script.index("addRegion("):script.index("addRegion(") + 200]
+    assert "_colors" not in region and "couleur" not in region
+    assert "function selectSegment" in script and "aria-pressed" in script

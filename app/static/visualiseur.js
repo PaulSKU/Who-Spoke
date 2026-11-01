@@ -4,6 +4,8 @@
 // sur un segment (piste ou forme d'onde) le fait écouter, de son début à sa fin.
 // Zoom (D17, amendement 1) : zoom natif de wavesurfer, dont le rendu paresseux ne dessine
 // que la partie visible ; pistes, axe et tête de lecture suivent son défilement.
+// Couleurs (D26) : la forme d'onde est neutre ; seul le segment sélectionné (dernier
+// segment cliqué) y est mis en évidence, par une bande d'encre, et entouré sur sa piste.
 // Variables fournies par Gradio : element, props, watch.
 
 const MAX_PX_PER_S = 60;   // zoom maximal : 60 px par seconde d'audio
@@ -19,11 +21,6 @@ function fmt(t) {
 
 function isDark() {
   return document.documentElement.classList.contains('dark') || document.body.classList.contains('dark');
-}
-
-function rgba(hex, alpha) {
-  const n = parseInt(hex.slice(1), 16);
-  return 'rgba(' + (n >> 16) + ',' + ((n >> 8) & 255) + ',' + (n & 255) + ',' + alpha + ')';
 }
 
 function tickStep(duration, width) {
@@ -44,6 +41,26 @@ function destroy() {
 
 function playSegment(start, end) {
   if (element._ws) element._ws.play(start, end);
+}
+
+function selectSegment(seg) {
+  element._selected = { debut: seg.debut, fin: seg.fin, locuteur: seg.locuteur };
+  markSelected();
+  drawSelection();
+  playSegment(seg.debut, seg.fin);
+}
+
+function isSelected(seg) {
+  const s = element._selected;
+  return !!s && s.debut === seg.debut && s.fin === seg.fin && s.locuteur === seg.locuteur;
+}
+
+function markSelected() {
+  element.querySelectorAll('.wsp-seg').forEach((bar) => {
+    const on = isSelected(bar._seg);
+    bar.classList.toggle('wsp-selected', on);
+    bar.setAttribute('aria-pressed', on ? 'true' : 'false');
+  });
 }
 
 // --- Zoom -------------------------------------------------------------------------
@@ -103,18 +120,16 @@ function setZoom(level) {
 
 // --- Dessin -----------------------------------------------------------------------
 
-function drawRegions() {
+function drawSelection() {
   const v = props.value;
-  const dark = isDark();
   const regions = element._regions;
   if (!regions || !v || !element._ready) return;
   regions.clearRegions();
-  const colors = element._colors;
-  v.segments.forEach((seg) => {
-    regions.addRegion({
-      start: seg.debut, end: seg.fin, color: rgba(colors[seg.locuteur], dark ? 0.22 : 0.18),
-      drag: false, resize: false,
-    });
+  const s = element._selected;
+  if (!s || !v.segments.some(isSelected)) return;
+  regions.addRegion({
+    start: s.debut, end: s.fin, color: isDark() ? 'rgba(236,236,233,0.16)' : 'rgba(24,25,29,0.10)',
+    drag: false, resize: false,
   });
 }
 
@@ -151,7 +166,8 @@ function drawLanes(v) {
     bar.setAttribute('aria-label', names[seg.locuteur] + ', ' + fmt(seg.debut) + ' à ' + fmt(seg.fin));
     bar.title = names[seg.locuteur] + ' : ' + fmt(seg.debut) + ' – ' + fmt(seg.fin)
       + ' (' + (seg.fin - seg.debut).toFixed(1).replace('.', ',') + ' s). Cliquer pour écouter.';
-    bar.addEventListener('click', () => playSegment(seg.debut, seg.fin));
+    bar._seg = seg;
+    bar.addEventListener('click', () => selectSegment(seg));
     tracks[seg.locuteur].appendChild(bar);
   });
 }
@@ -177,6 +193,7 @@ function render() {
     const same = element._url === v.audio_url;
     const resume = same ? (element._t || 0) : 0;
     const zoom = same ? (element._zoom || 0) : 0;
+    if (!same) element._selected = null;  // nouveau fichier : aucune sélection
     destroy();
     wave.innerHTML = '';
     const regions = WaveSurfer.Regions.create();
@@ -220,15 +237,16 @@ function render() {
     ws.on('zoom', syncScroll);
     ws.once('ready', () => {
       element._ready = true;
-      drawRegions();
+      drawSelection();
       setZoom(zoom);
       if (resume > 0) ws.setTime(resume);
     });
     element._zoom = zoom;
     show(resume);
   }
-  drawRegions();
   drawLanes(v);
+  markSelected();
+  drawSelection();
   setZoom(element._zoom || 0);
 }
 

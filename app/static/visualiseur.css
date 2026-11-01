@@ -47,6 +47,7 @@
 }
 /* Zone de clic agrandie à 24 px de haut sans changer le dessin. */
 .wsp-seg::before { content: ""; position: absolute; left: 0; right: 0; top: -5px; bottom: -5px; }
+.wsp-seg.wsp-selected { box-shadow: 0 0 0 2px var(--ws-surface), 0 0 0 4px var(--ws-ink); z-index: 2; }
 .wsp-seg:focus-visible { outline: 2px solid var(--ws-ink); outline-offset: 2px; z-index: 1; }
 @media (hover: hover) and (pointer: fine) {
   .wsp-seg:hover { box-shadow: 0 0 0 2px var(--ws-surface), 0 0 0 3.5px var(--ws-ink); z-index: 1; }
