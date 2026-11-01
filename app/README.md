@@ -3,11 +3,11 @@
 ## Lancement
 
 ```bash
-uv run python -m app.app             # moteurs réels (modèles chargés au premier usage)
+uv run python -m app.app             # moteurs réels, préchauffés au démarrage
 uv run python -m app.app --factice   # moteur factice : aucune inférence
 ```
 
-Puis ouvrir http://127.0.0.1:7860 (serveur local uniquement, pas de lien public). Options : `--port`, `--factice-max-s` (durée maximale simulée d'une analyse en mode factice), `--depot` (racine du dépôt dont sont lus, en lecture seule, les expériences, les analyses, `results/leaderboard.csv`, le catalogue et les documents de `docs/` ; par défaut ce dépôt). Pendant le développement sur la branche `interface`, qui n'a pas toutes les expériences :
+Puis ouvrir http://127.0.0.1:7860 (serveur local uniquement, pas de lien public). Options : `--port`, `--factice-max-s` (durée maximale simulée d'une analyse en mode factice), `--sans-prechauffage` (moteurs chargés au premier usage), `--vider-cache` (vide le cache des résultats avant le lancement), `--depot` (racine du dépôt dont sont lus, en lecture seule, les expériences, les analyses, `results/leaderboard.csv`, le catalogue et les documents de `docs/` ; par défaut ce dépôt). Pendant le développement sur la branche `interface`, qui n'a pas toutes les expériences :
 
 ```bash
 uv run python -m app.app --factice --depot ~/Dev/Who-Spoke
@@ -111,7 +111,7 @@ Limites. Les libellés des composants Gradio (« Moteur », « Nombre de locuteu
 |---|---|
 | Normalisation de tout audio déposé en WAV 16 kHz mono (D15, D16) | `whospoke.audio.normalize`, dans un dossier de travail temporaire hors du dépôt |
 | Moteurs et expérience source de chaque moteur (paramètres, θ retenu, RTF) : EXP-0009 (MFCC), EXP-0012 (ECAPA), EXP-0007 (pyannote), EXP-0015 (WeSpeaker, indisponible tant qu'elle n'existe pas ou n'a pas tourné) ; `configs/demo.yaml` au gel | `app/moteurs.py` |
-| Temps restant estimé par surcoût fixe du moteur + RTF × durée. RTF mesuré (`results/leaderboard.csv`) : colonne du périphérique choisi (`rtf_cpu` en CPU, `rtf` sur le périphérique de l'expérience), plus grande valeur entre dev et test. Surcoût fixe du premier appel après chargement, daté, par moteur et périphérique (`moteurs.FIXED_OVERHEAD`, `scripts/measure_overhead.py`) ; le panneau cite les deux. Affichage seulement, pas une mesure au sens de D21 | `app/temps.py`, `app/moteurs.py` |
+| Temps annoncé en fourchette (D17, amendement 2) : de surcoût + RTF × durée à surcoût + 1,3 × RTF × durée, avant le lancement (sous le bouton « Analyser ») et pendant l'analyse. RTF mesuré (`results/leaderboard.csv`) : colonne du périphérique choisi (`rtf_cpu` en CPU, `rtf` sur le périphérique de l'expérience), plus grande valeur entre dev et test. Surcoût fixe du premier appel après chargement, daté, par moteur et périphérique (`moteurs.FIXED_OVERHEAD`, `scripts/measure_overhead.py`), compté seulement si le moteur est froid. Pendant l'analyse, recalage sur la vitesse observée dans l'étape la plus longue (voir ci-dessous). Affichage seulement, pas une mesure au sens de D21 | `app/temps.py`, `app/moteurs.py` |
 | Statistiques par locuteur, renommage, exports RTTM et JSON, DER face à une référence (deux conditions de collar, sur toute la durée du fichier, référence coupée à cette durée ; mention « durée entière du fichier, sans UEM : non comparable aux résultats sur corpus ») | `app/sortie.py`, `app/app.py` |
 | Forme d'onde neutre (D26) : seul le segment sélectionné, dernier cliqué, y est mis en évidence par une bande d'encre et entouré sur sa piste ; timeline par locuteur, écoute d'un segment au clic, zoom (curseur, boutons, Ctrl + molette ; jusqu'à 60 px par seconde) | `app/static/visualiseur.js` et `.css` |
 | Thème (teintes neutres, polices système) et feuille de style | `app/theme.py`, `app/static/interface.css` |
@@ -212,3 +212,32 @@ Vérification (`scripts/measure_overhead.py verification`) : un processus neuf p
 L'annonce reste inférieure au réel dans tous les cas. Sur la réunion, l'écart de pyannote ne vient pas d'un coût fixe : le RTF obtenu est 0,0632, contre 0,0512 dans EXP-0007 (29/10). L'exécution de contrôle de D27 (même code, mêmes versions) donne aussi 0,059 sur deux réunions de dev, avec des RTTM identiques à l'octet à ceux d'EXP-0007 : le calcul est le même, la machine est plus lente ce jour-là. pyannote en CPU sur la réunion n'a pas été vérifié (environ 25 min de calcul).
 
 Panneau après erreur, vérifié dans le navigateur en mode factice : fichier `.wav` valide sans RTTM source → « Échec : Segmentation locale », normalisation et chargement « terminé », message dans le panneau ; fichier texte nommé `.mp3` → « Échec : Normalisation audio (ffmpeg) » avec le message de ffmpeg. Dans les deux cas la notification de Gradio s'affiche aussi.
+
+## Finitions et démonstration (planning v2.0, chantiers B1 et B2, 01/11/2026)
+
+### Finitions (audit R-U1, R-U5)
+
+| Point | Comportement | Où |
+|---|---|---|
+| Zones de dépôt | « Déposez le fichier ici – ou – cliquez pour le choisir », quelle que soit la langue du navigateur : clés `upload_text.drop_file`, `upload_text.click_to_upload` et `common.or` redéfinies par `gr.I18n` pour les 27 langues de Gradio 6.3 | `theme.UPLOAD_TEXT`, `app.main` |
+| Pied de page de Gradio | Masqué (`footer_links=[]`) ; le thème clair ou sombre suit celui du système | `app.main` |
+| Zone de la référence | Même hauteur que celle de l'audio (150 px) : le texte n'est plus rogné | `app.build_app` |
+| Intitulés de la timeline | Les rangées d'intitulé (moteur, référence, erreurs) sont opaques et passent au-dessus de la tête de lecture, qui s'interrompt à leur hauteur | `visualiseur.css` (`.wsp-spacer`) |
+| Dernière graduation | Alignée à droite quand elle touche le bord : « 5:00 » n'est plus rogné | `visualiseur.js` (`drawAxis`), `.wsp-tick-end` |
+| Étapes de l'avancement | Lues en colonne (de haut en bas, puis colonne suivante), dans l'ordre du pipeline | `interface.css` (`.st-steps`) |
+| Après l'analyse (R-U1) | Colonne des réglages masquée ; bandeau pleine largeur (fichier, durée, moteurs, nombre de locuteurs, périphérique) avec le bouton « Nouvelle analyse », qui rouvre les réglages ; timeline et résultats en pleine largeur | `app.build_app`, `_band_html` |
+| 375 px | Gouttière de 16 px et onglets resserrés par `clamp()` : Gradio préfixe les sélecteurs placés dans un `@media`, la règle mobile de `.gradio-container` ne s'appliquait donc pas. Tableaux et timeline à largeur intrinsèque nulle (`width: 0; min-width: 100%`) : ils défilent dans leur cadre au lieu d'élargir la page. Au-dessous d'environ 380 px, Gradio range les onglets en trop dans son menu « … » | `interface.css`, `visualiseur.css` |
+
+L'onglet Avancement lit le nouveau tableau « File d'attente de la piste A » de `docs/planning.md` (colonnes Rang, Contenu, Calcul estimé, Prérequis). L'« État constaté » ne retient plus que les fiches citées, présentes ou absentes : les expériences citées le sont comme références (EXP-0007 à reproduire en A1), les compter « avec résultats » aurait fait croire le rang fait.
+
+### Préchauffage et indicateur « moteurs prêts » (audit R-D2)
+
+Au lancement, un fil dédié charge chaque moteur disponible sur le périphérique de « auto » (pyannote d'abord, puis les baselines en CPU) et fait un appel à blanc sur 20 s de signal synthétique (deux voix harmoniques alternées, modulées à 4 Hz) : aucun fichier audio n'est lu. L'en-tête affiche « Préchauffage des moteurs (k/n) : moteur… », puis « Moteurs prêts », ou « Moteurs prêts, sauf X » si un appel a échoué (raison au survol ; le moteur reste chargé au premier usage). Une minuterie de 1 s rafraîchit l'indicateur et la durée annoncée, puis s'arrête. Une analyse lancée pendant le préchauffage attend la fin du moteur en cours. En mode factice, le préchauffage est simulé (0,8 s par moteur). **Le préchauffage réel n'a pas été exécuté** (aucun modèle chargé sur cette branche) : il est à vérifier à la fusion.
+
+### Durée annoncée et recalage (D17, amendement 2)
+
+Dès le dépôt, le fichier est normalisé (la normalisation est réutilisée par l'analyse) et la durée est annoncée sous le bouton « Analyser », par moteur : état (moteur prêt, ou froid avec le surcoût compté), RTF et expérience source ; « réaffichage immédiat » si le résultat est en cache. Pendant l'analyse, tant que l'étape la plus longue de l'expérience source (`etapes_s` de `execution_<périphérique>.json` : empreintes pour pyannote, représentation pour les baselines) n'a pas avancé d'au moins 2 % pendant au moins 1 s, le panneau affiche la fourchette moins le temps écoulé ; ensuite, « reste environ X, recalé sur la vitesse observée » : durée complète de l'étape extrapolée de la fraction faite, plus les étapes suivantes à proportion de leur part. Les baselines ne rapportent leur avancement qu'en fin d'étape : le recalage n'intervient pour elles qu'une fois la représentation terminée.
+
+### Cache des résultats (audit R-D3)
+
+Clé : SHA-256 des échantillons de l'audio normalisé, du moteur (et du mode factice), des réglages (périphérique, nombre de locuteurs, paramètres effectifs repris de l'expérience source, θ compris) et du commit, suffixé « +modifie » si l'arbre n'est pas propre (D18). Rangé dans `~/.cache/whospoke/resultats/` (`$WHOSPOKE_CACHE_DIR/resultats/` si défini), hors du dépôt, un JSON par résultat : segments, durées par étape, temps de calcul, réglages consignés ; ni audio ni nom de fichier. Le même enregistrement déposé sous un autre nom retrouve son résultat. Le replié « Cache des résultats (plan de repli) » des réglages contient la case « Réafficher un résultat déjà calculé » (cochée par défaut), la taille du cache et « Vider le cache » ; `--vider-cache` fait de même au lancement. Un résultat réaffiché est signalé dans le panneau (« résultat réaffiché depuis le cache, calculé le … ») et dans « Temps de traitement » (durées de l'analyse d'origine). Tout nouveau commit invalide le cache : pour la démonstration, le remplir après le dernier commit.
