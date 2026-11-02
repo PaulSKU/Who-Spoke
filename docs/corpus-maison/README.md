@@ -9,6 +9,7 @@ Version 1.0 du 27 octobre 2026. Ce dossier rassemble tout ce qui concerne le cor
 | `formulaire-consentement.md` | Notice d'information et formulaire de consentement, à imprimer ou envoyer à chaque participant avant l'enregistrement |
 | `protocole-enregistrement.md` | Les trois sessions (conditions, matériel, déroulé, fiche de session) |
 | `conventions-annotation.md` | Ce qui compte comme parole, règles de découpage, outil, chaîne de production du RTTM, contrôle qualité |
+| `guide-annotation.md` | Pas-à-pas de la chaîne, session par session : synchronisation, pré-annotation, correction dans Audacity, conversion en RTTM et UEM, contrôle qualité (`scripts/data/maison.py`) |
 
 ## Règles de confidentialité
 

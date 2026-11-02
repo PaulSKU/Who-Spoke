@@ -1,0 +1,5 @@
+lancement : python -m app.app --port 7870 (option --sans-prechauffage absente de cette version : lancée sans)
+réponse HTTP 200 après 7 s
+* Running on local URL:  http://127.0.0.1:7870
+* To create a public link, set `share=True` in `launch()`.
+arrêt propre (SIGTERM, code 0) en 1 s ; prête en 7 s, option --sans-prechauffage absente de cette version : lancée sans

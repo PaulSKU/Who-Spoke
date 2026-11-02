@@ -1,0 +1,11 @@
+etape	statut	duree_s	commentaire
+prerequis	ok	0	uv, git et ffmpeg présents
+clone	ok	1	
+uv_sync	ok	1	Installed 143 packages in 1.00s
+check_env	ok	7	HF_TOKEN : absent
+tests	ok	156	363 passed, 10 skipped, 4 deselected in 153.51s (0:02:33)
+prefetch_models	non lancé	0	--sans-modeles : ni téléchargement ni vérification
+application	ok	16	arrêt propre (SIGTERM, code 0) en 1 s ; prête en 7 s, option --sans-prechauffage absente de cette version : lancée sans
+cli	ok	1	usage: whospoke diarize [-h]
+env_nemotron	non lancé	0	option --moteurs-externes non demandée
+env_diarizen	non lancé	0	option --moteurs-externes non demandée

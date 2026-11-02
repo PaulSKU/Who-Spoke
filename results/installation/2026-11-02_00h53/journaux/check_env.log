@@ -1,0 +1,8 @@
+macOS            : 14.1.2 (arm64)
+Python           : 3.11.15 (/private/var/folders/gx/y5z1c46s41j2fw96_kx305800000gn/T/whospoke-installation.I30EqG/Who-Spoke/.venv/bin/python3)
+torch            : 2.14.1
+MPS disponible   : True
+CUDA disponible  : False
+Périphérique auto: mps
+ffmpeg           : présent (~/.local/bin/ffmpeg) — ffmpeg version 9.0.2 Copyright (c) 2000-2026 the FFmpeg developers
+HF_TOKEN         : absent
