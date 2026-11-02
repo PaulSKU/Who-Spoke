@@ -79,15 +79,13 @@ def test_l_experience_source_de_la_configuration_remplace_celle_du_code(tmp_path
 
 @pytest.mark.parametrize("old, new, message", [
     ("baseline-mfcc:\n", "baseline-mfcc-v2:\n", "moteur inconnu « baseline-mfcc-v2 »"),
-    ("  baseline-wespeaker:\n    experience_source: EXP-0015\n", "",
-     "baseline-wespeaker absent de « moteurs »"),
     ("experience_source: EXP-0009", "experience_source: 9", "attend un identifiant EXP-NNNN"),
     ("experience_source: EXP-0009", "experience_source: EXP-0009\n    nombre_locuteurs: {mode: fourchette, min: 2, max: 6}",
      "Baseline MFCC ne prend pas en charge une fourchette"),
     ("min: 2, max: 6", "min: 7, max: 6", "« min » (7) dépasse « max » (6)"),
     ("min: 2, max: 6", "min: deux, max: 6", "« min » doit être un entier"),
     ("{mode: fourchette, min: 2, max: 6}", "{mode: libre}", "« mode » vaut automatique, impose ou fourchette"),
-    ("moteur_par_defaut: pyannote-community-1", "moteur_par_defaut: nemo", "« moteur_par_defaut » (nemo)"),
+    ("moteur_par_defaut: pyannote-community-1", "moteur_par_defaut: nemo", "« moteur_par_defaut », nemo, est absent"),
     ("moteurs:\n", "engines:\n", "la clé « moteurs » manque"),
     ("gel: 2026-11-10", "gel: [2026-11-10", "n'est pas un YAML lisible"),
 ])
@@ -96,6 +94,57 @@ def test_configuration_incoherente_refusee_avec_ce_qu_il_faut_corriger(tmp_path,
     assert old in text
     with pytest.raises(moteurs.DemoConfigError, match=message.replace("(", r"\(").replace(")", r"\)")):
         moteurs.demo_config(_repo_with(tmp_path, text.replace(old, new, 1)))
+
+
+def test_moteur_par_defaut_absent_arrete_le_lancement(tmp_path):
+    text = EXAMPLE.read_text()
+    with pytest.raises(moteurs.DemoConfigError,
+                       match="« moteur_par_defaut », pyannote-community-1, est absent de « moteurs »"):
+        moteurs.demo_config(_repo_with(tmp_path, text[:text.index("  pyannote-community-1:")]))
+
+
+def test_moteur_absent_non_propose_et_mentionne(tmp_path):
+    """Décision du cockpit du 02/11 (retour de B8) : un moteur absent de configs/demo.yaml
+    n'est plus proposé, l'en-tête le dit ; le lancement continue."""
+    text = EXAMPLE.read_text()
+    for name in ("baseline-wespeaker", "baseline-ecapa"):
+        block = f"  {name}:\n    experience_source: {moteurs.SPECS[name].source_exp}\n"
+        assert block in text
+        text = text.replace(block, "")
+    demo = moteurs.demo_config(_repo_with(tmp_path, text))
+    assert list(demo.specs) == ["baseline-mfcc", "pyannote-community-1"]
+    assert demo.excluded == ("baseline-ecapa", "baseline-wespeaker") and set(demo.speakers) == set(demo.specs)
+    header = interface._header_html(True, None, demo, "pyannote-community-1")
+    assert "Non retenu pour la démonstration : Baseline ECAPA, Baseline WeSpeaker" in header
+    # Second moteur proposé : la baseline ECAPA n'étant pas retenue, le premier autre moteur.
+    assert interface._second_engine(demo.specs, demo.default_engine) == "baseline-mfcc"
+    assert interface._second_engine(moteurs.SPECS, "pyannote-community-1") == "baseline-ecapa"
+    assert interface._second_engine({"pyannote-community-1": None}, "pyannote-community-1") == "pyannote-community-1"
+    for name in "bcd":
+        (tmp_path / name).mkdir()
+    # Sans « moteur_par_defaut », le défaut du code doit être retenu.
+    alone = text.replace("moteur_par_defaut: pyannote-community-1\n", "")
+    assert moteurs.demo_config(_repo_with(tmp_path / "b", alone)).default_engine == "pyannote-community-1"
+    gone = alone[:alone.index("  pyannote-community-1:")]
+    with pytest.raises(moteurs.DemoConfigError, match="le moteur par défaut .sans « moteur_par_defaut ».."):
+        moteurs.demo_config(_repo_with(tmp_path / "c", gone))
+    # Sans exclusion, rien n'est mentionné.
+    assert "Non retenu" not in interface._header_html(True, None, moteurs.demo_config(_repo_with(tmp_path / "d", EXAMPLE.read_text())))
+
+
+def test_application_sans_les_moteurs_non_retenus(tmp_path):
+    text = EXAMPLE.read_text().replace("  baseline-ecapa:\n    experience_source: EXP-0012\n", "")
+    repo = _repo_with(tmp_path, text)
+    for name in ("results", "docs", "catalogue"):
+        if (REPO_ROOT / name).exists():
+            (repo / name).symlink_to(REPO_ROOT / name)
+    demo = moteurs.demo_config(repo)
+    blocks = interface.build_app(fake=True, repo_root=repo, cache_dir=tmp_path / "cache", demo=demo)
+    engine = _component(blocks, "Moteur")
+    keys = [value for _, value in engine.choices]
+    assert "baseline-ecapa" not in keys and keys == list(demo.specs)
+    second = _component(blocks, "Second moteur")
+    assert second.value == "baseline-mfcc" and [value for _, value in second.choices] == keys
 
 
 def test_nombre_impose_par_defaut(tmp_path):

@@ -222,6 +222,12 @@
 .wsp-explain dt { color: var(--ws-slate); }
 .wsp-explain dd { margin: 0; overflow-wrap: anywhere; }
 .wsp-explain-sub { margin: 10px 0 2px; color: var(--ws-slate); }
+.wsp-explain-cat { margin: 8px 0 0; }
+.wsp-explain-cat-label {
+  display: inline-block; margin-right: 6px; padding: 0 8px; border-radius: 999px; font-size: 0.78rem;
+  color: var(--ws-surface); background: var(--ws-ink);
+}
+.wsp-explain-cat[hidden], .wsp-explain-sub[hidden], .wsp-explain-context[hidden] { display: none; }
 .wsp-explain-context { margin: 0; padding-left: 18px; }
 .wsp-explain-note { margin: 8px 0 0; color: var(--ws-slate); font-size: 0.8rem; }
 

@@ -694,37 +694,58 @@ def _errors_for(reference, result: dict) -> dict | None:
         for kind, label in ERROR_LABELS.items()
     ]
     for zone in errors["zones"]:
-        zone["constats"] = _context_sentences(zone["contexte"], zone["fin"] - zone["debut"])
+        _explain_zone(zone)
     return errors
 
 
-def _context_sentences(context: dict, duration_s: float) -> list[str]:
+def _explain_zone(zone: dict) -> None:
+    """« Expliquer cette erreur » : catégorie principale (`sortie.main_category`) et sa
+    phrase, puis les autres constats (R-U4) ; jamais une cause affirmée."""
+    found = _context_sentences(zone["contexte"], zone["fin"] - zone["debut"])
+    category = zone["categorie"]
+    zone["categorie_libelle"] = sortie.ERROR_CATEGORIES[category]
+    if category == "frontiere":
+        text = (f"La zone tient entièrement à {_num(sortie.BOUNDARY_S, 2)} s au plus d'une frontière de tour de la "
+                f"référence : le collar de {_num(sortie.BOUNDARY_S, 2)} s la pardonne.")
+        found.pop("frontiere", None)
+    elif category == "reference_non_appariee":
+        text = f"Le locuteur de référence {zone['reference']} n'est apparié à aucun locuteur trouvé."
+    elif category == "trouve_en_trop":
+        # Sans son nom : le locuteur trouvé peut avoir été renommé (ligne « Locuteur trouvé »).
+        text = "Le locuteur trouvé n'est apparié à aucun locuteur de la référence."
+    elif category == "autre":
+        text = ("Aucune des catégories précédentes (décalage de frontière, chevauchement, locuteur non apparié, "
+                "tour court, pause courte).")
+    else:
+        text = found.pop(category)
+    zone["categorie_texte"] = text
+    zone["constats"] = list(found.values())
+
+
+def _context_sentences(context: dict, duration_s: float) -> dict[str, str]:
     """Constats factuels sur la référence autour d'une zone d'erreur (« Expliquer cette
-    erreur », R-U4) : jamais une cause affirmée."""
-    sentences = []
+    erreur », R-U4), par catégorie (`sortie.ERROR_CATEGORIES`) ; jamais une cause affirmée."""
+    sentences = {}
     overlap = context["chevauchement_s"]
     if overlap > 0:
         if duration_s > 0 and overlap >= 0.99 * duration_s:
-            sentences.append("La zone tombe dans un chevauchement de la référence.")
+            sentences["chevauchement"] = "La zone tombe dans un chevauchement de la référence."
         else:
             share = _pct(100 * overlap / duration_s, 0) if duration_s > 0 else "—"
-            sentences.append(f"La zone recoupe un chevauchement de la référence sur {_num(overlap, 2)} s "
-                             f"({share} de sa durée).")
+            sentences["chevauchement"] = (f"La zone recoupe un chevauchement de la référence sur {_num(overlap, 2)} s "
+                                          f"({share} de sa durée).")
     short = context["tour_court"]
     if short:
-        sentences.append(f"Elle recoupe un tour de la référence de moins de {_num(sortie.SHORT_TURN_S, 1)} s "
-                         f"({short['locuteur']}, {_num(short['duree_s'], 2)} s).")
+        sentences["tour_court"] = (f"Elle recoupe un tour de la référence de moins de {_num(sortie.SHORT_TURN_S, 1)} s "
+                                   f"({short['locuteur']}, {_num(short['duree_s'], 2)} s).")
     pause = context["pause"]
     if pause:
         verb = "recoupe" if pause["relation"] == "recoupe" else "est contiguë à"
-        sentences.append(f"Elle {verb} une pause de la référence de moins de {_num(sortie.SHORT_PAUSE_S, 0)} s "
-                         f"({_num(pause['duree_s'], 2)} s).")
+        sentences["pause"] = (f"Elle {verb} une pause de la référence de {_num(sortie.SHORT_PAUSE_S, 0)} s au plus "
+                              f"({_num(pause['duree_s'], 2)} s).")
     if context["frontiere_s"] is not None:
-        sentences.append(f"Un de ses bords est à moins de {_num(sortie.BOUNDARY_S, 2)} s d'une frontière de tour "
-                         f"de la référence (écart {_num(context['frontiere_s'], 2)} s).")
-    if not sentences:
-        sentences.append("Aucun de ces contextes : ni chevauchement, ni tour court, ni pause courte, ni frontière "
-                         "de tour à proximité dans la référence.")
+        sentences["frontiere"] = (f"Un de ses bords est à {_num(sortie.BOUNDARY_S, 2)} s au plus d'une frontière de "
+                                  f"tour de la référence (écart {_num(context['frontiere_s'], 2)} s).")
     return sentences
 
 
@@ -1110,8 +1131,19 @@ def _config_html(demo: moteurs.DemoConfig, engine_key: str) -> str:
     spec = demo.specs.get(engine_key) or demo.specs[demo.default_engine]
     speakers = demo.speakers[spec.key]
     default = "" if speakers["mode"] == "automatique" else f", {escape(_speakers_text(speakers))} par défaut"
+    excluded = ", ".join(moteurs.SPECS[key].label for key in demo.excluded)
+    excluded = f' <span class="ws-excluded">Non retenu pour la démonstration : {escape(excluded)}</span>' if excluded else ""
     return (f'<p class="ws-config"><span>Configuration : {config}</span> <span>Moteur : '
-            f'<span class="strong">{escape(spec.label)}</span> ({escape(spec.source_exp)}){default}</span></p>')
+            f'<span class="strong">{escape(spec.label)}</span> ({escape(spec.source_exp)}){default}</span>'
+            f'{excluded}</p>')
+
+
+def _second_engine(specs: dict, default: str) -> str:
+    """Second moteur proposé en comparaison : la baseline ECAPA si elle est retenue, sinon le
+    premier autre moteur retenu (le moteur par défaut s'il est seul)."""
+    if "baseline-ecapa" in specs and default != "baseline-ecapa":
+        return "baseline-ecapa"
+    return next((key for key in specs if key != default), default)
 
 
 def _header_html(fake: bool, status: WarmupStatus | None = None, demo: moteurs.DemoConfig | None = None,
@@ -1208,9 +1240,12 @@ VIEWER_TEMPLATE = (
     '<section class="wsp-explain" id="wsp-explain" aria-live="polite" aria-label="Expliquer cette erreur" hidden>'
     '<div class="wsp-explain-head"><h3 class="wsp-explain-title"></h3>'
     '<button type="button" class="wsp-explain-close" aria-label="Fermer l\'explication">×</button></div>'
-    '<dl class="wsp-explain-facts"></dl><p class="wsp-explain-sub">Contexte dans la référence</p>'
+    '<p class="wsp-explain-cat"><span class="wsp-explain-cat-label">Catégorie principale</span> '
+    '<strong class="wsp-explain-cat-name"></strong><span class="wsp-explain-cat-text"></span></p>'
+    '<dl class="wsp-explain-facts"></dl><p class="wsp-explain-sub">Autres constats dans la référence</p>'
     '<ul class="wsp-explain-context"></ul>'
-    '<p class="wsp-explain-note">Constats sur la référence autour de la zone, pas une cause établie.</p></section>'
+    '<p class="wsp-explain-note">Catégorie et constats décrivent la référence et l\'appariement autour de la zone, '
+    'pas une cause établie.</p></section>'
     '<p class="wsp-hint">Cliquez sur un segment pour l\'écouter et le repérer sur la forme d\'onde, sur une zone d\'erreur pour l\'expliquer. Zoom : curseur, boutons, ou Ctrl + molette ; '
     'défilement : vue d\'ensemble, pavé tactile ou Maj + molette. Raccourcis : <kbd>Espace</kbd>, <kbd>←</kbd> <kbd>→</kbd>, '
     '<kbd>1</kbd> à <kbd>9</kbd>, <kbd>0</kbd>, <kbd>?</kbd> pour l\'aide.</p></div></div>'
@@ -1756,7 +1791,8 @@ def build_app(fake: bool = False, fake_max_s: float = 20.0, repo_root: Path = RE
                                              info=engine_info(demo.default_engine))
                         compare = gr.Checkbox(value=False, label="Comparer avec un second moteur",
                                               info="Les deux moteurs tournent l'un après l'autre sur le même fichier.")
-                        engine2 = gr.Dropdown(choices, value="baseline-ecapa", label="Second moteur",
+                        engine2 = gr.Dropdown(choices, value=_second_engine(specs, demo.default_engine),
+                                              label="Second moteur",
                                               visible=False)
                         mode = gr.Radio(speaker_modes(demo.default_engine), value=MODE_LABELS[initial["mode"]],
                                         label="Nombre de locuteurs")
@@ -1998,7 +2034,8 @@ def main(argv: list[str] | None = None) -> None:
         parser.error(f"configuration de démonstration : {error}")
     print(f"Configuration de démonstration : {demo.source}"
           + ("" if demo.frozen else " (configs/demo.yaml absent, avant le gel)")
-          + f" ; moteur par défaut : {demo.default_engine}.")
+          + f" ; moteur par défaut : {demo.default_engine}"
+          + (f" ; non retenus pour la démonstration : {', '.join(demo.excluded)}." if demo.excluded else "."))
     app = build_app(fake=args.factice, fake_max_s=args.factice_max_s, repo_root=depot,
                     warm_up=not args.sans_prechauffage,
                     fake_rttm=args.factice_rttm.expanduser().resolve() if args.factice_rttm else None,

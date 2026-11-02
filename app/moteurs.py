@@ -94,6 +94,7 @@ class DemoConfig:
     speakers: dict[str, dict]        # clé du moteur → {"mode": "automatique" | "impose" | "fourchette", …}
     frozen_on: str | None = None     # date du gel (AAAA-MM-JJ), si le fichier la donne
     sha256: str | None = None        # empreinte du fichier lu
+    excluded: tuple[str, ...] = ()   # moteurs absents du fichier : non proposés (décision du 02/11)
 
     @property
     def frozen(self) -> bool:
@@ -134,7 +135,11 @@ def _speaker_default(spec: EngineSpec, value, where: str) -> dict:
 
 def demo_config(repo_root: Path = REPO_ROOT, path: Path | None = None) -> DemoConfig:
     """Configuration en vigueur : `path` (par défaut configs/demo.yaml du dépôt) s'il existe,
-    sinon la correspondance de ce module. DemoConfigError si le fichier est incohérent."""
+    sinon la correspondance de ce module.
+
+    Un moteur absent de « moteurs » n'est pas proposé (`DemoConfig.excluded`, mentionné dans
+    l'en-tête) ; seuls l'absence du moteur par défaut et un fichier incohérent (DemoConfigError)
+    arrêtent le lancement (décision du cockpit du 02/11 sur B8)."""
     explicit = path is not None
     path = path if explicit else repo_root / DEMO_CONFIG
     if not path.is_file():
@@ -155,12 +160,11 @@ def demo_config(repo_root: Path = REPO_ROOT, path: Path | None = None) -> DemoCo
     unknown = sorted(set(engines) - set(SPECS))
     if unknown:
         raise DemoConfigError(f"{shown} : moteur inconnu « {unknown[0]} ». Moteurs connus : {', '.join(SPECS)}.")
-    missing = [key for key in SPECS if key not in engines]
-    if missing:
-        raise DemoConfigError(f"{shown} : {', '.join(missing)} absent de « moteurs ». Le gel décrit "
-                              "chaque moteur : donnez son expérience source.")
+    excluded = tuple(key for key in SPECS if key not in engines)
     specs, speakers = {}, {}
     for key, spec in SPECS.items():
+        if key in excluded:
+            continue
         entry = engines[key] or {}
         where = f"{shown}, moteurs.{key}"
         source = entry.get("experience_source") if isinstance(entry, dict) else None
@@ -171,10 +175,12 @@ def demo_config(repo_root: Path = REPO_ROOT, path: Path | None = None) -> DemoCo
         speakers[key] = _speaker_default(spec, entry.get("nombre_locuteurs"), f"{where}.nombre_locuteurs")
     default = data.get("moteur_par_defaut", DEFAULT_ENGINE)
     if default not in specs:
-        raise DemoConfigError(f"{shown} : « moteur_par_defaut » ({default}) n'est pas dans « moteurs ».")
+        given = "« moteur_par_defaut »" if "moteur_par_defaut" in data else "le moteur par défaut (sans « moteur_par_defaut »)"
+        raise DemoConfigError(f"{shown} : {given}, {default}, est absent de « moteurs ». Ajoutez-le à « moteurs » "
+                              "ou choisissez un moteur retenu.")
     frozen_on = data.get("gel")
     return DemoConfig(shown, specs, default, speakers,
-                      None if frozen_on is None else str(frozen_on), hashlib.sha256(raw).hexdigest())
+                      None if frozen_on is None else str(frozen_on), hashlib.sha256(raw).hexdigest(), excluded)
 
 
 @dataclass(frozen=True)

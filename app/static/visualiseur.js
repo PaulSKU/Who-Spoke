@@ -15,7 +15,8 @@
 // sauf si on la déplace à la main ; le bouton « Suivre la lecture » le rétablit.
 // Appariement (R-U4) : les pistes de la référence portent la couleur et le nom (« ↔ X ») du
 // locuteur trouvé apparié ; un clic sur une zone d'erreur ouvre « Expliquer cette erreur »
-// (type, durée, locuteurs après appariement, constats calculés côté serveur).
+// (catégorie principale, type, durée, locuteurs après appariement, autres constats, calculés
+// côté serveur).
 // Extrait typique (R-U6) : les boutons ▶ du tableau des locuteurs, hors de ce composant,
 // sont écoutés sur le document et lus ici.
 // Raccourcis (R-U3) : Espace, ← →, 1 à 9, 0, ? ; inactifs quand le focus est dans un champ
@@ -743,6 +744,10 @@ function explain(group, index) {
     facts.appendChild(dt);
     facts.appendChild(dd);
   });
+  // Catégorie principale (une seule, exclusive : app/sortie.py), puis les autres constats.
+  $('.wsp-explain-cat-name').textContent = zone.categorie_libelle || '';
+  $('.wsp-explain-cat-text').textContent = zone.categorie_texte ? '. ' + zone.categorie_texte : '';
+  $('.wsp-explain-cat').hidden = !zone.categorie_libelle;
   const list = $('.wsp-explain-context');
   list.innerHTML = '';
   (zone.constats || []).forEach((text) => {
@@ -750,6 +755,8 @@ function explain(group, index) {
     item.textContent = text;
     list.appendChild(item);
   });
+  list.hidden = !list.children.length;
+  $('.wsp-explain-sub').hidden = !list.children.length;
   panel.hidden = false;
 }
 

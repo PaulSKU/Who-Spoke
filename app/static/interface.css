@@ -94,7 +94,7 @@ body.dark .gradio-container input[type="radio"]:checked {
 .ws-header p.ws-config {
   margin-top: 4px; font-size: 0.85rem; max-width: none; display: flex; flex-wrap: wrap; gap: 0 20px;
 }
-.ws-config code { font-size: 0.95em; color: var(--ws-ink); }
+.ws-config code { font-size: 0.95em; color: var(--ws-ink); overflow-wrap: anywhere; }   /* chemin de --config-demo */
 .ws-config .strong { color: var(--ws-ink); font-weight: 600; }
 
 /* Bouton du mode présentation (B8) : pilule de l'en-tête, pleine quand le mode est actif. */

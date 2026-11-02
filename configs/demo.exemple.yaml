@@ -6,7 +6,9 @@
 # (SPECS, DEFAULT_ENGINE). L'en-tête de l'application affiche le fichier en vigueur et
 # l'export JSON consigne son empreinte (fiche de reproductibilité).
 #
-# Un fichier incohérent arrête le lancement avec un message qui dit quoi corriger. Pour
+# Un moteur absent de « moteurs » n'est pas proposé : l'en-tête le dit « non retenu pour la
+# démonstration ». Seuls l'absence du moteur par défaut et un fichier incohérent arrêtent le
+# lancement, avec un message qui dit quoi corriger. Pour
 # essayer un fichier sans le mettre en place :
 #   uv run python -m app.app --factice --config-demo configs/demo.exemple.yaml
 
@@ -16,8 +18,8 @@ gel: 2026-11-10
 # Moteur proposé à l'ouverture de l'onglet Analyse (clé d'un moteur ci-dessous).
 moteur_par_defaut: pyannote-community-1
 
-# Chaque moteur de l'interface, sans exception : expérience source (réglages, θ retenu, RTF),
-# et, au besoin, nombre de locuteurs proposé par défaut :
+# Moteurs proposés : expérience source (réglages, θ retenu, RTF), et, au besoin, nombre de
+# locuteurs proposé par défaut :
 #   {mode: automatique}                 nombre estimé par le moteur (défaut si la clé manque)
 #   {mode: impose, valeur: N}           N locuteurs
 #   {mode: fourchette, min: A, max: B}  entre A et B (pyannote seulement, D17, amendement 1)
