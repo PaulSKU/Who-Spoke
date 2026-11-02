@@ -108,7 +108,7 @@ def test_constats_factuels_jamais_une_cause():
     errors = interface._errors_for(REFERENCE, {"annotation": HYPOTHESIS, "duree_s": DURATION})
     sentences = [text for zone in errors["zones"] for text in (zone["categorie_texte"], *zone["constats"])]
     assert "Hors de la tolérance d'une frontière : la zone tombe dans un chevauchement de la référence." in sentences
-    assert any(t.startswith("Elle recoupe un tour de la référence de moins de 0,5\u202fs (C, 0,30\u202fs)") for t in sentences)
+    assert any(t.startswith("Elle recoupe un tour de la référence de moins de 1,0\u202fs (C, 0,30\u202fs)") for t in sentences)
     assert any(t.endswith("elle recoupe une pause de la référence de 1\u202fs au plus (0,60\u202fs).") for t in sentences)
     assert any("aucune des catégories précédentes" in t for t in sentences)
     for text in sentences:
