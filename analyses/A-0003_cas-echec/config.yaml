@@ -73,7 +73,9 @@ correlations:
 #    frontière (ce que le collar ne pardonne pas). Contrôle par système et corpus : secondes
 #    de décalage de frontière contre secondes pardonnées par le collar (per_file : composantes
 #    sans collar moins avec collar), écart résiduel rapporté. Aucune catégorie n'est déclarée
-#    ici : le script les lit dans app/sortie.py.
+#    ici : le script les lit dans app/sortie.py. Seuil du tour court : 1 s (amendement du 02/11).
+#    Croisement catégorie × type d'erreur (manquée, fausse alarme, confusion), parts de toute
+#    l'erreur et de l'erreur hors décalage de frontière (amendement du 02/11).
 
 # 5. Extraits d'écoute, corpus publics seulement : un par catégorie principale (ordre de
 #    priorité, sauf categories_exclues), fenêtre où elle a le plus de secondes d'erreur et en
@@ -103,6 +105,7 @@ resultats:
   - correlations.csv               # une ligne par système × corpus × composante × descripteur
   - categories.csv                 # une ligne par système × corpus × type d'erreur
   - categories_par_fichier.csv     # une ligne par système × fichier × type d'erreur
+  - categories_par_type.csv        # une ligne par système × corpus × catégorie × type d'erreur
   - extraits.csv                   # extraits des corpus publics (pas ceux du corpus maison)
   - execution.json                 # commit, arbre propre, empreintes, contrôles (totaux, collar)
   - grille_ecoute.csv              # après l'écoute : grille remplie par la candidate (--importer-grille)
