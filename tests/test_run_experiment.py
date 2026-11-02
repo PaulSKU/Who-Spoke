@@ -40,7 +40,7 @@ def test_moteurs_externes_enregistres():
     assert run_experiment.PIPELINES["nemotron3-diarization"] is Nemotron3Diarization
     assert run_experiment.PIPELINES["diarizen"] is DiariZen
     assert set(run_experiment.PIPELINES) == {
-        "pyannote-community-1", "baseline", "nemotron3-diarization", "diarizen"}
+        "pyannote-community-1", "baseline", "nemotron3-diarization", "diarizen", "pyannote-community-1-silero"}
 
 
 def test_type_de_peripherique():

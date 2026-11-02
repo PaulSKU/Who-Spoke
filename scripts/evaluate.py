@@ -40,6 +40,14 @@ commit sur lequel l'évaluation elle-même a tourné, son état d'arbre selon la
 des chemins contrôlés (`arbre_propre`) et la liste de ses `fichiers_non_commites`. Les
 résultats déjà écrits ne sont pas modifiés.
 
+Exécution partagée (D25, V2 et V3 ; `whospoke.partage`) : une expérience non porteuse lit
+les `execution_*.json` dans le dossier de la porteuse, après contrôle de son rappel
+`execution_partagee.json` (empreintes des exécutions et des deux `config.yaml`, RTTM
+identiques à la sortie de la porteuse). Le temps de calcul n'est rapporté que par la
+porteuse : pour l'autre, `temps` et `temps_cpu` valent null, les colonnes de temps du
+per_file et du leaderboard sont vides. Les deux `results_*.json` portent un bloc
+`execution_partagee`.
+
 Mode `--requalifier` (D18, methode.md §4.2) : pour une expérience déjà évaluée, recalcule
 `arbre_propre` à partir des `fichiers_non_commites` consignés dans ses `execution_*.json`,
 et ajoute à chaque `results_*.json` un bloc `requalification` (date, règle, ancienne et
@@ -71,6 +79,7 @@ from whospoke.experiment import (
     REPO_ROOT,
     dataset_uris,
     git_state,
+    hypothesis_dir,
     is_controlled,
     tree_is_clean,
     load_rttm,
@@ -79,6 +88,7 @@ from whospoke.experiment import (
     reference_rttm,
     uem_path,
 )
+from whospoke import partage
 from whospoke.charge import concurrent_load
 from whospoke.power import is_compliant
 
@@ -113,9 +123,16 @@ def load_concurrency(execution: dict) -> bool | None:
     return concurrent_load(block.get("releves") or [], block["coeurs_performance"])
 
 
-def timing_block(execution: dict, files: list[str]) -> dict:
+def rows_by_uri(execution: dict, corpus: str | None = None) -> dict[str, dict]:
+    """Mesures par fichier d'une exécution, restreintes à un corpus (les conditions de D24
+    partagent les identifiants de SUMM-RE test) ; toutes si `corpus` est None."""
+    return {row["uri"]: row for row in execution["fichiers"]
+            if corpus is None or row.get("corpus", corpus) == corpus}
+
+
+def timing_block(execution: dict, files: list[str], corpus: str | None = None) -> dict:
     """Bloc `temps` d'un jeu : somme des temps de calcul de ses fichiers."""
-    by_uri = {row["uri"]: row for row in execution["fichiers"]}
+    by_uri = rows_by_uri(execution, corpus)
     audio = sum(by_uri[uri]["duree_audio_s"] for uri in files)
     compute = sum(by_uri[uri]["calcul_s"] for uri in files)
     return {
@@ -128,7 +145,7 @@ def timing_block(execution: dict, files: list[str]) -> dict:
     }
 
 
-def cpu_block(execution: dict | None, subset: str | None = None) -> dict | None:
+def cpu_block(execution: dict | None, subset: str | None = None, corpus: str | None = None) -> dict | None:
     """Bloc `temps_cpu` : mesure CPU dédiée, ou exécution principale en CPU restreinte à `subset`."""
     if execution is None:
         return None
@@ -141,7 +158,7 @@ def cpu_block(execution: dict | None, subset: str | None = None) -> dict | None:
             "conforme": power_compliance(execution),
             "charge_concurrente": load_concurrency(execution),
         }
-    by_uri = {row["uri"]: row for row in execution["fichiers"]}
+    by_uri = rows_by_uri(execution, corpus)
     rows = execution["fichiers"] if subset is None else [by_uri[uri] for uri in dataset_uris(subset)]
     audio = sum(row["duree_audio_s"] for row in rows)
     compute = sum(row["calcul_s"] for row in rows)
@@ -272,20 +289,33 @@ def main() -> None:
         requalify(exp_dir)
         return
     config = yaml.safe_load((exp_dir / "config.yaml").read_text())
-    main_run = json.loads((exp_dir / f"execution_{config['device']}.json").read_text())
-    cpu_path = exp_dir / "execution_cpu.json"
+    try:
+        shared = partage.read_reminder(config, exp_dir)
+    except partage.SharedRunError as error:
+        sys.exit(f"Exécution partagée : {error}")
+    run_dir = shared[0] if shared else exp_dir
+    run_config = yaml.safe_load((run_dir / "config.yaml").read_text()) if shared else config
+    main_run = json.loads((run_dir / f"execution_{run_config['device']}.json").read_text())
+    cpu_path = run_dir / "execution_cpu.json"
     cpu_run = None
-    if config.get("mesure_cpu") and config["device"] != "cpu":
+    if run_config.get("mesure_cpu") and run_config["device"] != "cpu":
         if not cpu_path.exists():
             sys.exit("Mesure CPU prévue par config.yaml mais execution_cpu.json absent")
         cpu_run = json.loads(cpu_path.read_text())
-    elif config["device"] == "cpu":
+    elif run_config["device"] == "cpu":
         cpu_run = main_run
 
     runs = [main_run] + ([cpu_run] if cpu_run is not None and cpu_run is not main_run else [])
-    check_config(exp_dir, {
-        path.name: json.loads(path.read_text()) for path in sorted(exp_dir.glob("execution_*.json"))
+    check_config(run_dir, {
+        path.name: json.loads(path.read_text()) for path in sorted(run_dir.glob("execution_*.json"))
     })
+    shared_block = None
+    if config.get("execution_partagee"):
+        shared_block = {
+            "porteuse": config["execution_partagee"]["porteuse"],
+            "experiences": config["execution_partagee"]["experiences"],
+            "temps_rapporte": not shared,
+        }
     state = git_state()
     evaluation = evaluation_block(state, datetime.now().astimezone().isoformat(timespec="seconds"))
     commits = {run["git_commit"] for run in runs}
@@ -317,18 +347,18 @@ def main() -> None:
         durations = {}
         for uri in files:
             reference = load_rttm(reference_rttm(corpus, uri), uri)
-            hypothesis = load_rttm(exp_dir / "rttm" / f"{uri}.rttm", uri)
+            hypothesis = load_rttm(hypothesis_dir(exp_dir, corpus) / f"{uri}.rttm", uri)
             evaluator.add(reference, hypothesis, uem=load_uem(uem_path(corpus, uri), uri))
             durations[uri] = audio_duration(processed_wav(corpus, uri))
         report = evaluator.report()
 
-        timing_by_uri = {row["uri"]: row for row in main_run["fichiers"]}
+        timing_by_uri = rows_by_uri(main_run, corpus)
         rows = evaluator.per_file()
         for row in rows:
             timing = timing_by_uri[row["uri"]]
             row["duree_audio_s"] = round(durations[row["uri"]], 3)
-            row["calcul_s"] = timing["calcul_s"]
-            row["rtf"] = timing["rtf"]
+            row["calcul_s"] = "" if shared else timing["calcul_s"]
+            row["rtf"] = "" if shared else timing["rtf"]
         per_file_path = exp_dir / f"per_file_{corpus}_{partition}.csv"
         with per_file_path.open("w", newline="") as handle:
             writer = csv.DictWriter(handle, fieldnames=list(rows[0]))
@@ -365,8 +395,11 @@ def main() -> None:
                 "der_zones_chevauchement": round2(report["der_zones_chevauchement"]),
                 "n_locuteurs": round_rates(report["n_locuteurs"]),
             },
-            "temps": timing_block(main_run, files),
-            "temps_cpu": cpu_block(cpu_run, (config.get("mesure_cpu") or {}).get("liste")),
+            "temps": None if shared else timing_block(main_run, files, corpus),
+            "temps_cpu": None if shared else cpu_block(
+                cpu_run, (run_config.get("mesure_cpu") or {}).get("liste"),
+                (run_config.get("mesure_cpu") or {}).get("corpus")),
+            **({"execution_partagee": shared_block} if shared_block else {}),
             "evaluation": evaluation,
             "invalidee": None,
         }
@@ -381,7 +414,7 @@ def main() -> None:
             "der_c0": c0["der"], "manquee_c0": c0["manquee"], "fausse_alarme_c0": c0["fausse_alarme"],
             "confusion_c0": c0["confusion"], "der_c025": c025["der"], "jer_c0": c0["jer"],
             "mae_n_locuteurs": results["metriques"]["n_locuteurs"]["erreur_absolue_moyenne"],
-            "rtf": results["temps"]["rtf"],
+            "rtf": "" if results["temps"] is None else results["temps"]["rtf"],
             "rtf_cpu": "" if results["temps_cpu"] is None else results["temps_cpu"]["rtf"],
             "git_commit": results["git_commit"],
         })

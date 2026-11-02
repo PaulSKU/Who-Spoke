@@ -852,3 +852,20 @@ Résultats : aucune expérience. SUMM-RE test, écart à EXP-0007 sans collar : 
 Décisions : aucune (application du retour du cockpit).
 Problèmes : `main` a avancé (`61cd335` : conditions de D24, exécution partagée, A-0002) sans être refusionné dans `outils` ; le nommage `summre-<condition>` et les per_file lus ici sont ceux de `main`. A-0002 donne un IC pour le groupe Zoom, `docs/rendu/` n'en donne pas sous 5 réunions (décision du cockpit) : les deux sources diffèrent sur ce point.
 Suite : régénérer `docs/rendu/` après la fusion dans `main` et après chaque expérience d'A3.
+
+## 2026-11-02 — Interprétation d'A1 et A2 ; retours de B7 et E6 (cockpit)
+
+Objectif : interpréter EXP-0016 à 0019 et trancher les questions des pistes A, B et E.
+Réalisé : interprétations et verdicts d'EXP-0016 à 0019 ; constats C11 et C12 ; synthèse mise à jour ; méthode §4.2 (dossiers `rttm_<sortie>/`).
+Résultats : sortie exclusive écartée (+4,1 points sur SUMM-RE, +4,6 sur AMI, significatif) ; bornes de 2 à 6 sans effet significatif, une seule réunion concernée.
+Décisions :
+- V1 de D25 écartée ; R-U12 abandonné. Bornes de 2 à 6 retenues comme garde-fou de la configuration de démonstration, sans gain revendiqué.
+- D24 : bruits DEMAND (sans OMEETING) validés ; les réunions Zoom simulées dans une salle sont gardées, mais les résultats d'A3 seront aussi donnés à part pour les réunions Zoom et les autres, parce qu'une réunion Zoom réverbérée dans une seule salle est moins plausible ; RT60 rapporté en T20, avec le T60 mesuré en annexe.
+- Script d'exécution : lecture des conditions dégradées avec les références et l'UEM de SUMM-RE test ; `evaluate.py` accepte une exécution partagée (V2 et V3), avec un fichier d'exécution rappelé dans chaque dossier.
+- Processus : ne jamais enchaîner un commit après les tests autrement que par `&&` ; règle à ajouter à CLAUDE.md.
+- B7 : seuils validés (silence −80 dB, avertissements de référence, matrice numérotée, doublons sans tenir compte de la casse) ; zoom maximal relevé à 150 px/s si la fluidité tient sur 30 min.
+Suite : écoute de contrôle de D24 par la candidate, puis A3 ; chantiers B8 et E7.
+
+## 2026-11-02 — README à jour (cockpit)
+
+Réalisé : état d'avancement au 02/11 (D24, D25, bornes, moteurs externes, corpus maison, outillage), description des onglets et options de l'application après B1 à B7, documents ajoutés au tableau de documentation, note sur les temps de référence (D21).

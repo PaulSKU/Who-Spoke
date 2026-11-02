@@ -6,7 +6,7 @@
 # sources (expériences ou analyses) ; confiance (certain | probable | incertain) ; cle (vrai = repris dans l'encadré).
 
 version: 1
-date: 2026-11-01
+date: 2026-11-02
 
 constats:
   - id: C01
@@ -88,3 +88,20 @@ constats:
     sources: [EXP-0013, EXP-0001, EXP-0015, EXP-0007]
     confiance: probable
     cle: true
+
+  - id: C11
+    etape: segmentation
+    moteurs: [pyannote-community-1]
+    texte: "Sur des réunions, le chevauchement réel pèse plus que le faux chevauchement : la sortie exclusive de pyannote retire 3 points de fausse alarme sur SUMM-RE test, mais ajoute 8,4 points de parole manquée (DER +4,1 sur SUMM-RE, +4,6 sur AMI, significatif)."
+    sources: [EXP-0016, EXP-0017]
+    confiance: certain
+    cle: true
+
+  - id: C12
+    etape: regroupement
+    moteurs: [pyannote-community-1]
+    texte: "Borner le nombre de locuteurs entre 2 et 6 ne change qu'une réunion sur 73, celle où VBx n'en trouvait qu'un ; l'effet global n'est pas significatif (−0,48 point sur SUMM-RE test)."
+    sources: [EXP-0018, EXP-0019]
+    confiance: certain
+    cle: false
+

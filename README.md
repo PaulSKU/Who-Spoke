@@ -33,13 +33,13 @@ uv run python -m app.app             # moteurs réels
 uv run python -m app.app --factice   # moteur factice, sans calcul (démonstration de l'interface seule)
 ```
 
-Puis ouvrir http://127.0.0.1:7860 dans un navigateur. Le serveur est local : aucun lien public, aucune connexion vers l'extérieur. Les modèles sont lus dans le cache local, et la télémétrie des bibliothèques est coupée (D27). Il faut avoir lancé `scripts/prefetch_models.py` une fois auparavant. Options : `--port` pour changer de port ; `--depot` pour lire les expériences d'un autre dossier du dépôt.
+Puis ouvrir http://127.0.0.1:7860 dans un navigateur. Le serveur est local : aucun lien public, aucune connexion vers l'extérieur. Les modèles sont lus dans le cache local, et la télémétrie des bibliothèques est coupée (D27). Il faut avoir lancé `scripts/prefetch_models.py` une fois auparavant. Au démarrage, les moteurs sont préchauffés (« Moteurs prêts » dans l'en-tête). Options : `--port` pour changer de port ; `--depot` pour lire les expériences d'un autre dossier du dépôt ; `--sans-prechauffage` ; `--vider-cache` pour effacer les résultats gardés dans `~/.cache/whospoke/`.
 
 | Onglet | Rôle |
 |---|---|
-| Analyse | Dépôt d'un fichier audio de tout format ; choix du moteur (pyannote community-1, baseline MFCC, ECAPA ou WeSpeaker), du nombre de locuteurs (automatique, imposé ou fourchette) et du périphérique ; avancement avec temps restant ; forme d'onde et timeline des locuteurs, écoute d'un segment au clic, zoom ; statistiques et renommage des locuteurs ; exports RTTM et JSON. Avec une référence RTTM : DER décomposé et carte des erreurs. Option de comparaison de deux moteurs sur le même fichier |
-| Pipeline | Étapes et réglages effectifs de chaque moteur, en lecture seule, générés depuis les expériences et le catalogue |
-| Avancement | Expériences, verdicts, décomposition de l'erreur par les oracles, décisions et file d'attente, générés depuis le dépôt |
+| Analyse | Dépôt d'un fichier audio ou vidéo de tout format ; choix du moteur (pyannote community-1, baseline MFCC, ECAPA ou WeSpeaker), du nombre de locuteurs (automatique, imposé ou fourchette) et du périphérique ; durée annoncée en fourchette, avancement par étape ; forme d'onde, vue d'ensemble et timeline des locuteurs en pleine largeur, lecture suivie, zoom, raccourcis clavier (« ? » pour l'aide), extrait typique de chaque locuteur ; statistiques, indicateurs d'interaction (monologues, latence de réponse, « qui suit qui »), renommage et fusion de locuteurs ; exports RTTM, JSON (avec fiche de reproductibilité), étiquettes Audacity et image de la timeline. Avec une référence RTTM : DER décomposé dans les deux conditions de collar, appariement des locuteurs, carte des erreurs et « Expliquer cette erreur ». Option de comparaison de deux moteurs sur le même fichier ; réaffichage facultatif d'un résultat déjà calculé |
+| Pipeline | Étapes et réglages effectifs de chaque moteur, en lecture seule, générés depuis les expériences et le catalogue, avec sous chaque étape les constats mesurés qui la concernent |
+| Avancement | Ce que nous avons appris, graphique des erreurs par système et par corpus, expériences et verdicts, décomposition de l'erreur par les oracles, décisions et file d'attente, synthèse ; tout est généré depuis le dépôt |
 | Glossaire | Vocabulaire du projet, lié depuis les autres onglets |
 
 Pour une réunion de 30 min, l'analyse prend environ 1 min 30 s avec pyannote en MPS, et moins d'une minute avec les baselines en CPU. Détails techniques, vérifications hors ligne et limites connues : `app/README.md`.
@@ -68,6 +68,8 @@ Options : `--moteur` (`pyannote-community-1`, `baseline-mfcc`, `baseline-ecapa`,
 | `docs/corpus.md` | Fiche des corpus |
 | `docs/corpus-maison/` | Consentement, protocole d'enregistrement et conventions d'annotation du corpus maison |
 | `docs/glossaire.md` | Concepts et vocabulaire, dans l'ordre de lecture |
+| `docs/synthese.md`, `docs/constats.yaml` | Synthèse vivante du projet et constats chiffrés rattachés aux étapes du pipeline |
+| `docs/audit/` | Audit du projet du 1er novembre et recommandations |
 | `docs/recherche/` | Recherche documentaire (corpus, veille sur les modèles) |
 | `docs/maquettes/` | Maquettes de l'interface |
 | `app/README.md` | Application de démonstration : fonctionnement, vérifications, limites |
@@ -81,11 +83,11 @@ Options : `--moteur` (`pyannote-community-1`, `baseline-mfcc`, `baseline-ecapa`,
 
 ## État d'avancement
 
-Au 1er novembre 2026.
+Au 2 novembre 2026.
 
 | Chantier | État |
 |---|---|
-| Cadrage, méthode, protocole d'évaluation | Fait (D1 à D27 ; D24 et D25 réservées) |
+| Cadrage, méthode, protocole d'évaluation | Fait (D1 à D27) ; audit du projet le 01/11 |
 | Chaîne d'évaluation (DER, JER, chevauchement, nombre de locuteurs, bootstrap) | Faite, testée |
 | Corpus AMI, micro de salle (dev et test) | Préparé |
 | pyannote community-1 | Intégré ; résultat publié reproduit sur AMI (EXP-0001) ; modèle figé à une révision (D18) |
@@ -93,10 +95,14 @@ Au 1er novembre 2026.
 | Diagnostics oracles (détection, nombre de locuteurs) | Faits (EXP-0003 à EXP-0006) |
 | Empreintes neuronales (D8, D22) | Faites (EXP-0010 à EXP-0015) : ECAPA retenue pour la baseline ; la parole manquée par la détection d'énergie devient l'erreur principale |
 | Analyses a posteriori | A-0001 : sensibilité de la référence de SUMM-RE à la convention de découpage |
-| Moteurs supplémentaires (D23) | File d'attente : NeMo Sortformer v2 (prochain), Nemotron 3 Diarization, puis comparaisons cloud |
+| Moteurs supplémentaires (D23) | Nemotron 3 Diarization et DiariZen installés dans des environnements séparés, à évaluer ; NeMo Sortformer v2 et Voxtral en option ; Nemotron 3.5 retiré (GPU NVIDIA seulement) |
+| Amélioration n° 2 : fausse alarme de pyannote (D25) | Sortie exclusive écartée (+4,1 points sur SUMM-RE, +4,6 sur AMI, EXP-0016 et EXP-0017) ; post-traitement par Silero VAD prêt, à évaluer |
+| Nombre de locuteurs borné entre 2 et 6 | Effet non significatif (EXP-0018, EXP-0019) ; gardé comme garde-fou pour la démonstration |
+| Robustesse (D24) | SUMM-RE test dégradé généré (réverbération, bruit, codec de visio, 7 conditions) ; expériences en cours |
 | SUMM-RE (validation en français) | Préparé (dev 36, test 37 réunions) ; pyannote, oracle et baselines MFCC, ECAPA et WeSpeaker évalués (EXP-0007 à EXP-0009, EXP-0012, EXP-0015) |
-| Corpus maison (3 réunions en français) | Documents prêts ; enregistrements prévus les 4 et 5 novembre |
-| Interface de démonstration (D17, D26) | Faite et fusionnée : onglets Analyse, Pipeline, Avancement et Glossaire ; essai avec les vrais moteurs et fonctionnement hors ligne vérifiés (D27) |
+| Corpus maison (réunions en français) | Documents et chaîne d'annotation prêts (synchronisation, pré-annotation, Audacity, RTTM) ; enregistrements en cours, évalués au fil de l'eau |
+| Interface de démonstration (D17, D26) | Faite et fusionnée (chantiers B1 à B7 de l'audit compris) ; essai avec les vrais moteurs et fonctionnement hors ligne vérifiés (D27) ; mode présentation et lecture de la configuration gelée en cours |
+| Outillage | Commande en ligne, intégration continue, licence, vérification d'installation sur machine vierge |
 
 Résultats sur les partitions de test, chevauchements comptés :
 
@@ -111,7 +117,7 @@ Résultats sur les partitions de test, chevauchements comptés :
 | EXP-0012 — baseline ECAPA | SUMM-RE, français | 33,4 % | 24,4 % | 39,2 % | 28/37 | non exploitable (batterie) |
 | EXP-0015 — baseline WeSpeaker | SUMM-RE, français | 35,9 % | 26,7 % | 44,3 % | 23/37 | ≈ 39 s (CPU) |
 
-Les chiffres sur AMI sont optimistes pour pyannote, qui a vu ce corpus à l'entraînement (`docs/corpus.md` §9). SUMM-RE est en français, mais il est enregistré en micros-casques, pas en micro de salle. Sur SUMM-RE, le DER sans collar dépend fortement de la convention de découpage de la référence (jusqu'à 8 points pour pyannote), alors que le DER avec collar n'en dépend presque pas (analyse A-0001) : les deux sont toujours rapportés. WeSpeaker est le modèle d'empreintes de pyannote : l'écart entre EXP-0013 et EXP-0001 (29 points sur AMI, dont 21 de parole manquée) mesure ce que pyannote doit à sa segmentation neuronale et à son regroupement, et non à ses empreintes. Les expériences et leur interprétation sont dans `experiments/` et `results/leaderboard.csv`.
+Les chiffres sur AMI sont optimistes pour pyannote, qui a vu ce corpus à l'entraînement (`docs/corpus.md` §9). SUMM-RE est en français, mais il est enregistré en micros-casques, pas en micro de salle. Sur SUMM-RE, le DER sans collar dépend fortement de la convention de découpage de la référence (jusqu'à 8 points pour pyannote), alors que le DER avec collar n'en dépend presque pas (analyse A-0001) : les deux sont toujours rapportés. WeSpeaker est le modèle d'empreintes de pyannote : l'écart entre EXP-0013 et EXP-0001 (29 points sur AMI, dont 21 de parole manquée) mesure ce que pyannote doit à sa segmentation neuronale et à son regroupement, et non à ses empreintes. Les temps sont ceux des expériences ; des temps de référence, machine au repos, seront mesurés le 12/11 (D21). Les expériences et leur interprétation sont dans `experiments/` et `results/leaderboard.csv`.
 
 ## Licence
 
