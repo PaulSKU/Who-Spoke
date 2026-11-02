@@ -62,6 +62,7 @@ LEADERBOARD = Path("results") / "leaderboard.csv"
 CAMPAIGNS = Path("results") / "campagne_temps"
 DEGRADE_CONFIG = Path("configs") / "summre_degrade.yaml"
 CSS = Path("app") / "static" / "interface.css"
+TOKENS = Path("app") / "static" / "jetons.css"     # teintes du système visuel (B10)
 TOLERANCE = 0.005                # concordance leaderboard / results_*.json, en points
 MIN_BOOTSTRAP_FILES = 5          # pas d'intervalle de confiance en dessous (scripts/rapport_maison.py)
 N_RESAMPLES, SEED = 1000, 0      # protocole §4
@@ -686,11 +687,13 @@ def times_page(root: Path, chosen: Path | None = None) -> str:
 
 
 def chart_style() -> str:
-    """Règles `.av-chart` et teintes de interface.css (code de ce dépôt), pour un SVG lu hors de l'application."""
+    """Règles `.av-chart` de interface.css et teintes de jetons.css (code de ce dépôt, B10),
+    pour un SVG lu hors de l'application."""
     css = (REPO_ROOT / CSS).read_text()
+    tokens = (REPO_ROOT / TOKENS).read_text()
 
     def variables(selector: str) -> str:
-        match = re.search(rf"^{re.escape(selector)}\s*\{{(.*?)^\}}", css, flags=re.S | re.M)
+        match = re.search(rf"^{re.escape(selector)}\s*\{{(.*?)^\}}", tokens, flags=re.S | re.M)
         block = re.sub(r"/\*.*?\*/", "", match.group(1), flags=re.S) if match else ""
         return " ".join(f"{name}:{value.strip()};"
                         for name, value in re.findall(r"(--(?:ws|av)-[\w-]+)\s*:\s*([^;]+);", block)
