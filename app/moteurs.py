@@ -30,6 +30,7 @@ import time
 from dataclasses import dataclass
 from pathlib import Path
 
+import numpy as np
 import torch
 import yaml
 from pyannote.core import Segment, Timeline
@@ -342,6 +343,31 @@ def find_rttm(rttm_dir: Path, name: str) -> Path:
                             "fichier avec l'identifiant complet (par exemple summre__007a_ECRH).")
 
 
+FAKE_HOP_S = 0.010
+
+
+def fabricated_trace(y: np.ndarray, hop_s: float = FAKE_HOP_S) -> dict:
+    """Trace de détection fabriquée par le moteur factice quand il imite une baseline (D28 §2).
+
+    Mêmes clés que la trace de `Baseline.finish` (énergie, seuil, pas, régions), mais pas
+    son calcul : énergie moyenne par tranche de 10 ms sans recouvrement, seuil à la médiane,
+    régions = tranches au-dessus du seuil, sans lissage ni durées minimales. Marquée
+    `factice` ; l'interface l'écrit."""
+    hop = int(round(hop_s * SAMPLE_RATE))
+    n = len(y) // hop
+    if n == 0:
+        return {"energie_db": np.zeros(0, np.float32), "seuil_db": 0.0, "pas_trame_s": hop_s,
+                "regions_parole": np.zeros((0, 2)), "factice": True}
+    power = np.mean(np.square(np.asarray(y[:n * hop], dtype=np.float64)).reshape(n, hop), axis=1)
+    energy = 10.0 * np.log10(power + 1e-10)
+    threshold = float(np.median(energy))
+    above = np.concatenate([[False], energy > threshold, [False]])
+    edges = np.flatnonzero(np.diff(above.astype(np.int8)))
+    regions = edges.reshape(-1, 2) * hop_s
+    return {"energie_db": energy.astype(np.float32), "seuil_db": threshold, "pas_trame_s": hop_s,
+            "regions_parole": regions, "factice": True}
+
+
 class FakeEngine(Engine):
     """Moteur factice au contrat D19 : étapes simulées, RTTM d'une expérience existante.
 
@@ -393,7 +419,8 @@ class FakeEngine(Engine):
         annotation = load_rttm(path, source_uri).crop(Segment(0.0, duration_s), mode="intersection")
         annotation.uri = uri
         infos = {"rttm_source": _shown(path), "n_locuteurs_ignore": num_speakers}
-        return Resultat(annotation=annotation, durees_etapes=durations, infos=infos)
+        trace = fabricated_trace(waveform[0].numpy()) if self.trace and self.spec.pipeline == "baseline" else None
+        return Resultat(annotation=annotation, durees_etapes=durations, trace=trace, infos=infos)
 
     def describe(self) -> dict[str, list[Setting]]:
         source = _shown(self._source or self.rttm_dir)

@@ -123,6 +123,7 @@ function syncScroll() {
   const scroll = ws ? ws.getScroll() : 0;
   $('.wsp-canvas').style.transform = 'translateX(' + -scroll + 'px)';
   cullBars(scroll);
+  scheduleLayers();
 }
 
 // Premier indice de `bars` (triés par début) dont le début vaut au moins `t`.
@@ -194,6 +195,298 @@ function setZoom(level) {
   }
   drawAxis();
   syncScroll();
+}
+
+// --- Spectrogramme et énergie de la baseline (D28 §2, chantier B9) ------------------
+// Image calculée côté serveur (app/spectrogramme.py) : pyramide de spectrogrammes mel sur
+// 8 bits, lue une fois. À chaque défilement ou zoom, seule la partie visible est mise en
+// couleurs et dessinée, au niveau de la pyramide qui donne au moins une trame par pixel :
+// coût constant quelle que soit la durée. La forme d'onde devient transparente et reste
+// au-dessus : curseur, sélection et clic pour se déplacer inchangés.
+
+// Hauteur du spectrogramme : --wsp-spec-h de visualiseur.css (112 px, 144 en mode présentation) ;
+// forme d'onde : 80 px.
+function specHeight() {
+  const root = $('.wsp-root');
+  const height = root ? parseFloat(getComputedStyle(root).getPropertyValue('--wsp-spec-h')) : NaN;
+  return height > 0 ? height : 112;
+}
+const ENERGY_HEIGHT = 56;   // bande d'énergie : courbe et seuil, puis 6 px pour les régions de parole
+
+function fetchBytes(url, kind) {
+  element._files = element._files || {};
+  if (!element._files[url]) {
+    element._files[url] = fetch(url).then((response) => {
+      if (!response.ok) throw new Error(response.status + ' ' + response.statusText);
+      return response.arrayBuffer();
+    }).then((buffer) => (kind === 'f32' ? new Float32Array(buffer) : new Uint8Array(buffer)));
+    element._files[url].catch(() => { delete element._files[url]; });
+  }
+  return element._files[url];
+}
+
+function scheduleLayers() {
+  if (element._layersFrame) return;
+  element._layersFrame = requestAnimationFrame(() => {
+    element._layersFrame = 0;
+    drawSpectrogram();
+    drawEnergy();
+  });
+}
+
+// Canevas à la taille affichée, en pixels de l'écran ; renvoie son contexte, ou null.
+function fitCanvas(canvas, width, height) {
+  const ratio = window.devicePixelRatio || 1;
+  canvas.style.width = width + 'px';
+  canvas.style.height = height + 'px';
+  if (canvas.width !== Math.round(width * ratio) || canvas.height !== Math.round(height * ratio)) {
+    canvas.width = Math.round(width * ratio);
+    canvas.height = Math.round(height * ratio);
+  }
+  const ctx = canvas.getContext('2d');
+  ctx.setTransform(ratio, 0, 0, ratio, 0, 0);
+  ctx.clearRect(0, 0, width, height);
+  return ctx;
+}
+
+// Partie visible : défilement (px), largeur (px), pixels par seconde.
+function visibleWindow() {
+  const ws = element._ws;
+  const v = props.value;
+  const width = $('.wsp-wave').clientWidth || viewportWidth();
+  return { scroll: ws ? ws.getScroll() : 0, width, pps: ws && element._ready ? pxPerSecond() : width / v.duree_s };
+}
+
+function drawSpectrogram() {
+  const v = props.value;
+  const spec = v && v.spectrogramme;
+  const canvas = $('.wsp-spec-canvas');
+  const data = element._specData;
+  if (!canvas || element._view !== 'spectro' || !spec || !data || data.url !== spec.url) return;
+  const { scroll, width, pps } = visibleWindow();
+  const height = specHeight();
+  const ctx = fitCanvas(canvas, width, height);
+  // Niveau le plus grossier qui garde au moins une trame par pixel.
+  const bands = spec.bandes;
+  let level = 0;
+  while (level + 1 < spec.niveaux.length && 1 / (spec.pas_s * Math.pow(2, level + 1)) >= pps) level += 1;
+  const { decalage, trames } = spec.niveaux[level];
+  const columnS = spec.pas_s * Math.pow(2, level);
+  // Trame i centrée en i × pas (librosa, center=True) : colonne j de [j·c − pas/2, (j+1)·c − pas/2[.
+  const offsetS = -spec.pas_s / 2;
+  const first = Math.max(0, Math.floor((scroll / pps - offsetS) / columnS));
+  const last = Math.min(trames, Math.ceil(((scroll + width) / pps - offsetS) / columnS) + 1);
+  const count = last - first;
+  if (count <= 0) return;
+  const palette = spec.palettes[isDark() ? 'sombre' : 'clair'];
+  const off = element._specOff || (element._specOff = document.createElement('canvas'));
+  if (off.width < count) off.width = count;
+  if (off.height !== bands) off.height = bands;
+  const octx = off.getContext('2d');
+  const image = octx.createImageData(count, bands);
+  const pixels = image.data;
+  const bytes = data.bytes;
+  for (let c = 0; c < count; c += 1) {
+    const base = decalage + (first + c) * bands;
+    for (let m = 0; m < bands; m += 1) {
+      const rgb = palette[bytes[base + m]];
+      const p = 4 * ((bands - 1 - m) * count + c);   // bande la plus grave en bas
+      pixels[p] = rgb[0];
+      pixels[p + 1] = rgb[1];
+      pixels[p + 2] = rgb[2];
+      pixels[p + 3] = 255;
+    }
+  }
+  octx.putImageData(image, 0, 0);
+  ctx.imageSmoothingEnabled = true;
+  const x0 = (first * columnS + offsetS) * pps - scroll;
+  ctx.drawImage(off, 0, 0, count, bands, x0, 0, count * columnS * pps, height);
+}
+
+function energyY(db, e) {
+  const top = 3;
+  const bottom = ENERGY_HEIGHT - 10;
+  const ratio = (Math.min(e.max_db, Math.max(e.min_db, db)) - e.min_db) / ((e.max_db - e.min_db) || 1);
+  return bottom - ratio * (bottom - top);
+}
+
+function drawEnergy() {
+  const v = props.value;
+  const e = v && v.detection;
+  const canvas = $('.wsp-energy-canvas');
+  const data = element._energyData;
+  if (!canvas || !element._energy || !e || !data || data.url !== e.url) return;
+  const { scroll, width, pps } = visibleWindow();
+  const ctx = fitCanvas(canvas, width, ENERGY_HEIGHT);
+  const styles = getComputedStyle(element);
+  const ink = styles.getPropertyValue('--ws-ink').trim() || (isDark() ? '#ecece9' : '#18191d');
+  const slate = styles.getPropertyValue('--ws-slate').trim() || (isDark() ? '#a3a49e' : '#5f616a');
+  const values = data.values;
+  const n = values.length;
+  // Courbe : minimum et maximum de l'énergie sur chaque pixel (enveloppe), 1,5 px.
+  ctx.beginPath();
+  for (let x = 0; x <= width; x += 1) {
+    let f0 = Math.floor((scroll + x) / pps / e.pas_s);
+    let f1 = Math.floor((scroll + x + 1) / pps / e.pas_s);
+    if (f0 >= n) break;
+    f0 = Math.max(0, f0);
+    f1 = Math.min(n - 1, Math.max(f0, f1));
+    let low = Infinity;
+    let high = -Infinity;
+    for (let f = f0; f <= f1; f += 1) {
+      if (values[f] < low) low = values[f];
+      if (values[f] > high) high = values[f];
+    }
+    if (x === 0) ctx.moveTo(x, energyY(high, e));
+    else ctx.lineTo(x, energyY(high, e));
+    if (low !== high) ctx.lineTo(x, energyY(low, e));
+  }
+  ctx.strokeStyle = slate;
+  ctx.lineWidth = 1.5;
+  ctx.lineJoin = 'round';
+  ctx.stroke();
+  // Seuil : tirets à l'encre.
+  const y = Math.round(energyY(e.seuil_db, e)) + 0.5;
+  ctx.beginPath();
+  ctx.setLineDash([6, 4]);
+  ctx.moveTo(0, y);
+  ctx.lineTo(width, y);
+  ctx.strokeStyle = ink;
+  ctx.lineWidth = 1.5;
+  ctx.stroke();
+  ctx.setLineDash([]);
+  // Régions de parole retenues par la détection : bande pleine en bas.
+  ctx.fillStyle = ink;
+  e.regions.forEach(([start, end]) => {
+    const a = start * pps - scroll;
+    const b = end * pps - scroll;
+    if (b < 0 || a > width) return;
+    ctx.fillRect(Math.max(0, a), ENERGY_HEIGHT - 6, Math.max(1, Math.min(width, b) - Math.max(0, a)), 5);
+  });
+}
+
+function decibels(value) {
+  return (value < 0 ? '−' : '') + Math.abs(value).toFixed(1).replace('.', ',') + ' dB';
+}
+
+// Infobulle de la bande d'énergie : instant, énergie, position par rapport au seuil.
+function energyTip(event) {
+  const v = props.value;
+  const e = v && v.detection;
+  const data = element._energyData;
+  const tip = $('.wsp-energy-tip');
+  if (!e || !data || !tip) return;
+  const rect = event.currentTarget.getBoundingClientRect();
+  const x = event.clientX - rect.left;
+  const { scroll, pps } = visibleWindow();
+  const t = (scroll + x) / pps;
+  const value = data.values[Math.min(data.values.length - 1, Math.max(0, Math.floor(t / e.pas_s)))];
+  const inSpeech = e.regions.some(([a, b]) => a <= t && t < b);
+  tip.textContent = fmtTenths(t) + ' : ' + decibels(value) + (value > e.seuil_db ? ', au-dessus du seuil' : ', sous le seuil')
+    + (inSpeech ? ' ; parole détectée' : ' ; pas de parole détectée');
+  tip.hidden = false;
+  tip.style.left = Math.max(0, Math.min(rect.width - tip.offsetWidth, x + 8)) + 'px';
+}
+
+function setView(view) {
+  const v = props.value;
+  if (view === 'spectro' && !(v && v.spectrogramme)) view = 'onde';
+  element._view = view;
+  const spectro = view === 'spectro';
+  const root = $('.wsp-root');
+  root.classList.toggle('wsp-spec-on', spectro);
+  $('.wsp-view-wave').setAttribute('aria-pressed', spectro ? 'false' : 'true');
+  $('.wsp-view-spec').setAttribute('aria-pressed', spectro ? 'true' : 'false');
+  const ws = element._ws;
+  if (ws && element._waveOptions) {
+    const current = ws.options.height;
+    const wanted = spectro ? specHeight() : element._waveOptions.height;
+    const options = spectro
+      ? { height: wanted, waveColor: 'rgba(0,0,0,0)', progressColor: 'rgba(0,0,0,0)' }
+      : element._waveOptions;
+    if (current !== wanted || ws.options.waveColor !== options.waveColor) ws.setOptions(options);
+  }
+  fillSpecLegend();
+  if (spectro) loadSpectrogram();
+  scheduleLayers();
+}
+
+function fillSpecLegend() {
+  const v = props.value;
+  const spec = v && v.spectrogramme;
+  const legend = $('.wsp-spec-legend');
+  const axis = $('.wsp-spec-axis');
+  const canvas = $('.wsp-spec-canvas');
+  const spectro = element._view === 'spectro' && !!spec;
+  legend.hidden = !spectro;
+  axis.innerHTML = '';
+  if (!spectro) return;
+  (spec.graduations || []).forEach((tick) => {
+    const label = document.createElement('span');
+    label.className = 'wsp-spec-tick';
+    label.style.top = (100 * tick.y) + '%';
+    label.textContent = tick.libelle;
+    axis.appendChild(label);
+  });
+  const palette = spec.palettes[isDark() ? 'sombre' : 'clair'];
+  const css = (rgb) => 'rgb(' + rgb.join(',') + ')';
+  $('.wsp-spec-swatch').style.background = 'linear-gradient(90deg, ' + css(palette[0]) + ', ' + css(palette[palette.length - 1]) + ')';
+  const pending = !element._specData || element._specData.url !== spec.url;
+  const text = 'Spectrogramme mel dont la baseline tire ses MFCC (' + spec.bandes + ' bandes, trames de '
+    + Math.round(spec.trame_s * 1000) + ' ms tous les ' + Math.round(spec.pas_s * 1000) + ' ms), '
+    + spec.plage_db + ' dB sous le maximum du fichier : ' + (isDark() ? 'plus clair' : 'plus foncé')
+    + ' = plus d\'énergie.';
+  $('.wsp-spec-text').textContent = element._specError ? 'Spectrogramme indisponible : ' + element._specError
+    : (pending ? 'Chargement du spectrogramme… ' : '') + text;
+  canvas.setAttribute('aria-label', 'Spectrogramme mel du fichier, de ' + spec.graduations[0].libelle + ' à '
+    + spec.graduations[spec.graduations.length - 1].libelle + ' ; même zoom et même défilement que la timeline');
+}
+
+function loadSpectrogram() {
+  const spec = props.value && props.value.spectrogramme;
+  if (!spec || (element._specData && element._specData.url === spec.url)) return;
+  element._specError = null;
+  fetchBytes(spec.url, 'u8').then((bytes) => {
+    if (!props.value || !props.value.spectrogramme || props.value.spectrogramme.url !== spec.url) return;
+    element._specData = { url: spec.url, bytes };
+    fillSpecLegend();
+    scheduleLayers();
+  }).catch((error) => {
+    element._specError = String(error.message || error);
+    fillSpecLegend();
+  });
+}
+
+function setEnergy(on) {
+  const v = props.value;
+  const e = v && v.detection;
+  element._energy = !!on && !!e;
+  const button = $('.wsp-energy-toggle');
+  button.hidden = !e;
+  button.setAttribute('aria-pressed', element._energy ? 'true' : 'false');
+  $('.wsp-energy').hidden = !element._energy;
+  const legend = $('.wsp-energy-legend');
+  legend.hidden = !element._energy;
+  if (!e) return;
+  button.title = 'Courbe d\'énergie et seuil de la détection de parole de ' + e.moteur + ' (D19)';
+  $('.wsp-energy-sub').textContent = e.moteur + ', seuil ' + decibels(e.seuil_db);
+  legend.textContent = (e.factice
+    ? 'Trace factice (moteur factice) : énergie par tranche de 10 ms et seuil à la médiane, pas la détection de la baseline. '
+    : 'Détection de parole de ' + e.moteur + ' (D19), lue dans la trace du moteur. ')
+    + 'Courbe : énergie par trame de ' + Math.round(e.pas_s * 1000) + ' ms ; tirets : seuil ('
+    + decibels(e.seuil_db) + ') ; bande du bas : parole retenue'
+    + (e.factice ? '' : ' après lissage médian et durées minimales') + '.';
+  $('.wsp-energy-canvas').setAttribute('aria-label', 'Énergie par trame et seuil de détection ('
+    + decibels(e.seuil_db) + ') ; ' + e.regions.length + ' régions de parole');
+  if (!element._energy) return;
+  if (!element._energyData || element._energyData.url !== e.url) {
+    fetchBytes(e.url, 'f32').then((values) => {
+      if (!props.value || !props.value.detection || props.value.detection.url !== e.url) return;
+      element._energyData = { url: e.url, values };
+      scheduleLayers();
+    }).catch((error) => { legend.textContent = 'Énergie indisponible : ' + (error.message || error); });
+  }
+  scheduleLayers();
 }
 
 // --- Suivi de la lecture et vue d'ensemble -----------------------------------------
@@ -708,6 +1001,9 @@ function render() {
       element._selected = null;  // nouveau fichier : aucune sélection
       element._iso = null;
       element._explained = null;
+      element._specData = null;
+      element._energyData = null;
+      element._files = {};
     }
     if (element._follow === undefined) element._follow = true;
     destroy();
@@ -724,11 +1020,14 @@ function render() {
       barGap: 1,
       overlayColor: dark ? 'rgba(236,236,233,0.14)' : 'rgba(24,25,29,0.08)',
     });
+    // Couleurs de la forme d'onde, rendues en revenant de la vue spectrogramme.
+    element._waveOptions = { height: 80, waveColor: dark ? '#4a4b50' : '#c9c9c4', progressColor: dark ? '#a3a49e' : '#5f616a' };
+    const spectro = element._view === 'spectro' && !!v.spectrogramme;
     ws = WaveSurfer.create({
       container: wave,
-      height: 80,
-      waveColor: dark ? '#4a4b50' : '#c9c9c4',
-      progressColor: dark ? '#a3a49e' : '#5f616a',
+      height: spectro ? specHeight() : 80,
+      waveColor: spectro ? 'rgba(0,0,0,0)' : element._waveOptions.waveColor,
+      progressColor: spectro ? 'rgba(0,0,0,0)' : element._waveOptions.progressColor,
       cursorColor: dark ? '#ecece9' : '#18191d',
       cursorWidth: 2,
       barWidth: 2,
@@ -778,6 +1077,11 @@ function render() {
   drawLanes(v);
   markSelected();
   drawSelection();
+  $('.wsp-view-spec').disabled = !v.spectrogramme;
+  $('.wsp-view-spec').title = v.spectrogramme ? 'Spectrogramme mel, même zoom que la timeline (D28)'
+    : 'Spectrogramme indisponible pour ce résultat';
+  setView(element._view || 'onde');
+  setEnergy(element._energy);
   setZoom(element._zoom || 0);
 }
 
@@ -795,6 +1099,15 @@ element.addEventListener('click', (event) => {
   else if (target.classList.contains('wsp-zoom-in')) setZoom((element._zoom || 0) + ZOOM_STEP);
   else if (target.classList.contains('wsp-zoom-out')) setZoom((element._zoom || 0) - ZOOM_STEP);
   else if (target.classList.contains('wsp-zoom-fit')) setZoom(0);
+  else if (target.classList.contains('wsp-view-wave')) setView('onde');
+  else if (target.classList.contains('wsp-view-spec')) setView('spectro');
+  else if (target.classList.contains('wsp-energy-toggle')) setEnergy(!element._energy);
+});
+element.addEventListener('pointermove', (event) => {
+  if (event.target.classList && event.target.classList.contains('wsp-energy-canvas')) energyTip(event);
+});
+element.addEventListener('pointerout', (event) => {
+  if (event.target.classList && event.target.classList.contains('wsp-energy-canvas')) $('.wsp-energy-tip').hidden = true;
 });
 element.addEventListener('input', (event) => {
   if (event.target.classList.contains('wsp-zoom-range')) setZoom(Number(event.target.value));
@@ -874,12 +1187,25 @@ document.addEventListener('click', onExcerpt);
 // Mode présentation basculé (presentation.js) : la colonne des noms change de largeur, et
 // avec elle la largeur visible des pistes ; le zoom est recalculé.
 function onPresentation() {
-  if (props.value && props.value.audio_url && $('.wsp-viewport')) setZoom(element._zoom || 0);
+  if (!(props.value && props.value.audio_url && $('.wsp-viewport'))) return;
+  setView(element._view || 'onde');   // hauteur du spectrogramme propre au mode présentation
+  setZoom(element._zoom || 0);
 }
 
 if (element._onPresentation) document.removeEventListener('ws-presentation', element._onPresentation);
 element._onPresentation = onPresentation;
 document.addEventListener('ws-presentation', onPresentation);
+
+// Thème clair ou sombre basculé : spectrogramme, légende et bande d'énergie redessinés.
+if (element._themeObserver) element._themeObserver.disconnect();
+element._themeObserver = new MutationObserver(() => {
+  if (!props.value || !props.value.audio_url) return;
+  fillSpecLegend();
+  scheduleLayers();
+});
+[document.documentElement, document.body].forEach((node) => {
+  element._themeObserver.observe(node, { attributes: true, attributeFilter: ['class'] });
+});
 
 if (typeof ResizeObserver === 'function') {
   let lastWidth = 0;

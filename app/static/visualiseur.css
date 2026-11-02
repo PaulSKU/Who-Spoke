@@ -2,6 +2,7 @@
    Teintes neutres de interface.css (--ws-*) ; la couleur vient des seuls locuteurs. */
 .wsp-root {
   --wsp-label-w: 132px;
+  --wsp-spec-h: 112px;   /* hauteur du spectrogramme (D28 §2), lue aussi par visualiseur.js */
   color: var(--ws-ink);
   width: 0; min-width: 100%;   /* n'élargit jamais la carte (375 px) */
 }
@@ -13,7 +14,7 @@
 
 .wsp-toolbar { display: flex; align-items: center; gap: 12px; margin-bottom: 12px; flex-wrap: wrap; }
 .wsp-tools { display: flex; align-items: center; gap: 8px; margin-left: auto; flex-wrap: wrap; }
-.wsp-play, .wsp-zoom button, .wsp-follow, .wsp-help-toggle {
+.wsp-play, .wsp-zoom button, .wsp-follow, .wsp-help-toggle, .wsp-view button, .wsp-energy-toggle {
   height: 32px; padding: 0 12px; border: none; border-radius: 8px; cursor: pointer;
   font: inherit; font-size: 0.875rem; font-weight: 500;
   background: var(--ws-surface); color: var(--ws-ink);
@@ -23,11 +24,21 @@
 .wsp-play { min-width: 84px; }
 .wsp-zoom-in, .wsp-zoom-out { width: 32px; padding: 0 !important; font-size: 1rem !important; }
 .wsp-help-toggle { width: 32px; padding: 0 !important; font-weight: 600 !important; }
-.wsp-follow[aria-pressed="true"] { box-shadow: 0 0 0 1.5px var(--ws-ink); }
-.wsp-follow[aria-pressed="false"] { color: var(--ws-slate); }
-.wsp-play:active, .wsp-zoom button:active, .wsp-follow:active, .wsp-help-toggle:active { transform: scale(0.97); }
-.wsp-zoom button:disabled { opacity: 0.4; cursor: default; transform: none; }
+.wsp-follow[aria-pressed="true"], .wsp-energy-toggle[aria-pressed="true"] { box-shadow: 0 0 0 1.5px var(--ws-ink); }
+.wsp-follow[aria-pressed="false"], .wsp-energy-toggle[aria-pressed="false"] { color: var(--ws-slate); }
+.wsp-play:active, .wsp-zoom button:active, .wsp-follow:active, .wsp-help-toggle:active,
+.wsp-view button:active, .wsp-energy-toggle:active { transform: scale(0.97); }
+.wsp-zoom button:disabled, .wsp-view button:disabled { opacity: 0.4; cursor: default; transform: none; }
+.wsp-energy-toggle[hidden] { display: none; }
+/* Forme d'onde / Spectrogramme (D28) : deux boutons accolés, le choix courant à l'encre. */
+.wsp-view { display: inline-flex; }
+.wsp-view button { border-radius: 0; white-space: nowrap; }
+.wsp-view button:first-child { border-radius: 8px 0 0 8px; }
+.wsp-view button:last-child { border-radius: 0 8px 8px 0; margin-left: 1px; }
+.wsp-view button[aria-pressed="true"] { background: var(--ws-ink); color: var(--ws-surface); box-shadow: none; }
+.wsp-view button[aria-pressed="false"] { color: var(--ws-slate); }
 @media (hover: hover) and (pointer: fine) {
+  .wsp-view button[aria-pressed="false"]:not(:disabled):hover, .wsp-energy-toggle:hover { background: var(--ws-canvas); }
   .wsp-play:hover, .wsp-zoom button:not(:disabled):hover, .wsp-follow:hover, .wsp-help-toggle:hover {
     background: var(--ws-canvas);
   }
@@ -79,7 +90,45 @@
 .wsp-zoom-fit { white-space: nowrap; }
 .wsp-hint { color: var(--ws-slate); font-size: 0.8rem; margin: 10px 0 0; }
 
-.wsp-wave { margin-left: var(--wsp-label-w); }
+.wsp-wavebox { display: grid; grid-template-columns: var(--wsp-label-w) minmax(0, 1fr); }
+.wsp-wave, .wsp-spec-canvas { grid-column: 2; grid-row: 1; min-width: 0; }
+.wsp-wave { position: relative; z-index: 1; }
+/* Spectrogramme (D28 §2, B9) : sous la forme d'onde rendue transparente ; curseur cerné
+   du fond pour rester visible sur les zones foncées comme claires. */
+.wsp-spec-canvas { display: none; align-self: start; border-radius: 4px; }
+.wsp-spec-on .wsp-spec-canvas { display: block; }
+.wsp-spec-on .wsp-wave > div::part(cursor) { box-shadow: 0 0 0 1px var(--ws-surface); }
+.wsp-spec-axis { grid-column: 1; grid-row: 1; position: relative; height: var(--wsp-spec-h); display: none; }
+.wsp-spec-on .wsp-spec-axis { display: block; }
+.wsp-spec-tick {
+  position: absolute; right: 8px; transform: translateY(-50%); font-size: 0.7rem; line-height: 1;
+  color: var(--ws-slate); font-variant-numeric: tabular-nums; white-space: nowrap;
+}
+.wsp-spec-tick::after {   /* trait vers le bord du spectrogramme */
+  content: ""; position: absolute; top: 50%; right: -8px; width: 5px; height: 1px; background: var(--ws-line);
+}
+.wsp-spec-legend, .wsp-energy-legend {
+  margin: 6px 0 0 var(--wsp-label-w); color: var(--ws-slate); font-size: 0.75rem; line-height: 1.4;
+}
+.wsp-spec-legend[hidden], .wsp-energy-legend[hidden], .wsp-energy[hidden] { display: none; }
+.wsp-spec-swatch {
+  display: inline-block; width: 48px; height: 8px; border-radius: 2px; margin-right: 8px; vertical-align: middle;
+  box-shadow: 0 0 0 1px var(--ws-line);
+}
+/* Bande d'énergie de la baseline (D28 §2) : même largeur et même défilement que la timeline. */
+.wsp-energy { display: grid; grid-template-columns: var(--wsp-label-w) minmax(0, 1fr); margin-top: 8px; }
+.wsp-energy-label {
+  display: flex; flex-direction: column; justify-content: center; gap: 2px; padding-right: 12px;
+  font-size: 0.8rem; min-width: 0;
+}
+.wsp-energy-sub { color: var(--ws-slate); font-size: 0.72rem; overflow-wrap: anywhere; }
+.wsp-energy-plot { position: relative; min-width: 0; border-radius: 4px; background: var(--ws-track); }
+.wsp-energy-canvas { display: block; }
+.wsp-energy-tip {
+  position: absolute; bottom: calc(100% + 4px); padding: 3px 8px; border-radius: 6px; white-space: nowrap;
+  font-size: 0.75rem; background: var(--ws-ink); color: var(--ws-surface); pointer-events: none; z-index: 3;
+}
+.wsp-energy-tip[hidden] { display: none; }
 .wsp-rows { display: grid; grid-template-columns: var(--wsp-label-w) minmax(0, 1fr); margin-top: 10px; }
 .wsp-labels, .wsp-lanes { display: grid; gap: 4px; align-content: start; }
 /* Colonne des noms à la largeur de sa piste : un nom long finit par « … » au lieu d'élargir
@@ -181,9 +230,9 @@
    (les raccourcis restent sous « ? »). La portée de Gradio enveloppe cette feuille dans le
    sélecteur du composant : « & » le place après html.ws-presentation. */
 html.ws-presentation & {
-  .wsp-root { --wsp-label-w: 176px; }
+  .wsp-root { --wsp-label-w: 176px; --wsp-spec-h: 144px; }
   .wsp-root.wsp-wide { --wsp-label-w: 236px; }
-  .wsp-play, .wsp-zoom button, .wsp-follow, .wsp-help-toggle { height: 40px; }
+  .wsp-play, .wsp-zoom button, .wsp-follow, .wsp-help-toggle, .wsp-view button, .wsp-energy-toggle { height: 40px; }
   .wsp-zoom-in, .wsp-zoom-out, .wsp-help-toggle { width: 40px; }
   .wsp-zoom-range { width: 180px; }
   .wsp-label { height: 30px; }

@@ -41,8 +41,8 @@ from html import escape
 
 import gradio as gr
 
-from app import (avancement, glossaire, image, interactions, moteurs, pipeline, reproductibilite, sortie, temps,
-                 theme)
+from app import (avancement, glossaire, image, interactions, moteurs, pipeline, reproductibilite, sortie,
+                 spectrogramme, temps, theme)
 from app.cache import (ResultCache, annotation_from_tracks, annotation_tracks, audio_fingerprint, code_version,
                        engine_code_fingerprint, result_key)
 from whospoke.audio import AudioError, load_waveform, normalize
@@ -646,7 +646,33 @@ def _viewer_value(result: dict) -> dict:
         "duree_s": result["duree_s"],
         "peaks": result["peaks"],
         "groupes": groups,
+        "spectrogramme": _with_url(result.get("spectrogramme")),
+        "detection": _detection_view(result),
     }
+
+
+def _with_url(description: dict | None, **extra) -> dict | None:
+    """Description d'un fichier calculé côté serveur, son chemin remplacé par son URL."""
+    if not description:
+        return None
+    shown = {key: value for key, value in description.items() if key != "fichier"}
+    return dict(shown, url=_file_url(description["fichier"]), **extra)
+
+
+def _detection_view(result: dict) -> dict | None:
+    """Énergie et seuil de la baseline (D28 §2) : premier moteur, sinon second moteur."""
+    for item in (result, result.get("comparaison")):
+        if item and item.get("detection"):
+            return _with_url(item["detection"], moteur=item.get("libelle", ""))
+    return None
+
+
+def _detection_file(detection: dict | None, prepared: dict, key: str) -> dict | None:
+    """Écrit l'énergie de la détection à côté de l'audio normalisé ; sa description."""
+    if detection is None:
+        return None
+    wav = Path(prepared["wav"])
+    return spectrogramme.write_energy(detection, wav.with_name(f"{wav.stem}.{key}.energie.bin"))
 
 
 ERROR_LABELS = {"manquee": "Parole manquée", "fausse_alarme": "Fausse alarme", "confusion": "Confusion"}
@@ -1149,6 +1175,10 @@ VIEWER_TEMPLATE = (
     'aria-label="Niveau de zoom">'
     '<button type="button" class="wsp-zoom-in" aria-label="Zoomer">+</button>'
     '<button type="button" class="wsp-zoom-fit">Tout afficher</button></div>'
+    '<div class="wsp-view" role="group" aria-label="Vue de l\'audio (D28)">'
+    '<button type="button" class="wsp-view-wave" aria-pressed="true">Forme d\'onde</button>'
+    '<button type="button" class="wsp-view-spec" aria-pressed="false">Spectrogramme</button></div>'
+    '<button type="button" class="wsp-energy-toggle" aria-pressed="false" hidden>Énergie et seuil</button>'
     '<button type="button" class="wsp-follow" aria-pressed="true">Suivre la lecture</button>'
     '<button type="button" class="wsp-help-toggle" aria-expanded="false" aria-controls="wsp-help" '
     'aria-label="Raccourcis clavier" title="Raccourcis clavier (?)">?</button></div></div>'
@@ -1163,7 +1193,14 @@ VIEWER_TEMPLATE = (
     'glisser la fenêtre pour déplacer la vue, ou cliquer ailleurs pour y amener la lecture.</p></div>'
     '<div class="wsp-overview"><span class="wsp-overview-label">Vue d\'ensemble</span>'
     '<div class="wsp-minimap"></div></div>'
-    '<div class="wsp-wave"></div>'
+    '<div class="wsp-wavebox"><div class="wsp-spec-axis" aria-hidden="true"></div>'
+    '<canvas class="wsp-spec-canvas" role="img"></canvas><div class="wsp-wave"></div></div>'
+    '<p class="wsp-spec-legend" hidden><span class="wsp-spec-swatch" aria-hidden="true"></span>'
+    '<span class="wsp-spec-text"></span></p>'
+    '<div class="wsp-energy" hidden><div class="wsp-energy-label"><span class="wsp-energy-title">Énergie (dB)</span>'
+    '<span class="wsp-energy-sub"></span></div><div class="wsp-energy-plot">'
+    '<canvas class="wsp-energy-canvas" role="img"></canvas><span class="wsp-energy-tip" hidden></span></div></div>'
+    '<p class="wsp-energy-legend" hidden></p>'
     '<div class="wsp-rows"><div class="wsp-labels"></div>'
     '<div class="wsp-viewport"><div class="wsp-canvas"><div class="wsp-lanes"></div>'
     '<div class="wsp-axis" aria-hidden="true"></div><div class="wsp-playhead"></div></div></div></div>'
@@ -1356,6 +1393,7 @@ def build_app(fake: bool = False, fake_max_s: float = 20.0, repo_root: Path = RE
         if waveform.shape[1] < sample_rate // 10:
             raise gr.Error(f"« {name} » ne contient pas d'audio (moins de 0,1 s une fois décodé). Déposez "
                            "l'enregistrement de la réunion.", duration=None)
+        spectrogramme.start(wav, waveform[0].numpy())   # vue spectrogramme (D28 §2), en tâche de fond
         return {"source": audio_path, "nom": name, "uri": uri, "dir": work, "wav": wav,
                 "duree_s": waveform.shape[1] / sample_rate, "normalisation_s": normalisation_s,
                 "empreinte": audio_fingerprint(waveform[0].numpy()),
@@ -1428,9 +1466,12 @@ def build_app(fake: bool = False, fake_max_s: float = 20.0, repo_root: Path = RE
 
     def result_item(run: dict, prepared: dict, annotation, durations: dict, calcul_s: float,
                     loading_s: float | None, settings: dict, rttm_source: str | None,
-                    cached: str | None = None, commit: str | None = None) -> dict:
+                    cached: str | None = None, commit: str | None = None, detection: dict | None = None) -> dict:
         spec, measured = run["spec"], run["measured"]
         return {
+            # Énergie et seuil de la détection de parole de la baseline (D28 §2), écrits à côté
+            # de l'audio normalisé ; None pour un autre moteur.
+            "detection": _detection_file(detection, prepared, spec.key),
             "uri": prepared["uri"], "dir": prepared["dir"], "wav": prepared["wav"], "duree_s": prepared["duree_s"],
             "libelle": spec.label, "moteur_cle": spec.key, "annotation": annotation, "names": {},
             # Annotation du moteur, jamais modifiée : les fusions (R-U9) s'appliquent à une copie.
@@ -1521,7 +1562,8 @@ def build_app(fake: bool = False, fake_max_s: float = 20.0, repo_root: Path = RE
                         results.append(result_item(
                             run, prepared, annotation_from_tracks(entry["pistes"], prepared["uri"]),
                             entry["durees_etapes"], entry["calcul_s"], None, entry["reglages"],
-                            entry.get("rttm_source"), cached=entry["date"], commit=entry.get("code")))
+                            entry.get("rttm_source"), cached=entry["date"], commit=entry.get("code"),
+                            detection=spectrogramme.decode_energy(entry.get("detection"))))
                         continue
                     yield {status_box: status(f"Chargement de {spec.label}", fraction=_step_fraction(steps, state))}
                     try:
@@ -1531,6 +1573,8 @@ def build_app(fake: bool = False, fake_max_s: float = 20.0, repo_root: Path = RE
                     except Exception as error:  # chargement des modèles : message affiché tel quel
                         raise gr.Error(f"Le modèle n'a pas pu être chargé. Détail : {error}") from error
                     state[f"{index}:chargement"] = 1.0
+                    # Trace de la détection de parole (D28 §2) : seulement pour la baseline.
+                    engine.trace = spec.pipeline == "baseline"
                     if fake:
                         engine.simulated_s = min(fake_max_s, max(2.0, (run["rtf"] or 0.05) * duration_s))
                     if spec.supports_range:
@@ -1576,8 +1620,10 @@ def build_app(fake: bool = False, fake_max_s: float = 20.0, repo_root: Path = RE
                         raise gr.Error(f"L'analyse avec {spec.label} a échoué. Détail : {outcome['error']}")
                     engines.mark_warm(spec.key, run["device"])
                     resultat = outcome["result"]
+                    detection = spectrogramme.detection_from_trace(resultat.trace)
                     item = result_item(run, prepared, resultat.annotation, resultat.durees_etapes, calcul_s,
-                                       loading_s, engine.describe_dict(), resultat.infos.get("rttm_source"))
+                                       loading_s, engine.describe_dict(), resultat.infos.get("rttm_source"),
+                                       detection=detection)
                     results.append(item)
                     try:
                         store.put(run["cle"], {
@@ -1586,6 +1632,7 @@ def build_app(fake: bool = False, fake_max_s: float = 20.0, repo_root: Path = RE
                             "pistes": annotation_tracks(item["annotation"]), "durees_etapes": item["durees_etapes"],
                             "calcul_s": calcul_s, "reglages": item["configuration"]["reglages"],
                             "rttm_source": item["rttm_source"],
+                            "detection": spectrogramme.encode_energy(detection) if detection else None,
                         })
                     except OSError as error:   # le cache est un plan de repli : jamais bloquant
                         gr.Warning(f"Résultat non enregistré dans le cache : {error}")
@@ -1598,6 +1645,7 @@ def build_app(fake: bool = False, fake_max_s: float = 20.0, repo_root: Path = RE
                                                         n_points=max(4000, int(PEAKS_PER_S * duration_s))))
             if len(results) > 1:
                 result["comparaison"] = results[1]
+            result["spectrogramme"] = spectrogramme.result(prepared["wav"], waveform[0].numpy())
             result = _with_reference(result, reference_path)
             summary = ", ".join(
                 f"{item['libelle']} : {_plural(len(sortie.speaker_labels(item['annotation'])), 'locuteur')} "
