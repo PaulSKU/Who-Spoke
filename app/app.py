@@ -1161,6 +1161,15 @@ element.addEventListener('click', (event) => {
 # Onglet Avancement : un clic sur « notes.md » demande au serveur le contenu des notes.
 NOTES_JS = """
 element.addEventListener('click', (event) => {
+  // Frise sous 840 px : « Afficher les N autres » déplie les expériences plus anciennes.
+  const more = event.target.closest('.av-more');
+  if (more) {
+    const open = more.getAttribute('aria-expanded') !== 'true';
+    more.setAttribute('aria-expanded', String(open));
+    more.textContent = open ? more.dataset.less : more.dataset.more;
+    element.querySelector('.av-frise').classList.toggle('av-all', open);
+    return;
+  }
   const button = event.target.closest('.av-notes');
   if (!button) return;
   trigger('click', { notes: button.dataset.id });

@@ -1122,3 +1122,17 @@ Problèmes :
 - L'essai au vidéoprojecteur par la candidate reste à faire.
 - Règle 11 enfreinte une fois : le premier commit a été enchaîné à la suite complète filtrée par `| tail` (le `&&` testait alors le filtre, pas pytest). Suite réussie (655 réussis, 12 ignorés, 3 désélectionnés) ; commit refait, journal compris, derrière `uv run pytest && git commit` sans filtre.
 Suite : retour du cockpit sur B13 ; essai au vidéoprojecteur ; fusion d'`ui` dans `main` selon le planning.
+
+## 2026-11-02 — Interface : frise d'Avancement sous 840 px, règle 11 précisée (Claude Code)
+
+Objectif : appliquer le retour du cockpit sur B13 dans le worktree `ui`, moteur factice, sans modèle chargé, fusion vers `main` ni dépendance ajoutée.
+Réalisé :
+- Avancement : sous 840 px, la frise montre les cinq dernières lignes, suivies d'un bouton « Afficher les N autres » (`aria-expanded`, `aria-controls`, libellé « Masquer les N autres » une fois déplié) ; au-delà de 840 px, tout est affiché et le bouton masqué (`avancement.TIMELINE_RECENT`, classes `av-older` et `av-all`, `NOTES_JS`).
+- Fiches empilées à 375 px : colonne des étiquettes portée à 6,5 rem ; « Variable modifiée » passait sur deux lignes et chevauchait la valeur suivante (défaut de B13 relevé pendant la vérification).
+- CLAUDE.md, règle 11 : la commande de tests qui précède `&&` n'est jamais filtrée par un tube (`| tail`, `| grep`) ; sinon `set -o pipefail`.
+- Vérifié dans le navigateur : 375 et 839 px, 5 lignes puis 21 après le clic ; 841 et 1440 px, 21 lignes, bouton masqué ; aucune étiquette plus haute que sa valeur à 375 px.
+- Contrôle visuel (stylelint, captures de référence, axe-core en clair et en sombre) au vert ; aucune capture de référence modifiée (celles d'Avancement couvrent le haut de la page, au-dessus de la frise). Tests : `tests/test_app_b13.py` (14).
+Résultats : aucune expérience.
+Décisions : aucune.
+Problèmes : aucun.
+Suite : piste B en pause ; fusion d'`ui` dans `main` par la piste A ; essai au vidéoprojecteur par la candidate.

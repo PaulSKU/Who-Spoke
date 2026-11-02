@@ -113,3 +113,21 @@ def test_noms_de_la_matrice_sur_deux_lignes():
 def test_titre_de_comparaison_garde_la_casse_du_moteur():
     source = Path(interface.__file__).read_text()
     assert "if not prefix:          # en comparaison" in source
+
+
+def test_frise_limitee_sous_840_px(sections):
+    """Retour du cockpit sur B13 : sous 840 px, les cinq dernières lignes et « Afficher les N
+    autres » ; au-delà, tout est affiché et le bouton masqué."""
+    frise = sections["frise"]
+    rows = frise.count("<tr") - 1                        # moins la ligne d'en-tête
+    older = rows - av.TIMELINE_RECENT
+    assert older > 0 and frise.count('<tr class="av-older">') == older
+    assert f'aria-controls="av-frise" data-more="Afficher les {older} autres"' in frise
+    assert "@media (min-width: 841px) { .av-more { display: none; } }" in CSS
+    assert "@media (max-width: 840px) { .av-frise:not(.av-all) tr.av-older { display: none; } }" in CSS
+    assert ".av-more" in interface.NOTES_JS and "av-all" in interface.NOTES_JS
+
+
+def test_frise_courte_sans_bouton():
+    assert av.TIMELINE_RECENT == 5
+    assert "av-more" not in av._timeline_html([], REPO_ROOT)

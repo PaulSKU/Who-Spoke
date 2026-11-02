@@ -607,6 +607,7 @@ Le catalogue (`src/whospoke/pipelines/catalogue.yaml`) fait partie de l'empreint
 | Aides repliables | « Comment lire ces constats », « Comment lire ce tableau » (oracles), « À propos de ce glossaire » (format, version, légende de confiance) : repliées, masquées en mode présentation comme celles de l'onglet Analyse ; « Valeurs du graphique » et « Décisions de cadrage » repliées en `ws-fold`, à l'encre, visibles en présentation | `avancement.py`, `graphique.py`, `glossaire.py` |
 | Formatage | Dates en `JJ/MM/AAAA` (`formatage.date`) dans Avancement et Pipeline ; corpus en clair (« AMI (SDM) », « SUMM-RE ») ; nombre de locuteurs « estimé », « oracle » ; variable modifiée en `code` | `avancement.py`, `pipeline.py` |
 | Tableaux à 375 px | Les tableaux d'Avancement (`av-stack`) s'empilent en fiches : identifiant en tête, puis chaque valeur précédée de son en-tête (`data-label`), sans défilement horizontal | `avancement._row`, `interface.css` |
+| Frise sous 840 px | Cinq dernières lignes, puis « Afficher les N autres » (`aria-expanded`) ; au-delà de 840 px, tout est affiché (retour du cockpit sur B13) | `avancement.TIMELINE_RECENT`, `NOTES_JS` |
 | Mode présentation | Chemins des fiches de décision et sources des termes du glossaire masqués | `interface.css` |
 | Glossaire | Filet entre deux entrées par une ombre (`--ws-rule-top`) : l'arrondi courbait les extrémités de la bordure | `interface.css` |
 
