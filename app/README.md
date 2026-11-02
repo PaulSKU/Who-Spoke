@@ -453,4 +453,4 @@ Chargement du fichier du spectrogramme : 14 Mo en 0,31 s ; énergie : 0,7 Mo ; t
 
 Vérifié dans le navigateur intégré : clair et sombre à 1280 × 720, sombre à 375 px (largeur de page 375 px, barre d'outils sur trois lignes, sans défilement horizontal), mode présentation (hauteur 144 px, aller-retour), alignement des harmoniques sur les tours des pistes au zoom maximal, retour à la forme d'onde (80 px, couleurs d'origine), « Tout afficher », infobulle, trace prise sur le second moteur en comparaison. Défaut corrigé pendant la vérification : graduations 250 Hz et 500 Hz superposées (250 Hz retirée).
 
-Tests : `tests/test_app_spectrogramme.py` (15).
+Tests : `tests/test_app_spectrogramme.py` (15). Suite complète : 536 réussis, 12 ignorés, 3 lents exclus.
