@@ -62,27 +62,28 @@ correlations:
   descripteurs: [n_locuteurs, part_chevauchement, part_tours_courts, duree_moyenne_tour_s,
                  part_parole, erreur_n_locuteurs, erreur_n_locuteurs_abs, zoom]
 
-# 4. Catégorisation des secondes d'erreur (sans collar, chevauchements comptés), avec le code
-#    de la carte « Expliquer cette erreur » de l'application : app.sortie.error_map (zones
-#    d'erreur après appariement optimal) et son contexte (_Context.describe), seuils de
-#    app.sortie (SHORT_TURN_S = 0,5 s, SHORT_PAUSE_S = 1 s, BOUNDARY_S = 0,25 s,
-#    TOUCH_S = 0,05 s). Une zone relève d'une catégorie si la carte affiche le constat
-#    correspondant ; toutes ses secondes comptent alors dans cette catégorie (unité : la zone
-#    affichée). Une zone peut relever de plusieurs catégories ; « aucune » : aucun constat.
-#    Les totaux par type redonnent les composantes du per_file (contrôle consigné).
-categories:
-  - chevauchement                  # la zone recoupe un chevauchement de la référence
-  - tour_court                     # elle recoupe un tour de référence de moins de 0,5 s
-  - frontiere                      # un de ses bords est à 0,25 s au plus d'une frontière de tour
-  - pause                          # elle recoupe une pause de moins de 1 s, ou y est contiguë
-  - non_apparie                    # son locuteur de référence n'est apparié à aucun locuteur trouvé
+# 4. Catégorisation des secondes d'erreur (sans collar, chevauchements comptés) : définition
+#    unique d'app/sortie.py (ERROR_CATEGORIES, error_map), décisions du cockpit du 02/11
+#    (catégorie principale exclusive, ordre de priorité, puis option b). Chaque zone d'erreur
+#    est découpée aux bords de la tolérance de ±0,25 s autour des frontières de tour de la
+#    référence : la partie dans la tolérance est un « décalage de frontière », le reste reçoit
+#    la catégorie principale de la zone (chevauchement, locuteur de référence non apparié,
+#    locuteur trouvé en trop, tour court, pause courte, autre). Les catégories somment à
+#    l'erreur sans collar (100 %). Parts rapportées sur toute l'erreur et hors décalage de
+#    frontière (ce que le collar ne pardonne pas). Contrôle par système et corpus : secondes
+#    de décalage de frontière contre secondes pardonnées par le collar (per_file : composantes
+#    sans collar moins avec collar), écart résiduel rapporté. Aucune catégorie n'est déclarée
+#    ici : le script les lit dans app/sortie.py.
 
-# 5. Extraits d'écoute, corpus publics seulement : un par catégorie (dans l'ordre ci-dessus,
-#    puis « aucune »), fenêtre où la catégorie a le plus de secondes d'erreur et y domine ;
-#    puis les pires fichiers (fenêtre de plus forte erreur), jusqu'à n_max. Un fichier au plus
-#    une fois. Exportés hors du dépôt, dans dossier/ (index.html, grille.csv à remplir).
+# 5. Extraits d'écoute, corpus publics seulement : un par catégorie principale (ordre de
+#    priorité, sauf categories_exclues), fenêtre où elle a le plus de secondes d'erreur et en
+#    a au moins autant que toute autre catégorie retenue ; puis les pires fichiers (fenêtre de
+#    plus forte erreur), jusqu'à n_max. Un fichier au plus une fois. Exportés hors du dépôt,
+#    dans dossier/ (index.html, grille_ecoute.csv à remplir). La grille remplie par la
+#    candidate est versée dans ce dossier d'analyse (--importer-grille, grille_ecoute.csv).
 extraits:
   corpus: [ami, summre]            # jamais « maison » (refusé par le script)
+  categories_exclues: [frontiere]  # ce que pardonne le collar : pas un cas d'échec à écouter
   duree_s: 15
   pas_s: 0.5                       # pas de recherche de la fenêtre
   n_min: 6
@@ -91,7 +92,7 @@ extraits:
   max_par_corpus: 5
   dossier: data/processed/a0003/ecoute
   # Corpus maison (le 9/11) : extraits strictement locaux, jamais versionnés ni publiés,
-  # même règle de sélection, dans un dossier à part avec leur propre liste.
+  # même règle de sélection, dans un dossier à part avec leur propre liste et leur grille.
   locaux:
     corpus: [maison]
     dossier: data/processed/a0003/ecoute_maison
@@ -103,4 +104,5 @@ resultats:
   - categories.csv                 # une ligne par système × corpus × type d'erreur
   - categories_par_fichier.csv     # une ligne par système × fichier × type d'erreur
   - extraits.csv                   # extraits des corpus publics (pas ceux du corpus maison)
-  - execution.json                 # commit, arbre propre, empreintes, contrôle des totaux
+  - execution.json                 # commit, arbre propre, empreintes, contrôles (totaux, collar)
+  - grille_ecoute.csv              # après l'écoute : grille remplie par la candidate (--importer-grille)
