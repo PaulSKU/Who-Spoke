@@ -114,6 +114,7 @@ Limites. Les libellés des composants Gradio (« Moteur », « Nombre de locuteu
 | Temps annoncé en fourchette (D17, amendement 2) : de surcoût + RTF × durée à surcoût + 1,3 × RTF × durée, avant le lancement (sous le bouton « Analyser ») et pendant l'analyse. RTF mesuré (`results/leaderboard.csv`) : colonne du périphérique choisi (`rtf_cpu` en CPU, `rtf` sur le périphérique de l'expérience), plus grande valeur entre dev et test. Surcoût fixe du premier appel après chargement, daté, par moteur et périphérique (`moteurs.FIXED_OVERHEAD`, `scripts/measure_overhead.py`), compté seulement si le moteur est froid. Pendant l'analyse, recalage sur la vitesse observée dans l'étape la plus longue (voir ci-dessous). Affichage seulement, pas une mesure au sens de D21 | `app/temps.py`, `app/moteurs.py` |
 | Statistiques par locuteur, renommage et fusion, indicateurs d'interaction, exports (RTTM, JSON avec fiche de reproductibilité, étiquettes Audacity, image de la timeline), DER face à une référence (deux conditions de collar, sur toute la durée du fichier, référence coupée à cette durée ; mention « durée entière du fichier, sans UEM : non comparable aux résultats sur corpus ») | `app/sortie.py`, `app/app.py` |
 | Forme d'onde neutre (D26) : seul le segment sélectionné, dernier cliqué, y est mis en évidence par une bande d'encre et entouré sur sa piste ; timeline par locuteur, écoute d'un segment au clic, zoom (curseur, boutons, Ctrl + molette ; jusqu'à 150 px par seconde, B8) | `app/static/visualiseur.js` et `.css` |
+| Vue spectrogramme (D28 §2, B9) : « Forme d'onde / Spectrogramme » dans la barre du visualiseur ; spectrogramme mel calculé côté serveur, même zoom et même défilement que la timeline ; « Énergie et seuil » pour une baseline | `app/spectrogramme.py`, `app/static/visualiseur.js` |
 | Thème (teintes neutres, polices système) et feuille de style | `app/theme.py`, `app/static/interface.css` |
 | Onglet Pipeline | `app/pipeline.py`, `app/static/pipeline.js` |
 | Onglet Avancement | `app/avancement.py` |
@@ -403,3 +404,53 @@ uv run python -m app.app --factice --config-demo configs/demo.exemple.yaml
 | Cache | Inchangé : l'expérience source et les réglages font déjà partie de la clé |
 
 Tests : `tests/test_app_presentation_gel.py` (26). Suite complète : 509 réussis, 12 ignorés, 3 lents exclus.
+
+## Vue spectrogramme et énergie de la baseline (chantier B9, D28 §2, 02/11/2026)
+
+### Greffon Spectrogram : mesuré, écarté
+
+Archive npm `wavesurfer.js-7.12.12.tgz` téléchargée de nouveau le 02/11 : intégrité sha512 conforme au registre (`fyKNuREQ…uutWw==`), mêmes SHA-256 pour les quatre fichiers déjà embarqués, licence BSD-3-Clause identique, aucune URL dans `dist/plugins/spectrogram.min.js` (SHA-256 6f3e233b0044a85cdea275494dce469bfcf5a6f7f0cb33e5a8350a347b957ae9) ni dans sa variante `spectrogram-windowed.min.js` ; leur travailleur est inclus en base64 et lancé depuis un `blob:`. Les deux greffons lisent l'audio décodé par wavesurfer (`getDecodedData()`) : avec les pics précalculés de l'application, il faut décoder tout le fichier dans le navigateur (0,5 s et environ 115 Mo pour 30 min à 16 kHz), ce que l'application évitait.
+
+Banc d'essai hors de l'application (wavesurfer seul, audio de 30 min décodé à 16 kHz, 1100 px de large, `fftSamples` 512, échelle mel, navigateur intégré de l'application de bureau, panneau affiché, 120 images/s au repos ; la piste A calculait en même temps) :
+
+| Greffon | Pas de zoom vers 150 px/s | Lecture suivie | Glissement 40 px/image | Glissement 400 px/image |
+|---|---|---|---|---|
+| Spectrogram, FFT dans la page | 3,7 s de calcul, dont un gel de 0,87 s | 118 images/s, une image de 92 ms | gel de 0,78 s (nouveau canevas de 30 000 px) | gel de 0,58 s |
+| Spectrogram, FFT dans un travailleur | gel de 0,88 s | 118 images/s, une image de 74 ms | gel de 0,60 s | gel de 0,59 s |
+| Spectrogram-windowed (variante du même paquet) | aucun gel | 118 images/s, une tâche de 127 ms | 120 images/s, mais vue dessinée sur 0 % des images | 121 images/s, vue dessinée sur 5 % des images |
+
+Le greffon Spectrogram ne tient pas (gels de plus d'une demi-seconde au défilement et à chaque pas de zoom). La variante windowed reste fluide parce qu'elle ne dessine qu'à l'arrêt : 80 à 200 ms après un saut, une vue vide pendant tout glissement. D'où la solution de repli de D28 : une image calculée côté serveur. Aucun des deux greffons n'est embarqué.
+
+### Image calculée côté serveur, à résolution adaptée au zoom
+
+| Point | Comportement | Où |
+|---|---|---|
+| Contenu | Spectrogramme mel dont la baseline tire ses MFCC (D19) : trames de 25 ms, pas de 10 ms, 40 bandes, même appel à librosa que `Baseline.analyse` (le test le vérifie : les MFCC recalculés à partir de ce spectrogramme sont ceux de la baseline). En dB, sur 60 dB sous le maximum du fichier, quantifié sur 8 bits | `spectrogramme.mel_power`, `mel_db`, `quantize` |
+| Résolution | Pyramide : niveau 0 à 100 trames par seconde, puis moyenne de 2, 4, 8… trames, jusqu'à 256 trames au plus. Le navigateur prend le niveau le plus grossier qui garde au moins une trame par pixel. Fichier binaire à côté de l'audio normalisé (`<fichier>.spectrogramme.bin`, 14 Mo pour 30 min), lu une fois | `spectrogramme.pyramid`, `compute` |
+| Calcul | Lancé en tâche de fond dès la normalisation du fichier déposé, un seul à la fois ; la mise en forme des résultats l'attend s'il n'a pas fini. 3,0 s pour 30 min (pendant un calcul de la piste A). Un échec rend la vue indisponible (bouton grisé), sans bloquer l'analyse | `spectrogramme.start`, `result` ; `prepare` |
+| Dessin | Un canevas de la largeur de la vue, sous la forme d'onde rendue transparente : curseur, sélection et clic pour se déplacer restent ceux de wavesurfer. À chaque défilement, zoom ou redimensionnement, seules les colonnes visibles sont mises en couleurs et dessinées (au plus une image par rafraîchissement) : coût constant quelle que soit la durée | `drawSpectrogram`, `scheduleLayers` |
+| Axe | Graduations 500 Hz, 1, 2, 4 et 8 kHz dans la colonne des noms, placées sur l'échelle mel des bandes | `spectrogramme.band_ticks` |
+| Hauteur | 112 px (144 px en mode présentation), variable `--wsp-spec-h` | `visualiseur.css` |
+
+### Palette
+
+Rampe à une seule teinte neutre, interpolée en OKLab du fond des pistes à l'encre : clarté régulière d'un pas à l'autre (perceptuellement uniforme), sans chroma, ce qui garde la couleur aux locuteurs (D26) et ne dépend d'aucune vision des couleurs. En clair, `#f0f0ed` → `#18191d` (plus foncé = plus d'énergie) ; en sombre, `#232428` → `#ecece9` (plus clair = plus d'énergie), comme une rampe séquentielle de la skill dataviz, dont l'ancrage s'inverse en sombre. Une légende sous l'image donne la rampe et son sens. Le thème basculé redessine l'image. Le test vérifie la monotonie et l'écart à la droite idéale en OKLab (moins de 0,004, arrondi à 8 bits compris).
+
+### Énergie et seuil de la baseline (« Énergie et seuil »)
+
+Bouton visible quand le premier moteur, ou à défaut le second, est une baseline. Bande de 56 px sous la vue, avec sa propre échelle (pas de second axe sur le spectrogramme) : énergie par trame (enveloppe minimum et maximum par pixel), seuil de détection en tirets, régions de parole retenues en bande pleine en bas ; infobulle au survol (instant, énergie, position par rapport au seuil, parole détectée ou non). Données lues dans la trace du moteur (`Resultat.trace` : `energie_db`, `seuil_db`, `pas_trame_s`, `regions_parole`), demandée à la baseline (`engine.trace`) et à elle seule, écrites dans `<fichier>.<moteur>.energie.bin`. Le cache des résultats garde l'énergie au dixième de dB (champ `detection` de l'entrée, format inchangé) : un résultat réaffiché la montre aussi ; une entrée antérieure à B9 n'en a pas. Le moteur factice fabrique une trace quand il imite une baseline (énergie par tranche de 10 ms sans recouvrement, seuil à la médiane, sans lissage), marquée « Trace factice » dans la légende.
+
+### Fluidité dans l'application (30 min, 150 px/s)
+
+Même réunion de 30 min qu'au banc (SUMM-RE 007a_ECRH bouclée, copie locale supprimée après la séance), moteur factice : baseline MFCC puis baseline ECAPA, avec une référence (5 833 segments et zones), 1280 × 720, panneau affiché ; mêmes mesures qu'en B8 (intervalle entre images, médiane, 95e centile, maximum).
+
+| Vue | Lecture suivie | Glissement 40 px/image | Glissement 400 px/image | Pas de zoom |
+|---|---|---|---|---|
+| Forme d'onde (témoin) | 113 images/s ; 8,3 ms, 15,7 ms, 32 ms | 119 images/s ; 8,3, 10,2, 17,6 ms | 106 images/s ; 8,5, 16,7, 20,8 ms | 29 à 46 ms |
+| Spectrogramme et énergie | 108 à 114 images/s ; 8,3 ms, 15 à 17 ms, 26 à 67 ms (une image au-delà de 50 ms au départ de la lecture) | 120 images/s ; 8,3, 10,2, 17,4 ms | 100 images/s ; 8,6, 17,4, 24,8 ms | 24 à 86 ms |
+
+Chargement du fichier du spectrogramme : 14 Mo en 0,31 s ; énergie : 0,7 Mo ; tas JavaScript 104 Mo. Non mesuré à 90 min (fichier d'environ 43 Mo, même coût de dessin).
+
+Vérifié dans le navigateur intégré : clair et sombre à 1280 × 720, sombre à 375 px (largeur de page 375 px, barre d'outils sur trois lignes, sans défilement horizontal), mode présentation (hauteur 144 px, aller-retour), alignement des harmoniques sur les tours des pistes au zoom maximal, retour à la forme d'onde (80 px, couleurs d'origine), « Tout afficher », infobulle, trace prise sur le second moteur en comparaison. Défaut corrigé pendant la vérification : graduations 250 Hz et 500 Hz superposées (250 Hz retirée).
+
+Tests : `tests/test_app_spectrogramme.py` (15).
