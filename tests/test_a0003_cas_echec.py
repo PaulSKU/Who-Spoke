@@ -281,7 +281,8 @@ def test_extraits_publics_et_locaux(depot):
     assert page.count("<audio") == len(excerpts) and "grille_remplie.csv" in page
     assert "maison" not in page
     grid = read(listen / "grille.csv")
-    assert [g["extrait"] for g in grid] == [r["extrait"] for r in excerpts]
+    assert [g["extrait"] for g in grid] == [r["extrait"] for r in excerpts] == [f"x{k}" for k in range(1, len(grid) + 1)]
+    assert list(excerpts[0])[0] == "extrait"
     assert all(g[c] == "" for g in grid for c in a0003.CAUSES)
     # Corpus maison : dossier local à part, avec sa propre liste ; rien dans le dossier de l'analyse.
     local = depot["ecoute"].parent / "ecoute_maison"

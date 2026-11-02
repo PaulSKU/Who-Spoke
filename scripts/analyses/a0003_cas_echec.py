@@ -286,9 +286,7 @@ def select_excerpts(candidates: list[dict], spec: dict) -> list[dict]:
             add(candidate, int(np.argmax(candidate["fenetres"][1]["tous"])), "pire_fichier", "")
     if len(chosen) < spec["n_min"]:
         print(f"[A-0003] {len(chosen)} extraits seulement (minimum {spec['n_min']}) : pas assez de fichiers candidats")
-    for number, excerpt in enumerate(chosen, start=1):
-        excerpt["extrait"] = f"x{number}"
-    return chosen
+    return [{"extrait": f"x{number}", **excerpt} for number, excerpt in enumerate(chosen, start=1)]
 
 
 CAUSES = ("voix proches", "rires", "acquiescements", "micro éloigné", "bruit")   # D28 §1.5
@@ -552,7 +550,10 @@ def run(config: dict, out_dir: Path, data_root: Path, listen_dir: Path | None,
                        "A-0003 — écoute, corpus maison (local, jamais publié)"))
     excerpts = []
     for name, corpora, target, title in groups:
-        selected = select_excerpts([c for c in candidates if c["corpus"] in corpora], spec)
+        pool = [c for c in candidates if c["corpus"] in corpora]
+        if not pool:
+            continue
+        selected = select_excerpts(pool, spec)
         if name == "public":
             excerpts = selected
         if target is not None and selected:
