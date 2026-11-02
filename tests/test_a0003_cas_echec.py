@@ -308,3 +308,11 @@ def test_main_essai_et_immutabilite(depot, monkeypatch, tmp_path):
                                       "--sortie", str(REPO_ROOT / "analyses" / "essai")])
     with pytest.raises(SystemExit):                       # un essai ne s'écrit pas dans analyses/
         a0003.main()
+
+
+def test_script_lancable_hors_de_pytest():
+    import subprocess
+
+    result = subprocess.run([sys.executable, str(REPO_ROOT / "scripts" / "analyses" / "a0003_cas_echec.py"), "--help"],
+                            cwd=REPO_ROOT / "scripts", capture_output=True, text=True)
+    assert result.returncode == 0, result.stderr

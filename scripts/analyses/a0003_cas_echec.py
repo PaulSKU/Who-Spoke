@@ -55,12 +55,14 @@ from pyannote.core import Annotation, Timeline
 from scipy.io import wavfile
 from scipy.stats import spearmanr
 
-from app import sortie
 from whospoke.experiment import (
     DATA_DIR, REPO_ROOT, annotation_corpus, dataset_uris, git_state, hypothesis_dir, load_rttm,
     load_uem, processed_wav, reference_rttm, uem_path,
 )
 from whospoke.partage import EXPERIMENTS_DIR, experiment_dir
+
+sys.path.insert(0, str(REPO_ROOT))   # paquet `app` (carte des erreurs de l'application)
+from app import sortie  # noqa: E402
 
 ERROR_TYPES = ("manquee", "fausse_alarme", "confusion")
 CATEGORIES = ("chevauchement", "tour_court", "frontiere", "pause", "non_apparie")
