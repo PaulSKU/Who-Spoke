@@ -818,3 +818,25 @@ Problèmes :
 - Les bruits seuls du dossier d'écoute sont à leur niveau d'origine, faible (−37 à −56 dBFS) : monter le volume.
 - Espace disque : 19 Go libres (pistes de test 8,8 Go, conditions 9,1 Go).
 Suite : écoute de contrôle par la candidate (`data/processed/summre_degrade/ecoute/index.html`), puis expériences d'A3 (pyannote, configuration d'EXP-0007, et baseline ECAPA, configuration d'EXP-0012) ; le script d'exécution devra lire les WAV de `data/processed/summre_degrade/<condition>/` avec les références et UEM de SUMM-RE (corpus `summre-<condition>`), ce qui reste à faire.
+
+## 2026-11-02 — Interface : zoom relevé, mode présentation, configuration de démonstration (B8) (Claude Code)
+
+Objectif : chantier B8 dans le worktree `ui` (resynchronisé avec `main` en avance rapide), moteur factice, sans modèle, fusion ni dépendance ajoutée : zoom maximal relevé si la fluidité tient sur 30 min, mode présentation, lecture de `configs/demo.yaml` (D17, amendement 1).
+Réalisé :
+- Zoom : fluidité mesurée sur une réunion fabriquée de 30 min, 2 moteurs et une référence (10 581 segments et zones). À 60 comme à 150 px/s, la lecture suivie tombait à 20 à 44 images/s, à cause des pistes (la forme d'onde n'y était pour rien). Correctif : les segments et zones hors de la vue sont masqués (une largeur de vue de part et d'autre gardée). À 150 px/s : 118 à 120 images/s en lecture suivie et en glissement, sans image au-delà de 50 ms. Zoom maximal relevé à 150 px/s.
+- Mode présentation (`--presentation` et bouton de l'en-tête) : texte et commandes agrandis d'un quart, pistes et boutons du visualiseur plus grands, contrastes renforcés (texte secondaire, filets, fonds de piste, cartes cernées), périphérique, cache, aide en ligne et étapes terminées masqués. Vérifié à 1280 × 720 en clair et en sombre.
+- Gel : `moteurs.demo_config` lit `configs/demo.yaml` (moteur par défaut, expérience source de chaque moteur, nombre de locuteurs par défaut) et retombe sinon sur `app/moteurs.py`. Fichier incohérent refusé au lancement avec ce qu'il faut corriger. Option `--config-demo` pour essayer un fichier. `configs/demo.exemple.yaml` écrit (fourchette de 2 à 6 pour pyannote), pas `configs/demo.yaml`. Configuration et moteur en vigueur dans l'en-tête ; `configuration_demo` (fichier, gel, SHA-256) dans la fiche de reproductibilité.
+- Comparaison : avec la fourchette par défaut, comparer pyannote à la baseline ECAPA était refusé. Le second moteur estime désormais lui-même le nombre de locuteurs ; l'annonce, une notification et le bandeau le disent.
+- Corrigés en passant : coche et point radio invisibles en sombre ; chemin du RTTM du mode factice qui élargissait la page à 375 px ; en mode présentation, tailles de Gradio redéclarées sur `body.dark`.
+- Tests : `tests/test_app_presentation_gel.py` (26). Tests ciblés pendant le travail, suite complète une fois à la fin : 509 réussis, 12 ignorés, 3 lents exclus.
+Résultats : aucune expérience. Mesures de fluidité dans `app/README.md` (B8).
+Décisions : aucune. Choix de la session, à valider :
+- Un moteur absent de `configs/demo.yaml` est refusé (le gel décrit chaque moteur), au lieu d'être masqué ou repris de `app/moteurs.py`.
+- En comparaison avec une fourchette, le second moteur (baseline) tourne en nombre automatique au lieu d'être refusé.
+- En mode présentation, la liste des étapes terminées est masquée, et le sous-titre gardé.
+- Contenu du mode présentation : agrandissement d'un quart, teintes renforcées, réglages masqués (périphérique, cache).
+Problèmes :
+- Mesures faites dans le panneau masqué du navigateur de l'application : images calculées sans ralentissement (122 images/s au repos), mais affichage réel à l'écran non mesuré ; 90 min non mesurées à 150 px/s.
+- Au zoom maximal, la tabulation ne parcourt plus que les segments affichés, ceux de l'écran et de ses abords.
+- Mon erreur : une commande a annulé par `git checkout` mes modifications non commitées de `visualiseur.js` ; je les ai réappliquées à l'identique et revérifiées (tests, comportement dans le navigateur).
+Suite : au gel du 10/11, copier `configs/demo.exemple.yaml` en `configs/demo.yaml` avec les expériences retenues ; essai du mode présentation sur le vidéoprojecteur réel.

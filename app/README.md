@@ -7,7 +7,7 @@ uv run python -m app.app             # moteurs réels, préchauffés au démarra
 uv run python -m app.app --factice   # moteur factice : aucune inférence
 ```
 
-Puis ouvrir http://127.0.0.1:7860 (serveur local uniquement, pas de lien public). Options : `--port`, `--factice-max-s` (durée maximale simulée d'une analyse en mode factice), `--sans-prechauffage` (moteurs chargés au premier usage), `--vider-cache` (vide le cache des résultats avant le lancement), `--factice-rttm DOSSIER` (mode factice : sorties fabriquées `<nom du fichier déposé>.rttm`, cherchées avant celles de l'expérience source ; cas limites, B7), `--depot` (racine du dépôt dont sont lus, en lecture seule, les expériences, les analyses, `results/leaderboard.csv`, le catalogue et les documents de `docs/` ; par défaut ce dépôt). Pendant le développement sur la branche `interface`, qui n'a pas toutes les expériences :
+Puis ouvrir http://127.0.0.1:7860 (serveur local uniquement, pas de lien public). Options : `--port`, `--factice-max-s` (durée maximale simulée d'une analyse en mode factice), `--sans-prechauffage` (moteurs chargés au premier usage), `--vider-cache` (vide le cache des résultats avant le lancement), `--factice-rttm DOSSIER` (mode factice : sorties fabriquées `<nom du fichier déposé>.rttm`, cherchées avant celles de l'expérience source ; cas limites, B7), `--presentation` (ouvre en mode présentation, B8), `--config-demo FICHIER` (configuration de démonstration à lire à la place de `configs/demo.yaml`, B8), `--depot` (racine du dépôt dont sont lus, en lecture seule, les expériences, les analyses, `results/leaderboard.csv`, le catalogue et les documents de `docs/` ; par défaut ce dépôt). Pendant le développement sur la branche `interface`, qui n'a pas toutes les expériences :
 
 ```bash
 uv run python -m app.app --factice --depot ~/Dev/Who-Spoke
@@ -113,7 +113,7 @@ Limites. Les libellés des composants Gradio (« Moteur », « Nombre de locuteu
 | Moteurs et expérience source de chaque moteur (paramètres, θ retenu, RTF) : EXP-0009 (MFCC), EXP-0012 (ECAPA), EXP-0007 (pyannote), EXP-0015 (WeSpeaker, indisponible tant qu'elle n'existe pas ou n'a pas tourné) ; `configs/demo.yaml` au gel | `app/moteurs.py` |
 | Temps annoncé en fourchette (D17, amendement 2) : de surcoût + RTF × durée à surcoût + 1,3 × RTF × durée, avant le lancement (sous le bouton « Analyser ») et pendant l'analyse. RTF mesuré (`results/leaderboard.csv`) : colonne du périphérique choisi (`rtf_cpu` en CPU, `rtf` sur le périphérique de l'expérience), plus grande valeur entre dev et test. Surcoût fixe du premier appel après chargement, daté, par moteur et périphérique (`moteurs.FIXED_OVERHEAD`, `scripts/measure_overhead.py`), compté seulement si le moteur est froid. Pendant l'analyse, recalage sur la vitesse observée dans l'étape la plus longue (voir ci-dessous). Affichage seulement, pas une mesure au sens de D21 | `app/temps.py`, `app/moteurs.py` |
 | Statistiques par locuteur, renommage et fusion, indicateurs d'interaction, exports (RTTM, JSON avec fiche de reproductibilité, étiquettes Audacity, image de la timeline), DER face à une référence (deux conditions de collar, sur toute la durée du fichier, référence coupée à cette durée ; mention « durée entière du fichier, sans UEM : non comparable aux résultats sur corpus ») | `app/sortie.py`, `app/app.py` |
-| Forme d'onde neutre (D26) : seul le segment sélectionné, dernier cliqué, y est mis en évidence par une bande d'encre et entouré sur sa piste ; timeline par locuteur, écoute d'un segment au clic, zoom (curseur, boutons, Ctrl + molette ; jusqu'à 60 px par seconde) | `app/static/visualiseur.js` et `.css` |
+| Forme d'onde neutre (D26) : seul le segment sélectionné, dernier cliqué, y est mis en évidence par une bande d'encre et entouré sur sa piste ; timeline par locuteur, écoute d'un segment au clic, zoom (curseur, boutons, Ctrl + molette ; jusqu'à 150 px par seconde, B8) | `app/static/visualiseur.js` et `.css` |
 | Thème (teintes neutres, polices système) et feuille de style | `app/theme.py`, `app/static/interface.css` |
 | Onglet Pipeline | `app/pipeline.py`, `app/static/pipeline.js` |
 | Onglet Avancement | `app/avancement.py` |
@@ -357,3 +357,49 @@ puis déposer les fichiers de `/tmp/b7/audio` et de `/tmp/b7/references`. Un mes
 
 Une sortie très morcelée reste lente : `Timeline.co_iter` de pyannote.core, qu'utilisent le DER de pyannote.metrics, les statistiques et la carte des erreurs, croît à peu près comme le carré de la densité de segments. 1 200 tours de 50 ms en 60 s : DER en 0,33 s ; 3 600 en 3 min : 2,1 s ; 36 000 en 30 min : plusieurs minutes (extrapolé, non mené à terme). Une analyse réelle en produit bien moins (environ 1 000 segments pour 20 min sur 007a_ECRH). L'écran affiche désormais l'étape de mise en forme au lieu de rester figé. Le comportement des moteurs réels sur ces fichiers (3 s, silence, 90 min) reste à vérifier à la fusion, sans modèle chargé ici.
 
+## Zoom relevé, mode présentation et configuration de démonstration (chantier B8, 02/11/2026)
+
+### Zoom maximal : 150 px/s (au lieu de 60)
+
+Relevé parce que la fluidité tient sur 30 min, une fois corrigé ce qui la faisait tomber. Mesure dans le navigateur intégré, moteur factice, 1280 × 720 : réunion fabriquée de 30 min (4 locuteurs, 1 422 tours de 0,3 à 3 s avec chevauchements brefs), comparée à un second moteur et à une référence décalée, soit 10 581 segments et zones d'erreur dans la timeline, le pire cas d'affichage. Intervalle entre images (`requestAnimationFrame`), médiane, 95e centile, maximum ; « lecture suivie » : lecture avec « Suivre la lecture », au zoom maximal ; « glissement » : 40 px de défilement par image, « rapide » : 400 px.
+
+| Zoom maximal | Lecture suivie | Glissement | Glissement rapide | Pas de zoom |
+|---|---|---|---|---|
+| 60 px/s, avant B8 | 22 à 44 images/s selon le passage ; au pire 41 ms, 65 ms, 73 ms | 47 images/s ; 24 ms, 33 ms | 36 images/s ; 25 ms, 41 ms | 150 à 170 ms |
+| 150 px/s, avant B8 | 20 images/s ; 48 ms, 70 ms, 82 ms (15 images au-delà de 50 ms en 3,5 s) | 44 images/s ; 24 ms, 32 ms | 35 images/s ; 25 ms, 41 ms | 145 à 187 ms |
+| 150 px/s, segments hors vue masqués | 118 à 119 images/s ; 8,3 ms, 10,1 ms, 23 ms | 120 images/s ; 8,3 ms, 10,1 ms | 116 images/s ; 8,3 ms, 10,3 ms | 35 à 45 ms aux forts zooms, 140 à 240 ms aux premiers pas, 280 ms pour « Tout afficher » |
+
+Le coût venait des pistes, pas de la forme d'onde : pistes masquées, la lecture suivie montait à 122 images/s ; segments hors de la vue masqués à la main, aussi. Correctif (`cullBars` dans `visualiseur.js`) : segments et zones d'erreur triés par début ; à chaque défilement ou zoom, seuls ceux d'une largeur de vue de part et d'autre de la partie visible restent affichés (115 éléments sur 10 581 au zoom maximal), et seuls ceux qui entrent ou sortent de cette plage changent. À zoom nul, tout reste affiché. Canevas de 270 000 px au zoom maximal sur 30 min ; un tour de 50 ms y fait 7,5 px (3 px à 60 px/s). Les segments masqués ne sont plus atteignables à la tabulation : au zoom maximal, la tabulation parcourt ceux de l'écran et de ses abords. Mesures faites dans le panneau du navigateur de l'application de bureau, masqué : le navigateur y calcule les images comme dans une fenêtre visible tant qu'il ne les ralentit pas (vérifié : 122 images/s au repos), mais l'affichage réel à l'écran n'est pas mesuré. Non mesuré à 90 min (canevas de 810 000 px au zoom maximal).
+
+### Mode présentation (`--presentation` ou bouton « Mode présentation » de l'en-tête)
+
+Pour un vidéoprojecteur ou un écran partagé, lu de loin à 1280 × 720. Classe `ws-presentation` sur `<html>`, posée au chargement par l'option et basculée par le bouton (`app/static/presentation.js`, `aria-pressed` tenu à jour même quand Gradio redessine l'en-tête) ; le visualiseur recalcule son zoom au basculement.
+
+| Effet | Détail |
+|---|---|
+| Texte et commandes agrandis d'un quart | Racine à 20 px (nos tailles sont en rem) ; tailles de texte de Gradio relevées (`--text-md` 14 → 18 px), aussi sur `body.dark`, où Gradio les redéclare ; boutons du visualiseur de 32 à 40 px ; pistes de 14 à 20 px, rangées de 24 à 30 px ; colonne des noms de 132 à 176 px (184 à 236 avec une référence appariée) ; tête de lecture de 3 px |
+| Contrastes renforcés | Texte secondaire #5f616a → #44464d en clair, #a3a49e → #c8c9c3 en sombre ; filets #e2e2df → #b6b7b1 et #2d2e33 → #4f5158 ; fond des pistes plus marqué ; cartes cernées d'un filet (un projecteur délave les gris clairs) |
+| Masqué | Périphérique et « Cache des résultats » (classe `ws-secondary`), aide en ligne sous la timeline (les raccourcis restent sous « ? »), liste des étapes une fois toutes terminées (à 720 px de haut, elle repoussait la timeline sous le bord de l'écran) |
+
+Vérifié dans le navigateur à 1280 × 720, clair et sombre, analyse comparée de 30 min avec référence : en-tête, bandeau, état, timeline et tableau des locuteurs lisibles ; bascule aller-retour (réglages secondaires masqués puis rendus, zoom recalculé). À 375 px (sombre), avec et sans mode présentation, après une analyse comparée : pas de défilement horizontal.
+
+Corrigés en passant : en sombre, la coche des cases et le point des boutons radio cochés étaient blancs sur le fond clair d'un choix coché, donc invisibles (règle de Gradio en dur, remplacée) ; le chemin du RTTM affiché en mode factice dans « Temps de traitement » élargissait la page à 523 px sur un écran de 375 px (coupé n'importe où désormais).
+
+### Configuration de démonstration (D17, amendement 1 : gel du 10/11)
+
+L'application lit `configs/demo.yaml` s'il existe : moteur proposé par défaut, expérience source de chaque moteur, nombre de locuteurs par défaut de chaque moteur. Sinon, elle garde la correspondance de `app/moteurs.py` (`SPECS`, `DEFAULT_ENGINE`, nombre automatique). Seul `configs/demo.exemple.yaml` est versionné aujourd'hui (fourchette de 2 à 6 pour pyannote, garde-fou retenu le 02/11) ; `configs/demo.yaml` sera écrit au gel. Essai d'un fichier sans le mettre en place :
+
+```bash
+uv run python -m app.app --factice --config-demo configs/demo.exemple.yaml
+```
+
+| Point | Comportement |
+|---|---|
+| Affichage | En-tête : « Configuration : `configs/demo.yaml`, gel du 10/11/2026 » (ou « correspondance de `app/moteurs.py`, avant le gel ») et le moteur choisi avec son expérience source et son nombre de locuteurs par défaut ; suit le choix du moteur. Au lancement, la console l'écrit aussi |
+| Nombre de locuteurs | Valeur par défaut de chaque moteur (`automatique`, `impose` avec `valeur`, `fourchette` avec `min` et `max`), appliquée à l'ouverture et à chaque changement de moteur |
+| Comparaison avec une fourchette | La fourchette ne vaut que pour pyannote (D17, amendement 1) : le second moteur, une baseline, estime lui-même le nombre de locuteurs ; l'annonce de durée et une notification le disent, le bandeau donne le réglage de chaque moteur. Avant, la comparaison par défaut (pyannote et baseline ECAPA) aurait été refusée dès que la fourchette était le réglage par défaut |
+| Fichier incohérent | Le lancement s'arrête sur un message qui dit quoi corriger : moteur inconnu ou absent, identifiant EXP-NNNN, fourchette sur une baseline, `min` au-dessus de `max`, entier attendu, mode inconnu, moteur par défaut absent, YAML illisible |
+| Reproductibilité | La fiche de l'export JSON consigne `configuration_demo` : fichier, date du gel, SHA-256 (`null` avant le gel) |
+| Cache | Inchangé : l'expérience source et les réglages font déjà partie de la clé |
+
+Tests : `tests/test_app_presentation_gel.py` (26). Suite complète : 509 réussis, 12 ignorés, 3 lents exclus.
