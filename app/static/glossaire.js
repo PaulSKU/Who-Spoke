@@ -25,3 +25,25 @@ document.addEventListener('click', (event) => {
   };
   reveal();
 });
+
+// Boutons qui ouvrent un onglet (`data-ws-tab`, carte « Comment ça marche », V8). À 375 px,
+// Gradio range les derniers onglets dans son menu « More tabs » : il est ouvert au besoin.
+document.addEventListener('click', (event) => {
+  const button = event.target.closest('[data-ws-tab]');
+  if (!button) return;
+  const name = button.dataset.wsTab;
+  const tab = Array.from(document.querySelectorAll('button[role="tab"]'))
+    .find((item) => item.textContent.trim() === name && item.offsetParent !== null);
+  if (tab) {
+    tab.click();
+  } else {
+    const more = document.querySelector('button[aria-label="More tabs"]');
+    if (more) more.click();
+    setTimeout(() => {
+      const item = Array.from(document.querySelectorAll('button')).find((b) => b.textContent.trim() === name
+        && b.getAttribute('role') !== 'tab');
+      if (item) item.click();
+    }, 50);
+  }
+  window.scrollTo({ top: 0 });
+});

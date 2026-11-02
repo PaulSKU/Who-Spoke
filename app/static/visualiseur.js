@@ -13,7 +13,7 @@
 // fenêtre visible se déplace à la souris, au doigt ou au clavier (← →), un clic ailleurs
 // y amène la lecture. La vue suit la lecture (autoScroll et autoCenter de wavesurfer),
 // sauf si on la déplace à la main ; le bouton « Suivre la lecture » le rétablit.
-// Appariement (R-U4) : les pistes de la référence portent la couleur et le nom (« ↔ X ») du
+// Appariement (R-U4) : les pistes de la référence portent la couleur et le rang (« → S2 ») du
 // locuteur trouvé apparié ; un clic sur une zone d'erreur ouvre « Expliquer cette erreur »
 // (catégorie principale, type, durée, locuteurs après appariement, autres constats, calculés
 // côté serveur).
@@ -883,7 +883,7 @@ function drawLanes(v) {
     const tracks = {};
     group.locuteurs.forEach((spk) => {
       names[spk.id] = spk.nom;
-      tracks[spk.id] = addRow(labels, lanes, spk.nom, spk.nom + ' (' + spk.id + ')', '',
+      tracks[spk.id] = addRow(labels, lanes, spk.nom, spk.titre || spk.nom + ' (' + spk.id + ')', '',
                               element._colors[group.id + ':' + spk.id]);
       if (groupIndex === 0) {
         const label = labels.lastChild;
@@ -1000,7 +1000,6 @@ function render() {
     return;
   }
   root.classList.remove('wsp-empty');
-  root.classList.toggle('wsp-wide', v.groupes.some((group) => group.id === 'ref'));
   const dark = isDark();
   element._colors = {};
   v.groupes.forEach((group) => group.locuteurs.forEach((spk) => {
@@ -1121,6 +1120,12 @@ element.addEventListener('click', (event) => {
   else if (target.classList.contains('wsp-zoom-in')) setZoom((element._zoom || 0) + ZOOM_STEP);
   else if (target.classList.contains('wsp-zoom-out')) setZoom((element._zoom || 0) - ZOOM_STEP);
   else if (target.classList.contains('wsp-zoom-fit')) setZoom(0);
+  else if (target.classList.contains('wsp-zoom-toggle')) {
+    // Petit écran : zoom et options d'affichage repliés derrière la loupe (V5).
+    const open = !$('.wsp-root').classList.contains('wsp-zoom-open');
+    $('.wsp-root').classList.toggle('wsp-zoom-open', open);
+    target.setAttribute('aria-expanded', open ? 'true' : 'false');
+  }
   else if (target.classList.contains('wsp-view-wave')) setView('onde');
   else if (target.classList.contains('wsp-view-spec')) setView('spectro');
   else if (target.classList.contains('wsp-energy-toggle')) setEnergy(!element._energy);

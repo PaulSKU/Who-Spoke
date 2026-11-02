@@ -7,8 +7,9 @@ reproductibles d'un lancement à l'autre.
     uv run python -m tests.visuel.preparer DOSSIER
 
 Le dossier reçoit `reunion_synthese.wav` (à déposer), `sorties/reunion_synthese.rttm`
-(sortie du moteur factice, `--factice-rttm DOSSIER/sorties`) et `reunion_synthese_reference.rttm`
-(référence à déposer).
+(sortie du moteur factice, `--factice-rttm DOSSIER/sorties`), `reunion_synthese_reference.rttm`
+(référence à déposer) et `reunion_synthese_reference_sans_chevauchement.rttm` (la même, sans
+chevauchement).
 """
 
 from __future__ import annotations
@@ -52,6 +53,17 @@ def reference(rows: list[tuple[float, float, str]], seed: int = SEED) -> list[tu
     return sorted(out)
 
 
+def without_overlap(rows: list[tuple[float, float, str]]) -> list[tuple[float, float, str]]:
+    """Même référence, chaque tour coupé au début du suivant : aucun chevauchement."""
+    rows = sorted(rows)
+    out = []
+    for (start, end, label), following in zip(rows, rows[1:] + [None]):
+        end = min(end, following[0]) if following else end
+        if end > start:
+            out.append((start, end, label))
+    return out
+
+
 def build(directory: Path) -> dict[str, Path]:
     directory.mkdir(parents=True, exist_ok=True)
     audio = directory / f"{NAME}.wav"
@@ -60,7 +72,9 @@ def build(directory: Path) -> dict[str, Path]:
     rows = turns()
     output = fabrique.write_rttm(directory / "sorties" / f"{NAME}.rttm", NAME, rows)
     ref = fabrique.write_rttm(directory / f"{NAME}_reference.rttm", NAME, reference(rows))
-    return {"audio": audio, "sortie": output, "reference": ref}
+    plain = fabrique.write_rttm(directory / f"{NAME}_reference_sans_chevauchement.rttm", NAME,
+                                without_overlap(reference(rows)))
+    return {"audio": audio, "sortie": output, "reference": ref, "reference_sans_chevauchement": plain}
 
 
 if __name__ == "__main__":

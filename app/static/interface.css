@@ -41,10 +41,17 @@
 }
 .ws-badges { display: flex; flex-wrap: wrap; align-items: center; gap: var(--ws-space-2); }
 
-/* Configuration en vigueur (D17, amendement 1) : deux blocs (configuration, moteur), chacun
-   d'un tenant, côte à côte ou l'un sous l'autre. */
-.ws-header p.ws-config {
-  margin-top: var(--ws-space-1); font-size: 0.85rem; max-width: none; display: flex; flex-wrap: wrap;
+/* Configuration en vigueur (D17, amendement 1) dans un panneau « Détails » replié (V6) :
+   une information de vérification, pas de démonstration. Deux blocs (configuration,
+   moteur), chacun d'un tenant, côte à côte ou l'un sous l'autre. */
+.ws-details { font-size: 0.85rem; color: var(--ws-slate); }
+.ws-details summary {
+  display: inline-flex; align-items: center; gap: var(--ws-space-1); cursor: pointer; padding: 2px 0;
+  border-radius: var(--ws-radius-mark);
+}
+.ws-details[open] summary { color: var(--ws-ink); }
+.ws-details p.ws-config {
+  margin: var(--ws-space-1) 0 0; font-size: 0.85rem; color: var(--ws-slate); display: flex; flex-wrap: wrap;
   gap: 0 20px;
 }
 .ws-config code { font-size: 0.95em; color: var(--ws-ink); overflow-wrap: anywhere; }   /* chemin de --config-demo */
@@ -173,6 +180,17 @@ label:has(input:focus-visible) { outline: 2px solid var(--ws-ink); outline-offse
 .ws-note p { margin: 0; }
 .ws-empty-note { color: var(--ws-slate); font-size: 0.9rem; padding: 6px 0; }
 
+/* Carte « Comment ça marche », seule à droite avant toute analyse (V8). */
+.ws-howto-steps { list-style: none; margin: 0; padding: 0; display: grid; gap: var(--ws-space-4); }
+.ws-howto-steps li { display: flex; align-items: flex-start; gap: var(--ws-space-3); }
+.ws-howto-num {
+  flex: none; width: 24px; height: 24px; display: flex; align-items: center; justify-content: center;
+  border-radius: var(--ws-radius-round); font-size: 0.8rem; font-weight: 600; color: var(--ws-on-ink); background: var(--ws-ink);
+}
+.ws-howto-step { margin: 2px 0 0; font-weight: 600; color: var(--ws-ink); }
+.ws-howto-results { margin: 0; padding-left: 18px; font-size: 0.9rem; line-height: 1.6; }
+.ws-howto-more { margin: var(--ws-space-4) 0 0; }
+
 /* Zones de dépôt : fond de page, arrondi des contrôles. */
 .ws-card [data-testid="file"] .wrap, .ws-card .upload-container {
   background: var(--ws-canvas) !important; border-radius: var(--ws-radius-control) !important;
@@ -208,7 +226,11 @@ button.primary:active, button.secondary:active { transform: scale(0.97); }
 .ws-band-text { display: flex; flex-wrap: wrap; align-items: baseline; gap: 2px 0; margin: 0; font-size: 0.9rem; color: var(--ws-slate); }
 .ws-band-text > span:not(:last-child)::after { content: "·"; margin: 0 10px; color: var(--ws-line); }
 .ws-band-text .strong { color: var(--ws-ink); font-weight: 600; overflow-wrap: anywhere; }
-.ws-band-button { white-space: nowrap; }
+/* « Nouvelle analyse » : largeur de son libellé et marges propres, aussi en mode présentation. */
+.ws-band-button {
+  white-space: nowrap; min-width: max-content !important; padding: 0 var(--ws-space-4) !important;
+  min-height: var(--ws-control-h);
+}
 
 /* Cache des résultats : repli discret sous le bouton principal. */
 .ws-cache { box-shadow: var(--ws-ring) !important; border-radius: var(--ws-radius-control) !important; }
@@ -221,16 +243,23 @@ button.primary:active, button.secondary:active { transform: scale(0.97); }
 .st-detail { color: var(--ws-slate); font-size: 0.875rem; }
 .st-bar { height: 6px; border-radius: var(--ws-radius-pill); background: var(--ws-track); overflow: hidden; }
 .st-bar > div { height: 100%; border-radius: var(--ws-radius-pill); background: var(--ws-ink); transition: width 200ms linear; }
-/* Étapes lues en colonne, dans l'ordre du pipeline (R-U5) : de haut en bas, puis colonne suivante. */
+/* Étapes lues en colonne, dans l'ordre du pipeline (R-U5) : de haut en bas, puis colonne
+   suivante, trois colonnes de même largeur ; le statut suit son étape (V7). */
 .st-steps {
-  list-style: none; padding: 0; margin: 0; columns: 3 220px; column-gap: var(--ws-space-5); font-size: 0.875rem;
+  list-style: none; padding: 0; margin: 0; font-size: 0.875rem; display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr)); grid-template-rows: repeat(var(--st-rows, 3), auto);
+  grid-auto-flow: column; gap: 6px var(--ws-space-5);
 }
-.st-steps li {
-  display: flex; align-items: center; gap: 10px; min-height: 24px; color: var(--ws-slate);
-  break-inside: avoid; margin-bottom: 6px;
+.st-steps li { display: flex; align-items: center; gap: var(--ws-space-2); min-height: 24px; color: var(--ws-slate); min-width: 0; }
+.st-steps li .st-label { min-width: 0; }
+.st-steps li .st-val { font-size: 0.8rem; color: var(--ws-slate); white-space: nowrap; }
+.st-steps li .st-val::before { content: "· "; }
+/* Analyse finie : liste repliée en une ligne, dépliable (V7). */
+.st-fold summary { cursor: pointer; font-size: 0.875rem; color: var(--ws-slate); padding: 2px 0; border-radius: var(--ws-radius-mark); }
+.st-fold[open] summary { margin-bottom: var(--ws-space-2); color: var(--ws-ink); }
+@media (max-width: 640px) {
+  .st-steps { grid-template-columns: minmax(0, 1fr); grid-template-rows: none; grid-auto-flow: row; }
 }
-.st-steps li .st-label { flex: 1; }
-.st-steps li .st-val { font-size: 0.8rem; }
 .st-mark {
   flex: none; width: 16px; height: 16px; border-radius: var(--ws-radius-round); box-sizing: border-box;
   border: 1.5px solid var(--ws-control-line); position: relative;
@@ -294,6 +323,13 @@ button.primary:active, button.secondary:active { transform: scale(0.97); }
 .ws-subtitle { margin: var(--ws-space-1) 0 var(--ws-space-2); font-size: 0.9rem; font-weight: 600; }
 .ws-subtitle:not(:first-child) { margin-top: 18px; }
 .ws-caption { color: var(--ws-slate); font-size: 0.85rem; margin: 10px 0 0; line-height: 1.5; }
+/* Aide d'un tableau, repliée (V13). */
+.ws-howto-read { margin-top: 10px; }
+.ws-howto-read summary {
+  cursor: pointer; font-size: 0.85rem; color: var(--ws-slate); padding: 2px 0; border-radius: var(--ws-radius-mark);
+}
+.ws-howto-read[open] summary { color: var(--ws-ink); }
+.ws-howto-read .ws-caption { margin-top: var(--ws-space-1); }
 .ws-callout { margin-bottom: var(--ws-space-3); color: var(--ws-slate); }
 .ws-callout.ws-alert { color: var(--ws-ink); }
 /* Chemin du RTTM repris en mode factice : coupé n'importe où plutôt que d'élargir la page
@@ -308,7 +344,7 @@ button.primary:active, button.secondary:active { transform: scale(0.97); }
   width: min(12em, 40vw); max-width: 100%; height: var(--ws-control-h); padding: 0 var(--ws-space-2);
   border-radius: var(--ws-radius-control); font: inherit; font-weight: 600;
   color: var(--ws-ink); background: var(--ws-surface); border: 1px solid transparent;
-  box-shadow: var(--ws-ring); transition: box-shadow var(--ws-medium) ease-out;
+  box-shadow: var(--ws-ring-control); transition: box-shadow var(--ws-medium) ease-out;
 }
 .ws-name-input::placeholder { color: var(--ws-ink); opacity: 1; }
 .ws-name-input:hover { box-shadow: var(--ws-ring-slate); }
@@ -325,7 +361,7 @@ button.primary:active, button.secondary:active { transform: scale(0.97); }
 .ws-merge {
   height: var(--ws-control-h); max-width: 11em; padding: 0 6px; border-radius: var(--ws-radius-control);
   font: inherit; font-size: 0.8rem; color: var(--ws-ink); background: var(--ws-surface); border: none;
-  box-shadow: var(--ws-ring); cursor: pointer;
+  box-shadow: var(--ws-ring-control); cursor: pointer;
 }
 .ws-merge:focus-visible { outline: none; box-shadow: var(--ws-ring-focus); }
 .ws-merges {
@@ -369,11 +405,17 @@ button.primary:active, button.secondary:active { transform: scale(0.97); }
 .ws-image-export { display: flex; flex-wrap: wrap; align-items: center; gap: var(--ws-space-2) var(--ws-space-3); margin-top: var(--ws-space-3); }
 .ws-png-status { font-size: 0.8rem; color: var(--ws-slate); }
 
-/* Exports : liste en lecture seule, noms complets, sans bouton de retrait. */
-.ws-exports .label-clear-button { display: none !important; }
-.ws-exports td.filename { max-width: none !important; }
-.ws-exports td.filename .stem { max-width: none !important; overflow: visible !important; text-overflow: clip !important; }
-.ws-exports tr.file { font-size: 0.9rem; }
+/* Exports (V11) : liste HTML, nom complet, nature et taille en français. */
+.ws-files { list-style: none; margin: 0; padding: 0; display: grid; }
+.ws-files li { border-bottom: 1px solid var(--ws-line); }
+.ws-files li:last-child { border-bottom: none; }
+.ws-file {
+  display: flex; flex-wrap: wrap; align-items: baseline; justify-content: space-between; gap: 2px var(--ws-space-3);
+  padding: var(--ws-space-2) 0; color: var(--ws-ink); text-decoration: none; border-radius: var(--ws-radius-mark);
+}
+.ws-file-name { font-weight: 500; overflow-wrap: anywhere; min-width: 0; }
+.ws-file-meta { color: var(--ws-slate); font-size: 0.8rem; white-space: nowrap; font-variant-numeric: tabular-nums; }
+@media (hover: hover) and (pointer: fine) { .ws-file:hover .ws-file-name { text-decoration: underline; } }
 
 /* --- Onglet Pipeline (D17, D26) -------------------------------------------------- */
 .pl-root { display: grid; gap: var(--ws-space-4); }
@@ -521,9 +563,6 @@ a.gl-index {
   /* Temps de traitement et exports l'un sous l'autre : côte à côte, les noms des exports
      n'auraient plus la place de s'afficher. */
   .ws-pair { flex-direction: column !important; }
-  /* Noms des exports sur deux lignes plutôt que coupés. */
-  .ws-exports td.filename { display: block !important; white-space: normal !important; overflow-wrap: anywhere; }
-  .ws-exports td.filename .stem, .ws-exports td.filename .ext { display: inline !important; white-space: normal !important; }
 }
 
 /* Titre des notifications en français (B7) : Gradio y écrit le type du message, initiale
@@ -536,9 +575,10 @@ a.gl-index {
 
 /* --- Mode présentation (B8) : jetons dans jetons.css ; ici, ce qui est masqué. --------- */
 html.ws-presentation .ws-secondary { display: none !important; }
-/* Étapes de l'analyse : utiles pendant le calcul ; une fois toutes terminées, la timeline
-   remonte (à 720 px de haut, la liste la repoussait sous le bord de l'écran). */
-html.ws-presentation .st-root:not(:has(.st-steps > li:not(.st-done))) .st-steps { display: none; }
 html.ws-presentation .ws-header { padding-top: 20px; }
+/* Aides des tableaux masquées (V13) ; en-tête réduit au titre et aux interrupteurs (V6). */
+html.ws-presentation .ws-howto-read { display: none !important; }
+html.ws-presentation .ws-tagline, html.ws-presentation .ws-details-wrap,
+html.ws-presentation .ws-badge { display: none !important; }
 html.ws-presentation .toast-title.error::before, html.ws-presentation .toast-title.warning::before,
 html.ws-presentation .toast-title.info::before { font-size: 20px; }

@@ -71,9 +71,12 @@ def test_pistes_de_reference_aux_couleurs_de_l_appariement():
     group = interface._reference_group(_result({"S1": "Bob"}))
     speakers = {s["id"]: s for s in group["locuteurs"]}
     colors = interface._speaker_colors(sortie.speaker_labels(HYPOTHESIS))
-    assert speakers["A"]["nom"] == "A ↔ S0" and speakers["A"]["couleur"] == colors["S0"][0]
-    assert speakers["B"]["nom"] == "B ↔ Bob" and speakers["B"]["couleur_sombre"] == colors["S1"][1]
-    assert speakers["C"]["nom"] == "C (non apparié)" and speakers["C"]["couleur"] == interface.NEUTRAL_LIGHT
+    # Étiquette courte (V9) : rang du locuteur trouvé ; nom complet, renommage compris, en infobulle.
+    assert speakers["A"]["nom"] == "A → S1" and speakers["A"]["couleur"] == colors["S0"][0]
+    assert speakers["B"]["nom"] == "B → S2" and speakers["B"]["couleur_sombre"] == colors["S1"][1]
+    assert speakers["B"]["titre"] == "B (référence), apparié à Bob"
+    assert speakers["C"]["nom"] == "C → aucun" and speakers["C"]["couleur"] == interface.NEUTRAL_LIGHT
+    assert speakers["C"]["titre"] == "C (référence), apparié à aucun locuteur trouvé"
     assert group["titre"] == "Référence, appariée à pyannote community-1"
     # Sans carte des erreurs (référence inutilisable) : gris, sans mention d'appariement.
     plain = interface._reference_group(dict(_result(), erreurs=None))
@@ -166,8 +169,8 @@ def test_renommage_envoye_par_le_tableau(tmp_path):
         result, str(reference), SimpleNamespace(_data={"names": {"S0": "  Alice ", "S9": "x"}}))
     assert updated["names"] == {"S0": "Alice", "S1": "", "S2": ""}
     assert any(s["nom"] == "Alice" for s in viewer["groupes"][0]["locuteurs"])
-    assert "A ↔ Alice" in {s["nom"] for s in viewer["groupes"][-1]["locuteurs"]}
-    assert "Alice" in der and "Alice" in inter and len(exports) == 4
+    assert "A (référence), apparié à Alice" in {s["titre"] for s in viewer["groupes"][-1]["locuteurs"]}
+    assert "Alice" in der and "Alice" in inter and exports.count('class="ws-file"') == 4   # liste HTML (V11)
     # Noms en double refusés : le tableau revient aux noms en vigueur, rien d'autre ne change.
     refused = changed(updated, str(reference), SimpleNamespace(_data={"names": {"S0": "Alice", "S1": "Alice"}}))
     assert 'value="Alice"' in refused[1] and 'value=""' in refused[1]

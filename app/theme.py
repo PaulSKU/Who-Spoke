@@ -111,7 +111,9 @@ WITH_DARK: dict[str, str] = {
     "input_background_fill": SURFACE,
     "input_background_fill_focus": SURFACE,
     "input_background_fill_hover": SURFACE,
-    "input_border_color": LINE,
+    # Le fond d'un champ est celui de la carte : sa bordure doit atteindre 3:1 (WCAG 1.4.11,
+    # retour du cockpit sur B10), comme celle des ronds et des cases.
+    "input_border_color": CONTROL_LINE,
     "input_border_color_focus": INK,
     "input_border_color_hover": SLATE,
     "input_border_width": "1px",

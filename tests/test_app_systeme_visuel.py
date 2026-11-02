@@ -133,7 +133,7 @@ def test_composants_communs():
     assert 'class="ws-segmented wsp-view"' in template
     assert 'class="ws-btn ws-switch wsp-follow" aria-pressed="true"' in template
     assert 'class="ws-btn ws-switch wsp-energy-toggle"' in template
-    assert template.count("ws-btn-icon") == 4      # −, +, ?, ×
+    assert template.count("ws-btn-icon") == 5      # −, +, loupe (petit écran, V5), ?, ×
     assert "ws-icon-lecture" in template and "ws-icon-pause" in template
 
 
@@ -190,3 +190,37 @@ def test_formatage_employe_partout():
         text = path.read_text()
         assert 'replace(".", ",")' not in text, path.name
     assert "NNBSP" in (STATIC / "visualiseur.js").read_text()
+
+
+def test_champs_de_texte_contrastes_face_a_la_carte():
+    """Retour du cockpit sur B10 : fond du champ identique à la carte, donc bordure à 3:1."""
+    assert theme.WITH_DARK["input_background_fill"] == theme.WITH_DARK["block_background_fill"]
+    assert theme.WITH_DARK["input_border_color"] == "var(--ws-control-line)"
+    css = SHEETS["interface.css"]
+    for selector in (".ws-name-input {", ".ws-merge {"):
+        rule = css[css.index(selector):css.index("}", css.index(selector))]
+        assert "box-shadow: var(--ws-ring-control)" in rule, selector
+    assert "--ws-ring-control: 0 0 0 1px var(--ws-control-line);" in TOKENS
+
+
+def test_exports_lisibles_par_machine(tmp_path):
+    """Retour du cockpit sur B10 : RTTM, JSON et étiquettes Audacity gardent point décimal,
+    tiret ASCII et aucune espace fine ; seul l'affichage est en français."""
+    import json
+
+    from tests.test_app_appariement import full_result
+
+    result = full_result(tmp_path)
+    result["annotation_origine"] = result["annotation"]
+    paths = [p for p in interface._exports(result) if not p.endswith(".svg")]
+    assert {p.rsplit(".", 1)[-1] for p in paths} == {"rttm", "json", "txt"}
+    for path in paths:
+        text = open(path, encoding="utf-8").read()
+        assert "\u2212" not in text and "\u202f" not in text, path
+        if path.endswith(".json"):
+            json.loads(text)
+            numbers = re.findall(r'"[^"]*": (-?[0-9][^,\n}\]]*)', text)
+            assert numbers and all(re.fullmatch(r"-?\d+(\.\d+)?([eE][-+]?\d+)?", n.strip()) for n in numbers)
+        else:
+            assert not re.search(r"\d,\d", text), path
+            assert re.search(r"\d\.\d", text), path

@@ -50,7 +50,7 @@ def test_fusion_depuis_le_tableau_puis_annulation(tmp_path):
     entry = store.put("a" * 64, {"pistes": original})
     before_bytes = entry.read_bytes()
 
-    viewer, stats, inter, exports, der, _, image_html, merged = changed(
+    viewer, stats, inter, exports_html, der, _, image_html, merged = changed(
         result, str(reference), SimpleNamespace(_data={"merge": {"source": "S0", "target": "S1"}}))
     assert merged["fusions"] == [("S0", "S1")] and sorted(merged["annotation"].labels()) == ["S1", "S2"]
     assert annotation_tracks(merged["annotation_origine"]) == original
@@ -70,6 +70,9 @@ def test_fusion_depuis_le_tableau_puis_annulation(tmp_path):
     # Le DER d'avant (annotation du moteur, même référence) est gardé : calculé une seule fois.
     assert merged["der_avant"]["reference"] == str(reference)
     assert merged["der_avant"]["rapport"]["collar_0"]["der"] == pytest.approx(before)
+    # Liste HTML des exports (V11) : chemins lus dans les liens de téléchargement.
+    exports = re.findall(r'href="/gradio_api/file=([^"]+)"', exports_html)
+    assert "\u202fKo" in exports_html or "\u202fo" in exports_html     # tailles en français
     data = json.loads(Path(next(p for p in exports if p.endswith(".json"))).read_text())
     assert {row["id"] for row in data["locuteurs"]} == {"S1", "S2"}
     assert data["reproductibilite"]["fusions"] == [{"source": "S0", "cible": "S1"}]

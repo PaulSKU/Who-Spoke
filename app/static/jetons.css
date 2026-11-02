@@ -90,6 +90,7 @@
    déclarée, puis héritée telle quelle). */
 :root, .dark {
   --ws-ring: 0 0 0 1px var(--ws-line);                 /* contour d'un contrôle secondaire */
+  --ws-ring-control: 0 0 0 1px var(--ws-control-line); /* contour d'un champ de saisie : ≥ 3:1 */
   --ws-ring-strong: 0 0 0 1.5px var(--ws-ink);         /* contour d'un état actif */
   --ws-ring-slate: 0 0 0 1px var(--ws-slate);          /* contour au survol, état incertain */
   --ws-ring-ink: 0 0 0 1px var(--ws-ink);

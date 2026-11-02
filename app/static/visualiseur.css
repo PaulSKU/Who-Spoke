@@ -6,21 +6,25 @@
   color: var(--ws-ink);
   width: 0; min-width: 100%;   /* n'élargit jamais la carte (375 px) */
 }
-/* Référence appariée : étiquettes « 021 ↔ SPEAKER_01 », colonne plus large. */
-.wsp-root.wsp-wide { --wsp-label-w: 184px; }
 .wsp-empty .wsp-body { display: none; }
 .wsp-placeholder { display: none; color: var(--ws-slate); font-size: 0.9rem; margin: 0; padding: var(--ws-space-1) 0; }
 .wsp-empty .wsp-placeholder { display: block; }
 
-.wsp-toolbar { display: flex; align-items: center; gap: var(--ws-space-3); margin-bottom: var(--ws-space-3); flex-wrap: wrap; }
-.wsp-tools { display: flex; align-items: center; gap: var(--ws-space-2); margin-left: auto; flex-wrap: wrap; }
+/* Barre d'outils (V5) : groupes lecture, vue, zoom, puis l'aide à droite ; un groupe revient
+   à la ligne en entier, jamais coupé. */
+.wsp-toolbar {
+  display: flex; flex-wrap: wrap; align-items: center; gap: var(--ws-space-2) var(--ws-space-5);
+  margin-bottom: var(--ws-space-3);
+}
+.wsp-group { display: flex; flex-wrap: nowrap; align-items: center; gap: var(--ws-space-2); min-width: 0; }
+.wsp-g-help { margin-left: auto; }
+.wsp-zoom-toggle, .wsp-short { display: none; }
 /* Boutons : composants communs de interface.css (.ws-btn, .ws-switch, .ws-segmented). */
 .wsp-play { min-width: 104px; }   /* même largeur pour « Lecture » et « Pause » */
 .wsp-play .ws-icon-pause, .wsp-play[data-playing] .ws-icon-lecture { display: none; }
 .wsp-play[data-playing] .ws-icon-pause { display: block; }
 .wsp-help-toggle { font-weight: 600; }
 .wsp-time { font-variant-numeric: tabular-nums; font-size: 0.875rem; }
-.wsp-zoom { display: flex; align-items: center; gap: var(--ws-space-2); }
 
 /* Pastille « parle : X » pendant la lecture, et locuteur isolé (R-U3). */
 .wsp-speaking, .wsp-iso {
@@ -145,11 +149,22 @@
 .wsp-tick.wsp-tick-end { transform: translateX(-100%); }
 @media (max-width: 640px) {
   .wsp-root { --wsp-label-w: 88px; }
-  .wsp-root.wsp-wide { --wsp-label-w: 112px; }
   .wsp-explain dl { grid-template-columns: 1fr; }
-  .wsp-tools { margin-left: 0; width: 100%; }
-  .wsp-zoom { flex: 1 1 100%; min-width: 0; }
+  /* Deux lignes au plus (V5) : lecture et aide, puis la vue ; zoom et « Énergie et seuil »
+     derrière la loupe ; libellés courts, le long restant le nom accessible. */
+  .wsp-toolbar { column-gap: var(--ws-space-2); }
+  .wsp-g-play { order: 1; }
+  .wsp-g-help { order: 2; }
+  .wsp-g-view { order: 3; flex-wrap: wrap; }
+  .wsp-g-zoom { order: 4; flex: 1 1 100%; display: none; }
+  .wsp-zoom-open .wsp-g-zoom { display: flex; }
+  .wsp-root:not(.wsp-zoom-open) .wsp-energy-toggle { display: none; }
+  .wsp-zoom-toggle { display: inline-flex; }
   .wsp-zoom-range { flex: 1 1 40px; width: auto; min-width: 0; }
+  .wsp-short { display: inline; }
+  .wsp-long {
+    position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap;
+  }
   .wsp-help dl { grid-template-columns: 1fr; }
 }
 
@@ -209,8 +224,8 @@
    sélecteur du composant : « & » le place après html.ws-presentation. */
 html.ws-presentation & {
   .wsp-root { --wsp-label-w: 176px; --wsp-spec-h: 144px; }
-  .wsp-root.wsp-wide { --wsp-label-w: 236px; }
-  .wsp-zoom-range { width: 180px; }
+  .wsp-zoom-range { width: 72px; }
+  .wsp-toolbar { column-gap: var(--ws-space-3); }   /* une ligne à 1280 px (V5) */
   .wsp-label { height: 30px; }
   .wsp-lanes > .wsp-track { height: 20px; }
   .wsp-seg { height: 20px; }

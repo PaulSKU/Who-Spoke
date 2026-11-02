@@ -19,12 +19,12 @@ export async function open(page: Page, mode: Mode, presentation = false): Promis
 }
 
 // Dépose l'audio et la référence, lance l'analyse, attend la timeline.
-export async function analyse(page: Page): Promise<void> {
+export async function analyse(page: Page, reference: string = REFERENCE): Promise<void> {
   const inputs = page.locator('input[type=file]');
   await inputs.first().setInputFiles(AUDIO);
   await expect(page.locator('.ws-estimate')).toContainText('Durée estimée', { timeout: 30_000 });
-  await inputs.last().setInputFiles(REFERENCE);
-  await expect(page.getByText('Référence chargée')).toBeVisible({ timeout: 30_000 });
+  await inputs.last().setInputFiles(reference);
+  await expect(page.locator('.ws-reference')).toContainText('.rttm', { timeout: 30_000 });
   await page.getByRole('button', { name: 'Analyser', exact: true }).click();
   await page.locator('.wsp-root:not(.wsp-empty)').waitFor({ timeout: 60_000 });
   await page.waitForTimeout(500);

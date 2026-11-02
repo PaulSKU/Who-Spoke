@@ -114,7 +114,7 @@ def test_moteur_absent_non_propose_et_mentionne(tmp_path):
     demo = moteurs.demo_config(_repo_with(tmp_path, text))
     assert list(demo.specs) == ["baseline-mfcc", "pyannote-community-1"]
     assert demo.excluded == ("baseline-ecapa", "baseline-wespeaker") and set(demo.speakers) == set(demo.specs)
-    header = interface._header_html(True, None, demo, "pyannote-community-1")
+    header = interface._details_html(demo, "pyannote-community-1")
     assert "Non retenu pour la démonstration : Baseline ECAPA, Baseline WeSpeaker" in header
     # Second moteur proposé : la baseline ECAPA n'étant pas retenue, le premier autre moteur.
     assert interface._second_engine(demo.specs, demo.default_engine) == "baseline-mfcc"
@@ -129,7 +129,7 @@ def test_moteur_absent_non_propose_et_mentionne(tmp_path):
     with pytest.raises(moteurs.DemoConfigError, match="le moteur par défaut .sans « moteur_par_defaut ».."):
         moteurs.demo_config(_repo_with(tmp_path / "c", gone))
     # Sans exclusion, rien n'est mentionné.
-    assert "Non retenu" not in interface._header_html(True, None, moteurs.demo_config(_repo_with(tmp_path / "d", EXAMPLE.read_text())))
+    assert "Non retenu" not in interface._details_html(moteurs.demo_config(_repo_with(tmp_path / "d", EXAMPLE.read_text())))
 
 
 def test_application_sans_les_moteurs_non_retenus(tmp_path):
@@ -160,13 +160,13 @@ def test_fichier_passe_en_option_introuvable(tmp_path):
 
 def test_en_tete_affiche_configuration_et_moteur_en_vigueur(tmp_path):
     frozen = moteurs.demo_config(_repo_with(tmp_path, EXAMPLE.read_text()))
-    header = interface._header_html(True, None, frozen, "pyannote-community-1")
+    header = interface._details_html(frozen, "pyannote-community-1")
     assert "Configuration : <code>configs/demo.yaml</code>, gel du 10/11/2026" in header
     assert "pyannote community-1</span> (EXP-0007), entre 2 et 6 locuteurs par défaut" in header
-    header = interface._header_html(True, None, frozen, "baseline-ecapa")
+    header = interface._details_html(frozen, "baseline-ecapa")
     assert "Baseline ECAPA</span> (EXP-0012)</span></p>" in header
     before = moteurs.demo_config(tmp_path / "vide")
-    assert "correspondance de <code>app/moteurs.py</code>, avant le gel" in interface._header_html(False, None, before)
+    assert "correspondance de <code>app/moteurs.py</code>, avant le gel" in interface._details_html(before)
 
 
 def test_application_ouverte_selon_la_configuration(tmp_path):
