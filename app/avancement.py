@@ -42,6 +42,8 @@ VERDICTS = {
     "en_cours": "en cours",
 }
 MISSING_HEADER = "en-tête manquant"
+# Nombre de locuteurs dans results.json (mode_n_locuteurs) : libellés affichés.
+MODE_LABELS = {"estime": "estimé", "oracle": "oracle", "impose": "imposé", "fourchette": "fourchette"}
 # Décomposition de l'erreur par les oracles (D9, D19 §4, D22).
 ORACLE_SERIES = ("EXP-0002", "EXP-0003", "EXP-0004", "EXP-0005", "EXP-0006", "EXP-0010", "EXP-0011")
 PARTITION_ORDER = {"test": 0, "dev": 1}
@@ -391,6 +393,17 @@ def _pct(value: float | None) -> str:
     return formatage.pourcentage(value, 2)
 
 
+def _row(cells: list[tuple[str, str, str]]) -> str:
+    """Ligne de tableau ; chaque cellule porte son en-tête (`data-label`), affiché devant la
+    valeur quand le tableau s'empile en fiches sur petit écran (B13)."""
+    return "<tr>" + "".join(f'<td data-label="{escape(label, quote=True)}"{f" class={chr(34)}{cls}{chr(34)}" if cls else ""}>'
+                            f"{html}</td>" for label, html, cls in cells) + "</tr>"
+
+
+def _corpus(corpus: str) -> str:
+    return escape(CORPUS_LABELS.get(corpus, corpus))
+
+
 def _der_cell(result: Result | None) -> str:
     if result is None:
         return "—"
@@ -421,20 +434,20 @@ def _timeline_html(items: list[Item], root: Path) -> str:
             der_test = der_dev = '<span class="sub">analyse a posteriori</span>'
             corpus = "—"
         else:
-            corpus = escape(", ".join(item.corpora) or "—")
+            corpus = ", ".join(_corpus(c) for c in item.corpora) or "—"
             # Une ligne par corpus quand une expérience en compte plusieurs.
             der_test = "<br>".join(_der_cell(item.result("test", c)) for c in item.corpora) or "—"
             der_dev = "<br>".join(_der_cell(item.result("dev", c)) for c in item.corpora) or "—"
-        notes = (f'<button type="button" class="ws-btn av-notes" data-id="{item.id}">notes.md</button>'
+        notes = (f'<button type="button" class="ws-btn ws-btn-sm av-notes" data-id="{item.id}">notes.md</button>'
                  if item.notes.is_file() else '<span class="sub">pas de notes</span>')
-        rows.append(
-            f'<tr><td><span class="strong">{item.id}</span><span class="sub">{escape(item.slug)}</span>'
-            f'<span class="sub">{escape(item.date[:10])}</span></td><td>{question}</td><td>{corpus}</td>'
-            f'<td class="num">{der_test}</td><td class="num">{der_dev}</td><td>{verdict}</td>'
-            f'<td>{decisions}</td><td>{notes}</td></tr>'
-        )
+        rows.append(_row([
+            ("Identifiant", f'<span class="strong">{item.id}</span><span class="sub">{escape(item.slug)}</span>'
+                            f'<span class="sub">{escape(formatage.date(item.date))}</span>', ""),
+            ("Question", question, ""), ("Corpus", corpus, ""), ("DER test", der_test, "num"),
+            ("DER dev", der_dev, "num"), ("Verdict", verdict, ""), ("Décisions", decisions, ""), ("Notes", notes, ""),
+        ]))
     return (
-        '<div class="ws-table-wrap"><table class="ws-table av-table"><thead><tr>'
+        '<div class="ws-table-wrap"><table class="ws-table av-table av-stack"><thead><tr>'
         '<th scope="col">Identifiant</th><th scope="col">Question</th><th scope="col">Corpus</th>'
         '<th scope="col" class="num">DER test</th><th scope="col" class="num">DER dev</th>'
         '<th scope="col">Verdict</th><th scope="col">Décisions</th><th scope="col">Notes</th>'
@@ -448,7 +461,8 @@ def _oracles_html(items: list[Item]) -> str:
     for exp_id in ORACLE_SERIES:
         item = by_id.get(exp_id)
         if item is None:
-            rows.append(f'<tr><td>{exp_id}</td><td colspan="7"><span class="sub">absente de ce dépôt</span></td></tr>')
+            rows.append(f'<tr><td data-label="Expérience">{exp_id}</td><td colspan="7" data-label="État">'
+                        '<span class="sub">absente de ce dépôt</span></td></tr>')
             continue
         for corpus in item.corpora or ["—"]:
             result = item.result("test", corpus)
@@ -460,22 +474,24 @@ def _oracles_html(items: list[Item]) -> str:
                 delta = (formatage.unite(diff, "pt", 2, sign=True)
                          + f' <span class="sub">face à {escape(item.reference)}</span>')
             c = result.components if result else {}
-            variable = escape(item.variable or "— (référence)")
-            rows.append(
-                f'<tr><td><span class="strong">{exp_id}</span><span class="sub">{escape(item.slug)}</span></td>'
-                f'<td>{escape(item.pipeline or "—")}<span class="sub">locuteurs : {escape(item.mode or "—")}</span></td>'
-                f'<td>{variable}</td><td class="num strong">{_pct(result.der_c0 if result else None)}</td>'
-                f'<td class="num">{_pct(c.get("manquee"))}</td><td class="num">{_pct(c.get("fausse_alarme"))}</td>'
-                f'<td class="num">{_pct(c.get("confusion"))}</td><td class="num">{delta}</td></tr>'
-            )
+            variable = f"<code>{escape(item.variable)}</code>" if item.variable else "— (référence)"
+            mode = MODE_LABELS.get(item.mode or "", item.mode or "—")
+            rows.append(_row([
+                ("Expérience", f'<span class="strong">{exp_id}</span><span class="sub">{escape(item.slug)}</span>', ""),
+                ("Moteur", f'{escape(item.pipeline or "—")}<span class="sub">locuteurs : {escape(mode)}</span>', ""),
+                ("Variable modifiée", variable, ""), ("DER", _pct(result.der_c0 if result else None), "num strong"),
+                ("Parole manquée", _pct(c.get("manquee")), "num"), ("Fausse alarme", _pct(c.get("fausse_alarme")), "num"),
+                ("Confusion", _pct(c.get("confusion")), "num"), ("Écart", delta, "num"),
+            ]))
     return (
-        '<div class="ws-table-wrap"><table class="ws-table av-table"><thead><tr>'
+        '<div class="ws-table-wrap"><table class="ws-table av-table av-stack"><thead><tr>'
         '<th scope="col">Expérience</th><th scope="col">Moteur</th><th scope="col">Variable modifiée</th>'
         '<th scope="col" class="num">DER</th><th scope="col" class="num">Parole manquée</th>'
         '<th scope="col" class="num">Fausse alarme</th><th scope="col" class="num">Confusion</th>'
         f'<th scope="col" class="num">Écart</th></tr></thead><tbody>{"".join(rows)}</tbody></table></div>'
-        '<p class="ws-caption">Partition test, sans collar, chevauchements comptés. Écart : différence de DER '
-        'avec l\'expérience de référence, une seule variable modifiée (D9).</p>'
+        '<details class="ws-howto-read"><summary>Comment lire ce tableau</summary><p class="ws-caption">Partition '
+        'test, sans collar, chevauchements comptés. Écart : différence de DER avec l\'expérience de référence, '
+        'une seule variable modifiée (D9).</p></details>'
     )
 
 
@@ -483,10 +499,10 @@ def _decisions_table(decisions: list[Decision]) -> str:
     rows = []
     for d in decisions:
         amendments = "".join(f'<span class="sub">{_inline(t)} : {_inline(s)}</span>' for t, s in d.amendments)
-        rows.append(f'<tr><td class="strong">D{d.number}</td><td>{_inline(d.title)}'
-                    f'<span class="sub"><code>{escape(d.source)}</code></span></td>'
-                    f'<td>{_inline(d.status)}{amendments}</td></tr>')
-    return ('<div class="ws-table-wrap"><table class="ws-table av-table"><thead><tr><th scope="col">Fiche</th>'
+        rows.append(_row([("Fiche", f"D{d.number}", "strong"),
+                          ("Décision", f'{_inline(d.title)}<span class="sub av-path"><code>{escape(d.source)}</code></span>', ""),
+                          ("Statut", f"{_inline(d.status)}{amendments}", "")]))
+    return ('<div class="ws-table-wrap"><table class="ws-table av-table av-stack"><thead><tr><th scope="col">Fiche</th>'
             '<th scope="col">Décision</th><th scope="col">Statut</th></tr></thead>'
             f'<tbody>{"".join(rows)}</tbody></table></div>')
 
@@ -500,7 +516,7 @@ def _decisions_html(decisions: list[Decision]) -> str:
         open_ones = sum(1 for d in framing if "ouvert" in d.status)
         summary = (f"Décisions de cadrage D1 à D15 ({len(framing)}, dont {open_ones} avec un point ouvert)"
                    if open_ones else f"Décisions de cadrage D1 à D15 ({len(framing)})")
-        html += (f'<details class="av-framing"><summary>{escape(summary)}</summary>'
+        html += (f'<details class="av-framing ws-fold"><summary>{escape(summary)}</summary>'
                  f'{_decisions_table(framing)}</details>')
     return html
 
@@ -515,7 +531,7 @@ SYNTHESIS_ID = "synthese"
 def _source_html(source: str, items: dict[str, Item]) -> str:
     item = items.get(source)
     if item is not None and item.notes.is_file():
-        return f'<button type="button" class="ws-btn av-notes av-source" data-id="{escape(source)}">{escape(source)}</button>'
+        return f'<button type="button" class="ws-btn ws-btn-sm av-notes av-source" data-id="{escape(source)}">{escape(source)}</button>'
     return f'<span class="av-source av-source-missing" title="Absente de ce dépôt">{escape(source)}</span>'
 
 
@@ -524,14 +540,14 @@ def _learned_html(root: Path, items: list[Item]) -> str:
     by_id = {item.id: item for item in items}
     synthesis = ""
     if (root / SYNTHESIS).is_file():
-        synthesis = (f'<button type="button" class="ws-btn av-notes av-synthesis" data-id="{SYNTHESIS_ID}">'
+        synthesis = (f'<button type="button" class="ws-btn ws-btn-sm av-notes av-synthesis" data-id="{SYNTHESIS_ID}">'
                      'Lire la synthèse (docs/synthese.md)</button>')
     if not data.present:
         return (f'<p class="ws-empty-note">docs/constats.yaml absent de ce dépôt.</p>{synthesis}')
     key = [c for c in data.items if c.cle]
     items_html = "".join(
         f'<li class="av-learned-item"><p>{escape(c.texte)}</p><p class="av-learned-meta">'
-        f'<span class="av-confidence av-conf-{escape(c.confiance)}">'
+        f'<span class="ws-conf ws-conf-{escape(c.confiance)}">'
         f'{escape(CONFIDENCE_LABELS.get(c.confiance, c.confiance))}</span>'
         f'<span class="sub">{escape(c.id)} · sources :</span> '
         + " ".join(_source_html(s, by_id) for s in c.sources) + "</p></li>"
@@ -544,19 +560,21 @@ def _learned_html(root: Path, items: list[Item]) -> str:
         + (f'<div class="pl-issues" role="note"><p class="strong">docs/constats.yaml : à corriger</p><ul>{problems}</ul></div>'
            if problems else "")
         + f'<p class="ws-caption">{len(key)} constats clés sur {len(data.items)}, tirés de docs/constats.yaml '
-        f'(version {escape(data.version)} du {escape(data.date)}), tenu par le cockpit. Confiance : certain, '
-        'mesuré dans nos expériences ; probable, déduit de plusieurs mesures ; incertain, hypothèse non testée. '
-        f'Un clic sur une source affiche ses notes.</p>{synthesis}</div>'
+        f'(version {escape(data.version)} du {escape(formatage.date(data.date))}), tenu par le cockpit.</p>'
+        '<details class="ws-howto-read"><summary>Comment lire ces constats</summary><p class="ws-caption">Confiance : '
+        'certain, mesuré dans nos expériences ; probable, déduit de plusieurs mesures ; incertain, hypothèse non '
+        f'testée. Un clic sur une source affiche ses notes.</p></details>{synthesis}</div>'
     )
 
 
 def _queue_html(queue: list[QueueRow]) -> str:
     if not queue:
         return '<p class="ws-empty-note">Tableau « File d\'attente » introuvable dans docs/planning.md.</p>'
-    rows = "".join(f'<tr><td class="strong">{escape(q.rank)}</td><td>{_inline(q.content)}</td>'
-                   f'<td class="av-estimate">{_inline(q.estimate)}</td><td>{_inline(q.prerequisites)}</td>'
-                   f'<td>{escape(q.state)}</td></tr>' for q in queue)
-    return ('<div class="ws-table-wrap"><table class="ws-table av-table av-queue"><thead><tr>'
+    rows = "".join(_row([("Rang", escape(q.rank), "strong"), ("Contenu", _inline(q.content), ""),
+                         ("Calcul estimé", _inline(q.estimate), "av-estimate"),
+                         ("Prérequis", _inline(q.prerequisites), ""), ("État constaté", escape(q.state), "")])
+                   for q in queue)
+    return ('<div class="ws-table-wrap"><table class="ws-table av-table av-queue av-stack"><thead><tr>'
             '<th scope="col">Rang</th><th scope="col">Contenu</th><th scope="col">Calcul estimé</th>'
             f'<th scope="col">Prérequis</th><th scope="col">État constaté</th></tr></thead><tbody>{rows}</tbody>'
             '</table></div><p class="ws-caption">Tableau de docs/planning.md, dans l\'ordre de la file ; '

@@ -209,4 +209,4 @@ def figure(groups: list[tuple[str, list[Bar]]]) -> str:
             f'<div class="av-chart-narrow">{svg(groups, True, "avn")}</div>'
             '<figcaption class="ws-caption">Partition test, sans collar, chevauchements comptés : la longueur '
             'totale de chaque barre est le DER. Survoler un segment donne sa valeur ; toutes les valeurs sont dans le tableau ci-dessous.</figcaption></figure>'
-            f'<details class="av-values"><summary>Valeurs du graphique (tableau)</summary>{table(groups)}</details>')
+            f'<details class="av-values ws-fold"><summary>Valeurs du graphique (tableau)</summary>{table(groups)}</details>')

@@ -10,6 +10,7 @@ Jamais pour les fichiers lus par une machine (RTTM, JSON, étiquettes Audacity).
 from __future__ import annotations
 
 import math
+import re
 
 NNBSP = " "     # espace fine insécable
 MINUS = "−"     # signe moins
@@ -69,3 +70,9 @@ def taille(octets: int | None) -> str:
 def general(value: float) -> str:
     """Valeur d'un réglage, à six chiffres significatifs au plus (« 0,7045 », « 1e-05 »)."""
     return f"{value:.6g}".replace(".", ",").replace("-", MINUS)
+
+
+def date(iso: str | None) -> str:
+    """« 27/10/2026 » pour « 2026-10-27 » (ou un horodatage ISO) ; le texte tel quel sinon."""
+    match = re.match(r"(\d{4})-(\d{2})-(\d{2})", iso or "")
+    return f"{match[3]}/{match[2]}/{match[1]}" if match else (iso or DASH)

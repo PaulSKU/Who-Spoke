@@ -10,7 +10,13 @@ function tabs() {
   return Array.from(element.querySelectorAll('[role="tab"]'));
 }
 
-function select(stage, focus) {
+function select(stage, focus, also) {
+  // `also` : seconde étape mise en évidence (la confusion naît des empreintes et du regroupement).
+  element.querySelectorAll('.pl-node.pl-also').forEach((node) => node.classList.remove('pl-also'));
+  if (also) {
+    const node = element.querySelector('#pl-tab-' + also);
+    if (node) node.classList.add('pl-also');
+  }
   tabs().forEach((tab) => {
     const on = tab.dataset.stage === stage;
     tab.setAttribute('aria-selected', on ? 'true' : 'false');
@@ -30,7 +36,7 @@ element.addEventListener('click', (event) => {
   }
   const segment = event.target.closest('.pl-errseg[data-stage]');
   if (segment) {
-    select(segment.dataset.stage, false);
+    select(segment.dataset.stage, false, segment.dataset.also);
     const sheet = element.querySelector('#pl-sheet-' + segment.dataset.stage);
     if (sheet) sheet.scrollIntoView({ block: 'nearest' });
     return;

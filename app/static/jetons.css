@@ -62,6 +62,7 @@
 
   /* Contrôles. */
   --ws-control-h: 32px;         /* boutons, bouton-icône (44 px sur écran tactile) */
+  --ws-control-h-sm: 28px;      /* petit bouton dans un tableau ou une liste (36 px sur écran tactile) */
   --ws-icon: 16px;              /* icônes SVG dans les boutons */
 
   /* Mouvement : explicite, 200 ms au plus, ease-out ; coupé en mouvement réduit. */
@@ -111,6 +112,7 @@
   --ws-key: 0 0 0 1px var(--ws-line), 0 1px 0 1px var(--ws-line);   /* touche de clavier */
   --ws-rule-attention: inset 3px 0 0 var(--ws-ink);    /* filet gauche d'un encadré d'attention */
   --ws-rule-soft: inset 2px 0 0 var(--ws-line);
+  --ws-rule-top: inset 0 1px 0 var(--ws-line);         /* filet entre deux entrées (glossaire) */
   --ws-selected: 0 0 0 2px var(--ws-surface), 0 0 0 4px var(--ws-ink);   /* segment sélectionné */
   --ws-hovered: 0 0 0 2px var(--ws-surface), 0 0 0 3.5px var(--ws-ink);
 }
@@ -138,6 +140,7 @@ html.ws-presentation, html.ws-presentation .dark {
   --text-xxs: 11px; --text-xs: 13px; --text-sm: 15px; --text-md: 18px; --text-lg: 20px;
   --text-xl: 27px; --text-xxl: 32px;
   --ws-control-h: 40px;
+  --ws-control-h-sm: 32px;
   --ws-icon: 20px;
 }
 html.ws-presentation {
@@ -157,7 +160,7 @@ html.ws-presentation .dark {
 
 /* Écran tactile : zones de clic d'au moins 44 px (Apple HIG). */
 @media (pointer: coarse) {
-  :root { --ws-control-h: 44px; }
+  :root { --ws-control-h: 44px; --ws-control-h-sm: 36px; }
 }
 
 @media (prefers-reduced-motion: reduce) {

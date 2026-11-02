@@ -310,6 +310,8 @@ def _inline(markdown: str) -> str:
     """Markdown en ligne du glossaire : `code`, **gras**, *italique*."""
     html = escape(markdown, quote=False)
     html = re.sub(r"`([^`]+)`", r"<code>\1</code>", html)
+    # Confiance (« **[probable]** ») : même étiquette que les constats de l'onglet Avancement.
+    html = re.sub(r"\*\*\[(certain|probable|incertain)\]\*\*", r'<span class="ws-conf ws-conf-\1">\1</span>', html)
     html = re.sub(r"\*\*(.+?)\*\*", r"<strong>\1</strong>", html)
     return re.sub(r"(?<![\w*])\*(?!\s)(.+?)(?<!\s)\*(?![\w*])", r"<em>\1</em>", html)
 
@@ -337,14 +339,23 @@ def render(glossary: Glossary, linker: Linker | None = None) -> str:
         for term in (t for t in glossary.terms if t.part == part):
             english = "".join(f' <span class="gl-en">({escape(e)})</span>' for e in term.english)
             aliases = (f' <span class="gl-alias">{escape(", ".join(term.aliases))}</span>' if term.aliases else "")
-            fields = "".join(f"<dt>{escape(k)}</dt>{link(f'<dd>{_inline(v)}</dd>', term.anchor)}" for k, v in term.fields)
+            # La source se vérifie, elle ne se présente pas : masquée en mode présentation.
+            fields = "".join(f"<dt{_field_class(k)}>{escape(k)}</dt>"
+                             f"{link(f'<dd{_field_class(k)}>{_inline(v)}</dd>', term.anchor)}" for k, v in term.fields)
             short = (f'<p class="gl-short">Formes courtes : {escape(", ".join(term.short_forms))}</p>'
                      if term.short_forms else "")
             body.append(f'<article class="gl-term" id="{term.anchor}"><h4>{escape(term.name)}{english}{aliases}</h4>'
                         f'{short}<dl>{fields}</dl></article>')
-    intro = f'<p class="pl-meta">{_inline(glossary.intro)}</p>' if glossary.intro else ""
-    return (f'<div class="gl-root">{intro}<nav class="gl-indexes" aria-label="Index du glossaire">{index}</nav>'
+    # Introduction (format, version, légende de confiance) : aide repliée (B13), comme les
+    # aides des tableaux de l'onglet Analyse.
+    intro = (f'<details class="ws-howto-read gl-about"><summary>À propos de ce glossaire</summary>'
+             f'<p class="ws-caption">{_inline(glossary.intro)}</p></details>' if glossary.intro else "")
+    return (f'<div class="gl-root"><nav class="gl-indexes" aria-label="Index du glossaire">{index}</nav>{intro}'
             + "".join(body) + "</div>")
+
+
+def _field_class(key: str) -> str:
+    return ' class="gl-source"' if key == "Source" else ""
 
 
 def _sort_key(text: str) -> str:

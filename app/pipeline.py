@@ -429,7 +429,7 @@ def _constats_html(constats: list, label: str | None = None) -> str:
         return ""
     items = "".join(
         f'<li><p>{escape(c.texte)}</p><p class="pl-constat-meta">'
-        f'<span class="av-confidence av-conf-{escape(c.confiance)}">{escape(CONFIDENCE.get(c.confiance, c.confiance))}</span>'
+        f'<span class="ws-conf ws-conf-{escape(c.confiance)}">{escape(CONFIDENCE.get(c.confiance, c.confiance))}</span>'
         f'<span class="sub">{escape(c.id)} · sources : {escape(", ".join(c.sources) or "—")}</span></p></li>'
         for c in constats)
     title = "Constats mesurés" + (f" : {label}" if label else "")
@@ -683,31 +683,53 @@ def _diagram(page: Page, selected: str) -> str:
             f'<svg class="pl-diagram" role="none" viewBox="0 0 {VIEW_W} {height}">{separator}{"".join(arrows)}{"".join(shapes)}{"".join(nodes)}</svg></div>')
 
 
-ERROR_PARTS = (("manquee", "Parole manquée", "detection"), ("fausse_alarme", "Fausse alarme", "detection"),
-               ("confusion", "Confusion", "regroupement"))
+# Étapes où naît chaque composante du DER : la première est sélectionnée, la seconde mise en
+# évidence. La confusion naît surtout des empreintes (passer des MFCC à ECAPA la divise par
+# trois, constat C05), puis du regroupement (retour du cockpit sur B12).
+ERROR_PARTS = (("manquee", "Parole manquée", ("detection",)), ("fausse_alarme", "Fausse alarme", ("detection",)),
+               ("confusion", "Confusion", ("empreintes", "representation", "regroupement")))
 
 
 def _stage_of(page: Page, step: str) -> Stage | None:
     return next((stage for stage in page.stages if step in stage.step_ids), None)
 
 
+def _targets(page: Page, steps: tuple[str, ...]) -> list[tuple[Stage, Stage]]:
+    """(onglet, étape affichée) de chaque étape présente, dans l'ordre ; dans un bloc, l'étape
+    elle-même est nommée, l'onglet restant celui du bloc."""
+    found = []
+    for step in steps:
+        stage = _stage_of(page, step)
+        if stage is not None and all(stage is not tab for tab, _ in found):
+            part = next((x for x in stage.parts if x.id == step), stage)
+            found.append((stage, part))
+    return found
+
+
 def _errors_bar(page: Page) -> str:
     """Naissance des erreurs : DER test sans collar de l'expérience source, empilé ; chaque
-    segment désigne l'étape où l'erreur naît et la sélectionne."""
+    segment sélectionne l'étape où l'erreur naît (et met en évidence la seconde)."""
     data = page.errors
     if not data:
         return (f'<p class="ws-empty-note pl-errors">{escape(page.spec.source_exp)} n\'a pas encore de résultat de '
                 'test : barre de la naissance des erreurs indisponible.</p>')
     corpus = CORPORA.get(data["corpus"], data["corpus"])
     segments, legend = [], []
-    for key, label, step in ERROR_PARTS:
+    for key, label, steps in ERROR_PARTS:
         value = data["composantes"][key]
-        stage = _stage_of(page, step)
-        part = next((x for x in stage.parts if x.id == step), None) if stage else None
-        target = (part or stage).label if stage else step     # dans un bloc : l'étape elle-même
-        where = f"{target} (étape {(part or stage).number})" if stage else target
-        text = f"{label} : {formatage.unite(value, 'points', 2)}, naît à « {where} »"
-        attrs = f' data-stage="{stage.id}" aria-controls="pl-sheet-{stage.id}"' if stage else " disabled"
+        targets = _targets(page, steps)
+        names = [shown.label for _, shown in targets]
+        target = " et ".join([names[0], *[name[:1].lower() + name[1:] for name in names[1:]]]) if names else steps[0]
+        numbers = " et ".join(shown.number for _, shown in targets)
+        text = f"{label} : {formatage.unite(value, 'points', 2)}, naît à « {target} »" + (
+            f" (étape{'s' if len(targets) > 1 else ''} {numbers})" if targets else "")
+        if targets:
+            tab = targets[0][0]
+            attrs = f' data-stage="{tab.id}" aria-controls="pl-sheet-{tab.id}"'
+            if len(targets) > 1:
+                attrs += f' data-also="{targets[1][0].id}"'
+        else:
+            attrs = " disabled"
         segments.append(f'<button type="button" class="pl-errseg pl-err-{key}" style="flex-grow: {value:.4f}"{attrs} '
                         f'aria-label="{escape(text, quote=True)}" title="{escape(text, quote=True)}"></button>')
         legend.append(f'<li><span class="pl-errkey pl-err-{key}" aria-hidden="true"></span>'
@@ -721,8 +743,8 @@ def _errors_bar(page: Page) -> str:
         f'<div class="pl-errbar" role="group" aria-label="Composantes du DER ; un clic sélectionne l\'étape">'
         f'{"".join(segments)}</div><ul class="pl-errlegend">{"".join(legend)}</ul>'
         '<p class="ws-caption">Attribution simplifiée : la parole manquée et la fausse alarme naissent surtout à '
-        'la détection de la parole, la confusion aux empreintes et au regroupement ; une erreur peut avoir '
-        'plusieurs causes en amont.</p></section>'
+        'la détection de la parole, la confusion aux empreintes et au regroupement (passer des MFCC à ECAPA '
+        'divise la confusion par trois, constat C05) ; une erreur peut avoir plusieurs causes en amont.</p></section>'
     )
 
 
@@ -771,7 +793,7 @@ def render(page: Page) -> str:
                 f'{escape(spec.source_exp)} aura été exécutée.</p></div>')
     versions = ", ".join(f"{escape(k)} {escape(str(v))}" for k, v in page.versions.items() if k != "python")
     head = (f'<p class="pl-meta">Expérience source <strong>{escape(spec.source_exp)}</strong> · exécution '
-            f'<code>{escape(page.device)}</code> du {escape(page.date[:10])} · commit <code>{escape(page.commit)}</code>'
+            f'<code>{escape(page.device)}</code> du {escape(formatage.date(page.date))} · commit <code>{escape(page.commit)}</code>'
             + (f" · {versions}" if versions else "") + f' · <code>{escape(page.execution)}</code></p>')
     issues = []
     if page.not_catalogued:

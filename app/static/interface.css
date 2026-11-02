@@ -69,10 +69,13 @@
 
 /* Onglets : soulignement fin, sans couleur. */
 .tab-wrapper, .tab-container { border-bottom: 1px solid var(--ws-line) !important; }
-button[role="tab"] {
-  font-weight: 500 !important; color: var(--ws-slate) !important;
-  /* Les quatre onglets tiennent sur 343 px (375 px moins les gouttières). */
-  padding-left: clamp(8px, 2.5vw, 16px) !important; padding-right: clamp(8px, 2.5vw, 16px) !important;
+button[role="tab"] { font-weight: 500 !important; color: var(--ws-slate) !important; }
+/* À 375 px, les quatre onglets tiennent sur 343 px (375 px moins les gouttières) sans le menu
+   « … » de Gradio (B13). Gradio mesure une copie masquée de la barre (boutons sans rôle
+   « tab ») pour décider qui déborde : la règle vise donc les deux copies. Taille en px : la
+   barre tient aussi en mode présentation. */
+@media (max-width: 640px) {
+  .tab-container > button { padding: 0 var(--ws-space-2) !important; font-size: 13px !important; }
 }
 button[role="tab"][aria-selected="true"] { color: var(--ws-ink) !important; }
 button[role="tab"][aria-selected="true"]::after,
@@ -92,6 +95,8 @@ button[role="tab"][aria-selected="true"]::after,
 }
 .ws-btn-primary { color: var(--ws-on-ink); background: var(--ws-ink); box-shadow: none; }
 .ws-btn-icon { width: var(--ws-control-h); padding: 0; flex: none; }
+/* Petit bouton, dans un tableau ou une liste (notes.md, sources des constats ; B13). */
+.ws-btn-sm { height: var(--ws-control-h-sm); padding: 0 10px; font-size: 0.8rem; margin: 0 !important; }   /* marge basse de la prose Gradio */
 .ws-btn svg { width: var(--ws-icon); height: var(--ws-icon); flex: none; }
 .ws-btn:active:not(:disabled) { transform: scale(0.97); }
 .ws-btn:disabled { opacity: 0.4; cursor: default; }
@@ -133,6 +138,15 @@ button[role="tab"][aria-selected="true"]::after,
 @media (hover: hover) and (pointer: fine) {
   .ws-segmented > button[aria-pressed="false"]:not(:disabled):hover { color: var(--ws-ink); }
 }
+
+/* Étiquette de confiance (constats de l'onglet Avancement, glossaire) : écrite, la teinte ne
+   fait que la doubler. */
+.ws-conf {
+  display: inline-block; padding: 1px var(--ws-space-2); border-radius: var(--ws-radius-pill); font-size: 0.75rem;
+  font-weight: 600; line-height: 1.4; box-shadow: var(--ws-ring-strong); color: var(--ws-ink); white-space: nowrap;
+}
+.ws-conf-certain { background: var(--ws-ink); color: var(--ws-on-ink); }
+.ws-conf-incertain { box-shadow: var(--ws-ring-slate); color: var(--ws-slate); font-weight: 500; }
 
 /* Encadrés : deux styles seulement. Information : fond discret. Attention : filet gauche et
    icône « ! » ; jamais de couleur d'état. */
@@ -330,6 +344,14 @@ button.primary:active, button.secondary:active { transform: scale(0.97); }
 }
 .ws-howto-read[open] summary { color: var(--ws-ink); }
 .ws-howto-read .ws-caption { margin-top: var(--ws-space-1); }
+/* Contenu replié qui n'est pas une aide (valeurs d'un graphique, décisions de cadrage) :
+   même sommaire, à l'encre ; reste visible en mode présentation. */
+.ws-fold { margin-top: 10px; }
+.ws-fold > summary {
+  cursor: pointer; font-size: 0.875rem; font-weight: 500; color: var(--ws-ink); padding: 2px 0;
+  border-radius: var(--ws-radius-mark);
+}
+.ws-fold[open] > summary { margin-bottom: var(--ws-space-2); }
 .ws-callout { margin-bottom: var(--ws-space-3); color: var(--ws-slate); }
 .ws-callout.ws-alert { color: var(--ws-ink); }
 /* Chemin du RTTM repris en mode factice : coupé n'importe où plutôt que d'élargir la page
@@ -341,7 +363,7 @@ button.primary:active, button.secondary:active { transform: scale(0.97); }
 .ws-speaker { display: flex; align-items: center; }
 .ws-speaker-name { display: inline-flex; flex-direction: column; min-width: 0; }
 .ws-name-input {
-  width: min(12em, 40vw); max-width: 100%; height: var(--ws-control-h); padding: 0 var(--ws-space-2);
+  width: min(18em, 48vw); max-width: 100%; height: var(--ws-control-h); padding: 0 var(--ws-space-2);
   border-radius: var(--ws-radius-control); font: inherit; font-weight: 600;
   color: var(--ws-ink); background: var(--ws-surface); border: 1px solid transparent;
   box-shadow: var(--ws-ring-control); transition: box-shadow var(--ws-medium) ease-out;
@@ -397,6 +419,7 @@ button.primary:active, button.secondary:active { transform: scale(0.97); }
   white-space: normal; max-width: 13em; min-width: 8em; overflow-wrap: anywhere;
 }
 .ws-matrix th[scope="row"].ws-who { white-space: normal; }
+.ws-mx-who { display: -webkit-box; -webkit-box-orient: vertical; -webkit-line-clamp: 2; line-clamp: 2; overflow: hidden; }
 .ws-mx-num { display: inline-block; min-width: 1.6em; color: var(--ws-slate); font-variant-numeric: tabular-nums; }
 .ws-matrix thead th:first-child { position: sticky; left: 0; z-index: 1; background: var(--ws-surface) !important; }
 .ws-mx-corner { font-weight: 400; font-size: 0.75rem; white-space: normal; display: block; max-width: 11em; }
@@ -434,6 +457,8 @@ button.primary:active, button.secondary:active { transform: scale(0.97); }
 @media (hover: hover) and (pointer: fine) { .pl-node:hover .pl-box { fill: var(--ws-canvas); } }
 /* Focus au clavier : le contour de l'étape s'épaissit (l'anneau d'un groupe SVG n'est pas
    dessiné par tous les navigateurs) ; jamais rogné, il reste dans la boîte. */
+/* Seconde étape où naît une erreur (barre de la naissance des erreurs) : contour pointillé. */
+.pl-node.pl-also .pl-box, .pl-node.pl-also .pl-frame { stroke: var(--ws-ink); stroke-width: 2; stroke-dasharray: 5 3; }
 .pl-node:focus { outline: none !important; }
 .pl-node:focus-visible .pl-box, .pl-node:focus-visible .pl-frame { stroke: var(--ws-ink); stroke-width: 3.5; stroke-dasharray: none; }
 .pl-frame { fill: none; stroke: var(--ws-control-line); stroke-width: 1; }
@@ -559,16 +584,29 @@ button.primary:active, button.secondary:active { transform: scale(0.97); }
 .av-learned-item p { margin: 0; line-height: 1.5; max-width: 90ch; }
 .av-learned-meta { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; margin-top: var(--ws-space-1) !important; }
 .av-learned-meta .sub { display: inline; color: var(--ws-slate); font-size: 0.8rem; }
-.av-confidence {
-  display: inline-block; padding: 1px var(--ws-space-2); border-radius: var(--ws-radius-pill); font-size: 0.75rem;
-  font-weight: 600; box-shadow: var(--ws-ring-strong); color: var(--ws-ink);
-}
-.av-conf-certain { background: var(--ws-ink); color: var(--ws-on-ink); }
-.av-conf-incertain { box-shadow: var(--ws-ring-slate); color: var(--ws-slate); font-weight: 500; }
 .av-source-missing { color: var(--ws-slate); font-size: 0.75rem; }
 .av-synthesis { margin-top: 10px; }
 .av-framing { margin-top: var(--ws-space-3); }
-.av-framing summary, .av-values summary { cursor: pointer; font-size: 0.875rem; font-weight: 500; padding: 6px 0; }
+.av-learned-meta .ws-btn-sm { font-variant-numeric: tabular-nums; }
+.av-table code { font-size: 0.8rem; }
+/* Petit écran : les tableaux de l'onglet s'empilent en fiches, chaque valeur précédée de son
+   en-tête (data-label) ; plus de défilement horizontal pour lire une ligne (B13). */
+@media (max-width: 640px) {
+  .ws-table-wrap:has(> .av-stack) { width: auto; overflow-x: visible; }
+  .av-stack thead { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); }
+  .av-stack, .av-stack tbody, .av-stack tr, .av-stack td { display: block; width: auto; }
+  .av-stack tr { padding: var(--ws-space-2) 0; }
+  .av-stack td, .av-stack td:first-child {
+    position: relative; padding: 2px 0 2px 6.5rem; min-width: 0 !important; white-space: normal; text-align: left;
+  }
+  .av-stack td.num { text-align: left; }
+  .av-stack td[data-label]::before {
+    content: attr(data-label); position: absolute; left: 0; top: 4px; width: 6rem; color: var(--ws-slate);
+    font-size: 0.75rem; line-height: 1.3;
+  }
+  .av-stack td:first-child { padding-left: 0; padding-bottom: var(--ws-space-1); }
+  .av-stack td:first-child::before { display: none; }
+}
 
 /* Graphique des systèmes de référence : deux mises en page du même SVG. */
 .av-figure { margin: 0; }
@@ -606,10 +644,9 @@ a.gl-index {
 @media (hover: hover) and (pointer: fine) { a.gl-index:hover { box-shadow: var(--ws-ring-ink); } }
 .gl-part { margin: 10px 0 0; font-size: 1rem; }
 .gl-part-text { margin: 0; max-width: 80ch; line-height: 1.55; }
-.gl-term {
-  padding: var(--ws-space-3) 0; border-top: 1px solid var(--ws-line); scroll-margin-top: var(--ws-space-4);
-  border-radius: var(--ws-radius-control);
-}
+/* Filet du haut par une ombre : un arrondi sur une bordure seule courbait ses extrémités. */
+.gl-term { padding: var(--ws-space-3) 0; box-shadow: var(--ws-rule-top); scroll-margin-top: var(--ws-space-4); }
+.gl-target { border-radius: var(--ws-radius-control); }
 .gl-term h4 { margin: 0 0 6px; font-size: 1rem; letter-spacing: -0.01em; }
 .gl-en { color: var(--ws-slate); font-weight: 400; font-style: italic; }
 .gl-short { margin: -2px 0 var(--ws-space-2); color: var(--ws-slate); font-size: 0.82rem; }
@@ -646,6 +683,8 @@ html.ws-presentation .ws-secondary { display: none !important; }
 html.ws-presentation .ws-header { padding-top: 20px; }
 /* Aides des tableaux masquées (V13) ; en-tête réduit au titre et aux interrupteurs (V6). */
 html.ws-presentation .ws-howto-read { display: none !important; }
+/* Avancement et Glossaire (B13) : chemins des fiches et sources des termes masqués. */
+html.ws-presentation .av-path, html.ws-presentation .gl-source { display: none !important; }
 /* Pipeline (B12) : texte du schéma agrandi (le texte est coupé pour ces tailles), révisions
    masquées, barre de la naissance des erreurs mise en avant, en tête de page. */
 html.ws-presentation .pl-n-title { font-size: 12.5px; }

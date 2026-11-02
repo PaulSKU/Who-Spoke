@@ -118,7 +118,9 @@
   height: 24px; display: flex; align-items: center; overflow: hidden; white-space: nowrap;
   font-size: 0.85rem; padding-right: 12px; box-sizing: border-box;
 }
-.wsp-label-text { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.wsp-label-text { display: flex; min-width: 0; white-space: nowrap; }
+.wsp-label-head { min-width: 0; overflow: hidden; text-overflow: ellipsis; }
+.wsp-label-tail { flex: none; white-space: pre; }
 /* Nom d'un locuteur du premier moteur : un clic l'isole (au-delà de 9 locuteurs, seul moyen). */
 .wsp-label-iso { cursor: pointer; border-radius: var(--ws-radius-mark); }
 .wsp-label-iso:focus-visible { outline: 2px solid var(--ws-ink); outline-offset: -2px; }

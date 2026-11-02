@@ -845,17 +845,37 @@ function caption(labels, lanes, text, title) {
   lanes.appendChild(spacer);
 }
 
-function addRow(labels, lanes, text, title, swatchClass, swatchColor) {
+// Fin gardée du nom d'un locuteur : son dernier mot s'il est court (« 01 », « _00 », une
+// initiale), séparateur compris ; sinon, pour un nom long, ses six derniers caractères.
+function splitName(text) {
+  const cut = Math.max(text.lastIndexOf(' '), text.lastIndexOf('_'), text.lastIndexOf('-'));
+  if (cut > 0 && text.length - cut <= 9) return [text.slice(0, cut), text.slice(cut)];
+  return text.length > 14 ? [text.slice(0, -6), text.slice(-6)] : [text, ''];
+}
+
+function addRow(labels, lanes, text, title, swatchClass, swatchColor, split) {
   const label = document.createElement('div');
   label.className = 'wsp-label';
   const swatch = document.createElement('span');
   swatch.className = 'wsp-swatch' + (swatchClass ? ' ' + swatchClass : '');
   if (swatchColor) swatch.style.background = swatchColor;
   label.appendChild(swatch);
-  // Texte dans son propre bloc : un nom trop long finit par « … » (nom complet en info-bulle).
+  // Texte dans son propre bloc : le nom d'un locuteur trop long est coupé au milieu, « … »
+  // puis sa fin gardée (« Marie-Hél… 01 », « SPE…_00 ») : des noms au même début restent
+  // distincts (B13). Nom complet en info-bulle.
   const name = document.createElement('span');
   name.className = 'wsp-label-text';
-  name.textContent = text;
+  const [head, tail] = split ? splitName(text) : [text, ''];
+  const start = document.createElement('span');
+  start.className = 'wsp-label-head';
+  start.textContent = head;
+  name.appendChild(start);
+  if (tail) {
+    const end = document.createElement('span');
+    end.className = 'wsp-label-tail';
+    end.textContent = tail;
+    name.appendChild(end);
+  }
   label.appendChild(name);
   label.title = title;
   labels.appendChild(label);
@@ -884,7 +904,7 @@ function drawLanes(v) {
     group.locuteurs.forEach((spk) => {
       names[spk.id] = spk.nom;
       tracks[spk.id] = addRow(labels, lanes, spk.nom, spk.titre || spk.nom + ' (' + spk.id + ')', '',
-                              element._colors[group.id + ':' + spk.id]);
+                              element._colors[group.id + ':' + spk.id], true);
       if (groupIndex === 0) {
         const label = labels.lastChild;
         element._rows[spk.id] = [label, tracks[spk.id]];

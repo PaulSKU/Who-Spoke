@@ -595,7 +595,9 @@ def _follow_matrix_html(data: dict, names: dict[str, str], who) -> str:
             style = f' style="--mx:{shade}%"' if count else ""
             cells.append(f'<td class="num ws-mx"{style}>{count}</td>')
         number = f'<span class="ws-mx-num" aria-hidden="true">{i + 1}</span>' if numbered else ""
-        body.append(f'<tr><th scope="row" class="ws-who">{number}{who(before)}</th>{"".join(cells)}</tr>')
+        # Nom coupé à deux lignes (nom complet en info-bulle) : la matrice reste lisible à 375 px.
+        body.append(f'<tr><th scope="row" class="ws-who" title="{escape(names[before], quote=True)}">'
+                    f'<span class="ws-mx-who">{number}{who(before)}</span></th>{"".join(cells)}</tr>')
     return ('<h3 class="ws-subtitle">Qui suit qui</h3>'
             '<div class="ws-table-wrap"><table class="ws-table ws-matrix">'
             f'<caption class="ws-sr">Qui suit qui : nombre de passages de parole, du locuteur de la ligne, qui avait '
@@ -790,7 +792,7 @@ def _context_sentences(context: dict, duration_s: float) -> dict[str, str]:
                                           f"({share} de sa durée).")
     short = context["tour_court"]
     if short:
-        sentences["tour_court"] = (f"Elle recoupe un tour de la référence de moins de {_num(sortie.SHORT_TURN_S, 1)}\u202fs "
+        sentences["tour_court"] = (f"Elle recoupe un tour de la référence de moins de {formatage.general(sortie.SHORT_TURN_S)}\u202fs "
                                    f"({short['locuteur']}, {_num(short['duree_s'], 2)}\u202fs).")
     pause = context["pause"]
     if pause:
@@ -1809,7 +1811,8 @@ def build_app(fake: bool = False, fake_max_s: float = 20.0, repo_root: Path = RE
             n_speakers = len(sortie.speaker_labels(result["annotation"]))
             title = summary if prefix else (f"{_plural(n_speakers, 'locuteur')} en {temps.format_duration(total_s)}"
                                             if n_speakers else f"aucun locuteur détecté, en {temps.format_duration(total_s)}")
-            title = title[0].upper() + title[1:]
+            if not prefix:          # en comparaison, le titre commence par le nom d'un moteur (« pyannote »)
+                title = title[0].upper() + title[1:]
             detail = f"{prepared['nom']}, {temps.format_duration(duration_s)} d'audio"
             if not prefix:
                 detail += f", {result['libelle']}, RTF {_num(total_s / duration_s, 4)}"

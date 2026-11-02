@@ -586,7 +586,7 @@ Vérifié avec les captures Playwright (`tests/visuel/avant-apres-b11.spec.ts`, 
 | Flèches | Étiquetées par la forme des données en sortie de l'étape, d'après la section `formes` du catalogue : modèle à trous dont chaque `{réglage}` est lu dans la configuration effective (dans le code pour la normalisation), mis en forme comme le tableau des réglages. Un réglage absent laisse l'étiquette générique, et l'écart est signalé avec les autres (baseline MFCC : pas de dimension d'empreinte) ; à défaut de section dans le catalogue de `--depot`, celle de ce code | `catalogue.yaml` (`formes`), `pipeline._shapes` |
 | Un seul réseau | pyannote : détection et segmentation, deux sous-blocs numérotés (2, 3) dans un cadre « Un seul réseau : PyanNet », un seul onglet ; baseline : étapes séparées | section `regroupements` du catalogue |
 | Évaluation | À droite, derrière un filet pointillé, flèche pointillée depuis la sortie, cadre pointillé, « mesure seulement » | |
-| Naissance des erreurs | DER test sans collar de l'expérience source (`results_<corpus>_test.json`), empilé avec les motifs de la carte des erreurs (plein, hachures, contour) ; chaque segment est un bouton qui sélectionne l'étape où l'erreur naît (parole manquée et fausse alarme : détection ; confusion : regroupement) ; légende écrite et mention « Attribution simplifiée » | `pipeline._errors_bar` |
+| Naissance des erreurs | DER test sans collar de l'expérience source (`results_<corpus>_test.json`), empilé avec les motifs de la carte des erreurs (plein, hachures, contour) ; chaque segment est un bouton qui sélectionne l'étape où l'erreur naît (parole manquée et fausse alarme : détection ; confusion : empreintes, le regroupement étant mis en évidence par un contour pointillé, retour du cockpit sur B12, constat C05) ; légende écrite et mention « Attribution simplifiée » | `pipeline._errors_bar` |
 | Aperçus | Schématiques et statiques (la page n'a pas les données d'un fichier) : forme d'onde, trames, marche-arrêt de la détection, nuage de vecteurs, tours ; couleurs des locuteurs (jetons `--ws-spk-1` à `3`) pour la segmentation et le regroupement seulement | `pipeline._preview` |
 | 375 px | Liste numérotée verticale, une étape dépliée à la fois (`aria-expanded`), réglages en liste « clé : valeur », forme des données entre deux étapes | `pipeline._stepper` |
 | Mode présentation | Texte du schéma agrandi, révisions masquées, barre de la naissance des erreurs en tête de page et plus haute | `interface.css` |
@@ -596,3 +596,26 @@ Retours de B11 : l'indicateur du préchauffage reste dans l'en-tête en mode pr�
 Vérifié dans le navigateur, pyannote et baseline ECAPA : clair et sombre à 1440 px, sombre à 375 px, mode présentation (1280 × 720) ; clavier (flèches, Origine, Fin, Maj + Tab vers l'onglet sélectionné), segment de la barre qui sélectionne l'étape, une étape dépliée à la fois à 375 px. Captures avant et après : `docs/audit/b12-avant-apres/` (`tests/visuel/avant-apres-b12.spec.ts`). Captures de référence mises à jour pour ces changements (pages Pipeline, indicateur du préchauffage en présentation) ; stylelint, 20 captures et axe-core (clair, sombre) sans écart. Tests : `tests/test_app_pipeline_b12.py` (13).
 
 Le catalogue (`src/whospoke/pipelines/catalogue.yaml`) fait partie de l'empreinte du code des moteurs : le cache des résultats est invalidé une fois.
+
+## Avancement, Glossaire et passe break-ui finale (chantier B13, audit visuel du 02/11, §7)
+
+| Élément | Comportement | Où |
+|---|---|---|
+| Barre d'onglets à 375 px | Les quatre onglets tiennent sans le menu « … » de Gradio (13 px, marges réduites sous 640 px). Gradio décide du débordement en mesurant une copie masquée de la barre, dont les boutons n'ont pas le rôle « tab » : la règle vise `.tab-container > button` pour couvrir les deux copies. En dessous d'environ 340 px, le menu « … » revient | `interface.css` |
+| Petit bouton | `ws-btn ws-btn-sm` (28 px ; 32 px en présentation, 36 px sur écran tactile) : `notes.md`, sources des constats, synthèse | `jetons.css`, `interface.css` |
+| Étiquette de confiance | `ws-conf` commune aux constats (Avancement, Pipeline) et au glossaire, où « **[probable]** » devient l'étiquette « probable » ; les infobulles gardent le texte brut | `glossaire._inline` |
+| Aides repliables | « Comment lire ces constats », « Comment lire ce tableau » (oracles), « À propos de ce glossaire » (format, version, légende de confiance) : repliées, masquées en mode présentation comme celles de l'onglet Analyse ; « Valeurs du graphique » et « Décisions de cadrage » repliées en `ws-fold`, à l'encre, visibles en présentation | `avancement.py`, `graphique.py`, `glossaire.py` |
+| Formatage | Dates en `JJ/MM/AAAA` (`formatage.date`) dans Avancement et Pipeline ; corpus en clair (« AMI (SDM) », « SUMM-RE ») ; nombre de locuteurs « estimé », « oracle » ; variable modifiée en `code` | `avancement.py`, `pipeline.py` |
+| Tableaux à 375 px | Les tableaux d'Avancement (`av-stack`) s'empilent en fiches : identifiant en tête, puis chaque valeur précédée de son en-tête (`data-label`), sans défilement horizontal | `avancement._row`, `interface.css` |
+| Mode présentation | Chemins des fiches de décision et sources des termes du glossaire masqués | `interface.css` |
+| Glossaire | Filet entre deux entrées par une ombre (`--ws-rule-top`) : l'arrondi courbait les extrémités de la bordure | `interface.css` |
+
+Passe break-ui (moteur factice, fichiers de `tests/fabrique.py`, sur les quatre onglets ; 1440, 1280 × 720 et 375 px, clair, sombre, présentation) : 12 locuteurs aux noms longs, 0 locuteur, 90 min, référence plus courte, comparaison de deux moteurs. Aucun débordement de page ni erreur de console. Corrigé :
+- noms des pistes de la timeline coupés au milieu (« Marie-Hél… 01 », « SP…_00 ») : coupés en fin, douze noms au même début devenaient tous « Marie-Hélène … » ; la fin gardée est le dernier mot s'il est court (espace, « _ » ou « - » compris), sinon les six derniers caractères ; locuteurs seulement (`splitName`, `visualiseur.js`) ;
+- champ du nom dans le tableau des locuteurs élargi (18 em au plus) ;
+- noms des lignes de la matrice « Qui suit qui » limités à deux lignes, nom complet en infobulle (quatre lignes à 375 px) ;
+- titre de l'état en comparaison : « pyannote community-1 : … » garde sa minuscule ;
+- seuil du tour court écrit « moins de 1 s » (au lieu de « 1,0 s », signalé par la session E).
+
+Vérifié aussi à 1280 × 720 et 1920 × 1080 (vidéoprojecteur), clair et sombre, sur les quatre onglets après une analyse. L'essai au vidéoprojecteur par la candidate reste à faire. Captures avant et après : `docs/audit/b13-avant-apres/` (`tests/visuel/avant-apres-b13.spec.ts`). Captures de référence mises à jour pour ces changements (20 : onglets à 375 px, Avancement, Glossaire, barre des erreurs, noms des pistes et champ du nom, date de Pipeline) ; stylelint, captures et axe-core (clair, sombre) sans écart. Tests : `tests/test_app_b13.py` (12).
+

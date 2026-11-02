@@ -163,9 +163,9 @@ def test_encadre_ce_que_nous_avons_appris(depot):
     # Constats clés seulement, texte échappé, confiance écrite.
     assert "par énergie" in html and "&lt;b&gt;" in html and "<b>par" not in html
     assert "Fausse alarme dans les pauses" not in html                  # cle: false
-    assert "av-conf-certain" in html and "av-conf-probable" in html and "av-conf-incertain" in html
+    assert "ws-conf-certain" in html and "ws-conf-probable" in html and "ws-conf-incertain" in html
     # Source présente : bouton qui affiche ses notes ; absente : signalée, sans bouton.
-    assert 'class="ws-btn av-notes av-source" data-id="EXP-0012"' in html
+    assert 'class="ws-btn ws-btn-sm av-notes av-source" data-id="EXP-0012"' in html
     assert 'data-id="EXP-0099"' not in html and "Absente de ce dépôt" in html
     assert "docs/constats.yaml : à corriger" in html and "C06" in html
     assert 'data-id="synthese"' in html
@@ -182,7 +182,7 @@ def test_synthese_rendue_dans_la_page(depot):
 def test_decisions_de_cadrage_repliees_et_chemin_masque(depot):
     sections = av.render(depot)
     decisions = sections["decisions"]
-    before, _, folded = decisions.partition('<details class="av-framing">')
+    before, _, folded = decisions.partition('<details class="av-framing ws-fold">')
     assert "D16" in before and "D1<" not in before                      # D16 et suivantes visibles
     assert "D1<" in folded and "D2<" in folded and "dont 1 avec un point ouvert" in folded
     assert str(depot) not in "".join(sections.values())

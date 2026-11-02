@@ -122,13 +122,19 @@ def test_barre_de_la_naissance_des_erreurs():
     data = page.errors
     assert data["exp"] == "EXP-0012" and data["der"] == pytest.approx(sum(data["composantes"].values()), abs=0.02)
     segments = re.findall(r'class="pl-errseg pl-err-([a-z_]+)" style="flex-grow: ([\d.]+)" data-stage="([a-z_]+)"', html)
+    # Confusion : empreintes (ici la représentation) sélectionnées, regroupement mis en évidence
+    # (retour du cockpit sur B12, constat C05).
     assert [(k, s) for k, _, s in segments] == [("manquee", "detection"), ("fausse_alarme", "detection"),
-                                                ("confusion", "regroupement")]
+                                                ("confusion", "representation")]
+    assert 'data-stage="representation" aria-controls="pl-sheet-representation" data-also="regroupement"' in html
+    assert "→ Représentation et regroupement" in html and "dataset.also" in JS and "pl-also" in JS
     assert float(segments[0][1]) == pytest.approx(data["composantes"]["manquee"])
     assert "Attribution simplifiée" in html and "pl-errseg[data-stage]" in JS
     pyannote = pipeline.render(page_of("pyannote-community-1"))
     assert 'data-stage="segmentation_neuronale" aria-controls="pl-sheet-segmentation_neuronale"' in pyannote
     assert "→ Détection de parole" in pyannote       # l'étape du bloc où l'erreur naît
+    assert "→ Empreintes vocales et regroupement" in pyannote
+    assert 'data-stage="empreintes" aria-controls="pl-sheet-empreintes" data-also="regroupement"' in pyannote
 
 
 # --- Petit écran et mode présentation ---------------------------------------------------------

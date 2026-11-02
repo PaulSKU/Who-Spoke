@@ -1101,3 +1101,24 @@ Problèmes :
 - La carte affiche « moins de 1,0 s » : `app/app.py` formate le seuil avec une décimale ; non modifié ici (fichier de la session B).
 - Suite complète, sans lents ni `modele` : 615 réussis, 12 ignorés, 7 désélectionnés.
 Suite : fusion de `5738a65` par la session B ; exécution officielle d'A-0003 depuis `main` après A3 et A6.
+
+## 2026-11-02 — Interface : correction de B12, fusion d'outils, B13 (Avancement, Glossaire, passe break-ui) (Claude Code)
+
+Objectif : retour du cockpit sur B12 (confusion rattachée aux empreintes et au regroupement), fusion d'`origin/outils` (tour court à 1 s), puis chantier B13 de l'audit visuel du 02/11 (§7), dans le worktree `ui`, moteur factice, sans modèle chargé, fusion vers `main` ni dépendance ajoutée.
+Réalisé :
+- Correction de B12 : dans la barre de la naissance des erreurs, la confusion sélectionne « Empreintes » (« Représentation » pour la baseline) et met « Regroupement » en évidence par un contour pointillé (`data-also`, classe `pl-also`) ; légende « → Empreintes vocales et regroupement » ; légende de la barre complétée (constat C05).
+- Fusion d'`origin/outils` (`8e5f267`) : `SHORT_TURN_S` à 1 s, A-0003, rendu ; conflit de `docs/journal.md` résolu en gardant les entrées des deux côtés.
+- B13, onglets Avancement et Glossaire au système de B10 : petit bouton `ws-btn-sm` (jeton `--ws-control-h-sm`), étiquette de confiance commune `ws-conf` (constats et glossaire, où « [probable] » devient une étiquette), aides repliées et masquées en présentation (« Comment lire ces constats », « Comment lire ce tableau », « À propos de ce glossaire »), replis `ws-fold` (valeurs du graphique, décisions de cadrage), dates en JJ/MM/AAAA (`formatage.date`, aussi dans Pipeline), corpus et nombre de locuteurs en clair, tableaux empilés en fiches à 375 px (`data-label`), chemins des fiches et sources des termes masqués en présentation, filet du glossaire sans arrondi.
+- À 375 px, les quatre onglets tiennent sans le menu « … » : Gradio mesure une copie masquée de la barre (boutons sans rôle « tab »), que l'ancienne règle ne touchait pas ; la règle vise maintenant les deux copies.
+- Passe break-ui sur les quatre onglets (fichiers de `tests/fabrique.py`, copies dans le dossier temporaire de la session, supprimables) : 12 locuteurs aux noms longs, 0 locuteur, 90 min, référence plus courte, comparaison de deux moteurs ; 1440, 1280 × 720 et 375 px, clair, sombre, présentation. Aucun débordement ni erreur de console. Corrigé : noms des pistes coupés au milieu (douze « Marie-Hélène … » indiscernables), champ du nom élargi, noms de la matrice limités à deux lignes, casse du titre en comparaison, « moins de 1 s » pour le tour court (signalé par la session E).
+- Vérification à 1280 × 720 et 1920 × 1080, clair et sombre, sur les quatre onglets ; captures avant et après dans `docs/audit/b13-avant-apres/`.
+- Contrôle visuel : stylelint, 20 captures de référence mises à jour pour ces seuls changements (chaque différence comparée à l'ancienne image), axe-core en clair et en sombre : au vert. Tests : `tests/test_app_b13.py` (12) ; tests de B12, des constats et de l'appariement mis à jour.
+Résultats : aucune expérience.
+Décisions : aucune. Choix de la session, à valider : dates en JJ/MM/AAAA ; tableaux d'Avancement empilés en fiches à 375 px (page plus longue, 18 700 px contre 9 200, mais plus de défilement horizontal) ; aides repliées et masquées en présentation ; sources des termes et chemins des fiches masqués en présentation ; coupe des noms de pistes au dernier mot court ou aux six derniers caractères ; onglets à 13 px sous 640 px.
+Problèmes :
+- Sous environ 340 px de large, le menu « … » de Gradio revient (quatre onglets à 13 px demandent 306 px).
+- À 375 px, l'onglet Avancement reste long (21 expériences en fiches) ; options pour le cockpit : replier la frise au-delà des cinq dernières expériences, ou garder le tableau défilant à 375 px.
+- Les captures pleine page de plus de 16 384 px répètent le haut de la page (limite de Chrome) : la passe break-ui à 375 px capture par vues successives.
+- L'essai au vidéoprojecteur par la candidate reste à faire.
+- Règle 11 enfreinte une fois : le premier commit a été enchaîné à la suite complète filtrée par `| tail` (le `&&` testait alors le filtre, pas pytest). Suite réussie (655 réussis, 12 ignorés, 3 désélectionnés) ; commit refait, journal compris, derrière `uv run pytest && git commit` sans filtre.
+Suite : retour du cockpit sur B13 ; essai au vidéoprojecteur ; fusion d'`ui` dans `main` selon le planning.
