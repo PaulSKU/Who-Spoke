@@ -2,6 +2,7 @@
 configuration_effective et le catalogue, lus sous une racine de dépôt configurable."""
 
 import json
+import re
 
 import pytest
 import yaml
@@ -121,7 +122,9 @@ def test_etape_evaluation_separee_et_lue_dans_le_code(tmp_path):
     assert rows["references"].value == "data/processed/summre/rttm"
     assert page.evaluation not in page.stages
     html = pipeline.render(page)
-    assert 'class="pl-step pl-eval" data-stage="evaluation"' in html
+    # Schéma (B12) : Évaluation détachée derrière un filet pointillé, « mesure seulement ».
+    assert 'id="pl-tab-evaluation" data-stage="evaluation"' in html and 'class="pl-box pl-box-eval"' in html
+    assert 'class="pl-sep-line"' in html and "mesure seulement" in html
 
 
 def test_rendu_echappe_et_revision_non_consignee(tmp_path):
@@ -129,7 +132,9 @@ def test_rendu_echappe_et_revision_non_consignee(tmp_path):
     assert "révision non consignée" in html and "révision 3533c8c" in html
     assert "&lt;b&gt;x&lt;/b&gt;" in html and "<b>x</b>" not in html
     # Une seule fiche visible au départ, la première étape du moteur.
-    assert html.count('class="pl-sheet"') == 4 and html.count(" hidden>") == 3
+    # Quatre fiches en onglets, une seule affichée ; les panneaux du stepper sont tous repliés.
+    assert html.count('class="pl-sheet"') == 4 and html.count('role="tabpanel"') == 4
+    assert re.findall(r'class="pl-sheet"[^>]*?( hidden)?>', html).count("") == 1
     assert "fonts.googleapis" not in html and "http" not in html
 
 

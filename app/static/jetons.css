@@ -28,6 +28,11 @@
   --av-err-manquee: #2a78d6;
   --av-err-fausse_alarme: #eb6834;
   --av-err-confusion: #199e70;
+  /* Trois premières couleurs des locuteurs (app/app.py, PALETTE_LIGHT et PALETTE_DARK) : aperçus
+     de segmentation et de regroupement de la page Pipeline (B12). */
+  --ws-spk-1: #2a78d6;
+  --ws-spk-2: #eb6834;
+  --ws-spk-3: #1baf7a;
 
   /* Arrondis : un pour les cartes, un plus petit pour les contrôles et les blocs internes
      (jamais plus que la carte qui les contient), pilule et rond pour badges et pastilles,
@@ -81,6 +86,9 @@
   --av-err-manquee: #3987e5;
   --av-err-fausse_alarme: #d95926;
   --av-err-confusion: #199e70;
+  --ws-spk-1: #3987e5;
+  --ws-spk-2: #d95926;
+  --ws-spk-3: #199e70;
   --ws-shadow-card: 0 0 0 1px rgba(255, 255, 255, 0.08);
 }
 

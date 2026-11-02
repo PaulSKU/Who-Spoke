@@ -220,7 +220,7 @@ def test_constats_sous_les_etapes_du_moteur(pipeline_depot):
     html = pipeline.render(page)
     assert "docs/constats.yaml : " in html and "étape « inexistante » absente du catalogue" in html
     assert "Constats mesurés" in html and "La détection &lt;b&gt;par énergie&lt;/b&gt;" in html
-    assert "EXP-0012, EXP-0099" in html and "Détection · 1 constat<" in html
+    assert "EXP-0012, EXP-0099" in html and '>1 constat</text>' in html     # nombre sur l'étape du schéma
 
 
 def test_pyannote_segmentation_neuronale_en_un_bloc(pipeline_depot):
@@ -235,7 +235,11 @@ def test_pyannote_segmentation_neuronale_en_un_bloc(pipeline_depot):
     assert [c.id for c in block.parts[0].constats] == ["C03"] and [c.id for c in block.parts[1].constats] == ["C02"]
     html = pipeline.render(page)
     assert html.count('class="pl-part"') == 2 and "2 constats" in html
-    assert html.count('data-stage="segmentation_neuronale"') == 2       # un bouton, une fiche
+    assert html.count('id="pl-tab-segmentation_neuronale"') == 1          # un onglet
+    assert html.count('id="pl-sheet-segmentation_neuronale"') == 1        # une fiche
+    # Parole manquée et fausse alarme naissent dans ce bloc : leurs segments le sélectionnent.
+    assert html.count('class="pl-errseg') == 3
+    assert 'class="pl-frame-label"' in html and "Un seul réseau" in html
     # Le bloc est la première étape affichée après la normalisation, comme la détection avant.
     assert ids[:2] == ["normalisation", "segmentation_neuronale"]
 

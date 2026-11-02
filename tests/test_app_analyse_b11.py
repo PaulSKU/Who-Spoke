@@ -20,9 +20,9 @@ def test_en_tete_sans_configuration_et_panneau_details():
     details = interface._details_html(moteurs.demo_config(), "baseline-mfcc")
     assert details.startswith('<details class="ws-details"><summary>Détails : configuration et moteur</summary>')
     assert "Baseline MFCC</span> (EXP-0009)" in details and "<details open" not in details
-    # Mode présentation : titre et interrupteurs seulement.
+    # Mode présentation : titre, interrupteur et indicateur du préchauffage (retour sur B11).
     assert ("html.ws-presentation .ws-tagline, html.ws-presentation .ws-details-wrap,\n"
-            "html.ws-presentation .ws-badge { display: none !important; }") in CSS
+            "html.ws-presentation .ws-badge:not(.ws-engines) { display: none !important; }") in CSS
 
 
 def test_carte_comment_ca_marche():

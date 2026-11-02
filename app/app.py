@@ -1247,6 +1247,19 @@ def _header_html(fake: bool, status: WarmupStatus | None = None, demo: moteurs.D
             f'</div><div class="ws-badges">{badges}</div></header>')
 
 
+# Panneau « Détails » : redessiné au changement de moteur, il garde l'état ouvert ou fermé
+# que la personne lui a donné (retour du cockpit sur B11).
+DETAILS_JS = """
+element.addEventListener('toggle', (event) => {
+  if (event.target.matches('details.ws-details')) element._open = event.target.open;
+}, true);
+watch('value', () => setTimeout(() => {
+  const panel = element.querySelector('details.ws-details');
+  if (panel && element._open) panel.open = true;
+}));
+"""
+
+
 def _details_html(demo: moteurs.DemoConfig, engine_key: str | None = None) -> str:
     """Panneau « Détails », replié : configuration de démonstration et moteur en vigueur (V6) ;
     masqué en mode présentation."""
@@ -1879,7 +1892,7 @@ def build_app(fake: bool = False, fake_max_s: float = 20.0, repo_root: Path = RE
         prepared_state = gr.State(None)
         header = gr.HTML(_header_html(fake, engines.warmup, demo, demo.default_engine, presentation),
                          js_on_load=None)
-        details = gr.HTML(_details_html(demo), js_on_load=None, elem_classes="ws-details-wrap")
+        details = gr.HTML(_details_html(demo), js_on_load=DETAILS_JS, elem_classes="ws-details-wrap")
         initial = demo.speakers[demo.default_engine]
         timer = gr.Timer(1.0, active=warm_up)
         with gr.Tabs():

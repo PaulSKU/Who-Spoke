@@ -423,22 +423,90 @@ button.primary:active, button.secondary:active { transform: scale(0.97); }
 .pl-meta code, .pl-facts code, .pl-table code { font-size: 0.8rem; }
 .pl-issues p { margin: 0 0 var(--ws-space-1); }
 .pl-issues ul { margin: 0; padding-left: 18px; color: var(--ws-slate); }
-.pl-flow { display: flex; flex-wrap: wrap; align-items: stretch; gap: var(--ws-space-2); }
-.pl-arrow { align-self: center; color: var(--ws-slate); }
-.pl-sep { width: 1px; background: var(--ws-line); margin: 0 var(--ws-space-2); align-self: stretch; }
-.pl-step {
-  display: flex; flex-direction: column; gap: 2px; text-align: left; cursor: pointer;
-  min-width: 128px; padding: 10px var(--ws-space-3); border: none; border-radius: var(--ws-radius-control); font: inherit;
-  background: var(--ws-surface); color: var(--ws-ink); box-shadow: var(--ws-ring);
-  transition: transform var(--ws-fast) var(--ws-ease), background-color var(--ws-medium) ease-out;
+/* Schéma de gauche à droite (B12, audit visuel §6) : SVG à l'échelle de la carte, étapes en
+   onglets ; Évaluation détachée derrière un filet pointillé. */
+.pl-diagram-wrap { min-width: 0; }
+.pl-diagram { display: block; width: 100%; height: auto; font-family: var(--font); font-variant-numeric: tabular-nums; }
+.pl-node { cursor: pointer; }
+.pl-box { fill: var(--ws-surface); stroke: var(--ws-control-line); stroke-width: 1; transition: fill var(--ws-medium) ease-out; }
+.pl-box-eval { stroke: var(--ws-slate); stroke-dasharray: 4 3; }
+.pl-node[aria-selected="true"] .pl-box, .pl-node[aria-selected="true"] .pl-frame { stroke: var(--ws-ink); stroke-width: 2; }
+@media (hover: hover) and (pointer: fine) { .pl-node:hover .pl-box { fill: var(--ws-canvas); } }
+/* Focus au clavier : le contour de l'étape s'épaissit (l'anneau d'un groupe SVG n'est pas
+   dessiné par tous les navigateurs) ; jamais rogné, il reste dans la boîte. */
+.pl-node:focus { outline: none !important; }
+.pl-node:focus-visible .pl-box, .pl-node:focus-visible .pl-frame { stroke: var(--ws-ink); stroke-width: 3.5; stroke-dasharray: none; }
+.pl-frame { fill: none; stroke: var(--ws-control-line); stroke-width: 1; }
+.pl-frame-label { fill: var(--ws-slate); font-size: 11px; font-weight: 600; }
+.pl-num { fill: var(--ws-ink); }
+.pl-num-text { fill: var(--ws-on-ink); font-size: 10px; font-weight: 700; }
+.pl-n-title { fill: var(--ws-ink); font-size: 12px; font-weight: 600; }
+.pl-n-sub { fill: var(--ws-slate); font-size: 10.5px; }
+.pl-n-rev { fill: var(--ws-slate); font-size: 10px; font-family: var(--font-mono); }
+.pl-n-badge { fill: var(--ws-ink); font-size: 10px; }
+.pl-n-shape { fill: var(--ws-slate); font-size: 10.5px; }
+.pl-n-meta { fill: var(--ws-slate); font-size: 10px; }
+.pl-arrow { stroke: var(--ws-slate); stroke-width: 1.5; }
+.pl-arrow-dash { stroke-dasharray: 4 3; }
+.pl-arrow-head { fill: var(--ws-slate); }
+.pl-sep-line { stroke: var(--ws-slate); stroke-width: 1; stroke-dasharray: 3 4; }
+/* Aperçus : encre ; couleurs des locuteurs pour la segmentation et le regroupement seulement. */
+.pl-pv-line { fill: none; stroke: var(--ws-ink); stroke-width: 1.2; }
+.pl-pv-ink { fill: var(--ws-ink); }
+.pl-pv-soft { fill: var(--ws-slate); }
+.pl-pv-dash { fill: none; stroke: var(--ws-ink); stroke-width: 1; stroke-dasharray: 2 2; }
+.pl-spk-1 { fill: var(--ws-spk-1); }
+.pl-spk-2 { fill: var(--ws-spk-2); }
+.pl-spk-3 { fill: var(--ws-spk-3); }
+
+/* Naissance des erreurs : DER test de l'expérience source, motifs de la carte des erreurs. */
+.pl-errors { display: grid; gap: var(--ws-space-2); }
+.pl-errors-head { margin: 0; font-size: 0.9rem; }
+.pl-errors-head .sub { color: var(--ws-slate); }
+.pl-errbar { display: flex; gap: 2px; height: 22px; }
+.pl-errseg {
+  flex-basis: 0; min-width: 8px; padding: 0; border: none; border-radius: var(--ws-radius-mark); cursor: pointer;
+  transition: opacity var(--ws-medium) ease-out;
 }
-.pl-step:active { transform: scale(0.97); }
-@media (hover: hover) and (pointer: fine) { .pl-step:hover { background: var(--ws-canvas); } }
-.pl-step[aria-pressed="true"] { box-shadow: var(--ws-ring-focus); }
-.pl-eval { box-shadow: var(--ws-ring); outline: 1px dashed var(--ws-slate); outline-offset: -4px; }
-.pl-eval[aria-pressed="true"] { box-shadow: var(--ws-ring-focus); }
-.pl-step-name { font-weight: 600; font-size: 0.9rem; }
-.pl-step-family { color: var(--ws-slate); font-size: 0.78rem; }
+@media (hover: hover) and (pointer: fine) { .pl-errseg:hover { opacity: 0.8; } }
+.pl-err-manquee { background: var(--ws-ink); }
+.pl-err-fausse_alarme {
+  background: repeating-linear-gradient(135deg, var(--ws-ink) 0 2px, transparent 2px 5px); box-shadow: var(--ws-ink-inset);
+}
+.pl-err-confusion { background: var(--ws-surface); box-shadow: var(--ws-ink-inset-strong); }
+.pl-errlegend { list-style: none; margin: 0; padding: 0; display: flex; flex-wrap: wrap; gap: var(--ws-space-1) 20px; font-size: 0.85rem; }
+.pl-errlegend li { display: flex; align-items: center; gap: 6px; }
+.pl-errlegend .sub { color: var(--ws-slate); }
+.pl-errkey { display: inline-block; width: 16px; height: 10px; border-radius: var(--ws-radius-mark); }
+
+/* Petit écran : liste numérotée verticale, une étape dépliée à la fois. */
+.pl-stepper { display: none; list-style: none; margin: 0; padding: 0; }
+.pl-st-toggle {
+  display: flex; align-items: flex-start; gap: var(--ws-space-3); width: 100%; padding: var(--ws-space-2) 0;
+  border: none; border-radius: var(--ws-radius-control); background: none; font: inherit; text-align: left;
+  color: var(--ws-ink); cursor: pointer;
+}
+.pl-st-num {
+  flex: none; width: 24px; height: 24px; display: flex; align-items: center; justify-content: center;
+  border-radius: var(--ws-radius-round); font-size: 0.8rem; font-weight: 600; color: var(--ws-on-ink); background: var(--ws-ink);
+}
+.pl-st-eval .pl-st-num { color: var(--ws-ink); background: transparent; box-shadow: var(--ws-ring-strong); }
+.pl-st-text { display: flex; flex-direction: column; min-width: 0; }
+.pl-st-title { font-weight: 600; }
+.pl-st-sub { color: var(--ws-slate); font-size: 0.8rem; }
+.pl-st-toggle[aria-expanded="true"] .pl-st-title { text-decoration: underline; text-underline-offset: 3px; }
+.pl-st-panel { margin: 0 0 var(--ws-space-2) 36px; font-size: 0.875rem; }
+.pl-st-model { margin: 0 0 6px; }
+.pl-st-shape { margin: 0 0 var(--ws-space-1) 36px; color: var(--ws-slate); font-size: 0.8rem; }
+.pl-kv { display: grid; gap: var(--ws-space-1); margin: 0 0 var(--ws-space-2); }
+.pl-kv div { display: flex; flex-wrap: wrap; gap: 0 6px; }
+.pl-kv dt { color: var(--ws-slate); }
+.pl-kv dt::after { content: " :"; }
+.pl-kv dd { margin: 0; overflow-wrap: anywhere; }
+@media (max-width: 640px) {
+  .pl-diagram-wrap, .pl-sheets { display: none; }
+  .pl-stepper { display: block; }
+}
 .pl-sheet h3 { margin: 2px 0 6px; font-size: 1.1rem; letter-spacing: -0.01em; }
 .pl-family { margin: 0; color: var(--ws-slate); font-size: 0.8rem; }
 .pl-role { margin: 0 0 var(--ws-space-3); max-width: 72ch; line-height: 1.5; }
@@ -578,7 +646,17 @@ html.ws-presentation .ws-secondary { display: none !important; }
 html.ws-presentation .ws-header { padding-top: 20px; }
 /* Aides des tableaux masquées (V13) ; en-tête réduit au titre et aux interrupteurs (V6). */
 html.ws-presentation .ws-howto-read { display: none !important; }
+/* Pipeline (B12) : texte du schéma agrandi (le texte est coupé pour ces tailles), révisions
+   masquées, barre de la naissance des erreurs mise en avant, en tête de page. */
+html.ws-presentation .pl-n-title { font-size: 12.5px; }
+html.ws-presentation .pl-n-sub, html.ws-presentation .pl-n-shape { font-size: 12px; }
+html.ws-presentation .pl-n-badge { font-size: 11.5px; }
+html.ws-presentation .pl-n-rev, html.ws-presentation .pl-rev { display: none; }
+html.ws-presentation .pl-errors { order: -1; }
+html.ws-presentation .pl-errbar { height: 36px; }
 html.ws-presentation .ws-tagline, html.ws-presentation .ws-details-wrap,
-html.ws-presentation .ws-badge { display: none !important; }
+html.ws-presentation .ws-badge:not(.ws-engines) { display: none !important; }
+/* L'état du préchauffage reste visible, en indicateur discret (retour du cockpit sur B11). */
+html.ws-presentation .ws-engines { font-size: 0.75rem; padding: 2px var(--ws-space-2); }
 html.ws-presentation .toast-title.error::before, html.ws-presentation .toast-title.warning::before,
 html.ws-presentation .toast-title.info::before { font-size: 20px; }

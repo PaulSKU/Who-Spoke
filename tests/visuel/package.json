@@ -4,7 +4,7 @@
   "description": "Contrôle visuel de l'interface (audit visuel du 02/11, chantier B10) : captures de référence, axe-core, stylelint. Outils de développement seulement, hors de l'environnement Python.",
   "scripts": {
     "captures": "playwright test references",
-    "captures:maj": "playwright test references --update-snapshots=all",
+    "captures:maj": "playwright test references --update-snapshots=changed",
     "accessibilite": "playwright test accessibilite",
     "styles": "stylelint \"../../app/static/**/*.css\"",
     "controle": "npm run styles && playwright test references accessibilite",
