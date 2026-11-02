@@ -31,6 +31,7 @@ else:
 import argparse
 import atexit
 import json
+import re
 import signal
 import threading
 import time
@@ -148,8 +149,10 @@ class EngineCache:
     alors plus compté dans le temps annoncé (D17, amendement 2).
     """
 
-    def __init__(self, fake: bool, fake_max_s: float, experiments: Path = moteurs.EXPERIMENTS_DIR) -> None:
+    def __init__(self, fake: bool, fake_max_s: float, experiments: Path = moteurs.EXPERIMENTS_DIR,
+                 fabricated: Path | None = None) -> None:
         self.fake = fake
+        self.fabricated = fabricated
         self.experiments = experiments
         self.fake_max_s = fake_max_s
         self._engines: dict[tuple[str, str], object] = {}
@@ -193,7 +196,7 @@ class EngineCache:
             return self._engines[key], None
         start = time.perf_counter()
         try:
-            engine = (moteurs.FakeEngine(spec, self.experiments) if self.fake
+            engine = (moteurs.FakeEngine(spec, self.experiments, fabricated=self.fabricated) if self.fake
                       else moteurs.build_engine(spec, device, self.experiments))
         except Exception as error:
             message = moteurs.missing_model_message(error, spec)
@@ -318,6 +321,57 @@ def _failed_step(steps: list[str], state: dict[str, float]) -> str | None:
 # --- Résultats ------------------------------------------------------------------------
 
 
+def _french(text: str) -> str:
+    """Espaces insécables dans les guillemets français : « nom » ne se coupe pas en fin de ligne."""
+    return text.replace("« ", "«\u00a0").replace(" »", "\u00a0»")
+
+
+def _capital(text: str) -> str:
+    return text[:1].upper() + text[1:]
+
+
+def _plural(count: int, singular: str, plural: str | None = None) -> str:
+    """« 1 locuteur », « 3 locuteurs » ; « aucun locuteur » pour zéro."""
+    if count == 0:
+        return f"aucun {singular}"
+    return f"{count} {singular if count == 1 else (plural or singular + 's')}"
+
+
+# Messages d'échec de la normalisation (B7) : la cause probable et quoi faire, d'après la
+# sortie d'erreur de ffmpeg ; le détail technique suit, sans chemin local.
+AUDIO_FAILURES = (
+    (("moov atom not found", "partial file", "End of file", "Truncating packet"),
+     "est incomplet : l'enregistrement a sans doute été interrompu, ou le fichier mal copié. Récupérez le "
+     "fichier complet (ou exportez-le de nouveau depuis l'appareil), puis déposez-le."),
+    (("does not contain any stream", "matches no streams", "Output file is empty"),
+     "ne contient pas de piste son (vidéo muette ?). Déposez un fichier qui contient l'audio de la réunion."),
+    (("Invalid data found", "could not find codec parameters", "Unknown input format"),
+     "n'est pas un fichier audio ou vidéo lisible, quelle que soit son extension. Vérifiez que c'est bien "
+     "l'enregistrement, ou exportez-le de nouveau en WAV, MP3 ou M4A, puis déposez-le."),
+)
+
+
+def _audio_error(name: str, error: Exception) -> str:
+    """Message d'un fichier que ffmpeg n'a pas pu normaliser : cause probable, quoi faire."""
+    detail = str(error)
+    if "ffmpeg introuvable" in detail:
+        return ("ffmpeg est introuvable : il normalise tout audio déposé. Installez-le (macOS : brew install "
+                "ffmpeg), puis relancez l'application.")
+    found = next(((needles, text) for needles, text in AUDIO_FAILURES if any(n in detail for n in needles)), None)
+    advice = found[1] if found else ("n'a pas pu être lu par ffmpeg. Convertissez-le en WAV ou en MP3 (avec "
+                                     "Audacity, par exemple), puis déposez-le de nouveau.")
+    # Lignes de ffmpeg sans préfixe « [in#0 @ 0x…] » ni chemin local ; celle de la cause d'abord.
+    stderr = detail.split(") : ", 1)[-1]          # après « ffmpeg a échoué sur <chemin> (code n) : »
+    lines = [re.sub(r"^\[[^\]]*@ 0x[0-9a-f]+\] ", "", line).strip() for line in stderr.splitlines()]
+    lines = [line for line in lines if line and "/" not in line]
+    cause = [line for line in lines if found and any(n in line for n in found[0])]
+    technical = (cause or lines or [""])[0].rstrip(".")
+    return _french(f"« {name} » {advice}" + (f" (Détail technique : {technical}.)" if technical else ""))
+
+
+SILENT_PEAK = 10 ** (-80 / 20)   # niveau maximal sous −80 dB pleine échelle : fichier silencieux
+
+
 def _title(text: str, note: str = "") -> str:
     note_html = f'<p class="ws-note">{note}</p>' if note else ""
     return f'<h2 class="ws-section-title">{escape(text)}</h2>{note_html}'
@@ -327,11 +381,17 @@ def _empty(text: str) -> str:
     return f'<p class="ws-empty-note">{escape(text)}</p>'
 
 
+NO_SPEAKER = ("Aucun locuteur détecté : le moteur n'a trouvé aucune parole dans ce fichier. Vérifiez que l'audio "
+              "contient bien la réunion (niveau, piste ou micro choisis à l'enregistrement), ou essayez un autre moteur.")
+
+
 def _stats_html(result: dict | None) -> str:
     """Statistiques par locuteur du premier moteur, avec le renommage dans le tableau (un
     champ par ligne, R-U6) et un bouton ▶ qui lit son extrait typique dans la timeline."""
     if result is None:
         return _empty("Les statistiques par locuteur s'afficheront après l'analyse.")
+    if not len(result["annotation"]):
+        return _empty(NO_SPEAKER)
     names = result["names"]
     stats = sortie.speaker_stats(result["annotation"], names)
     excerpts = sortie.typical_excerpts(result["annotation"])
@@ -415,6 +475,8 @@ def _interactions_html(result: dict | None) -> str:
     latence médiane de réponse par locuteur et matrice « qui suit qui »."""
     if result is None:
         return _empty("Les indicateurs d'interaction s'afficheront après l'analyse.")
+    if not len(result["annotation"]):
+        return _empty("Aucun locuteur détecté : pas d'interaction à décrire.")
     data = interactions.report(result["annotation"])
     labels = data["ordre"]
     names = sortie.resolve_names(labels, result["names"])
@@ -428,19 +490,22 @@ def _interactions_html(result: dict | None) -> str:
     head = ""
     if longest:
         end = min(longest["fin"], longest["debut"] + sortie.EXCERPT_MAX_S)
+        heard = end - longest["debut"]
+        heard = _num(heard, 2 if heard < 1 else 1)
         head = (f'<p class="ws-monologue"><span class="ws-monologue-label">Plus long monologue</span>'
                 f'<span class="ws-who">{who(longest["locuteur"])}</span>'
                 f'<span class="strong">{temps.format_duration(longest["duree_s"])}</span>'
                 f'<span class="sub">à {image.clock(longest["debut"])}</span>'
                 f'<button type="button" class="ws-excerpt" data-debut="{longest["debut"]}" data-fin="{end}" '
-                f'aria-label="Écouter le début du plus long monologue ({_num(end - longest["debut"], 1)} s)" '
-                f'title="Écouter le début ({_num(end - longest["debut"], 1)} s)">▶</button></p>')
+                f'aria-label="Écouter le début du plus long monologue ({heard} s)" '
+                f'title="Écouter le début ({heard} s)">▶</button></p>')
     rows = []
     for row in data["locuteurs"]:
         latency = ("—" if row["latence_mediane_s"] is None
                    else f'{_signed(row["latence_mediane_s"])}<span class="sub">{row["n_reponses"]} réponse'
                         f'{"s" if row["n_reponses"] > 1 else ""}</span>')
-        mean = "—" if row["duree_moyenne_tour_s"] is None else f'{_num(row["duree_moyenne_tour_s"], 1)} s'
+        mean = ("—" if row["duree_moyenne_tour_s"] is None
+                else f'{_num(row["duree_moyenne_tour_s"], 2 if row["duree_moyenne_tour_s"] < 1 else 1)} s')
         rows.append(f'<tr><td class="ws-who">{who(row["id"])}</td><td class="num">{row["n_tours"]}</td>'
                     f'<td class="num">{mean}</td>'
                     f'<td class="num">{temps.format_duration(row["plus_long_tour_s"])}</td>'
@@ -458,6 +523,10 @@ def _interactions_html(result: dict | None) -> str:
               'précédent, négative quand le locuteur commence avant que l\'autre ait fini.</p>')
 
 
+MATRIX_NAMED_MAX = 4     # locuteurs au-delà desquels les colonnes de la matrice sont numérotées
+MATRIX_NAME_MAX = 14     # longueur de nom au-delà de laquelle aussi
+
+
 def _follow_matrix_html(data: dict, names: dict[str, str], who) -> str:
     """Matrice « qui suit qui » (R-U10) : un vrai tableau (en-têtes de ligne et de colonne),
     effectif écrit dans chaque case, teinte d'encre proportionnelle en plus."""
@@ -465,7 +534,15 @@ def _follow_matrix_html(data: dict, names: dict[str, str], who) -> str:
     if len(labels) < 2:
         return ""
     top = max((count for row in matrix for count in row), default=0) or 1
-    head = "".join(f'<th scope="col" class="num">{escape(names[label])}</th>' for label in labels)
+    # Plus de 4 locuteurs, ou un nom long : colonnes numérotées comme les lignes, nom complet
+    # en info-bulle et pour les lecteurs d'écran ; sinon la matrice s'étale ou coupe les noms (B7).
+    numbered = len(labels) > MATRIX_NAMED_MAX or any(len(names[label]) > MATRIX_NAME_MAX for label in labels)
+    if numbered:
+        head = "".join(f'<th scope="col" class="num" title="{escape(names[label], quote=True)}">'
+                       f'<span aria-hidden="true">{index}</span><span class="ws-sr">{escape(names[label])}</span></th>'
+                       for index, label in enumerate(labels, start=1))
+    else:
+        head = "".join(f'<th scope="col" class="num">{escape(names[label])}</th>' for label in labels)
     body = []
     for i, before in enumerate(labels):
         cells = []
@@ -478,15 +555,16 @@ def _follow_matrix_html(data: dict, names: dict[str, str], who) -> str:
             shade = round(4 + 26 * count / top) if count else 0
             style = f' style="--mx:{shade}%"' if count else ""
             cells.append(f'<td class="num ws-mx"{style}>{count}</td>')
-        body.append(f'<tr><th scope="row" class="ws-who">{who(before)}</th>{"".join(cells)}</tr>')
+        number = f'<span class="ws-mx-num" aria-hidden="true">{i + 1}</span>' if numbered else ""
+        body.append(f'<tr><th scope="row" class="ws-who">{number}{who(before)}</th>{"".join(cells)}</tr>')
     return ('<h3 class="ws-subtitle">Qui suit qui</h3>'
             '<div class="ws-table-wrap"><table class="ws-table ws-matrix">'
             f'<caption class="ws-sr">Qui suit qui : nombre de passages de parole, du locuteur de la ligne, qui avait '
-            f'la parole, au locuteur de la colonne, qui la prend ; {data["n_passages"]} passages en tout.</caption>'
+            f'la parole, au locuteur de la colonne, qui la prend ; {_plural(data["n_passages"], "passage")} en tout.</caption>'
             '<thead><tr><th scope="col"><span class="ws-mx-corner">Avait la parole ↓ · prend la parole →</span></th>'
             f'{head}</tr></thead><tbody>{"".join(body)}</tbody></table></div>'
-            f'<p class="ws-caption">{data["n_passages"]} passages de parole. Ligne : qui avait la parole ; colonne : '
-            'qui la prend. Plus la case est marquée, plus le passage est fréquent ; l\'effectif est écrit dans la case.</p>')
+            f'<p class="ws-caption">{_capital(_plural(data["n_passages"], "passage"))} de parole. Ligne : qui avait la parole ; colonne : '
+            + ('qui la prend, numérotée comme les lignes.' if numbered else 'qui la prend.') + ' Plus la case est marquée, plus le passage est fréquent ; l\'effectif est écrit dans la case.</p>')
 
 
 def _times_all_html(times_html, result: dict) -> str:
@@ -790,13 +868,16 @@ def _times_html(result: dict | None) -> str:
 def _der_html(result: dict | None, reference_path: str | None) -> str:
     if not reference_path:
         return _empty("Déposez une référence RTTM dans les réglages pour afficher le DER décomposé.")
-    if result is None:
-        return _empty("Référence chargée : le DER s'affichera après l'analyse.")
     try:
         reference = sortie.read_reference(reference_path)
+        if result is None:
+            return _empty("Référence chargée : le DER s'affichera après l'analyse.")
         report = sortie.der_report(reference, result["annotation"], result["duree_s"])
     except ValueError as error:
-        return f'<div class="ws-callout">Référence inutilisable : {escape(str(error))}</div>'
+        return f'<div class="ws-callout ws-alert" role="alert">Référence inutilisable : {escape(_french(str(error)))}</div>'
+    except OSError:
+        return ('<div class="ws-callout ws-alert" role="alert">Référence illisible : le fichier déposé n\'est plus '
+                'disponible. Déposez-le de nouveau.</div>')
     rows = []
     for name, title in (("collar_0", "Sans collar (principale)"), ("collar_0_25", "Collar ± 0,25 s")):
         r = report[name]
@@ -808,7 +889,8 @@ def _der_html(result: dict | None, reference_path: str | None) -> str:
     zone = {key: None if value is None else value["der"] for key, value in report["zones"].items()}
     counts = report["n_locuteurs"]
     return (
-        f'<p class="ws-scope">{DER_SCOPE}</p>{_merge_der_html(result, reference, reference_path, report)}'
+        f'<p class="ws-scope">{DER_SCOPE}</p>{_reference_warnings_html(reference, result)}'
+        f'{_merge_der_html(result, reference, reference_path, report)}'
         '<div class="ws-table-wrap"><table class="ws-table"><thead><tr><th scope="col">Condition</th><th scope="col" class="num">DER</th>'
         '<th scope="col" class="num">Parole manquée</th><th scope="col" class="num">Fausse alarme</th>'
         '<th scope="col" class="num">Confusion</th><th scope="col" class="num">JER</th></tr></thead>'
@@ -820,6 +902,13 @@ def _der_html(result: dict | None, reference_path: str | None) -> str:
         + _matching_html(sortie.matching_report(reference, result["annotation"], result["duree_s"]),
                          result.get("names", {}))
     )
+
+
+def _reference_warnings_html(reference, result: dict) -> str:
+    """Avertissements sur une référence peut-être mal assortie à l'audio (B7)."""
+    warnings = sortie.reference_warnings(reference, result["annotation"], result.get("uri"), result["duree_s"])
+    return "".join(f'<div class="ws-callout ws-alert" role="status">À vérifier : {escape(_french(text[0].lower() + text[1:]))}</div>'
+                   for text in warnings)
 
 
 def _merge_der_html(result: dict, reference, reference_path: str, after: dict) -> str:
@@ -1029,7 +1118,7 @@ VIEWER_TEMPLATE = (
     '<div class="wsp-help" id="wsp-help" role="region" aria-label="Raccourcis clavier" hidden>'
     '<dl><dt><kbd>Espace</kbd></dt><dd>Lecture ou pause</dd>'
     '<dt><kbd>←</kbd> <kbd>→</kbd></dt><dd>Tour de parole précédent ou suivant (du locuteur isolé, s\'il y en a un)</dd>'
-    '<dt><kbd>1</kbd> à <kbd>9</kbd></dt><dd>Isoler un locuteur du premier moteur :</dd>'
+    '<dt><kbd>1</kbd> à <kbd>9</kbd></dt><dd>Isoler un locuteur du premier moteur (ou cliquer sur son nom) :</dd>'
     '<dt></dt><dd><ol class="wsp-help-speakers"></ol></dd>'
     '<dt><kbd>0</kbd></dt><dd>Tous les locuteurs</dd>'
     '<dt><kbd>?</kbd></dt><dd>Afficher ou masquer cette aide (<kbd>Échap</kbd> la ferme)</dd></dl>'
@@ -1071,11 +1160,12 @@ def _linked(linker: glossaire.Linker) -> tuple:
 
 
 def build_app(fake: bool = False, fake_max_s: float = 20.0, repo_root: Path = REPO_ROOT,
-              warm_up: bool = False, cache_dir: Path | None = None) -> gr.Blocks:
+              warm_up: bool = False, cache_dir: Path | None = None, fake_rttm: Path | None = None) -> gr.Blocks:
     """Application ; expériences, résultats, catalogue et documents lus sous `repo_root` (lecture seule).
 
     `warm_up` : préchauffage des moteurs disponibles dans un fil dédié (R-D2) ; `cache_dir` :
-    dossier du cache des résultats (`app.cache.default_dir()` par défaut, R-D3)."""
+    dossier du cache des résultats (`app.cache.default_dir()` par défaut, R-D3) ; `fake_rttm` :
+    sorties fabriquées du moteur factice (cas limites, B7)."""
     glossary = glossaire.read_glossary(repo_root / glossaire.GLOSSARY_RELATIVE)
     linker = glossaire.Linker(glossary)
     _title, _status_html, _stats_html, _times_html, _der_html = _linked(linker)
@@ -1087,7 +1177,7 @@ def build_app(fake: bool = False, fake_max_s: float = 20.0, repo_root: Path = RE
         return _der_all_html(_der_html, result, reference_path)
     experiments = repo_root / "experiments"
     leaderboard = repo_root / "results" / "leaderboard.csv"
-    engines = EngineCache(fake, fake_max_s, experiments)
+    engines = EngineCache(fake, fake_max_s, experiments, fake_rttm if fake else None)
     store = ResultCache(cache_dir)
     code = code_version(REPO_ROOT)   # consigné dans le cache, hors de la clé
     engine_code = engine_code_fingerprint(REPO_ROOT)   # dans la clé du cache
@@ -1183,6 +1273,8 @@ def build_app(fake: bool = False, fake_max_s: float = 20.0, repo_root: Path = RE
         spec = run["spec"]
         settings = {"peripherique": run["device"], "nombre_locuteurs": run["speaker_conf"],
                     "parametres": moteurs.engine_params(spec, experiments)}
+        if fake and fake_rttm is not None:
+            settings["sorties_fabriquees"] = str(fake_rttm)   # une sortie fabriquée n'est pas celle du moteur
         return result_key(prepared["empreinte"], spec.key, fake, settings,
                           moteurs.effective_configuration(spec, experiments),
                           moteurs.model_revisions(spec, experiments), engine_code)
@@ -1192,15 +1284,20 @@ def build_app(fake: bool = False, fake_max_s: float = 20.0, repo_root: Path = RE
         uri = Path(audio_path).stem
         work = sortie.new_work_dir(RUN_DIR)
         start = time.perf_counter()
+        name = Path(audio_path).name
         try:
             wav = normalize(audio_path, work / f"{sortie.rttm_name(uri)}.wav")
+            waveform, sample_rate = load_waveform(wav)
         except AudioError as error:
-            raise gr.Error(f"Ce fichier n'a pas pu être lu comme de l'audio. Détail : {error}") from error
+            raise gr.Error(_audio_error(name, error), duration=None) from error
         normalisation_s = time.perf_counter() - start
-        waveform, sample_rate = load_waveform(wav)
-        return {"source": audio_path, "nom": Path(audio_path).name, "uri": uri, "dir": work, "wav": wav,
+        if waveform.shape[1] < sample_rate // 10:
+            raise gr.Error(f"« {name} » ne contient pas d'audio (moins de 0,1 s une fois décodé). Déposez "
+                           "l'enregistrement de la réunion.", duration=None)
+        return {"source": audio_path, "nom": name, "uri": uri, "dir": work, "wav": wav,
                 "duree_s": waveform.shape[1] / sample_rate, "normalisation_s": normalisation_s,
-                "empreinte": audio_fingerprint(waveform[0].numpy())}
+                "empreinte": audio_fingerprint(waveform[0].numpy()),
+                "silencieux": float(waveform.abs().max()) < SILENT_PEAK}
 
     def estimate_html(prepared, key, compare, key2, mode, k, k_min, k_max, device_choice, use_cache) -> str:
         """Durée annoncée avant le lancement (R-D2 ; D17, amendement 2)."""
@@ -1246,6 +1343,10 @@ def build_app(fake: bool = False, fake_max_s: float = 20.0, repo_root: Path = RE
         items = "".join(f"<li>{escape(line)}</li>" for line in lines)
         note = (f'<p class="ws-caption">Moteur factice : calcul simulé, {_num(fake_max_s, 0)} s au plus.</p>'
                 if fake and computed else "")
+        if prepared.get("silencieux"):
+            note = ('<p class="ws-estimate-alert" role="status">Ce fichier semble silencieux (niveau maximal sous '
+                    '−80 dB) : l\'analyse ne trouvera sans doute aucun locuteur. Vérifiez la piste audio (micro '
+                    'coupé, mauvais canal exporté) avant de lancer.</p>' + note)
         return linker.link(f'<div class="ws-estimate"><p class="ws-estimate-head">{escape(head)}</p>'
                            f'<ul class="ws-estimate-list">{items}</ul>{note}</div>')
 
@@ -1422,18 +1523,24 @@ def build_app(fake: bool = False, fake_max_s: float = 20.0, repo_root: Path = RE
                     except OSError as error:   # le cache est un plan de repli : jamais bloquant
                         gr.Warning(f"Résultat non enregistré dans le cache : {error}")
 
+            # DER, carte des erreurs, statistiques et exports : quelques secondes sur un long
+            # enregistrement, jusqu'à des minutes sur une sortie très morcelée (B7) ; l'écran le dit.
+            yield {status_box: status("Mise en forme des résultats" + (", calcul du DER et de la carte des erreurs"
+                                                                       if reference_path else ""), fraction=0.99)}
             result = dict(results[0], peaks=sortie.peaks(waveform[0].numpy(),
                                                         n_points=max(4000, int(PEAKS_PER_S * duration_s))))
             if len(results) > 1:
                 result["comparaison"] = results[1]
             result = _with_reference(result, reference_path)
             summary = ", ".join(
-                f"{item['libelle']} : {len(sortie.speaker_labels(item['annotation']))} locuteur(s) "
+                f"{item['libelle']} : {_plural(len(sortie.speaker_labels(item['annotation'])), 'locuteur')} "
                 + ("en cache" if item["cache"] else f"en {temps.format_duration(item['calcul_s'])}")
                 for item in results)
             total_s = sum(item["calcul_s"] for item in results)
             n_speakers = len(sortie.speaker_labels(result["annotation"]))
-            title = summary if prefix else f"{n_speakers} locuteur(s) en {temps.format_duration(total_s)}"
+            title = summary if prefix else (f"{_plural(n_speakers, 'locuteur')} en {temps.format_duration(total_s)}"
+                                            if n_speakers else f"aucun locuteur détecté, en {temps.format_duration(total_s)}")
+            title = title[0].upper() + title[1:]
             detail = f"{prepared['nom']}, {temps.format_duration(duration_s)} d'audio"
             if not prefix:
                 detail += f", {result['libelle']}, RTF {_num(total_s / duration_s, 4)}"
@@ -1723,6 +1830,9 @@ def main(argv: list[str] | None = None) -> None:
                         help="moteur factice : étapes simulées et RTTM des expériences, aucune inférence")
     parser.add_argument("--factice-max-s", type=float, default=20.0,
                         help="durée maximale simulée d'une analyse en mode factice (s)")
+    parser.add_argument("--factice-rttm", type=Path, default=None, metavar="DOSSIER",
+                        help="mode factice : sorties fabriquées, <nom du fichier déposé>.rttm, cherchées avant "
+                             "celles de l'expérience source (cas limites de l'interface)")
     parser.add_argument("--port", type=int, default=7860, help="port local (défaut : 7860)")
     parser.add_argument("--depot", type=Path, default=REPO_ROOT,
                         help="racine du dépôt dont sont lus expériences, résultats et catalogue, en lecture "
@@ -1736,7 +1846,9 @@ def main(argv: list[str] | None = None) -> None:
         print(f"Dossier temporaire d'un lancement interrompu supprimé : {stale}")
     if args.vider_cache:
         store = ResultCache()
-        print(f"Cache des résultats vidé ({store.directory}) : {store.clear()} résultat(s) supprimé(s).")
+        removed = store.clear()
+        print(f"Cache des résultats vidé ({store.directory}) : {removed} résultat{'s' if removed > 1 else ''} "
+              f"supprimé{'s' if removed > 1 else ''}.")
     RUN_DIR.mkdir(parents=True, exist_ok=True)
     # Suppression à la fermeture : sortie normale, Ctrl+C ou SIGTERM.
     atexit.register(travail.cleanup, RUN_DIR)
@@ -1745,8 +1857,11 @@ def main(argv: list[str] | None = None) -> None:
     depot = args.depot.expanduser().resolve()
     if not (depot / "experiments").is_dir():
         parser.error(f"--depot : {depot} ne contient pas de dossier experiments/")
+    if args.factice_rttm is not None and not args.factice:
+        parser.error("--factice-rttm ne s'emploie qu'avec --factice")
     app = build_app(fake=args.factice, fake_max_s=args.factice_max_s, repo_root=depot,
-                    warm_up=not args.sans_prechauffage)
+                    warm_up=not args.sans_prechauffage,
+                    fake_rttm=args.factice_rttm.expanduser().resolve() if args.factice_rttm else None)
     app.launch(
         server_name="127.0.0.1", server_port=args.port, share=False,
         allowed_paths=[str(RUN_DIR)], theme=theme.build_theme(), css=theme.css(),

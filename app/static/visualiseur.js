@@ -301,6 +301,13 @@ function isolate(n) {
   applyIsolation();
 }
 
+// Clic sur le nom d'un locuteur du premier moteur : l'isole, ou rend tous les locuteurs
+// s'il l'était déjà. Seul moyen au-delà de 9 locuteurs (touches 1 à 9).
+function toggleIsolation(id) {
+  element._iso = element._iso === id ? null : id;
+  applyIsolation();
+}
+
 function applyIsolation() {
   const v = props.value;
   const iso = element._iso;
@@ -356,6 +363,19 @@ function seconds(value) {
 function fmtTenths(t) {
   const tenths = Math.round(t * 10);
   return fmt(Math.floor(tenths / 10)) + ',' + (tenths % 10);
+}
+
+// Intervalle et durée d'un segment ou d'une zone : au dixième de seconde et durée au
+// centième sous la seconde, pour qu'un tour de 50 ms ne s'affiche pas « 0:00 – 0:00 (0,0 s) ».
+function fmtSpan(start, end) {
+  const length = end - start;
+  const short = length < 1;
+  const shown = short ? length.toFixed(2) : length.toFixed(1);
+  return {
+    range: short ? fmtTenths(start) + ' – ' + fmtTenths(end) : fmt(start) + ' – ' + fmt(end),
+    words: short ? fmtTenths(start) + ' à ' + fmtTenths(end) : fmt(start) + ' à ' + fmt(end),
+    length: shown.replace('.', ',') + ' s',
+  };
 }
 
 function explain(group, index) {
@@ -435,7 +455,8 @@ function fillHelpSpeakers(v) {
   const list = $('.wsp-help-speakers');
   if (!list) return;
   list.innerHTML = '';
-  const speakers = v.groupes.length ? v.groupes[0].locuteurs.slice(0, 9) : [];
+  const all = v.groupes.length ? v.groupes[0].locuteurs : [];
+  const speakers = all.slice(0, 9);
   speakers.forEach((spk, index) => {
     const item = document.createElement('li');
     const key = document.createElement('kbd');
@@ -444,6 +465,13 @@ function fillHelpSpeakers(v) {
     item.appendChild(document.createTextNode(' ' + spk.nom));
     list.appendChild(item);
   });
+  if (all.length > 9) {
+    const item = document.createElement('li');
+    const rest = all.length - 9;
+    item.textContent = rest + (rest > 1 ? ' autres locuteurs : cliquer sur leur nom' : ' autre locuteur : cliquer sur son nom')
+      + ' dans la timeline.';
+    list.appendChild(item);
+  }
 }
 
 // --- Dessin -----------------------------------------------------------------------
@@ -479,7 +507,11 @@ function addRow(labels, lanes, text, title, swatchClass, swatchColor) {
   swatch.className = 'wsp-swatch' + (swatchClass ? ' ' + swatchClass : '');
   if (swatchColor) swatch.style.background = swatchColor;
   label.appendChild(swatch);
-  label.appendChild(document.createTextNode(text));
+  // Texte dans son propre bloc : un nom trop long finit par « … » (nom complet en info-bulle).
+  const name = document.createElement('span');
+  name.className = 'wsp-label-text';
+  name.textContent = text;
+  label.appendChild(name);
   label.title = title;
   labels.appendChild(label);
   const track = document.createElement('div');
@@ -506,8 +538,21 @@ function drawLanes(v) {
       names[spk.id] = spk.nom;
       tracks[spk.id] = addRow(labels, lanes, spk.nom, spk.nom + ' (' + spk.id + ')', '',
                               element._colors[group.id + ':' + spk.id]);
-      if (groupIndex === 0) element._rows[spk.id] = [labels.lastChild, tracks[spk.id]];
+      if (groupIndex === 0) {
+        const label = labels.lastChild;
+        element._rows[spk.id] = [label, tracks[spk.id]];
+        label.classList.add('wsp-label-iso');
+        label.setAttribute('role', 'button');
+        label.tabIndex = 0;
+        label.title = spk.nom + ' (' + spk.id + ') : cliquer pour l\'isoler, ou pour revenir à tous';
+        label.addEventListener('click', () => toggleIsolation(spk.id));
+        label.addEventListener('keydown', (event) => {
+          if (event.key === 'Enter' || event.key === ' ') { event.preventDefault(); toggleIsolation(spk.id); }
+        });
+      }
     });
+    // Aucun locuteur (silence, aucune parole trouvée) : une piste vide le dit.
+    if (!group.locuteurs.length) addRow(labels, lanes, 'Aucun locuteur', 'Aucun locuteur détecté', '', '');
     if (groupIndex === 0) {
       element._turns = group.segments
         .map((seg) => ({ debut: seg.debut, fin: seg.fin, locuteur: seg.locuteur, nom: names[seg.locuteur] }))
@@ -521,9 +566,9 @@ function drawLanes(v) {
       bar.style.width = (100 * (seg.fin - seg.debut) / v.duree_s) + '%';
       bar.style.background = element._colors[group.id + ':' + seg.locuteur];
       const who = (several ? group.titre + ', ' : '') + names[seg.locuteur];
-      bar.setAttribute('aria-label', who + ', ' + fmt(seg.debut) + ' à ' + fmt(seg.fin));
-      bar.title = who + ' : ' + fmt(seg.debut) + ' – ' + fmt(seg.fin)
-        + ' (' + (seg.fin - seg.debut).toFixed(1).replace('.', ',') + ' s). Cliquer pour écouter.';
+      const span = fmtSpan(seg.debut, seg.fin);
+      bar.setAttribute('aria-label', who + ', ' + span.words);
+      bar.title = who + ' : ' + span.range + ' (' + span.length + '). Cliquer pour écouter.';
       bar._seg = segKey(group, seg);
       bar.addEventListener('click', () => selectSegment(bar._seg));
       tracks[seg.locuteur].appendChild(bar);
@@ -569,10 +614,11 @@ function drawErrors(v, labels, lanes) {
       bar.className = 'wsp-seg wsp-err-' + zone.type;
       bar.style.left = (100 * zone.debut / v.duree_s) + '%';
       bar.style.width = (100 * (zone.fin - zone.debut) / v.duree_s) + '%';
+      const span = fmtSpan(zone.debut, zone.fin);
       const text = (withErrors.length > 1 ? group.titre + ', ' : '') + ERROR_TEXT[zone.type](zone, names)
-        + ', ' + fmt(zone.debut) + ' – ' + fmt(zone.fin);
+        + ', ' + span.range;
       bar.setAttribute('aria-label', text);
-      bar.title = text + ' (' + (zone.fin - zone.debut).toFixed(1).replace('.', ',') + ' s). Cliquer pour écouter et expliquer.';
+      bar.title = text + ' (' + span.length + '). Cliquer pour écouter et expliquer.';
       bar._seg = zoneKey(group, zone, index);
       bar.setAttribute('aria-controls', 'wsp-explain');
       bar.addEventListener('click', () => {

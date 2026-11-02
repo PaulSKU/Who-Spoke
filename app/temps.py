@@ -190,9 +190,11 @@ def cumulative_remaining_s(runs: list[tuple[float | None, float, float | None, b
 
 
 def format_duration(seconds: float | None) -> str:
-    """« 4 s », « 2 min 05 s », « 1 h 02 min » ; « — » pour une valeur inconnue."""
+    """« 0,05 s », « 4 s », « 2 min 05 s », « 1 h 02 min » ; « — » pour une valeur inconnue."""
     if seconds is None or math.isnan(seconds):
         return "—"
+    if 0 < seconds < 0.995:   # sous la seconde : au centième (tour de 50 ms, analyse factice)
+        return f"{seconds:.2f}".replace(".", ",") + " s"
     seconds = max(0, int(round(seconds)))
     if seconds < 60:
         return f"{seconds} s"

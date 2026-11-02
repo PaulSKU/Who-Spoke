@@ -34,7 +34,6 @@ import numpy as np
 from pyannote.core import Annotation, Segment, Timeline
 
 from whospoke.evaluation.metrics import CONDITIONS, DiarizationEvaluator
-from whospoke.experiment import load_rttm
 
 _DECIMALS = 3
 
@@ -50,16 +49,21 @@ def speaker_labels(annotation: Annotation) -> list[str]:
 def resolve_names(labels: list[str], names: dict[str, str] | None = None) -> dict[str, str]:
     """Nom affiché de chaque identifiant : le nom saisi, ou l'identifiant s'il est vide.
 
-    Lève `ValueError` si deux locuteurs reçoivent le même nom : le RTTM exporté les
-    fusionnerait sans le dire.
+    Lève `ValueError` si deux locuteurs reçoivent le même nom, aux blancs, à « _ » et à
+    la casse près : le RTTM exporté les fusionnerait sans le dire (« Alice Martin » et
+    « Alice_Martin » y deviennent le même locuteur), et l'œil les confondrait.
     """
     names = names or {}
     resolved = {label: (names.get(label) or "").strip() or label for label in labels}
     seen: dict[str, str] = {}
     for label, name in resolved.items():
-        key = rttm_name(name)
+        # Noms égaux aux blancs, à « _ » et à la casse près : confondus dans le RTTM, ou à l'œil.
+        key = rttm_name(name).casefold()
         if key in seen:
-            raise ValueError(f"Nom en double : {name!r} ({seen[key]} et {label})")
+            other = resolved[seen[key]]
+            shown = f"« {name} »" if other == name else f"« {other} » et « {name} »"
+            raise ValueError(f"Nom en double : {shown} ({seen[key]} et {label})"
+                             + ("" if other == name else ", égaux aux espaces, « _ » et majuscules près"))
         seen[key] = label
     return resolved
 
@@ -193,16 +197,112 @@ def peaks(waveform: np.ndarray, n_points: int = 4000) -> list[float]:
     return [round(float(v), 4) for v in values]
 
 
+RTTM_FORMAT = "SPEAKER fichier canal début durée <NA> <NA> locuteur <NA> <NA>"
+_AUDACITY_LINE = re.compile(r"^\s*\d+([.,]\d+)?\t\d+([.,]\d+)?(\t.*)?$")
+
+
 def read_reference(path: str | Path) -> Annotation:
-    """Annotation d'une référence RTTM déposée (un seul fichier, un seul uri)."""
+    """Annotation d'une référence RTTM déposée (un seul fichier, un seul uri).
+
+    Chaque ligne `SPEAKER` est contrôlée (champs, nombres, durée positive) ; tout défaut
+    lève `ValueError` avec un message qui dit quoi faire (chantier B7). Les lignes qui ne
+    commencent pas par `SPEAKER` (commentaires, autres types RTTM) sont ignorées."""
     path = Path(path)
-    rows = [line.split() for line in path.read_text().splitlines()]
-    uris = {fields[1] for fields in rows if len(fields) > 1 and fields[0] == "SPEAKER"}
-    if not uris:
-        raise ValueError(f"{path.name} : aucune ligne SPEAKER")
+    name = path.name
+    raw = path.read_bytes()
+    if not raw.strip():
+        raise ValueError(f"{name} est vide. Déposez le fichier RTTM de la référence, une ligne « SPEAKER … » "
+                         "par tour de parole.")
+    try:
+        text = raw.decode("utf-8-sig")
+    except UnicodeDecodeError:
+        raise ValueError(f"{name} n'est pas un fichier texte. Une référence RTTM est un fichier texte, une ligne "
+                         f"« {RTTM_FORMAT} » par tour de parole : déposez le fichier .rttm de la référence.") from None
+    rows: list[tuple[str, float, float, str]] = []
+    lines = text.splitlines()
+    for number, line in enumerate(lines, start=1):
+        fields = line.split()
+        if not fields or fields[0] != "SPEAKER":
+            continue
+        if len(fields) < 8:
+            raise ValueError(f"{name}, ligne {number} : {len(fields)} champs au lieu de 10 (« {RTTM_FORMAT} »). "
+                             "Corrigez cette ligne, ou exportez de nouveau la référence au format RTTM.")
+        try:
+            start, duration = float(fields[3]), float(fields[4])
+        except ValueError:
+            raise ValueError(f"{name}, ligne {number} : début « {fields[3]} » ou durée « {fields[4]} » illisible. "
+                             "Les instants s'écrivent en secondes, avec un point décimal (12.5) : corrigez "
+                             "cette ligne.") from None
+        if not (np.isfinite(start) and np.isfinite(duration)) or start < 0 or duration < 0:
+            raise ValueError(f"{name}, ligne {number} : début {fields[3]} s, durée {fields[4]} s. Le début et la "
+                             "durée doivent être positifs (la 5e colonne est une durée, pas un instant de fin) : "
+                             "corrigez cette ligne.")
+        rows.append((fields[1], start, duration, fields[7]))
+    if not rows:
+        if any(_AUDACITY_LINE.match(line) for line in lines):
+            raise ValueError(f"{name} ressemble à des étiquettes Audacity (début, fin, texte), pas à un RTTM. "
+                             "Convertissez-les d'abord en RTTM (chaîne du corpus maison, conventions-annotation.md "
+                             "§4), puis déposez le .rttm obtenu.")
+        raise ValueError(f"{name} ne contient aucune ligne « SPEAKER … » : ce n'est pas un RTTM. Déposez le "
+                         f"fichier .rttm de la référence (« {RTTM_FORMAT} » par ligne).")
+    uris = sorted({uri for uri, *_ in rows})
     if len(uris) > 1:
-        raise ValueError(f"{path.name} : plusieurs fichiers dans la référence ({', '.join(sorted(uris))})")
-    return load_rttm(path, uris.pop())
+        shown = ", ".join(uris[:4]) + (", …" if len(uris) > 4 else "")
+        raise ValueError(f"{name} décrit {len(uris)} enregistrements ({shown}). Gardez seulement les lignes de "
+                         "l'enregistrement analysé, ou déposez la référence de cet enregistrement seul.")
+    reference = Annotation(uri=uris[0])
+    for index, (_, start, duration, label) in enumerate(rows):
+        if duration > 0:
+            reference[Segment(start, start + duration), index] = label
+    return reference
+
+
+def _clock(seconds: float) -> str:
+    seconds = int(round(seconds))
+    hours, rest = divmod(seconds, 3600)
+    minutes, secs = divmod(rest, 60)
+    return f"{hours}:{minutes:02d}:{secs:02d}" if hours else f"{minutes}:{secs:02d}"
+
+
+def _same_recording(a: str, b: str) -> bool:
+    """Vrai si deux noms désignent sans doute le même enregistrement (`summre__007a_ECRH`
+    et `007a_ECRH`, ou le même nom aux blancs et à la casse près)."""
+    a, b = rttm_name(a).casefold(), rttm_name(b).casefold()
+    return bool(a and b) and (a == b or a.endswith("__" + b) or b.endswith("__" + a) or a in b or b in a)
+
+
+LONGER_MIN_S = 1.0          # parole de la référence après la fin de l'audio, avant d'avertir
+SHORTER_MIN_S = 10.0        # parole trouvée après la fin de la référence, avant d'avertir
+SHORTER_MIN_SHARE = 0.05    # … et part de toute la parole trouvée
+
+
+def reference_warnings(reference: Annotation, hypothesis: Annotation, audio_uri: str | None,
+                       duration_s: float) -> list[str]:
+    """Avertissements sur une référence lisible mais peut-être mal assortie à l'audio
+    (chantier B7) : autre enregistrement (`audio_uri` connu), référence plus longue ou plus
+    courte que l'audio. Ce sont des constats, le DER est calculé quand même."""
+    warnings = []
+    if audio_uri and not _same_recording(reference.uri or "", audio_uri):
+        warnings.append(f"La référence décrit l'enregistrement « {reference.uri} », l'audio déposé s'appelle "
+                        f"« {audio_uri} ». Vérifiez qu'il s'agit du même enregistrement : sinon le DER n'a pas de "
+                        "sens. Si vous avez seulement renommé le fichier, ignorez ce message.")
+    speech = reference.get_timeline().support()
+    if not len(speech):
+        return warnings
+    end = speech.extent().end
+    beyond = speech.crop(Segment(duration_s, max(end, duration_s)), mode="intersection").duration() if end > duration_s else 0.0
+    if beyond > LONGER_MIN_S:
+        warnings.append(f"La référence va jusqu'à {_clock(end)}, l'audio s'arrête à {_clock(duration_s)} : "
+                        f"{beyond:.1f}".replace(".", ",") + " s de parole de la référence, après la fin de l'audio, "
+                        "sont ignorées. Vérifiez que l'audio est complet (enregistrement coupé ?) et que c'est la bonne référence.")
+    found = hypothesis.get_timeline().support()
+    after = found.crop(Segment(end, duration_s), mode="intersection").duration() if end < duration_s else 0.0
+    if after >= SHORTER_MIN_S and after >= SHORTER_MIN_SHARE * (found.duration() or 1.0):
+        warnings.append(f"La référence s'arrête à {_clock(end)} sur {_clock(duration_s)} d'audio : les "
+                        f"{after:.0f} s de parole trouvées après comptent en fausse alarme et gonflent le DER. "
+                        f"Si la référence n'annote que le début de l'enregistrement, coupez l'audio à {_clock(end)} "
+                        "avant de le déposer.")
+    return warnings
 
 
 def der_report(reference: Annotation, hypothesis: Annotation, duration_s: float) -> dict:

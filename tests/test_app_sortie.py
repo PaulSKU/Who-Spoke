@@ -106,10 +106,10 @@ def test_lecture_d_une_reference(tmp_path):
     path.write_text("SPEAKER f1 1 0.0 1.0 <NA> <NA> A <NA> <NA>\nSPEAKER f1 1 1.0 1.0 <NA> <NA> B <NA> <NA>\n")
     assert sorted(sortie.read_reference(path).labels()) == ["A", "B"]
     path.write_text("SPEAKER f1 1 0.0 1.0 <NA> <NA> A <NA> <NA>\nSPEAKER f2 1 1.0 1.0 <NA> <NA> B <NA> <NA>\n")
-    with pytest.raises(ValueError, match="plusieurs"):
+    with pytest.raises(ValueError, match="décrit 2 enregistrements"):
         sortie.read_reference(path)
     path.write_text("")
-    with pytest.raises(ValueError, match="aucune"):
+    with pytest.raises(ValueError, match="est vide"):
         sortie.read_reference(path)
 
 

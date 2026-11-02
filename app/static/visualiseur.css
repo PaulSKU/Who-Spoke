@@ -82,11 +82,18 @@
 .wsp-wave { margin-left: var(--wsp-label-w); }
 .wsp-rows { display: grid; grid-template-columns: var(--wsp-label-w) minmax(0, 1fr); margin-top: 10px; }
 .wsp-labels, .wsp-lanes { display: grid; gap: 4px; align-content: start; }
+/* Colonne des noms à la largeur de sa piste : un nom long finit par « … » au lieu d'élargir
+   la grille et de passer sous les pistes (B7). La légende d'un groupe déborde toujours. */
+.wsp-labels { grid-template-columns: minmax(0, 1fr); }
 .wsp-label {
   height: 24px; display: flex; align-items: center; overflow: hidden; white-space: nowrap;
   font-size: 0.85rem; padding-right: 12px; box-sizing: border-box;
 }
-.wsp-label { text-overflow: ellipsis; }
+.wsp-label-text { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+/* Nom d'un locuteur du premier moteur : un clic l'isole (au-delà de 9 locuteurs, seul moyen). */
+.wsp-label-iso { cursor: pointer; border-radius: 4px; }
+.wsp-label-iso:focus-visible { outline: 2px solid var(--ws-ink); outline-offset: -2px; }
+@media (hover: hover) and (pointer: fine) { .wsp-label-iso:hover .wsp-label-text { text-decoration: underline; } }
 .wsp-swatch { flex: none; display: inline-block; width: 8px; height: 8px; border-radius: 2px; margin-right: 8px; }
 .wsp-viewport { position: relative; overflow: hidden; }
 .wsp-canvas { position: relative; will-change: transform; }

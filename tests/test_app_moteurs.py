@@ -109,7 +109,7 @@ def test_recherche_du_rttm(tmp_path):
     (directory / "summre__ES2004a.rttm").write_text(RTTM)
     with pytest.raises(FileNotFoundError, match="ambigu"):
         moteurs.find_rttm(directory, "ES2004a")
-    with pytest.raises(FileNotFoundError, match="aucun RTTM"):
+    with pytest.raises(FileNotFoundError, match="aucune sortie pour « inconnu ».*--factice-rttm.*sans --factice"):
         moteurs.find_rttm(directory, "inconnu")
 
 
