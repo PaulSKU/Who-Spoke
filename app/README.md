@@ -262,7 +262,7 @@ Vérifié dans le navigateur en mode factice, en clair, en sombre et à 375 px (
 |---|---|---|
 | Appariement visible | Avec une référence, chaque piste de référence prend la couleur du locuteur du premier moteur qui lui est apparié et l'étiquette « 021 ↔ SPEAKER_03 » (nom choisi s'il a été renommé) ; non appariée, elle reste grise avec « (non apparié) ». C'est l'appariement optimal du DER (`optimal_mapping` de pyannote.metrics), calculé une seule fois avec la carte des erreurs (`sortie._Matching`) : les couleurs, la carte et le DER ne peuvent pas diverger. La colonne des étiquettes s'élargit (184 px, 112 px à 375 px) | `sortie.pairing`, `app._reference_group` |
 | Tableau d'appariement | Sous le DER, dans l'Évaluation : locuteur de référence, locuteur trouvé (ou « non apparié »), temps commun (cooccurrence de pyannote.core), couverture du locuteur de référence (`DiarizationCoverage` restreinte à ce locuteur) et pureté du locuteur trouvé (`DiarizationPurity` restreinte à ce locuteur), puis les locuteurs trouvés non appariés. Pondérées par la durée, ces valeurs redonnent la pureté et la couverture globales de pyannote.metrics (test) | `sortie.matching_report`, `app._matching_html` |
-| « Expliquer cette erreur » | Un clic (ou Entrée) sur une zone de la carte des erreurs la fait écouter et ouvre une carte sous la timeline : type, durée au dixième de seconde, locuteur de référence et locuteur trouvé, chacun avec son appariement, la catégorie principale de la zone (depuis le 02/11, voir « Catégorie principale des erreurs » plus bas), et des constats calculés sur la référence : chevauchement (part de la zone), tour de référence de moins de 0,5 s qui la recoupe, pause de la référence de 1 s au plus (moins de 1 s jusqu'au 02/11) qui la recoupe ou lui est contiguë (à 0,05 s près), bord de la zone à moins de 0,25 s d'une frontière de tour (la valeur du collar du protocole). Formulation factuelle, jamais une cause ; la carte le rappelle (« Constats sur la référence autour de la zone, pas une cause établie »). Échap ou × la ferme ; elle suit les renommages | `sortie._Context`, `app._context_sentences`, `visualiseur.js` (`explain`) |
+| « Expliquer cette erreur » | Un clic (ou Entrée) sur une zone de la carte des erreurs la fait écouter et ouvre une carte sous la timeline : type, durée au dixième de seconde, locuteur de référence et locuteur trouvé, chacun avec son appariement, la catégorie de la zone et sa part dans la tolérance d'une frontière (depuis le 02/11, voir « Catégories des erreurs, sur le temps » plus bas), et des constats calculés sur la référence : chevauchement (part de la zone), tour de référence de moins de 0,5 s qui la recoupe, pause de la référence de 1 s au plus (moins de 1 s jusqu'au 02/11) qui la recoupe ou lui est contiguë (à 0,05 s près), bord de la zone à moins de 0,25 s d'une frontière de tour (remplacé, depuis l'option b, par la part de la zone dans la tolérance). Formulation factuelle, jamais une cause ; la carte le rappelle (« Constats sur la référence autour de la zone, pas une cause établie »). Échap ou × la ferme ; elle suit les renommages | `sortie._Context`, `app._context_sentences`, `visualiseur.js` (`explain`) |
 | Extrait typique | Bouton ▶ par locuteur dans le tableau des locuteurs : lit, dans la timeline, son plus long tour hors de tout chevauchement, limité à ses 10 premières secondes, et le repère sur la forme d'onde ; désactivé si toute sa parole est en chevauchement | `sortie.typical_excerpts`, `visualiseur.js` (`onExcerpt`) |
 | Renommage | Un champ par ligne dans le tableau des locuteurs (identifiant du moteur en dessous) ; validé par Entrée ou en quittant le champ, Échap rétablit le nom affiché ; la grille Gradio séparée est supprimée. Noms en double refusés (le tableau revient aux noms en vigueur), 60 caractères au plus, blancs de bord retirés. Les noms sont échappés partout (valeur du champ comprise) ; les raccourcis clavier sont inactifs pendant la saisie | `app._stats_html`, `STATS_JS`, `rename` |
 
@@ -458,30 +458,39 @@ Tests : `tests/test_app_spectrogramme.py` (15). Suite complète : 536 réussis, 
 
 ## Catégorie principale des erreurs et moteurs non retenus (décisions du cockpit du 02/11, retours de B8, B9 et E8)
 
-### Catégorie principale d'une zone d'erreur
+### Catégories des erreurs, sur le temps (option b, décision du cockpit du 02/11)
 
-Une seule définition, dans `app/sortie.py` (`ERROR_CATEGORIES`, `main_category`), reprise par la carte « Expliquer cette erreur » et par l'analyse A-0003. Chaque zone de la carte des erreurs (sans collar) reçoit une catégorie, exclusive, la première vraie dans cet ordre ; chaque seconde d'erreur a donc la catégorie de sa zone.
+Une seule définition, dans `app/sortie.py` (`ERROR_CATEGORIES`, `main_category`, `error_map`), reprise par la carte « Expliquer cette erreur » et par l'analyse A-0003. La catégorisation se fait sur le temps. Chaque segment d'erreur de la carte (sans collar) est découpé aux bords des intervalles de ±0,25 s autour des frontières de tour de la référence. Ces intervalles sont construits par pyannote.metrics lui-même (`extrude`, `collar=0.5`, comme pour le DER avec collar). La partie dans ces intervalles est un « décalage de frontière ». Le reste reçoit la première catégorie vraie dans l'ordre ci-dessous, évaluée sur ce reste :
 
-| Rang | Catégorie | Règle |
+| Rang | Catégorie | Règle, sur la partie hors tolérance |
 |---|---|---|
-| 1 | Décalage de frontière | La zone tient entièrement dans ±0,25 s d'une frontière de tour de la référence, c'est-à-dire dans ce que pardonne le collar du protocole (`collar=0.5` de pyannote.metrics) |
+| 1 | Décalage de frontière | La partie dans ±0,25 s d'une frontière de tour de la référence, ce que pardonne le collar |
 | 2 | Chevauchement | Elle recoupe un chevauchement de la référence |
-| 3 | Locuteur de référence non apparié | Son locuteur de référence (parole manquée, confusion) n'est apparié à aucun locuteur trouvé |
-| 4 | Locuteur trouvé en trop | Son locuteur trouvé (fausse alarme, confusion) n'est apparié à aucun locuteur de la référence |
+| 3 | Locuteur de référence non apparié | Le locuteur de référence de la zone (parole manquée, confusion) n'est apparié à aucun locuteur trouvé |
+| 4 | Locuteur trouvé en trop | Le locuteur trouvé de la zone (fausse alarme, confusion) n'est apparié à aucun locuteur de la référence |
 | 5 | Tour court | Elle recoupe un tour de la référence de moins de 0,5 s |
 | 6 | Pause courte | Elle recoupe une pause de la référence de 1 s au plus, ou la touche à 0,05 s près |
 | 7 | Autre | Aucune des précédentes |
 
-Les durées par catégorie (`error_map(...)["categories"]`, par type d'erreur) sont cumulées segment par segment, comme les totaux : elles partitionnent l'erreur et redonnent les composantes du DER sans collar. Égalité stricte quand les durées sont exactes en binaire ; sinon à 10⁻¹² s près (sur 600 sommes tirées au hasard, 575 égalités strictes, pire écart 7·10⁻¹⁵ s : l'ordre des additions en virgule flottante diffère de celui du total). La carte affiche la catégorie principale et sa phrase, puis les autres constats (le constat déjà porté par la catégorie n'est pas répété). Seuil de pause aligné sur la décision : « 1 s au plus » (avant : moins de 1 s).
+Conséquence de la règle : un tour de moins de 0,5 s, ou une pause de 0,5 s au plus, tient entièrement dans la tolérance de ses propres frontières. « Tour court » est donc toujours vide, et « pause courte » ne compte que les pauses de plus de 0,5 s à 1 s. Ces contextes restent écrits dans les constats de la carte.
 
-Contrôle demandé : la part « décalage de frontière » face à l'écart entre DER sans collar et avec collar.
+La zone garde une seule catégorie affichée, celle de sa partie hors tolérance. Une zone entièrement dans la tolérance est un « décalage de frontière ». La carte affiche la catégorie et sa phrase (« Hors de la tolérance d'une frontière : … » quand une partie y est), puis « Dont x s dans la tolérance d'une frontière (pardonnés par le collar) », puis les autres constats sur toute la zone. Le constat « un de ses bords est à 0,25 s au plus d'une frontière » est remplacé par cette part. Données par zone : `tolerance_s`, `contexte_hors_tolerance` (None si la zone tient dans la tolérance), `categorie`.
 
-| Cas | Décalage de frontière | Écart d'erreur entre les deux conditions |
-|---|---|---|
-| Cas construits (frontières décalées de 0,1 à 0,25 s, autres erreurs loin des frontières) | 0,6 s et 1,0 s | identique, à 10⁻⁹ s près (test) |
-| SUMM-RE 007a_ECRH, sortie d'EXP-0007, toute la durée, sans UEM (comme l'interface) | 47,5 s, soit 4,00 points de DER | 155,6 s ; DER 19,15 % sans collar, 9,23 % avec, soit 9,92 points |
+Sommes : `error_map(...)["categories"]` donne, par type d'erreur, les secondes de chaque catégorie, cumulées segment par segment comme les totaux. Elles partitionnent l'erreur et redonnent les composantes du DER sans collar, à 10⁻¹² s près (ordre des additions en virgule flottante ; égalité stricte sur des durées exactes en binaire).
 
-Sur 007a_ECRH, la catégorie n'explique donc que 31 % de ce que retire le collar. L'erreur située dans les zones du collar (387 s des 1 211 s de l'audio, autour de 608 frontières) fait exactement 155,6 s : 47,5 s en zones entières (la catégorie), 108,1 s en morceaux de 282 zones plus longues classées ailleurs (chevauchement 45,1 s, pause courte 40,3 s, autre 19,8 s, tour court 2,9 s). En points de DER, l'écart est en outre grossi par le dénominateur : le collar retire aussi 409 s de parole de référence (1 188 → 779 s). Répartition sur ce fichier, en part de l'erreur sans collar : chevauchement 30,9 %, pause courte 24,8 %, autre 21,9 %, décalage de frontière 20,9 %, tour court 1,5 %, aucun locuteur non apparié.
+Contrôle : « décalage de frontière » égale, en secondes et type par type, l'erreur retirée par le collar (composantes sans collar moins composantes avec collar).
+
+| Cas | Décalage de frontière | Erreur retirée par le collar | Écart résiduel |
+|---|---|---|---|
+| 3 cas construits (frontières décalées, zones longues qui débordent des tolérances, chevauchement, locuteur en trop) | égal | | moins de 10⁻⁹ s (test) |
+| SUMM-RE 007a_ECRH, sortie d'EXP-0007, toute la durée, sans UEM (comme l'interface) | 45,959 s manquée, 76,289 s fausse alarme, 33,377 s confusion ; 155,625 s en tout | idem | nul, type par type (test) |
+| 200 paires d'annotations aléatoires | | | nul dans 189 cas ; jusqu'à 2,09 s dans les 11 autres, tous ceux où le DER avec collar choisit un autre appariement des locuteurs (test : égalité exigée dès que l'appariement est le même) |
+
+L'égalité ne tient que si le collar ne change pas l'appariement optimal. Sinon, l'erreur hors tolérance change aussi et aucune catégorisation de l'erreur sans collar ne peut la retrouver. Sur 007a_ECRH, l'appariement est le même.
+
+Répartition sur 007a_ECRH, en part de l'erreur sans collar (227,5 s) : décalage de frontière 68,4 % (155,6 s), autre 15,6 % (35,6 s), chevauchement 10,9 % (24,8 s), pause courte 5,1 % (11,6 s), tour court et locuteurs non appariés 0. Zones affichées : 870 en décalage de frontière, 131 autre, 105 chevauchement, 64 pause courte. On compare en secondes et non en points de DER : le collar retire aussi 409 s de parole de référence du dénominateur (DER 19,15 % sans collar, 9,23 % avec).
+
+Règle remplacée (02/11, avant l'option b) : catégorie par zone entière, « décalage de frontière » seulement si toute la zone tenait dans la tolérance. Sur 007a_ECRH, elle classait 47,5 s en décalage de frontière, contre 155,6 s retirées par le collar.
 
 ### Moteurs absents de `configs/demo.yaml`
 
@@ -489,4 +498,4 @@ Un moteur absent de `moteurs` n'est plus refusé : il n'est pas proposé, et l'e
 
 Vérifié dans le navigateur, moteur factice, 007a_ECRH avec sa référence et une configuration sans la baseline WeSpeaker : carte en sombre à 1280 px, en clair à 375 px (largeur de page 375 px), quatre catégories rencontrées (décalage de frontière, chevauchement, pause courte, autre), en-tête et liste des moteurs (Baseline MFCC, Baseline ECAPA, pyannote).
 
-Tests : `tests/test_app_categories.py` (7), tests du gel (`test_app_presentation_gel.py`, 3 nouveaux) et de la carte mis à jour. Suite complète : 545 réussis, 12 ignorés, 3 lents exclus.
+Tests : `tests/test_app_categories.py` (10 depuis l'option b), tests du gel (`test_app_presentation_gel.py`, 3 nouveaux) et de la carte mis à jour. Suite complète après l'option b : 548 réussis, 12 ignorés, 3 lents exclus.
