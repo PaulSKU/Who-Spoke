@@ -57,4 +57,5 @@ def test_temps_cpu_tire_de_l_execution_principale():
     ]}
     block = evaluate.cpu_block(run, "data/splits/ami/temps.txt")
     assert block == {"sous_ensemble": "data/splits/ami/temps.txt", "duree_audio_s": 400.0,
-                     "calcul_s": 6.0, "rtf": 0.015, "conforme": None}
+                     "calcul_s": 6.0, "rtf": 0.015, "conforme": None,
+                     "charge_concurrente": None}  # sans relevé de charge (D21, amendement du 01/11)
