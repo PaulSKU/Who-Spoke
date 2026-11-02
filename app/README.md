@@ -7,7 +7,7 @@ uv run python -m app.app             # moteurs réels, préchauffés au démarra
 uv run python -m app.app --factice   # moteur factice : aucune inférence
 ```
 
-Puis ouvrir http://127.0.0.1:7860 (serveur local uniquement, pas de lien public). Options : `--port`, `--factice-max-s` (durée maximale simulée d'une analyse en mode factice), `--sans-prechauffage` (moteurs chargés au premier usage), `--vider-cache` (vide le cache des résultats avant le lancement), `--depot` (racine du dépôt dont sont lus, en lecture seule, les expériences, les analyses, `results/leaderboard.csv`, le catalogue et les documents de `docs/` ; par défaut ce dépôt). Pendant le développement sur la branche `interface`, qui n'a pas toutes les expériences :
+Puis ouvrir http://127.0.0.1:7860 (serveur local uniquement, pas de lien public). Options : `--port`, `--factice-max-s` (durée maximale simulée d'une analyse en mode factice), `--sans-prechauffage` (moteurs chargés au premier usage), `--vider-cache` (vide le cache des résultats avant le lancement), `--factice-rttm DOSSIER` (mode factice : sorties fabriquées `<nom du fichier déposé>.rttm`, cherchées avant celles de l'expérience source ; cas limites, B7), `--depot` (racine du dépôt dont sont lus, en lecture seule, les expériences, les analyses, `results/leaderboard.csv`, le catalogue et les documents de `docs/` ; par défaut ce dépôt). Pendant le développement sur la branche `interface`, qui n'a pas toutes les expériences :
 
 ```bash
 uv run python -m app.app --factice --depot ~/Dev/Who-Spoke
@@ -299,4 +299,61 @@ R-U12 (bascule de la sortie exclusive) est abandonné : la sortie exclusive dég
 | Petits écrans | Sous 720 px, « Temps de traitement » et « Exports » s'empilent (côte à côte, les noms des exports n'avaient plus la place) et les noms longs passent à la ligne | `interface.css` (`.ws-pair`) |
 
 Vérifié dans le navigateur en mode factice avec l'audio de `summre__007a_ECRH` et sa référence : clair et sombre à 1280 px, clair et sombre à 375 px (largeur de page 375 px). Fusion de SPEAKER_03 dans SPEAKER_01 : DER sans collar 19,15 % → 31,12 % (collar ± 0,25 s : 9,23 % → 22,00 %), couleurs des autres locuteurs inchangées, annulation qui rend 19,15 % ; matrice 4 × 4 de 287 passages ; PNG de 2400 × 808 px tiré du SVG. Latence médiane de 0,00 s pour chaque locuteur sur ce fichier : 85 des 287 passages de la sortie de pyannote sont exactement jointifs, et les autres se répartissent à peu près autant en négatif qu'en positif.
+
+## Robustesse face à des fichiers inconnus (chantier B7, démonstration du 16/11, 02/11/2026)
+
+Démarche inspirée du skill break-ui (emilkowalski/skills, lu sans être installé) : des données réalistes de pire cas, entrées par la même porte que les vraies (fichier déposé, sortie du moteur, référence déposée), puis, pour chaque cas, comportement attendu, comportement observé et correctif. Fichiers fabriqués sans aucune donnée personnelle par `tests/fabrique.py` (audio synthétique généré par ffmpeg, RTTM écrits par le script) :
+
+```bash
+uv run python -m tests.fabrique /tmp/b7 --longs
+uv run python -m app.app --factice --factice-rttm /tmp/b7/sorties
+```
+
+puis déposer les fichiers de `/tmp/b7/audio` et de `/tmp/b7/references`. Un message d'erreur nomme le fichier, donne la cause probable et dit quoi faire ; il ne montre ni chemin local ni sortie brute de ffmpeg.
+
+### Fichiers audio
+
+| Cas | Attendu | Observé avant B7 | Correctif | Test |
+|---|---|---|---|---|
+| Vidéo mp4 et mov (son AAC 48 kHz stéréo) | Son extrait, normalisé en 16 kHz mono | Correct | — | `test_formats_lisibles_normalises` |
+| Vidéo sans piste son | Message : pas de piste son, déposer un fichier avec l'audio | Sortie brute de ffmpeg, chemins compris (« Output file does not contain any stream ») | `_audio_error` : cause d'après la sortie de ffmpeg, conseil, détail technique sans chemin | `test_fichiers_illisibles_message_qui_dit_quoi_faire` |
+| WAV stéréo 44,1 kHz, WAV stéréo 48 kHz 24 bits, m4a, ogg | Normalisés, durée exacte | Correct | — | `test_formats_lisibles_normalises` |
+| m4a coupé (enregistrement interrompu) | Message : fichier incomplet, récupérer le fichier complet | Sortie brute de ffmpeg (« moov atom not found ») | `_audio_error` | `test_fichiers_illisibles_…` |
+| Texte renommé en `.wav` | Message : pas un fichier audio, quelle que soit l'extension | Sortie brute de ffmpeg (« Invalid data found ») | `_audio_error` | `test_fichiers_illisibles_…` |
+| Audio de 3 s | Analyse, zoom inutile désactivé | Correct ; « 1 locuteur(s) en 0 s » | Pluriels (`_plural`), durées sous la seconde au centième (`temps.format_duration`) | `test_formats_lisibles_normalises` |
+| Silence complet | Avertir avant le lancement ; après, dire qu'aucun locuteur n'est détecté et quoi vérifier | Aucun avertissement ; tableaux vides réduits à leurs en-têtes, timeline sans piste | Silence repéré à la préparation (niveau maximal sous −80 dB) et annoncé sous le bouton ; état « Aucun locuteur détecté », message dans Locuteurs et Interactions, piste « Aucun locuteur » | `test_formats_lisibles_…`, `test_zero_locuteur` |
+| 30 min (m4a) | Fluide | Préparation 2 s, analyse factice et rendus 1,3 s, fusion 1,5 s | — | `test_trente_et_quatre_vingt_dix_minutes` (lent) |
+| 90 min (m4a) | Utilisable | Préparation 8 s, analyse factice et rendus 7 s, fusion 10 s, 1,1 Go de mémoire ; dans le navigateur, résultat 13 s après le dépôt, zoom maximal (324 000 px) en 0,45 s, forme d'onde et pistes rendues à 45:00 ; aucune indication pendant les secondes de mise en forme | Étape d'état « Mise en forme des résultats, calcul du DER et de la carte des erreurs » | `test_trente_…` (lent), `test_quatre_vingt_dix_minutes_de_tours` |
+| Fichier inconnu du moteur factice | Message : déposer un fichier du corpus, ajouter une sortie fabriquée ou lancer sans `--factice` | « aucun RTTM pour … dans experiments/… » | Message de `moteurs.find_rttm` | `test_recherche_du_rttm`, `test_moteur_factice_…` |
+| Titre des notifications | En français | « Error », « Warning » : Gradio y écrit le type du message, sans traduction | Titres remplacés en CSS (« Erreur », « Attention », « Information ») | — (vérifié dans le navigateur) |
+
+### Résultats (sorties fabriquées, 60 s)
+
+| Cas | Attendu | Observé avant B7 | Correctif | Test |
+|---|---|---|---|---|
+| 0 locuteur | « Aucun locuteur détecté », quoi vérifier | « 0 locuteur(s) » ; tableaux vides ; exports vides mais valides | Voir silence ci-dessus | `test_zero_locuteur` |
+| 1 locuteur | Pas de matrice, pas de fusion, latence « — » | Correct ; « 1 locuteur(s) » | Pluriels | `test_un_locuteur` |
+| 6, 9, 12 locuteurs | Lisible ; au-delà de 8, gris, l'identité portée par le nom | Couleurs correctes ; touches 1 à 9 seulement : locuteurs 10 à 12 impossibles à isoler ; matrice de 12 noms longs large de 2 232 px, noms des lignes perdus au défilement | Clic sur le nom d'une piste pour isoler (et le dire dans l'aide) ; matrice : au-delà de 4 locuteurs ou d'un nom de plus de 14 caractères, colonnes numérotées comme les lignes (nom en info-bulle et pour les lecteurs d'écran), noms des lignes figés à gauche | `test_six_neuf_douze_locuteurs`, `test_au_dela_de_neuf_…` |
+| Noms très longs (60 caractères, la limite du champ) | Coupés par « … », nom complet en info-bulle et dans les tableaux | Colonne des noms de la timeline élargie par le nom le plus long : le nom passait sous les pistes, coupé net | Colonne des noms bornée à sa piste (`minmax(0, 1fr)`), texte dans son propre bloc à « … » | `test_noms_longs_speciaux_et_doublons` |
+| Noms en double | Refusés, avec la raison | Refus seulement à l'identique ; « Alice » et « alice » acceptés ; « Alice Martin » et « Alice_Martin » refusés sans dire pourquoi | Comparaison à la casse, aux blancs et à « _ » près, message qui l'explique | `test_noms_longs_…` |
+| Caractères spéciaux (`<script>`, guillemets, &, emoji, arabe, chinois, vietnamien) | Affichés tels quels, jamais interprétés | Correct partout (tableaux, timeline, image, RTTM, JSON) | — | `test_noms_longs_…` |
+| Chevauchement massif (4 locuteurs en même temps) | Extraits désactivés, aucun passage de parole | Correct ; « 0 passages de parole » | « Aucun passage de parole » | `test_chevauchement_massif` |
+| Tours de 50 ms (1 200 segments en 60 s) | Durées lisibles, segments cliquables | Info-bulle « 0:00 – 0:00 (0,0 s) », durée moyenne « 0,1 s », plus long tour « 0 s » ; segment de 3 px au zoom maximal | Au dixième pour l'intervalle et au centième pour la durée sous la seconde (`fmtSpan`), durées sous la seconde au centième | `test_tours_de_50_ms` |
+
+### Références
+
+| Cas | Attendu | Observé avant B7 | Correctif | Test |
+|---|---|---|---|---|
+| Colonnes manquantes | Message : ligne, champs attendus, corriger | Plantage du gestionnaire (`IndexError`) | `sortie.read_reference` contrôle chaque ligne `SPEAKER` | `test_references_mal_formees` |
+| Nombre illisible (`zéro`, `1,5`) | Message : ligne, écrire en secondes avec un point | « could not convert string to float » | Idem | `test_references_mal_formees` |
+| Durée négative | Refusée : la 5e colonne est une durée | Acceptée : DER de 1 245 % | Idem | `test_references_mal_formees` |
+| Fichier vide, binaire, étiquettes Audacity, plusieurs enregistrements | Message qui dit quoi déposer | « aucune ligne SPEAKER », « 'utf-8' codec can't decode… » | Messages par cas, Audacity reconnu | `test_references_mal_formees` |
+| Référence contrôlée dès le dépôt | Erreur visible avant l'analyse | « Référence chargée : le DER s'affichera après l'analyse », même illisible | Lecture dès le dépôt | `test_references_mal_formees` |
+| Référence d'un autre fichier | Avertir, calculer quand même | Silencieux (DER de 90,74 %) | « À vérifier » : l'identifiant de la référence ne correspond pas au nom de l'audio (`summre__007a_ECRH` et `007a_ECRH` reconnus comme le même) | `test_reference_d_un_autre_fichier_…` |
+| Référence plus longue que l'audio | Avertir : la parole au-delà est ignorée | Silencieux (référence coupée) | « À vérifier » au-delà de 1 s de parole ignorée | Idem |
+| Référence plus courte que l'audio | Avertir : la parole trouvée après compte en fausse alarme | Silencieux (DER de 188 %) | « À vérifier » au-delà de 10 s et 5 % de la parole trouvée, avec le conseil de couper l'audio | Idem |
+
+### Limite connue
+
+Une sortie très morcelée reste lente : `Timeline.co_iter` de pyannote.core, qu'utilisent le DER de pyannote.metrics, les statistiques et la carte des erreurs, croît à peu près comme le carré de la densité de segments. 1 200 tours de 50 ms en 60 s : DER en 0,33 s ; 3 600 en 3 min : 2,1 s ; 36 000 en 30 min : plusieurs minutes (extrapolé, non mené à terme). Une analyse réelle en produit bien moins (environ 1 000 segments pour 20 min sur 007a_ECRH). L'écran affiche désormais l'étape de mise en forme au lieu de rester figé. Le comportement des moteurs réels sur ces fichiers (3 s, silence, 90 min) reste à vérifier à la fusion, sans modèle chargé ici.
 
