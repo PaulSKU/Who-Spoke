@@ -839,3 +839,16 @@ Problèmes :
 - Depuis que silero-vad est dans `uv.lock`, la suite par défaut lance `test_modele_reel_de_silero` (marqué `modele`, non exclu par défaut), qui charge sur CPU le modèle de Silero livré dans le paquet (2 Mo, sans réseau).
 - La comparaison des moteurs entre eux à condition égale (D24 §3) n'est pas dans le tableau de robustesse, qui donne moteur × condition.
 Suite : régénérer `docs/rendu/` après chaque expérience évaluée (`uv run python scripts/rendu.py`) et après la campagne du 12/11.
+
+## 2026-11-02 — Outils : retours du cockpit sur E7 (Claude Code)
+
+Objectif : appliquer le retour du cockpit sur E7 (journal de `main`, entrée « Retour du chantier E7 »), sans modèle chargé, fusion ni dépendance ajoutée.
+Réalisé :
+- `systemes.md` : l'écart à la référence déclarée reste la première comparaison ; seconde comparaison ajoutée, l'écart à pyannote community-1 du même corpus (EXP-0007 sur SUMM-RE, EXP-0001 sur AMI, choisi comme dans le graphique de l'Avancement : première expérience pyannote en condition réaliste avec un résultat de test non invalidé), avec IC du bootstrap apparié dans les deux conditions de collar et fichiers où l'expérience fait mieux ou moins bien. Les en-têtes nomment la référence de chaque colonne ; la légende précise que la seconde n'est pas une comparaison à une seule variable. Toutes les expériences du tableau ont désormais une ligne d'écarts, y compris celles sans référence déclarée (baselines MFCC).
+- `robustesse.md` : section « Comparaison à pyannote community-1, à condition égale (D24 §3) » : chaque autre moteur d'A3 contre pyannote, condition par condition, propre compris, bootstrap apparié. L'expérience pyannote d'A3 est celle dont le propre est EXP-0007 ; une variante (sortie exclusive) est comparée comme un autre moteur.
+- `test_modele_reel_de_silero` : déjà marqué `modele` depuis `0d475a5` (E5), comme les tests d'ECAPA ; vérifié que `-m "not modele"` l'exclut. Aucun changement.
+- `tests/test_rendu.py` : 3 tests ajoutés (écart à pyannote du même corpus, comparaison à pyannote par condition avec choix de l'expérience pyannote, A3 sans pyannote) ; 19 au total.
+Résultats : aucune expérience. SUMM-RE test, écart à EXP-0007 sans collar : baseline MFCC +23,06 [+19,05 ; +26,92], ECAPA +7,12 [+3,72 ; +9,77], WeSpeaker +9,56 [+6,02 ; +12,44]. Tests ciblés pendant le travail ; suite complète une fois à la fin : 503 réussis, 12 ignorés, 3 désélectionnés.
+Décisions : aucune (application du retour du cockpit).
+Problèmes : `main` a avancé (`61cd335` : conditions de D24, exécution partagée, A-0002) sans être refusionné dans `outils` ; le nommage `summre-<condition>` et les per_file lus ici sont ceux de `main`. A-0002 donne un IC pour le groupe Zoom, `docs/rendu/` n'en donne pas sous 5 réunions (décision du cockpit) : les deux sources diffèrent sur ce point.
+Suite : régénérer `docs/rendu/` après la fusion dans `main` et après chaque expérience d'A3.
