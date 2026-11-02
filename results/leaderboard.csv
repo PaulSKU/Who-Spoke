@@ -35,3 +35,5 @@ EXP-0017,2026-11-01T22:48:36+01:00,pyannote-c1-ami-sdm-exclusive,EXP-0001,sortie
 EXP-0017,2026-11-01T22:48:36+01:00,pyannote-c1-ami-sdm-exclusive,EXP-0001,sortie,ami,test,pyannote-community-1,estime,24.48,18.48,2.52,3.48,16.76,30.28,0.38,0.0509,0.8343,4dc5e63
 EXP-0018,2026-11-02T00:46:48+01:00,pyannote-c1-summre-borne-2-6,EXP-0007,mode_n_locuteurs,summre,dev,pyannote-community-1,borne,26.0,5.13,14.24,6.64,10.76,29.28,0.08,0.0574,0.896,2fcf766
 EXP-0018,2026-11-02T00:46:48+01:00,pyannote-c1-summre-borne-2-6,EXP-0007,mode_n_locuteurs,summre,test,pyannote-community-1,borne,25.82,7.15,11.28,7.39,14.31,28.39,0.16,0.0549,0.896,2fcf766
+EXP-0019,2026-11-02T02:20:51+01:00,pyannote-c1-ami-sdm-borne-2-6,EXP-0001,mode_n_locuteurs,ami,dev,pyannote-community-1,borne,18.64,8.1,4.86,5.68,11.15,23.75,0.11,0.0509,0.748,45b309d
+EXP-0019,2026-11-02T02:20:51+01:00,pyannote-c1-ami-sdm-borne-2-6,EXP-0001,mode_n_locuteurs,ami,test,pyannote-community-1,borne,19.92,11.16,3.81,4.94,13.21,27.07,0.38,0.0493,0.748,45b309d
