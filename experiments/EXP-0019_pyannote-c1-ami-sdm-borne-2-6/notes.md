@@ -1,7 +1,7 @@
 ---
 id: EXP-0019
 question: "Borner le nombre de locuteurs entre 2 et 6 change-t-il pyannote sur AMI (D23, rang A2) ?"
-verdict: en_cours
+verdict: informatif
 decisions: [D23]
 ---
 
@@ -15,6 +15,6 @@ DER sans collar 18,64 % (dev) et 19,92 % (test), identiques à EXP-0001. Nombre 
 
 Temps conformes (MPS et CPU). Exécution concurrente des sessions B et E (D21, amendement du 01/11), sans relevé de charge.
 
-## Interprétation
+## Interprétation (cockpit)
 
-À rédiger par le cockpit.
+Sur AMI, VBx reste dans les bornes pour tous les fichiers ; le résultat est identique à EXP-0001. Les bornes ne coûtent donc rien quand l'estimation est correcte.

@@ -818,3 +818,20 @@ Problèmes :
 - Les bruits seuls du dossier d'écoute sont à leur niveau d'origine, faible (−37 à −56 dBFS) : monter le volume.
 - Espace disque : 19 Go libres (pistes de test 8,8 Go, conditions 9,1 Go).
 Suite : écoute de contrôle par la candidate (`data/processed/summre_degrade/ecoute/index.html`), puis expériences d'A3 (pyannote, configuration d'EXP-0007, et baseline ECAPA, configuration d'EXP-0012) ; le script d'exécution devra lire les WAV de `data/processed/summre_degrade/<condition>/` avec les références et UEM de SUMM-RE (corpus `summre-<condition>`), ce qui reste à faire.
+
+## 2026-11-02 — Interprétation d'A1 et A2 ; retours de B7 et E6 (cockpit)
+
+Objectif : interpréter EXP-0016 à 0019 et trancher les questions des pistes A, B et E.
+Réalisé : interprétations et verdicts d'EXP-0016 à 0019 ; constats C11 et C12 ; synthèse mise à jour ; méthode §4.2 (dossiers `rttm_<sortie>/`).
+Résultats : sortie exclusive écartée (+4,1 points sur SUMM-RE, +4,6 sur AMI, significatif) ; bornes de 2 à 6 sans effet significatif, une seule réunion concernée.
+Décisions :
+- V1 de D25 écartée ; R-U12 abandonné. Bornes de 2 à 6 retenues comme garde-fou de la configuration de démonstration, sans gain revendiqué.
+- D24 : bruits DEMAND (sans OMEETING) validés ; les réunions Zoom simulées dans une salle sont gardées, mais les résultats d'A3 seront aussi donnés à part pour les réunions Zoom et les autres, parce qu'une réunion Zoom réverbérée dans une seule salle est moins plausible ; RT60 rapporté en T20, avec le T60 mesuré en annexe.
+- Script d'exécution : lecture des conditions dégradées avec les références et l'UEM de SUMM-RE test ; `evaluate.py` accepte une exécution partagée (V2 et V3), avec un fichier d'exécution rappelé dans chaque dossier.
+- Processus : ne jamais enchaîner un commit après les tests autrement que par `&&` ; règle à ajouter à CLAUDE.md.
+- B7 : seuils validés (silence −80 dB, avertissements de référence, matrice numérotée, doublons sans tenir compte de la casse) ; zoom maximal relevé à 150 px/s si la fluidité tient sur 30 min.
+Suite : écoute de contrôle de D24 par la candidate, puis A3 ; chantiers B8 et E7.
+
+## 2026-11-02 — README à jour (cockpit)
+
+Réalisé : état d'avancement au 02/11 (D24, D25, bornes, moteurs externes, corpus maison, outillage), description des onglets et options de l'application après B1 à B7, documents ajoutés au tableau de documentation, note sur les temps de référence (D21).
