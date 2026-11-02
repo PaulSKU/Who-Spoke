@@ -971,3 +971,28 @@ Décisions : aucune. Choix de la session, à valider :
 - Statut sous la forme « · terminé » après le libellé de l'étape.
 Problèmes : à 375 px, Avancement et Glossaire restent dans le menu « … » de Gradio (limite connue, B13). Le panneau « Détails » se referme quand on change de moteur (il est redessiné).
 Suite : B12 (onglet Pipeline), puis B13.
+
+## 2026-11-02 — Interface : onglet Pipeline, schéma de gauche à droite (B12) et retours de B11 (Claude Code)
+
+Objectif : retours du cockpit sur B11, puis chantier B12 (audit visuel du 02/11, §6) dans le worktree `ui` (à jour avec `main`), moteur factice, sans modèle, fusion ni dépendance ajoutée.
+Réalisé :
+- Retours de B11 : indicateur du préchauffage visible en mode présentation ; panneau « Détails » qui garde son état ouvert au changement de moteur (petit script sur le composant).
+- Schéma SVG de gauche à droite, une ligne dès 840 px ; étapes en onglets (`role="tab"` dans un `role="tablist"`, flèches, Origine, Fin, `aria-selected`, `aria-controls`, tabulation itinérante) ; fiches en `tabpanel` sous le schéma.
+- Anatomie d'une étape : numéro, titre, modèle et révision abrégée, aperçu de 24 px, badge d'erreurs du DER en texte, nombre de constats.
+- Flèches étiquetées par la forme des données : nouvelle section `formes` du catalogue (modèles à trous renvoyant aux réglages), remplie avec la configuration effective ; un réglage absent donne l'étiquette générique et un écart signalé (baseline MFCC : dimension d'empreinte absente).
+- pyannote : détection et segmentation dans un cadre « Un seul réseau : PyanNet » ; baseline : étapes séparées. Évaluation à droite, derrière un filet pointillé, « mesure seulement ».
+- Barre « naissance des erreurs » : DER test sans collar de l'expérience source, empilé (motifs de la carte des erreurs), segments qui sélectionnent l'étape (manquée et fausse alarme : détection ; confusion : regroupement), mention « Attribution simplifiée ».
+- Aperçus schématiques et statiques, couleurs des locuteurs pour la segmentation et le regroupement seulement (trois jetons `--ws-spk-*`).
+- 375 px : liste numérotée verticale, une étape dépliée à la fois, réglages en « clé : valeur ». Mode présentation : texte agrandi, révisions masquées, barre des erreurs en tête.
+- Vérifié dans le navigateur (pyannote, baseline ECAPA ; clair, sombre, 375 px, présentation ; clavier réel). Captures avant et après : `docs/audit/b12-avant-apres/` (16 vues).
+- Tests : `tests/test_app_pipeline_b12.py` (13) ; tests de la page Pipeline et des constats mis à jour (onglets, nombre de constats, segments). Tests ciblés pendant le travail, puis suite complète : un premier passage a relevé un test de B11 qui attendait l'ancienne règle de l'en-tête en présentation (sans commit, enchaîné par `&&`) ; test mis à jour, second passage, commit enchaîné par `&&` : 601 réussis, 12 ignorés, 3 lents exclus.
+Résultats : aucune expérience. Contrôle visuel : stylelint sans écart, axe-core sans violation en clair et en sombre, 20 captures de référence (8 mises à jour pour ces changements, une neuvième réécrite pour un pixel d'anticrénelage et rétablie).
+Décisions : aucune. Choix de la session, à valider :
+- Formes des données décrites dans le catalogue (`formes`), modèles à trous ; aucune valeur écrite à la main, mais les mots des étiquettes le sont, comme les autres textes du catalogue.
+- Le bloc « un seul réseau » est un seul onglet ; ses deux étapes gardent leur numéro (2 et 3).
+- Badge réduit aux trois composantes du DER, en mots courts ; frontières et nombre de locuteurs restent dans la fiche.
+- Attribution de la barre : parole manquée et fausse alarme à la détection, confusion au regroupement.
+- Aperçus entièrement schématiques (la page Pipeline ne dispose d'aucun fichier analysé).
+- `npm run captures:maj` repasse en `--update-snapshots=changed` (`=all` réécrivait des captures à un pixel près).
+Problèmes : le catalogue fait partie de l'empreinte du code des moteurs : le cache des résultats est invalidé une fois. Le focus au clavier d'une étape est dessiné par son contour (l'anneau d'un groupe SVG n'est pas rendu). Le panneau du navigateur intégré fait moins de 640 px de large : le schéma ne s'y voit qu'avec une taille de fenêtre émulée.
+Suite : B13 (Avancement, Glossaire, passe break-ui, essai au vidéoprojecteur).

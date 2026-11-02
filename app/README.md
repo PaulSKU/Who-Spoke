@@ -550,7 +550,7 @@ cd tests/visuel && npm run controle
 |---|---|
 | `npm run styles` | stylelint (`.stylelintrc.json`) : couleurs (`color-no-hex`, `color-named`, fonctions `rgb()`…), ombres et arrondis seulement par jetons, règles `@` permises, pas de `prefers-color-scheme`, pas de `:root`, `body` ni `svelte-*` ; `jetons.css` est la seule exception pour les valeurs |
 | `npm run captures` | 20 captures de référence (`tests/visuel/references/`) : clair et sombre × 1440 et 375 px, plus le mode présentation (sombre, 1280 × 720), sur les quatre onglets ; Analyse et Pipeline en pleine page, Avancement et Glossaire sur la hauteur de l'écran. Écart toléré : 20 pixels (les captures sont identiques d'un lancement à l'autre ; à 0,2 %, l'absence de la coche des étapes passait inaperçue). Masqués : forme d'onde et vue d'ensemble, durées mesurées, bandeau (périphérique), temps et exports, indicateur des moteurs. Vérifie aussi qu'aucune page ne déborde en largeur |
-| `npm run captures:maj` | Régénère toutes les références (`--update-snapshots=all` : sans `=all`, Playwright ne réécrit que les captures hors tolérance) après un changement voulu, à relire avant de les commiter |
+| `npm run captures:maj` | Régénère les références qui sortent de la tolérance (`--update-snapshots=changed`) après un changement voulu, à relire avant de les commiter ; `=all` réécrirait aussi les captures qui ne diffèrent que d'un pixel d'anticrénelage |
 | `npm run accessibilite` | axe-core, règles WCAG 2.0, 2.1 et 2.2 A et AA, en clair et en sombre, sur les quatre onglets après une analyse. Une seule exclusion : la taille des cibles (2.5.8) sur les segments de la timeline, dont la largeur est la durée représentée (exception « présentation essentielle » ; le zoom les agrandit et ← → parcourent les tours au clavier) |
 | `npm run controle` | Les trois à la suite |
 | `npm run defauts:avant`, `npm run defauts:apres` | Captures des défauts V1, V2 et V4, hors références (`tests/visuel/defauts/`, non versionné) |
@@ -575,3 +575,24 @@ Résultat au 02/11 : stylelint sans écart ; axe-core sans violation dans les de
 Retours de B10 appliqués : la bordure des champs de saisie (thème `input_border_color`, nom des locuteurs, liste de fusion) prend le jeton `--ws-control-line`, à 3:1 au moins face à la carte, dont le fond est le même ; un test vérifie que RTTM, JSON et étiquettes Audacity gardent point décimal, tiret ASCII et aucune espace fine.
 
 Vérifié avec les captures Playwright (`tests/visuel/avant-apres-b11.spec.ts`, `ETAT=avant|apres`) : 1440 px en clair, 375 px en sombre, mode présentation 1280 × 720 ; avant et après dans `docs/audit/b11-avant-apres/`. Captures de référence mises à jour pour ces changements voulus (l'en-tête change sur les quatre onglets), puis contrôle complet sans écart (stylelint, 20 captures, axe-core en clair et en sombre). Tests : `tests/test_app_analyse_b11.py` (9).
+
+## Onglet Pipeline : schéma de gauche à droite (chantier B12, audit visuel du 02/11, §6)
+
+| Élément | Comportement | Où |
+|---|---|---|
+| Schéma | SVG unique, mis à l'échelle de la carte (1 180 unités de large) : sans retour à la ligne dès 840 px, lisible à 1280 × 720 ; texte coupé en Python avec les tailles du mode présentation, pour tenir dans les deux modes | `pipeline._diagram` |
+| Onglets | Chaque étape est un `role="tab"` (avec `aria-selected`, `aria-controls`, tabulation itinérante) d'un `role="tablist"` ; ← → ↑ ↓, Origine et Fin, activation immédiate ; fiche de l'étape en `role="tabpanel"` sous le schéma, pleine largeur ; focus au clavier par un contour épaissi | `pipeline.js` |
+| Anatomie d'une étape | Numéro, titre, modèle (architecture, sinon nom du dépôt) et révision abrégée, aperçu de 24 px, badge d'erreurs du DER en texte (« manquée · fausse alarme », « confusion ») ; nombre de constats en haut à droite | `pipeline._box` |
+| Flèches | Étiquetées par la forme des données en sortie de l'étape, d'après la section `formes` du catalogue : modèle à trous dont chaque `{réglage}` est lu dans la configuration effective (dans le code pour la normalisation), mis en forme comme le tableau des réglages. Un réglage absent laisse l'étiquette générique, et l'écart est signalé avec les autres (baseline MFCC : pas de dimension d'empreinte) ; à défaut de section dans le catalogue de `--depot`, celle de ce code | `catalogue.yaml` (`formes`), `pipeline._shapes` |
+| Un seul réseau | pyannote : détection et segmentation, deux sous-blocs numérotés (2, 3) dans un cadre « Un seul réseau : PyanNet », un seul onglet ; baseline : étapes séparées | section `regroupements` du catalogue |
+| Évaluation | À droite, derrière un filet pointillé, flèche pointillée depuis la sortie, cadre pointillé, « mesure seulement » | |
+| Naissance des erreurs | DER test sans collar de l'expérience source (`results_<corpus>_test.json`), empilé avec les motifs de la carte des erreurs (plein, hachures, contour) ; chaque segment est un bouton qui sélectionne l'étape où l'erreur naît (parole manquée et fausse alarme : détection ; confusion : regroupement) ; légende écrite et mention « Attribution simplifiée » | `pipeline._errors_bar` |
+| Aperçus | Schématiques et statiques (la page n'a pas les données d'un fichier) : forme d'onde, trames, marche-arrêt de la détection, nuage de vecteurs, tours ; couleurs des locuteurs (jetons `--ws-spk-1` à `3`) pour la segmentation et le regroupement seulement | `pipeline._preview` |
+| 375 px | Liste numérotée verticale, une étape dépliée à la fois (`aria-expanded`), réglages en liste « clé : valeur », forme des données entre deux étapes | `pipeline._stepper` |
+| Mode présentation | Texte du schéma agrandi, révisions masquées, barre de la naissance des erreurs en tête de page et plus haute | `interface.css` |
+
+Retours de B11 : l'indicateur du préchauffage reste dans l'en-tête en mode présentation ; le panneau « Détails » garde l'état ouvert ou fermé que la personne lui a donné quand il est redessiné au changement de moteur (`DETAILS_JS`).
+
+Vérifié dans le navigateur, pyannote et baseline ECAPA : clair et sombre à 1440 px, sombre à 375 px, mode présentation (1280 × 720) ; clavier (flèches, Origine, Fin, Maj + Tab vers l'onglet sélectionné), segment de la barre qui sélectionne l'étape, une étape dépliée à la fois à 375 px. Captures avant et après : `docs/audit/b12-avant-apres/` (`tests/visuel/avant-apres-b12.spec.ts`). Captures de référence mises à jour pour ces changements (pages Pipeline, indicateur du préchauffage en présentation) ; stylelint, 20 captures et axe-core (clair, sombre) sans écart. Tests : `tests/test_app_pipeline_b12.py` (13).
+
+Le catalogue (`src/whospoke/pipelines/catalogue.yaml`) fait partie de l'empreinte du code des moteurs : le cache des résultats est invalidé une fois.
