@@ -175,3 +175,23 @@
 .wsp-explain-sub { margin: 10px 0 2px; color: var(--ws-slate); }
 .wsp-explain-context { margin: 0; padding-left: 18px; }
 .wsp-explain-note { margin: 8px 0 0; color: var(--ws-slate); font-size: 0.8rem; }
+
+/* Mode présentation (B8 ; classe de <html>, voir interface.css) : pistes, segments, boutons
+   et colonne des noms agrandis comme le texte ; l'aide en ligne sous la timeline est masquée
+   (les raccourcis restent sous « ? »). La portée de Gradio enveloppe cette feuille dans le
+   sélecteur du composant : « & » le place après html.ws-presentation. */
+html.ws-presentation & {
+  .wsp-root { --wsp-label-w: 176px; }
+  .wsp-root.wsp-wide { --wsp-label-w: 236px; }
+  .wsp-play, .wsp-zoom button, .wsp-follow, .wsp-help-toggle { height: 40px; }
+  .wsp-zoom-in, .wsp-zoom-out, .wsp-help-toggle { width: 40px; }
+  .wsp-zoom-range { width: 180px; }
+  .wsp-label { height: 30px; }
+  .wsp-lanes > .wsp-track { height: 20px; }
+  .wsp-seg { height: 20px; }
+  .wsp-swatch { width: 10px; height: 10px; }
+  .wsp-label.wsp-caption, .wsp-spacer { height: 26px; }
+  .wsp-axis { height: 24px; }
+  .wsp-playhead { width: 3px; bottom: 24px; }
+  .wsp-hint { display: none; }
+}

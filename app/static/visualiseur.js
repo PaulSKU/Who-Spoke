@@ -21,9 +21,12 @@
 // Raccourcis (R-U3) : Espace, ← →, 1 à 9, 0, ? ; inactifs quand le focus est dans un champ
 // de saisie, ou quand l'onglet Analyse n'est pas affiché. Pastille « parle : X » pendant
 // la lecture, d'après le premier moteur.
+// Segments hors de la vue (chantier B8) : masqués dès que le zoom agrandit le canevas. Sur
+// 30 min, 2 moteurs et une référence (10 000 segments et zones), les laisser tous affichés
+// faisait tomber la lecture suivie à 20 images/s au zoom maximal ; masqués, elle en garde 120.
 // Variables fournies par Gradio : element, props, watch.
 
-const MAX_PX_PER_S = 60;   // zoom maximal : 60 px par seconde d'audio
+const MAX_PX_PER_S = 150;   // zoom maximal : 150 px par seconde d'audio (D17 ; B8, mesuré sur 30 min)
 const ZOOM_STEP = 10;      // pas des boutons et de Ctrl + molette, sur l'échelle 0–100
 const WINDOW_KEY_STEP = 0.1;   // ← → sur la fenêtre de la vue d'ensemble : 10 % de la vue
 
@@ -117,7 +120,39 @@ function zoomFactor(level) {
 
 function syncScroll() {
   const ws = element._ws;
-  $('.wsp-canvas').style.transform = 'translateX(' + (ws ? -ws.getScroll() : 0) + 'px)';
+  const scroll = ws ? ws.getScroll() : 0;
+  $('.wsp-canvas').style.transform = 'translateX(' + -scroll + 'px)';
+  cullBars(scroll);
+}
+
+// Premier indice de `bars` (triés par début) dont le début vaut au moins `t`.
+function firstFrom(bars, t) {
+  let lo = 0;
+  let hi = bars.length;
+  while (lo < hi) {
+    const mid = (lo + hi) >> 1;
+    if (bars[mid]._t0 < t) lo = mid + 1;
+    else hi = mid;
+  }
+  return lo;
+}
+
+// N'affiche que les segments et zones d'erreur proches de la partie visible : une largeur de
+// vue de part et d'autre. Seuls les éléments qui entrent ou sortent de cette plage changent.
+function cullBars(scroll) {
+  const v = props.value;
+  const bars = element._bars;
+  if (!v || !bars || !bars.length) return;
+  const width = viewportWidth();
+  const pps = ($('.wsp-canvas').clientWidth || width) / v.duree_s;
+  const span = width / pps;
+  const start = scroll / pps - span;
+  const lo = firstFrom(bars, start - element._barMax);
+  const hi = firstFrom(bars, start + 3 * span);
+  const shown = element._shown || [0, bars.length];
+  for (let i = shown[0]; i < shown[1]; i += 1) if (i < lo || i >= hi) bars[i].style.display = 'none';
+  for (let i = lo; i < hi; i += 1) if (i < shown[0] || i >= shown[1]) bars[i].style.display = '';
+  element._shown = [lo, hi];
 }
 
 function drawAxis() {
@@ -530,6 +565,8 @@ function drawLanes(v) {
   const several = v.groupes.length > 1;
   element._rows = {};
   element._turns = [];
+  element._bars = [];
+  element._shown = null;
   v.groupes.forEach((group, groupIndex) => {
     if (several) caption(labels, lanes, group.titre, group.titre);
     const names = {};
@@ -570,11 +607,16 @@ function drawLanes(v) {
       bar.setAttribute('aria-label', who + ', ' + span.words);
       bar.title = who + ' : ' + span.range + ' (' + span.length + '). Cliquer pour écouter.';
       bar._seg = segKey(group, seg);
+      bar._t0 = seg.debut;
+      bar._t1 = seg.fin;
+      element._bars.push(bar);
       bar.addEventListener('click', () => selectSegment(bar._seg));
       tracks[seg.locuteur].appendChild(bar);
     });
   });
   drawErrors(v, labels, lanes);
+  element._bars.sort((a, b) => a._t0 - b._t0);
+  element._barMax = element._bars.reduce((longest, bar) => Math.max(longest, bar._t1 - bar._t0), 0);
   applyIsolation();
   fillHelpSpeakers(v);
   const open = element._explained;
@@ -620,6 +662,9 @@ function drawErrors(v, labels, lanes) {
       bar.setAttribute('aria-label', text);
       bar.title = text + ' (' + span.length + '). Cliquer pour écouter et expliquer.';
       bar._seg = zoneKey(group, zone, index);
+      bar._t0 = zone.debut;
+      bar._t1 = zone.fin;
+      element._bars.push(bar);
       bar.setAttribute('aria-controls', 'wsp-explain');
       bar.addEventListener('click', () => {
         selectSegment(bar._seg);
@@ -825,6 +870,16 @@ function onExcerpt(event) {
 if (element._onExcerpt) document.removeEventListener('click', element._onExcerpt);
 element._onExcerpt = onExcerpt;
 document.addEventListener('click', onExcerpt);
+
+// Mode présentation basculé (presentation.js) : la colonne des noms change de largeur, et
+// avec elle la largeur visible des pistes ; le zoom est recalculé.
+function onPresentation() {
+  if (props.value && props.value.audio_url && $('.wsp-viewport')) setZoom(element._zoom || 0);
+}
+
+if (element._onPresentation) document.removeEventListener('ws-presentation', element._onPresentation);
+element._onPresentation = onPresentation;
+document.addEventListener('ws-presentation', onPresentation);
 
 if (typeof ResizeObserver === 'function') {
   let lastWidth = 0;

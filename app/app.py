@@ -36,7 +36,7 @@ import signal
 import threading
 import time
 from dataclasses import dataclass, field
-from datetime import datetime
+from datetime import date, datetime
 from html import escape
 
 import gradio as gr
@@ -60,7 +60,8 @@ PALETTE_DARK = ("#3987e5", "#d95926", "#199e70", "#c98500", "#d55181", "#008300"
 OTHER_LIGHT, OTHER_DARK = "#8a8985", "#a3a29c"
 
 SPEAKER_MODES = ("Automatique", "Imposé", "Fourchette")
-DEFAULT_ENGINE = "pyannote-community-1"
+# Mode consigné (configuration, configs/demo.yaml) → libellé du choix dans l'interface.
+MODE_LABELS = dict(zip(("automatique", "impose", "fourchette"), SPEAKER_MODES))
 DEVICES = ("auto", "cpu", "mps", "cuda")
 PRE_STEPS = ("normalisation_audio", "chargement")
 PRE_LABELS = {"normalisation_audio": "Normalisation audio (ffmpeg)", "chargement": "Chargement du modèle"}
@@ -207,10 +208,11 @@ class EngineCache:
         return engine, time.perf_counter() - start
 
 
-def _availability(fake: bool, experiments: Path = moteurs.EXPERIMENTS_DIR) -> dict[str, str | None]:
+def _availability(fake: bool, experiments: Path = moteurs.EXPERIMENTS_DIR,
+                  specs: dict[str, moteurs.EngineSpec] | None = None) -> dict[str, str | None]:
     """Raison de l'indisponibilité de chaque moteur (None s'il est utilisable)."""
     reasons: dict[str, str | None] = {}
-    for key, spec in moteurs.SPECS.items():
+    for key, spec in (specs or moteurs.SPECS).items():
         try:
             moteurs.engine_params(spec, experiments)
             if fake and not (moteurs.experiment_dir(spec.source_exp, experiments) / "rttm").is_dir():
@@ -1060,12 +1062,47 @@ def _engines_badge(status: WarmupStatus) -> str:
     return '<span class="ws-badge ws-engines" data-state="ready" role="status">Moteurs prêts</span>'
 
 
-def _header_html(fake: bool, status: WarmupStatus | None = None) -> str:
+def _speakers_text(speakers: dict) -> str:
+    """Nombre de locuteurs d'une configuration consignée, en toutes lettres."""
+    return {"automatique": "nombre de locuteurs automatique",
+            "impose": f"{speakers.get('valeur')} locuteurs imposés",
+            "fourchette": f"entre {speakers.get('min')} et {speakers.get('max')} locuteurs"}[speakers["mode"]]
+
+
+def _config_html(demo: moteurs.DemoConfig, engine_key: str) -> str:
+    """Configuration en vigueur (D17, amendement 1) et moteur choisi, sous le titre."""
+    if demo.frozen:
+        when = ""
+        if demo.frozen_on:
+            try:
+                when = f", gel du {date.fromisoformat(demo.frozen_on).strftime('%d/%m/%Y')}"
+            except ValueError:
+                when = f", gel du {demo.frozen_on}"
+        config = f'<code>{escape(demo.source)}</code>{escape(when)}'
+    else:
+        config = "correspondance de <code>app/moteurs.py</code>, avant le gel"
+    spec = demo.specs.get(engine_key) or demo.specs[demo.default_engine]
+    speakers = demo.speakers[spec.key]
+    default = "" if speakers["mode"] == "automatique" else f", {escape(_speakers_text(speakers))} par défaut"
+    return (f'<p class="ws-config"><span>Configuration : {config}</span> <span>Moteur : '
+            f'<span class="strong">{escape(spec.label)}</span> ({escape(spec.source_exp)}){default}</span></p>')
+
+
+def _header_html(fake: bool, status: WarmupStatus | None = None, demo: moteurs.DemoConfig | None = None,
+                 engine_key: str | None = None, presentation: bool = False) -> str:
+    demo = demo or moteurs.demo_config()
     badges = _engines_badge(status or WarmupStatus())
     if fake:
         badges += '<span class="ws-badge">Moteur factice : aucune inférence</span>'
+    # Mode présentation (B8) : l'état vit dans la classe de <html> (presentation.js), qui
+    # resynchronise aria-pressed quand Gradio redessine l'en-tête.
+    badges += ('<button type="button" class="ws-present" '
+               f'aria-pressed="{"true" if presentation else "false"}" '
+               'title="Texte et commandes agrandis, contrastes renforcés, réglages secondaires masqués">'
+               'Mode présentation</button>')
     return ('<header class="ws-header"><div><h1>Who Spoke?</h1>'
             "<p>Qui parle, et quand. L'analyse tourne sur cette machine : l'audio ne la quitte pas.</p>"
+            f'{_config_html(demo, engine_key or demo.default_engine)}'
             f'</div><div class="ws-badges">{badges}</div></header>')
 
 
@@ -1085,11 +1122,11 @@ def _cache_info_html(store: ResultCache) -> str:
 def _band_html(prepared: dict, results: list[dict]) -> str:
     """Bandeau des réglages repliés (R-U1) : fichier, durée, moteurs et réglages de l'analyse."""
     engines = " puis ".join(escape(item["libelle"]) for item in results)
-    first = results[0]["configuration"]
-    speakers = first["nombre_locuteurs"]
-    count = {"automatique": "nombre de locuteurs automatique",
-             "impose": f"{speakers.get('valeur')} locuteurs imposés",
-             "fourchette": f"entre {speakers.get('min')} et {speakers.get('max')} locuteurs"}[speakers["mode"]]
+    counts = [_speakers_text(item["configuration"]["nombre_locuteurs"]) for item in results]
+    # Comparaison où les moteurs n'ont pas le même réglage (fourchette du premier seulement) :
+    # celui de chaque moteur.
+    count = counts[0] if len(set(counts)) == 1 else " ; ".join(
+        f'{item["libelle"]} : {text}' for item, text in zip(results, counts))
     devices = ", ".join(dict.fromkeys(item["device"] for item in results))
     return (f'<p class="ws-band-text"><span class="strong">{escape(prepared["nom"])}</span>'
             f'<span>{temps.format_duration(prepared["duree_s"])}</span><span>{engines}</span>'
@@ -1160,12 +1197,17 @@ def _linked(linker: glossaire.Linker) -> tuple:
 
 
 def build_app(fake: bool = False, fake_max_s: float = 20.0, repo_root: Path = REPO_ROOT,
-              warm_up: bool = False, cache_dir: Path | None = None, fake_rttm: Path | None = None) -> gr.Blocks:
+              warm_up: bool = False, cache_dir: Path | None = None, fake_rttm: Path | None = None,
+              demo: moteurs.DemoConfig | None = None, presentation: bool = False) -> gr.Blocks:
     """Application ; expériences, résultats, catalogue et documents lus sous `repo_root` (lecture seule).
 
     `warm_up` : préchauffage des moteurs disponibles dans un fil dédié (R-D2) ; `cache_dir` :
     dossier du cache des résultats (`app.cache.default_dir()` par défaut, R-D3) ; `fake_rttm` :
-    sorties fabriquées du moteur factice (cas limites, B7)."""
+    sorties fabriquées du moteur factice (cas limites, B7) ; `demo` : configuration de
+    démonstration (`moteurs.demo_config(repo_root)` par défaut : configs/demo.yaml s'il
+    existe) ; `presentation` : mode présentation à l'ouverture (B8, la page le pose aussi)."""
+    demo = demo or moteurs.demo_config(repo_root)
+    specs = demo.specs
     glossary = glossaire.read_glossary(repo_root / glossaire.GLOSSARY_RELATIVE)
     linker = glossaire.Linker(glossary)
     _title, _status_html, _stats_html, _times_html, _der_html = _linked(linker)
@@ -1181,10 +1223,10 @@ def build_app(fake: bool = False, fake_max_s: float = 20.0, repo_root: Path = RE
     store = ResultCache(cache_dir)
     code = code_version(REPO_ROOT)   # consigné dans le cache, hors de la clé
     engine_code = engine_code_fingerprint(REPO_ROOT)   # dans la clé du cache
-    availability = _availability(fake, experiments)
+    availability = _availability(fake, experiments, specs)
     choices = [
         (spec.label + ("" if availability[key] is None else " (indisponible)"), key)
-        for key, spec in moteurs.SPECS.items()
+        for key, spec in specs.items()
     ]
     head = "".join(f'<script src="{_file_url(WAVESURFER_DIR / name)}"></script>'
                    for name in ("wavesurfer.min.js", "regions.min.js", "minimap.min.js"))
@@ -1193,14 +1235,14 @@ def build_app(fake: bool = False, fake_max_s: float = 20.0, repo_root: Path = RE
         # Moteur proposé par défaut en premier, sur le périphérique de « auto ».
         default_device = select_device("auto").type
         targets = sorted(((spec, "cpu" if spec.cpu_only else default_device)
-                          for key, spec in moteurs.SPECS.items() if availability[key] is None),
-                         key=lambda target: target[0].key != DEFAULT_ENGINE)
+                          for key, spec in specs.items() if availability[key] is None),
+                         key=lambda target: target[0].key != demo.default_engine)
         engines.warmup.enabled, engines.warmup.total = True, len(targets)
         threading.Thread(target=engines.warm_up, args=(targets,), daemon=True, name="prechauffage").start()
 
     def pipeline_page(key: str) -> str:
         try:
-            return linker.link(pipeline.render(pipeline.load_page(moteurs.SPECS[key], repo_root)))
+            return linker.link(pipeline.render(pipeline.load_page(specs[key], repo_root)))
         except (OSError, ValueError, KeyError, moteurs.EngineUnavailable) as error:
             return _empty(f"Page indisponible : {error}")
 
@@ -1208,16 +1250,27 @@ def build_app(fake: bool = False, fake_max_s: float = 20.0, repo_root: Path = RE
         return {name: linker.link(html) for name, html in avancement.render(repo_root).items()}
 
     def engine_info(key: str) -> str:
-        spec = moteurs.SPECS[key]
+        spec = specs[key]
         reason = availability[key]
         return f"Indisponible : {reason}" if reason else f"Configuration reprise de {spec.source_exp}."
 
+    def speaker_modes(key: str) -> list[str]:
+        return list(SPEAKER_MODES if specs[key].supports_range else SPEAKER_MODES[:2])
+
     def engine_changed(key: str):
-        spec = moteurs.SPECS[key]
-        modes = list(SPEAKER_MODES if spec.supports_range else SPEAKER_MODES[:2])
+        # Nombre de locuteurs : celui que la configuration en vigueur donne pour ce moteur.
+        spec = specs[key]
+        speakers = demo.speakers[key]
         device = (gr.update(value="cpu", interactive=False, info="CPU seul pour ce moteur (D19, D22).")
                   if spec.cpu_only else gr.update(interactive=True, info=ENGINE_INFO_DEVICE))
-        return gr.update(info=engine_info(key)), gr.update(choices=modes, value="Automatique"), device
+        fixed = speakers["mode"] == "impose"
+        span = speakers["mode"] == "fourchette"
+        return (gr.update(info=engine_info(key)),
+                gr.update(choices=speaker_modes(key), value=MODE_LABELS[speakers["mode"]]), device,
+                gr.update(value=speakers["valeur"]) if fixed else gr.skip(),
+                gr.update(value=speakers["min"]) if span else gr.skip(),
+                gr.update(value=speakers["max"]) if span else gr.skip(),
+                _header_html(fake, engines.warmup, demo, key, presentation))
 
     def mode_changed(mode: str):
         return gr.update(visible=mode == "Imposé"), gr.update(visible=mode == "Fourchette")
@@ -1243,17 +1296,26 @@ def build_app(fake: bool = False, fake_max_s: float = 20.0, repo_root: Path = RE
             raise gr.Error("Choisissez un second moteur différent du premier.")
         runs = []
         for index, engine_key in enumerate(keys, start=1):
-            spec = moteurs.SPECS[engine_key]
+            spec = specs[engine_key]
             if availability[engine_key] is not None:
                 raise gr.Error(f"{spec.label} est indisponible ({availability[engine_key]}). "
                                "Choisissez un autre moteur.")
-            num_speakers, speaker_conf = speaker_options(spec, mode, k, k_min, k_max)
+            note = None
+            if index > 1 and mode == "Fourchette" and not spec.supports_range:
+                # Comparaison : la fourchette (pyannote seulement, D17, amendement 1) ne
+                # s'applique pas au second moteur, qui estime le nombre de locuteurs (D19).
+                num_speakers, speaker_conf = None, {"mode": "automatique"}
+                note = (f"Fourchette appliquée à {specs[keys[0]].label} seulement : {spec.label} "
+                        "estime lui-même le nombre de locuteurs.")
+            else:
+                num_speakers, speaker_conf = speaker_options(spec, mode, k, k_min, k_max)
             try:
                 device = "cpu" if spec.cpu_only else select_device(device_choice).type
             except (RuntimeError, ValueError) as error:
                 raise gr.Error(f"{error}. Choisissez « auto » ou « cpu ».") from error
             runs.append({"index": index, "spec": spec, "device": device, "num_speakers": num_speakers,
-                         "speaker_conf": speaker_conf, "elapsed": None, "done": False, "recal": None})
+                         "speaker_conf": speaker_conf, "note": note, "elapsed": None, "done": False,
+                         "recal": None})
         return runs
 
     def timing(run: dict) -> None:
@@ -1343,6 +1405,7 @@ def build_app(fake: bool = False, fake_max_s: float = 20.0, repo_root: Path = RE
         items = "".join(f"<li>{escape(line)}</li>" for line in lines)
         note = (f'<p class="ws-caption">Moteur factice : calcul simulé, {_num(fake_max_s, 0)} s au plus.</p>'
                 if fake and computed else "")
+        note += "".join(f'<p class="ws-caption">{escape(run["note"])}</p>' for run in runs if run["note"])
         if prepared.get("silencieux"):
             note = ('<p class="ws-estimate-alert" role="status">Ce fichier semble silencieux (niveau maximal sous '
                     '−80 dB) : l\'analyse ne trouvera sans doute aucun locuteur. Vérifiez la piste audio (micro '
@@ -1389,6 +1452,7 @@ def build_app(fake: bool = False, fake_max_s: float = 20.0, repo_root: Path = RE
                 "empreinte_audio": prepared["empreinte"],
                 "revisions_modeles": moteurs.model_revisions(spec, experiments),
                 "configuration_effective": moteurs.effective_configuration(spec, experiments),
+                "configuration_demo": demo.trace(),
             },
         }
 
@@ -1397,6 +1461,9 @@ def build_app(fake: bool = False, fake_max_s: float = 20.0, repo_root: Path = RE
         if not audio_path:
             raise gr.Error("Aucun fichier audio : déposez-en un dans les réglages, puis relancez.")
         runs = plan_runs(key, compare, key2, mode, k, k_min, k_max, device_choice)
+        for run in runs:
+            if run["note"]:
+                gr.Info(run["note"])
         prefix = len(runs) > 1
         steps, labels = list(PRE_STEPS[:1]), {}
         for run in runs:
@@ -1620,7 +1687,9 @@ def build_app(fake: bool = False, fake_max_s: float = 20.0, repo_root: Path = RE
     with gr.Blocks(title="Who Spoke?") as app:
         result_state = gr.State(None)
         prepared_state = gr.State(None)
-        header = gr.HTML(_header_html(fake, engines.warmup), js_on_load=None)
+        header = gr.HTML(_header_html(fake, engines.warmup, demo, demo.default_engine, presentation),
+                         js_on_load=None)
+        initial = demo.speakers[demo.default_engine]
         timer = gr.Timer(1.0, active=warm_up)
         with gr.Tabs():
             with gr.Tab("Analyse"):
@@ -1635,26 +1704,29 @@ def build_app(fake: bool = False, fake_max_s: float = 20.0, repo_root: Path = RE
                                        "Tout format audio ou vidéo, normalisé en WAV 16 kHz mono."),
                                 js_on_load=None)
                         audio = gr.File(label="Fichier audio", file_count="single", type="filepath", height=150)
-                        engine = gr.Dropdown(choices, value=DEFAULT_ENGINE, label="Moteur",
-                                             info=engine_info(DEFAULT_ENGINE))
+                        engine = gr.Dropdown(choices, value=demo.default_engine, label="Moteur",
+                                             info=engine_info(demo.default_engine))
                         compare = gr.Checkbox(value=False, label="Comparer avec un second moteur",
                                               info="Les deux moteurs tournent l'un après l'autre sur le même fichier.")
                         engine2 = gr.Dropdown(choices, value="baseline-ecapa", label="Second moteur",
                                               visible=False)
-                        mode = gr.Radio(list(SPEAKER_MODES), value="Automatique", label="Nombre de locuteurs")
-                        k = gr.Number(value=2, precision=0, minimum=1, label="Nombre imposé", visible=False)
-                        with gr.Row(visible=False) as range_row:
-                            k_min = gr.Number(value=2, precision=0, minimum=1, label="Minimum")
-                            k_max = gr.Number(value=6, precision=0, minimum=1, label="Maximum")
+                        mode = gr.Radio(speaker_modes(demo.default_engine), value=MODE_LABELS[initial["mode"]],
+                                        label="Nombre de locuteurs")
+                        k = gr.Number(value=initial.get("valeur", 2), precision=0, minimum=1, label="Nombre imposé",
+                                      visible=initial["mode"] == "impose")
+                        with gr.Row(visible=initial["mode"] == "fourchette") as range_row:
+                            k_min = gr.Number(value=initial.get("min", 2), precision=0, minimum=1, label="Minimum")
+                            k_max = gr.Number(value=initial.get("max", 6), precision=0, minimum=1, label="Maximum")
+                        # Réglage secondaire : masqué en mode présentation (B8).
                         device = gr.Dropdown(list(DEVICES), value="auto", label="Périphérique",
-                                             info=ENGINE_INFO_DEVICE)
+                                             info=ENGINE_INFO_DEVICE, elem_classes="ws-secondary")
                         reference = gr.File(label="Référence RTTM (facultative, pour le DER)",
                                             file_types=[".rttm"], type="filepath", height=150,
                                             elem_classes="ws-reference")
                         estimate = gr.HTML(estimate_html(None, *[None] * 9), js_on_load=None)
                         run = gr.Button("Analyser", variant="primary", size="lg", elem_classes="ws-run")
                         with gr.Accordion("Cache des résultats (plan de repli)", open=False,
-                                          elem_classes="ws-cache"):
+                                          elem_classes=["ws-cache", "ws-secondary"]):
                             use_cache = gr.Checkbox(
                                 value=False, label="Réafficher un résultat déjà calculé",
                                 info="Même audio normalisé, même moteur, mêmes réglages, même configuration "
@@ -1708,10 +1780,10 @@ def build_app(fake: bool = False, fake_max_s: float = 20.0, repo_root: Path = RE
                                    "l'expérience source de chaque moteur, expliqués par le catalogue."),
                             js_on_load=None)
                     pipeline_engine = gr.Dropdown(
-                        [(spec.label, key) for key, spec in moteurs.SPECS.items()],
-                        value=DEFAULT_ENGINE, label="Moteur", elem_classes="pl-engine")
+                        [(spec.label, key) for key, spec in specs.items()],
+                        value=demo.default_engine, label="Moteur", elem_classes="pl-engine")
                     pipeline_view = gr.HTML(
-                        pipeline_page(DEFAULT_ENGINE),
+                        pipeline_page(demo.default_engine),
                         js_on_load=(STATIC_DIR / "pipeline.js").read_text(), elem_classes="pl-view")
 
             with gr.Tab("Avancement") as progress_tab:
@@ -1752,7 +1824,7 @@ def build_app(fake: bool = False, fake_max_s: float = 20.0, repo_root: Path = RE
                                    "pointillé dans les autres onglets renvoient ici."), js_on_load=None)
                     gr.HTML(glossaire.render(glossary, linker), js_on_load=None)
 
-        engine.change(engine_changed, engine, [engine, mode, device])
+        engine.change(engine_changed, engine, [engine, mode, device, k, k_min, k_max, header])
         pipeline_engine.change(pipeline_page, pipeline_engine, pipeline_view)
 
         def refresh_progress():
@@ -1784,7 +1856,7 @@ def build_app(fake: bool = False, fake_max_s: float = 20.0, repo_root: Path = RE
             # Indicateur « moteurs prêts » et durée annoncée suivent le préchauffage ; la
             # minuterie s'arrête quand il est fini.
             status = engines.warmup
-            return (_header_html(fake, status), estimate_html(*inputs),
+            return (_header_html(fake, status, demo, inputs[1], presentation), estimate_html(*inputs),
                     gr.Timer(active=status.enabled and not status.finished))
 
         timer.tick(warmup_tick, estimate_inputs, [header, estimate, timer], show_progress="hidden")
@@ -1824,6 +1896,13 @@ def build_app(fake: bool = False, fake_max_s: float = 20.0, repo_root: Path = RE
     return app
 
 
+def page_head(presentation: bool = False) -> str:
+    """Scripts de page : renvois du glossaire, puis mode présentation (posé d'emblée si demandé)."""
+    flag = "<script>window.WS_PRESENTATION = true;</script>" if presentation else ""
+    return (f"<script>{(STATIC_DIR / 'glossaire.js').read_text()}</script>{flag}"
+            f"<script>{(STATIC_DIR / 'presentation.js').read_text()}</script>")
+
+
 def main(argv: list[str] | None = None) -> None:
     parser = argparse.ArgumentParser(description="Application de démonstration Who Spoke? (D17).")
     parser.add_argument("--factice", action="store_true",
@@ -1841,6 +1920,12 @@ def main(argv: list[str] | None = None) -> None:
                         help="ne pas charger ni préchauffer les moteurs au démarrage (chargés au premier usage)")
     parser.add_argument("--vider-cache", action="store_true",
                         help="vider le cache des résultats (~/.cache/whospoke/resultats) avant le lancement")
+    parser.add_argument("--presentation", action="store_true",
+                        help="ouvrir en mode présentation : texte et commandes agrandis, contrastes renforcés, "
+                             "réglages secondaires masqués (vidéoprojecteur, écran partagé)")
+    parser.add_argument("--config-demo", type=Path, default=None, metavar="FICHIER",
+                        help="configuration de démonstration à lire à la place de configs/demo.yaml du dépôt "
+                             "(essai d'un fichier avant le gel, par exemple configs/demo.exemple.yaml)")
     args = parser.parse_args(argv)
     for stale in travail.remove_stale():
         print(f"Dossier temporaire d'un lancement interrompu supprimé : {stale}")
@@ -1859,13 +1944,21 @@ def main(argv: list[str] | None = None) -> None:
         parser.error(f"--depot : {depot} ne contient pas de dossier experiments/")
     if args.factice_rttm is not None and not args.factice:
         parser.error("--factice-rttm ne s'emploie qu'avec --factice")
+    try:
+        demo = moteurs.demo_config(depot, args.config_demo.expanduser().resolve() if args.config_demo else None)
+    except moteurs.DemoConfigError as error:
+        parser.error(f"configuration de démonstration : {error}")
+    print(f"Configuration de démonstration : {demo.source}"
+          + ("" if demo.frozen else " (configs/demo.yaml absent, avant le gel)")
+          + f" ; moteur par défaut : {demo.default_engine}.")
     app = build_app(fake=args.factice, fake_max_s=args.factice_max_s, repo_root=depot,
                     warm_up=not args.sans_prechauffage,
-                    fake_rttm=args.factice_rttm.expanduser().resolve() if args.factice_rttm else None)
+                    fake_rttm=args.factice_rttm.expanduser().resolve() if args.factice_rttm else None,
+                    demo=demo, presentation=args.presentation)
     app.launch(
         server_name="127.0.0.1", server_port=args.port, share=False,
         allowed_paths=[str(RUN_DIR)], theme=theme.build_theme(), css=theme.css(),
-        head=f"<script>{(STATIC_DIR / 'glossaire.js').read_text()}</script>",
+        head=page_head(args.presentation),
         # Pied de page de Gradio masqué (R-U5) ; zones de dépôt en français quelle que soit
         # la langue du navigateur.
         footer_links=[], i18n=gr.I18n(**theme.UPLOAD_TEXT), mcp_server=False, ssr_mode=False,

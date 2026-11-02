@@ -6,8 +6,10 @@ paramètres (`pipeline.parametres` de config.yaml), le θ retenu par son balayag
 `app/temps.py`). Les sources sont les expériences sur SUMM-RE, jeu de validation
 prioritaire (D3 ; D17, amendement 1) : EXP-0009 (MFCC), EXP-0012 (ECAPA), EXP-0007
 (pyannote) et EXP-0015 (WeSpeaker), ce dernier moteur restant indisponible tant
-qu'EXP-0015 n'existe pas ou n'a pas été exécutée. Au gel, cette correspondance passera
-dans `configs/demo.yaml`.
+qu'EXP-0015 n'existe pas ou n'a pas été exécutée. Au gel du 10/11, elle passe dans
+`configs/demo.yaml` (`DemoConfig`), qui fixe aussi le moteur proposé par défaut et le nombre
+de locuteurs par défaut de chaque moteur ; tant que ce fichier n'existe pas, l'application
+garde la correspondance ci-dessous (`SPECS`, `DEFAULT_ENGINE`).
 
 Périphériques : la baseline MFCC s'exécute en CPU seul (D19) et les empreintes ECAPA et
 WeSpeaker en CPU (D22, amendement 2 : NaN intermittents en MPS) ; seul pyannote suit le
@@ -21,6 +23,8 @@ pour `ami__ES2004a`), coupé à la durée de l'audio déposé.
 
 from __future__ import annotations
 
+import dataclasses
+import hashlib
 import json
 import time
 from dataclasses import dataclass
@@ -67,6 +71,109 @@ SPECS: dict[str, EngineSpec] = {
                    PYANNOTE_STEPS, False, True),
     )
 }
+
+
+DEFAULT_ENGINE = "pyannote-community-1"
+DEMO_CONFIG = Path("configs") / "demo.yaml"   # relatif au dépôt
+SPEAKER_DEFAULT = {"mode": "automatique"}
+
+
+class DemoConfigError(ValueError):
+    """configs/demo.yaml illisible ou incohérent : le message dit quoi corriger."""
+
+
+@dataclass(frozen=True)
+class DemoConfig:
+    """Configuration de démonstration en vigueur (D17, amendement 1) : moteurs et expérience
+    source de chacun, moteur proposé par défaut, nombre de locuteurs par défaut par moteur."""
+
+    source: str                      # « configs/demo.yaml », ou « app/moteurs.py » avant le gel
+    specs: dict[str, EngineSpec]
+    default_engine: str
+    speakers: dict[str, dict]        # clé du moteur → {"mode": "automatique" | "impose" | "fourchette", …}
+    frozen_on: str | None = None     # date du gel (AAAA-MM-JJ), si le fichier la donne
+    sha256: str | None = None        # empreinte du fichier lu
+
+    @property
+    def frozen(self) -> bool:
+        return self.sha256 is not None
+
+    def trace(self) -> dict:
+        """Ce que la fiche de reproductibilité consigne de la configuration en vigueur."""
+        return {"fichier": self.source, "gel": self.frozen_on, "sha256": self.sha256}
+
+
+def _speaker_default(spec: EngineSpec, value, where: str) -> dict:
+    """Nombre de locuteurs par défaut lu dans configs/demo.yaml, validé pour `spec`."""
+    if value is None:
+        return dict(SPEAKER_DEFAULT)
+    if not isinstance(value, dict) or value.get("mode") not in ("automatique", "impose", "fourchette"):
+        raise DemoConfigError(f"{where} : « mode » vaut automatique, impose ou fourchette.")
+    mode = value["mode"]
+
+    def count(name: str) -> int:
+        number = value.get(name)
+        if isinstance(number, bool) or not isinstance(number, int) or number < 1:
+            raise DemoConfigError(f"{where} : « {name} » doit être un entier supérieur ou égal à 1.")
+        return number
+
+    if mode == "impose":
+        return {"mode": "impose", "valeur": count("valeur")}
+    if mode == "fourchette":
+        if not spec.supports_range:
+            raise DemoConfigError(f"{where} : {spec.label} ne prend pas en charge une fourchette "
+                                  "(D17, amendement 1 : pyannote seulement). Imposez un nombre ou "
+                                  "retirez « nombre_locuteurs ».")
+        low, high = count("min"), count("max")
+        if low > high:
+            raise DemoConfigError(f"{where} : « min » ({low}) dépasse « max » ({high}).")
+        return {"mode": "fourchette", "min": low, "max": high}
+    return dict(SPEAKER_DEFAULT)
+
+
+def demo_config(repo_root: Path = REPO_ROOT, path: Path | None = None) -> DemoConfig:
+    """Configuration en vigueur : `path` (par défaut configs/demo.yaml du dépôt) s'il existe,
+    sinon la correspondance de ce module. DemoConfigError si le fichier est incohérent."""
+    explicit = path is not None
+    path = path if explicit else repo_root / DEMO_CONFIG
+    if not path.is_file():
+        if explicit:
+            raise DemoConfigError(f"{path} n'existe pas. Vérifiez le chemin passé à --config-demo.")
+        return DemoConfig("app/moteurs.py", dict(SPECS), DEFAULT_ENGINE,
+                          {key: dict(SPEAKER_DEFAULT) for key in SPECS})
+    raw = path.read_bytes()
+    shown = str(path.relative_to(repo_root)) if path.is_relative_to(repo_root) else str(path)
+    try:
+        data = yaml.safe_load(raw.decode("utf-8"))
+    except (UnicodeDecodeError, yaml.YAMLError) as error:
+        raise DemoConfigError(f"{shown} n'est pas un YAML lisible ({type(error).__name__}). "
+                              "Repartez de configs/demo.exemple.yaml.") from error
+    if not isinstance(data, dict) or not isinstance(data.get("moteurs"), dict):
+        raise DemoConfigError(f"{shown} : la clé « moteurs » manque. Repartez de configs/demo.exemple.yaml.")
+    engines = data["moteurs"]
+    unknown = sorted(set(engines) - set(SPECS))
+    if unknown:
+        raise DemoConfigError(f"{shown} : moteur inconnu « {unknown[0]} ». Moteurs connus : {', '.join(SPECS)}.")
+    missing = [key for key in SPECS if key not in engines]
+    if missing:
+        raise DemoConfigError(f"{shown} : {', '.join(missing)} absent de « moteurs ». Le gel décrit "
+                              "chaque moteur : donnez son expérience source.")
+    specs, speakers = {}, {}
+    for key, spec in SPECS.items():
+        entry = engines[key] or {}
+        where = f"{shown}, moteurs.{key}"
+        source = entry.get("experience_source") if isinstance(entry, dict) else None
+        if not isinstance(source, str) or len(source) != 8 or not source.startswith("EXP-") \
+                or not source[4:].isdigit():
+            raise DemoConfigError(f"{where} : « experience_source » attend un identifiant EXP-NNNN.")
+        specs[key] = dataclasses.replace(spec, source_exp=source)
+        speakers[key] = _speaker_default(spec, entry.get("nombre_locuteurs"), f"{where}.nombre_locuteurs")
+    default = data.get("moteur_par_defaut", DEFAULT_ENGINE)
+    if default not in specs:
+        raise DemoConfigError(f"{shown} : « moteur_par_defaut » ({default}) n'est pas dans « moteurs ».")
+    frozen_on = data.get("gel")
+    return DemoConfig(shown, specs, default, speakers,
+                      None if frozen_on is None else str(frozen_on), hashlib.sha256(raw).hexdigest())
 
 
 @dataclass(frozen=True)

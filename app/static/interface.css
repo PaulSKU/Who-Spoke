@@ -42,6 +42,16 @@
     0 8px 16px -8px rgba(0,0,0,0.5);
 }
 
+/* Coche des cases et point des boutons radio en sombre (B8) : Gradio les dessine en blanc
+   (règle de sa feuille de formulaires, en dur), invisibles sur le fond clair (encre) d'un
+   choix coché ; ils prennent la teinte du fond. */
+body.dark .gradio-container input[type="checkbox"]:checked {
+  background-image: url("data:image/svg+xml,%3csvg viewBox='0 0 16 16' fill='%23121315' xmlns='http://www.w3.org/2000/svg'%3e%3cpath d='M12.207 4.793a1 1 0 010 1.414l-5 5a1 1 0 01-1.414 0l-2-2a1 1 0 011.414-1.414L6.5 9.086l4.293-4.293a1 1 0 011.414 0z'/%3e%3c/svg%3e") !important;
+}
+body.dark .gradio-container input[type="radio"]:checked {
+  background-image: url("data:image/svg+xml,%3csvg viewBox='0 0 16 16' fill='%23121315' xmlns='http://www.w3.org/2000/svg'%3e%3ccircle cx='8' cy='8' r='3'/%3e%3c/svg%3e") !important;
+}
+
 /* --- Page ---------------------------------------------------------------------- */
 /* Marges latérales fluides, hors @media : Gradio préfixe les sélecteurs placés dans une
    règle @media, et `.gradio-container` ou `.main` n'y seraient plus atteints. 16 px de
@@ -76,7 +86,28 @@
 .ws-badge::before {
   content: ""; width: 6px; height: 6px; border-radius: 50%; background: var(--ws-slate);
 }
-.ws-badges { display: flex; flex-wrap: wrap; gap: 8px; }
+.ws-badges { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; }
+
+/* Configuration en vigueur (D17, amendement 1) : fichier du gel ou correspondance du code. */
+/* Deux blocs (configuration, moteur), chacun d'un tenant : côte à côte, ou l'un sous
+   l'autre quand la largeur manque. */
+.ws-header p.ws-config {
+  margin-top: 4px; font-size: 0.85rem; max-width: none; display: flex; flex-wrap: wrap; gap: 0 20px;
+}
+.ws-config code { font-size: 0.95em; color: var(--ws-ink); }
+.ws-config .strong { color: var(--ws-ink); font-weight: 600; }
+
+/* Bouton du mode présentation (B8) : pilule de l'en-tête, pleine quand le mode est actif. */
+.ws-present {
+  font: inherit; font-size: 0.8rem; font-weight: 500; padding: 4px 12px; min-height: 28px; border: none;
+  border-radius: 999px; cursor: pointer; color: var(--ws-ink); background: var(--ws-surface);
+  box-shadow: 0 0 0 1px var(--ws-line);
+  transition: transform 100ms var(--ws-ease), background-color 150ms ease;
+}
+.ws-present:active { transform: scale(0.97); }
+.ws-present:focus-visible { outline: 2px solid var(--ws-ink); outline-offset: 2px; }
+.ws-present[aria-pressed="true"] { background: var(--ws-ink); color: var(--ws-surface); box-shadow: none; }
+@media (hover: hover) and (pointer: fine) { .ws-present[aria-pressed="false"]:hover { background: var(--ws-canvas); } }
 
 /* Indicateur « moteurs prêts » (R-D2) : l'état est écrit ; la pastille le double. */
 .ws-engines[data-state="ready"]::before { background: var(--ws-ink); }
@@ -262,7 +293,9 @@ button.primary:active, button.secondary:active, .wsp-play:active { transform: sc
   font-size: 0.85rem; color: var(--ws-slate); background: var(--ws-canvas);
   border-radius: 8px; padding: 10px 12px; margin-bottom: 12px; line-height: 1.5;
 }
-.ws-callout code { font-size: 0.8rem; }
+/* Chemin du RTTM repris en mode factice : coupé n'importe où plutôt que d'élargir la page
+   à 375 px (B8). */
+.ws-callout code { font-size: 0.8rem; overflow-wrap: anywhere; }
 
 /* Tableau des locuteurs : nom éditable dans la ligne, extrait typique (R-U6). */
 .ws-speakers td.ws-speaker { white-space: nowrap; }
@@ -528,3 +561,41 @@ a.gl-index {
 .toast-title.error::before { content: "Erreur"; }
 .toast-title.warning::before { content: "Attention"; }
 .toast-title.info::before { content: "Information"; }
+
+/* --- Mode présentation (B8) ----------------------------------------------------- */
+/* Vidéoprojecteur ou écran partagé, lu de loin à 1280 × 720. Classe posée sur <html> par
+   --presentation ou le bouton de l'en-tête (presentation.js). Texte et commandes agrandis
+   d'un quart : la racine passe à 20 px (nos tailles sont en rem) et les tailles de texte de
+   Gradio, en px, sont relevées d'autant. Teintes secondaires, filets et fonds de piste
+   renforcés : un projecteur délave les gris clairs. Réglages secondaires masqués
+   (périphérique, cache) : ils restent accessibles en quittant le mode. */
+html.ws-presentation { font-size: 125%; }
+/* Gradio redéclare ses tailles de texte sur body.dark : relevées aux deux niveaux. */
+html.ws-presentation, html.ws-presentation .dark {
+  --text-xxs: 11px; --text-xs: 13px; --text-sm: 15px; --text-md: 18px; --text-lg: 20px;
+  --text-xl: 27px; --text-xxl: 32px;
+}
+html.ws-presentation {
+  --ws-slate: #44464d;
+  --ws-line: #b6b7b1;
+  --ws-track: #e4e4df;
+  --body-text-color-subdued: #44464d;
+  --block-info-text-color: #44464d;
+  --ws-shadow-md: 0 0 0 1px var(--ws-line), 0 1px 2px -1px rgba(0,0,0,0.12);
+}
+html.ws-presentation .dark {
+  --ws-slate: #c8c9c3;
+  --ws-line: #4f5158;
+  --ws-track: #2f3035;
+  --body-text-color-subdued: #c8c9c3;
+  --block-info-text-color: #c8c9c3;
+  --ws-shadow-md: 0 0 0 1px var(--ws-line), 0 1px 2px -1px rgba(0,0,0,0.5);
+}
+html.ws-presentation .ws-secondary { display: none !important; }
+/* Étapes de l'analyse : utiles pendant le calcul ; une fois toutes terminées, la timeline
+   remonte (à 720 px de haut, la liste la repoussait sous le bord de l'écran). */
+html.ws-presentation .st-root:not(:has(.st-steps > li:not(.st-done))) .st-steps { display: none; }
+html.ws-presentation .ws-header { padding-top: 20px; }
+html.ws-presentation .ws-present { font-size: 0.8rem; min-height: 36px; padding: 6px 16px; }
+html.ws-presentation .toast-title.error::before, html.ws-presentation .toast-title.warning::before,
+html.ws-presentation .toast-title.info::before { font-size: 20px; }
