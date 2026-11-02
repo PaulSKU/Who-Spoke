@@ -27,7 +27,8 @@ En cas de contradiction entre un prompt et ces documents, il faut le signaler et
 8. **Dépendances.** Toute nouvelle dépendance passe par `uv add`. Signaler dans le compte rendu chaque dépendance ajoutée et sa raison.
 9. **Décisions.** Ne prendre aucune décision de conception non couverte par une fiche. Proposer les options dans le compte rendu.
 10. **Tests.** `uv run pytest` doit réussir avant tout commit de code. Les tests du protocole d'évaluation (`docs/protocole-eval.md` §6) ne sont jamais désactivés.
-11. **Commit après les tests.** Un commit ne suit jamais des tests autrement que par `&&`, directement après la commande `uv run pytest` (`uv run pytest && git commit …`), sans filtre ni tube entre les deux (`| tail`, `| grep`), qui masqueraient le code de retour.
+11. **Commit après les tests.** Un commit ne suit jamais des tests autrement que par `&&`, directement après la commande `uv run pytest` (`uv run pytest && git commit …`), sans filtre ni tube entre les deux (`| tail`, `| grep`), qui masqueraient le code de retour : soit aucun tube dans la commande de tests, soit `set -o pipefail`.
+12. **Modifications non commitées.** Aucune commande git qui écrase des modifications non commitées (`checkout`, `restore`, `reset`, y compris sur un seul fichier) sans en avoir d'abord fait un commit ou une remise de côté (`git stash`).
 
 ## Environnement
 

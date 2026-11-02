@@ -835,3 +835,91 @@ Suite : écoute de contrôle de D24 par la candidate, puis A3 ; chantiers B8 et 
 ## 2026-11-02 — README à jour (cockpit)
 
 Réalisé : état d'avancement au 02/11 (D24, D25, bornes, moteurs externes, corpus maison, outillage), description des onglets et options de l'application après B1 à B7, documents ajoutés au tableau de documentation, note sur les temps de référence (D21).
+
+## 2026-11-02 — Retour du chantier E7 (cockpit)
+
+Décisions :
+- tableau des systèmes : deux colonnes d'écart, toutes deux avec IC. La première, principale, donne l'écart à la référence déclarée (protocole, une seule variable). La seconde donne l'écart à pyannote community-1 (EXP-0001 ou EXP-0007, selon le corpus), parce que la question du rendu est aussi : « quel système face au moteur de démonstration ? ». Les en-têtes nomment explicitement la référence de chaque colonne ;
+- robustesse : ajouter la comparaison des moteurs entre eux à condition égale (D24 §3), par rapport à pyannote ;
+- pas d'IC sous 5 réunions (groupe Zoom) et libellés complétés par la variable modifiée : validés ;
+- `test_modele_reel_de_silero` : admis (petit modèle livré avec le paquet, hors ligne), mais marqué `modele` comme les tests d'ECAPA, pour pouvoir l'exclure pendant les expériences.
+
+## 2026-11-02 — Retours de B8 et du complément d'E7 (cockpit)
+
+Décisions :
+- Gel : un moteur absent de `configs/demo.yaml` n'est plus proposé, au lieu de bloquer le lancement. Il est mentionné dans l'en-tête (« non retenu pour la démonstration »). Seule l'absence du moteur par défaut, ou une incohérence du fichier, arrête le lancement.
+- Validés : en comparaison avec une fourchette, la baseline estime elle-même son nombre de locuteurs ; contenu du mode présentation ; zoom maximal à 150 px/s.
+- Cohérence des intervalles : aucun IC sous 5 réunions, partout. A-0002 n'a pas encore tourné : sa configuration reçoit `ic_min_fichiers: 5` avant exécution, et le groupe Zoom (3 réunions) n'a qu'un écart, sans intervalle, comme dans `docs/rendu/`.
+- Processus : le `git checkout` qui a annulé du travail non commité (session B) relève de la même prudence que la règle 11 de CLAUDE.md ; une règle 12 interdit toute commande git qui écrase des modifications non commitées sans en avoir d'abord fait un commit ou une remise de côté.
+- Sessions B et E : en pause après ces chantiers, pour alléger la machine pendant A3 et A6 ; elles reprendront pour la fusion, le gel et les retouches de la démonstration.
+
+## 2026-11-02 — Bilan face à l'énoncé ; D28 (cockpit)
+
+Objectif : vérifier la couverture de l'énoncé.
+Résultats : toutes les exigences sont couvertes ou en cours, sauf deux manques, les cas d'échec (aucune analyse d'ensemble) et les spectrogrammes (calculés, jamais montrés). VoxConverse, étudié mais non utilisé, doit être justifié dans le rendu (anglais, pas des réunions, vu à l'entraînement par pyannote et Nemotron 3).
+Décisions : D28 — analyse A-0003 des cas d'échec et vue spectrogramme ; planning en version 2.1 (chantiers B9 et E8, calendrier recalé sur l'avancement réel).
+
+## 2026-11-02 — Retours de B9 (spectrogramme) et E8 (script d'A-0003) (cockpit)
+
+Décisions :
+- Catégories d'erreur (carte « Expliquer cette erreur » et A-0003, une seule définition) : chaque seconde d'erreur reçoit une **catégorie principale**, exclusive, selon cet ordre de priorité :
+  1. décalage de frontière : la zone tient entièrement dans ±0,25 s d'une frontière de tour de la référence, c'est-à-dire dans ce que le collar pardonne ;
+  2. chevauchement dans la référence ;
+  3. locuteur de référence non apparié ;
+  4. locuteur trouvé en trop, c'est-à-dire non apparié dans l'hypothèse (nouvelle catégorie) ;
+  5. tour de référence de moins de 0,5 s ;
+  6. pause de 1 s au plus ;
+  7. autre.
+
+  Les catégories principales somment à 100 %. Contrôle attendu : la part « décalage de frontière » doit être proche de l'écart entre le DER sans collar et le DER avec collar. La carte de l'interface affiche la catégorie principale, puis les autres constats comme aujourd'hui. La modification est faite côté interface (session B, `app/sortie.py`) ; A-0003 la reprend sans seconde définition.
+- A-0003 : partitions dev et test réunies par corpus (analyse descriptive, avec la partition en colonne), zone comme unité pondérée par sa durée, fenêtres de 15 s et plafonds validés. La grille d'écoute remplie par la candidate porte sur des corpus publics : elle est versionnée dans `analyses/A-0003_cas-echec/`. Celle du corpus maison reste locale.
+- B9 : tous les choix validés (image côté serveur, 40 bandes de la baseline, plage de 60 dB, rampe grise, énergie dans une bande séparée avec les régions de parole, calcul en tâche de fond). Écart à la règle 11 consigné, sans suite.
+- Rappel : la décision sur les moteurs absents de `configs/demo.yaml` (entrée B8 du 02/11) est à faire par la session B.
+
+## 2026-11-02 — Catégorie « décalage de frontière » : décision (cockpit)
+
+Constat (session B, 007a_ECRH) : la règle « zone entière dans ±0,25 s » classe 47,5 s en décalage de frontière, alors que le collar pardonne 155,6 s d'erreur. Les 108,1 s restantes sont des morceaux de zones plus longues.
+Décision : option b. La catégorisation se fait sur le temps, pas sur la zone entière. Chaque zone d'erreur est découpée aux bords des intervalles de ±0,25 s autour des frontières de la référence. La partie située dans ces intervalles est classée « décalage de frontière » ; le reste reçoit sa catégorie principale selon les règles du 02/11. Le contrôle devient exact en secondes : décalage de frontière = erreur pardonnée par le collar. On compare en secondes et non en points, puisque le collar retire aussi de la parole de référence du dénominateur. Les autres catégories décrivent alors ce que le collar ne pardonne pas, la lecture la plus utile. Dans l'interface, une zone garde une seule catégorie affichée, celle de sa partie hors collar ; la carte « Expliquer cette erreur » ajoute « dont x s dans la tolérance d'une frontière (pardonnés par le collar) ». Une zone entièrement dans la tolérance reste classée « décalage de frontière ».
+
+## 2026-11-02 — Pause volontaire de la piste A (cockpit)
+
+EXP-0020 a été mise en pause par la candidate à 15 h 02 (déplacement), au fichier 186 sur 259 ; reprise prévue cette nuit. Ce n'est pas un incident. À la reprise, les fichiers déjà produits sont gardés s'ils sont complets, et les temps de l'exécution sont marqués comme interrompus. Le calendrier glisse d'une demi-journée : A6 la nuit du 2 au 3/11, A4 et A5 les 3 et 4/11.
+
+## 2026-11-02 — Audit visuel de l'interface (cockpit)
+
+Objectif : rendre l'interface la plus propre possible, corriger les artefacts signalés par la candidate et mieux représenter le pipeline.
+Réalisé : `docs/audit/audit-visuel-2026-11-02.md`. Captures de la branche `ui` (59a83b8) en clair, en sombre, à 375 px et en mode présentation ; deux recherches web (représentation des pipelines ; finition de Gradio 6.31, dont la lecture de son code) ; 13 défauts relevés (V1 à V13).
+Résultats : artefacts des radios en sombre expliqués par les variantes `_dark` non définies du thème et par le point blanc codé en dur de `radio_circle` ; séparateurs du tableau des locuteurs portés par les cellules ; cinq styles de boutons dans la barre de la timeline ; rangée du pipeline qui passe à la ligne, sans formes de données.
+Décisions : système visuel unique fondé sur les jetons du thème (§4) ; nouvelle représentation du pipeline (§6) ; chantiers B10 à B13 ajoutés au planning, à faire avant le gel.
+
+## 2026-11-02 — Retour de B10 (système visuel) (cockpit)
+
+Décisions :
+- validés : `launch(head=…)` plutôt que `head_paths` ; bouton « Mode présentation » en interrupteur ; Ko = 1 000 octets (SI) ; signe moins typographique (−).
+- Restriction : le signe moins typographique et l'espace fine ne servent qu'à l'affichage. Les fichiers exportés (RTTM, JSON, étiquettes Audacity) gardent des nombres lisibles par machine (point décimal, tiret ASCII, aucune espace) ; un test le vérifie.
+- Champs de texte : le filet clair est accepté si le fond du champ ou sa bordure atteint 3:1 face à la carte (WCAG 1.4.11) ; sinon, bordure contrastée comme pour les ronds et les cases.
+- Note sur le cockpit : le correctif `radio_circle` proposé par l'audit ne suffisait pas ; la session l'a constaté et corrigé par une règle de `jetons.css`. C'est la raison de la mention « probable » dans l'audit.
+Suite : B11.
+
+## 2026-11-02 — Retour de B11 (cockpit)
+
+Décisions : choix validés (« S1 » = rang du locuteur trouvé, cohérent avec les touches et les codes Audacity ; « Énergie et seuil » derrière la loupe à 375 px ; carte « Comment ça marche » à la place du panneau d'état avant la première analyse). Une condition : l'état du préchauffage (« Préchauffage… », « Moteurs prêts ») reste visible en permanence, mode présentation compris, sous la forme d'un petit indicateur dans l'en-tête, pour savoir avant la démonstration que les moteurs sont prêts. Le panneau « Détails » qui se referme au changement de moteur est accepté ; à garder ouvert si c'est simple.
+Suite : B12.
+
+## 2026-11-02 — Retour de l'adaptation d'A-0003 (cockpit)
+
+Décisions : amendement du 02/11 de D28 (seuil du « tour court » porté à 1 s, croisement des catégories avec le type d'erreur). Validés : « décalage de frontière » exclu des extraits d'écoute (ce que le collar pardonne n'est pas un échec à écouter) ; part dans la tolérance répartie uniformément sur la zone pour le seul choix des fenêtres. L'écart résiduel de −1,2 s (ECAPA, SUMM-RE, 102c_EBPH) est à vérifier : il pourrait venir d'un appariement des locuteurs recalculé avec le collar ; il sera consigné tel quel s'il est confirmé. Figures de `docs/rendu/` à régénérer après la fusion dans main.
+
+## 2026-11-02 — Retour de B12 (onglet Pipeline) (cockpit)
+
+Décisions : validés, la section `formes` du catalogue (mots seulement, valeurs lues dans la configuration effective), le bloc « un seul réseau » en un seul onglet avec ses étapes numérotées 2 et 3, et le badge limité aux trois composantes du DER. Correction : dans la barre « naissance des erreurs », la confusion est rattachée aux empreintes **et** au regroupement, pas au regroupement seul. Nos mesures montrent que la représentation en est la cause principale : passer des MFCC à ECAPA divise la confusion par trois (C05). Un clic sur le segment sélectionne « Empreintes » et met aussi en évidence « Regroupement ».
+Suite : B13.
+
+## 2026-11-02 — Retour de B13 (cockpit)
+
+Décisions :
+- Avancement à moins de 840 px : la frise montre les cinq dernières expériences, suivies d'un bouton « Afficher les N autres » ; affichage complet au-delà de 840 px. Pas de retour au tableau défilant.
+- Retour du menu « … » de Gradio sous environ 340 px de large : accepté (aucun écran visé n'est aussi étroit).
+- Validés : dates au format JJ/MM/AAAA, masquages du mode présentation, coupe des noms de pistes en fin de nom.
+- Règle 11 : précision à ajouter à CLAUDE.md. La commande de tests qui précède `&&` n'est jamais filtrée par un tube (`| tail`, `| grep`) : soit pas de tube, soit `set -o pipefail`.
+Suite : piste B en pause après ces retouches ; fusion d'`ui` dans `main` par la piste A à sa prochaine pause ; essai au vidéoprojecteur par la candidate.

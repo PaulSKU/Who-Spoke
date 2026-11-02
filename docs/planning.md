@@ -1,6 +1,6 @@
 # Planning et feuille de route du sprint final
 
-Version 2.0 du 1er novembre 2026 : recommandations de l'audit du 01/11 retenues, file D23 réordonnée (D23, amendement du 01/11). Fin du projet : **lundi 16 novembre 2026** (démonstration et rendu). Mis à jour par le cockpit à chaque changement de date ou de périmètre.
+Version 2.1 du 2 novembre 2026 : recommandations de l'audit du 01/11 retenues, file D23 réordonnée (D23, amendement du 01/11) ; analyse des cas d'échec et vue spectrogramme ajoutées (D28). Fin du projet : **lundi 16 novembre 2026** (démonstration et rendu). Mis à jour par le cockpit à chaque changement de date ou de périmètre.
 
 ## Principes
 
@@ -50,6 +50,12 @@ Nemotron 3.5 Transcribe est retiré : il ne tourne que sur GPU NVIDIA.
 | B5 | B | C6 | Avancement raconté (graphique, synthèse), Pipeline relié aux mesures |
 | B6 | B | P2 | Fusion de locuteurs avec le DER avant et après, indicateurs d'interaction, exports Audacity et PNG, bascule de la sortie exclusive (selon A1) |
 | E1 | E | C7 | Licence MIT et tableau des licences tierces ; commande en ligne `whospoke diarize` ; intégration continue (suite rapide, torch en CPU) |
+| B9 | B | D28 §2 | Vue spectrogramme (échelle mel, alignée sur la timeline) ; courbe d'énergie et seuil de détection de la baseline |
+| E8 | E | D28 §1 | Script de l'analyse A-0003 (cas d'échec) ; première exécution après A3 et A6, mise à jour avec le corpus maison le 9/11 |
+| B10 | B | Audit visuel §4 et §7 | Système visuel (thème, jetons, boutons, encadrés, focus, formatage français) ; correctif des radios ; captures de référence, axe, stylelint |
+| B11 | B | Audit visuel §5 | Finitions de l'onglet Analyse (tableau des locuteurs, barre d'outils, en-tête, états vides, aides repliables) |
+| B12 | B | Audit visuel §6 | Nouvelle représentation du pipeline (schéma de gauche à droite, formes des données, naissance des erreurs, stepper mobile) |
+| B13 | B | Audit visuel §7 | Avancement et Glossaire au même système ; passe break-ui ; essai au vidéoprojecteur |
 | E2 | E | — | Chaîne du corpus maison : synchronisation par le clap, pré-annotation à partir des pistes d'aide, export des étiquettes Audacity, conversion en RTTM avec fusion à 200 ms et UEM, contrôle de qualité |
 
 Points de fusion : après B2, après B4, après B6 et après E1 et E2, chaque fois entre deux expériences de la piste A.
@@ -59,14 +65,14 @@ Points de fusion : après B2, après B4, après B6 et après E1 et E2, chaque fo
 | Date | A — Expériences | B — Interface | E — Outils | C — Cockpit | D — Candidate |
 |---|---|---|---|---|---|
 | Dim. 1/11 (soir) | A1 (nuit) | B1 | E1 | D23 à D25, feuille de route, prompts | Premiers enregistrements |
-| Lun. 2/11 | A2 ; génération de A3 | B2 | E2 | Interprétation d'A1 ; `docs/synthese.md` ; glossaire | Écoute de contrôle de D24 ; enregistrements |
-| Mar. 3/11 | A3 (nuit) | B3 | Fusion E | Interprétation d'A2 ; `docs/demo.md` (première version) | Enregistrements ; annotation dès la pré-annotation prête |
-| Mer. 4/11 | A4 | B4 | — | Interprétation d'A3 | Enregistrements, annotation |
-| Jeu. 5/11 | A5 | B5 | — | Interprétation d'A4 | Annotation |
-| Ven. 6/11 | A6 ; A9 sur les premières références | B6 | — | Interprétations d'A5 et A6 | Annotation, contrôle qualité |
-| Sam. 7/11 | A7 ou A8 si le temps le permet | Réserve | — | Synthèse à jour | Annotation (fin) |
+| Lun. 2/11 | A3 (pyannote puis ECAPA sur les 7 conditions) ; A6 (Silero, SUMM-RE et AMI) la nuit | B1 à B8 faits ; B9 (spectrogramme) | E1 à E7 faits ; E8 (script d'A-0003) | Interprétations d'A1 et A2 ; README ; D28 ; `docs/demo.md` | Écoute de D24 (faite) ; enregistrements |
+| Mar. 3/11 | Fusions ; A4 (Nemotron 3) | Pause | Pause | Interprétations d'A3 et A6 ; glossaire | Enregistrements ; premier passage dans la chaîne d'annotation (avec une session E) |
+| Mer. 4/11 | A5 (DiariZen) ; D24 pour V2 si elle passe les règles 1 à 3 de D25 | — | A-0003, première exécution | Interprétation d'A4 ; A-0003 | Enregistrements, annotation ; écoute des extraits d'A-0003 |
+| Jeu. 5/11 | Suite de A5 ; A7 (réglage du seuil de pyannote) si le temps le permet | — | — | Interprétation d'A5 ; mise à jour de la synthèse | Annotation |
+| Ven. 6/11 | A9 sur les premières références ; A8 en option | — | — | Interprétations ; `docs/demo.md` | Annotation, contrôle qualité |
+| Sam. 7/11 | Réserve | — | — | Synthèse à jour | Annotation (fin) |
 | Dim. 8/11 | Réserve | Réserve | — | — | Réserve |
-| Lun. 9/11 | A9 complet ; coupe de ce qui n'a pas commencé | Fusion finale | — | Choix de la configuration de démonstration | Écoute des cas d'échec |
+| Lun. 9/11 | A9 complet ; A-0003 avec le corpus maison ; coupe de ce qui n'a pas commencé | Fusion finale | Rapport du corpus maison | Choix de la configuration de démonstration | Écoute des cas d'échec |
 | **Mar. 10/11** | **Gel** (`configs/demo.yaml`) | Finitions | — | Fiche de gel | Essai de l'interface |
 | Mer. 11/11 | Férié : réserve | — | — | — | — |
 | Jeu. 12/11 | Campagne de temps, machine au repos (D21, amendement du 01/11) ; installation sur machine vierge | — | — | README de reproduction | Répétition sur des fichiers inédits |
