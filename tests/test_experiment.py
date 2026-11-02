@@ -99,3 +99,24 @@ def test_git_state_liste_tous_les_fichiers_non_commites():
     finally:
         (exp_dir / "run.log").unlink()
         exp_dir.rmdir()
+
+
+def test_conditions_degradees_de_d24():
+    """D24 : signal de la condition, références et UEM de SUMM-RE test."""
+    from whospoke.experiment import DATA_DIR, degraded_condition, processed_wav, reference_rttm, uem_path
+
+    uri = "summre__007a_ECRH"
+    assert degraded_condition("summre-rev04") == "rev04"
+    assert degraded_condition("summre") is None and degraded_condition("ami") is None
+    assert processed_wav("summre-rev04", uri) == DATA_DIR / "processed" / "summre_degrade" / "rev04" / f"{uri}.wav"
+    assert reference_rttm("summre-salle", uri) == reference_rttm("summre", uri)
+    assert uem_path("summre-cod08", uri) == uem_path("summre", uri)
+    assert processed_wav("summre", uri) == DATA_DIR / "processed" / "summre" / f"{uri}.wav"
+
+
+def test_hypotheses_d24_par_corpus(tmp_path):
+    from whospoke.experiment import hypothesis_dir
+
+    assert hypothesis_dir(tmp_path, "summre") == tmp_path / "rttm"
+    assert hypothesis_dir(tmp_path, "summre-rev04") == tmp_path / "rttm" / "summre-rev04"
+    assert hypothesis_dir(tmp_path, "summre-cod08", "rttm_exclusive") == tmp_path / "rttm_exclusive" / "summre-cod08"

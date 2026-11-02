@@ -11,12 +11,38 @@ REPO_ROOT = Path(__file__).resolve().parents[2]
 DATA_DIR = REPO_ROOT / "data"
 
 
+# Conditions dégradées de SUMM-RE test (D24) : corpus `summre-<condition>`, signal lu dans
+# `data/processed/summre_degrade/<condition>/`, références et UEM de SUMM-RE inchangés.
+DEGRADED_PREFIX = "summre-"
+DEGRADED_DIR = DATA_DIR / "processed" / "summre_degrade"
+
+
+def degraded_condition(corpus: str) -> str | None:
+    """Condition de D24 d'un corpus `summre-<condition>`, sinon None."""
+    return corpus.removeprefix(DEGRADED_PREFIX) if corpus.startswith(DEGRADED_PREFIX) else None
+
+
+def annotation_corpus(corpus: str) -> str:
+    """Corpus dont viennent les références et l'UEM (SUMM-RE pour une condition dégradée)."""
+    return "summre" if degraded_condition(corpus) else corpus
+
+
+def hypothesis_dir(exp_dir: Path, corpus: str, name: str = "rttm") -> Path:
+    """Dossier des hypothèses d'un jeu dans une expérience : `<name>/`, ou `<name>/<corpus>/`
+    pour une condition dégradée (D24), dont les fichiers portent les identifiants de SUMM-RE
+    test, communs à toutes les conditions."""
+    return exp_dir / name / corpus if degraded_condition(corpus) else exp_dir / name
+
+
 def processed_wav(corpus: str, uri: str) -> Path:
+    condition = degraded_condition(corpus)
+    if condition:
+        return DEGRADED_DIR / condition / f"{uri}.wav"
     return DATA_DIR / "processed" / corpus / f"{uri}.wav"
 
 
 def reference_rttm(corpus: str, uri: str) -> Path:
-    return DATA_DIR / "processed" / corpus / "rttm" / f"{uri}.rttm"
+    return DATA_DIR / "processed" / annotation_corpus(corpus) / "rttm" / f"{uri}.rttm"
 
 
 def uem_path(corpus: str, uri: str) -> Path:
@@ -25,7 +51,7 @@ def uem_path(corpus: str, uri: str) -> Path:
     amendement du 01/11 : copie versionnée seulement avec l'accord de tous les participants)."""
     if corpus == "maison":
         return DATA_DIR / "processed" / corpus / "uem" / f"{uri}.uem"
-    return DATA_DIR / "splits" / corpus / "uem" / f"{uri}.uem"
+    return DATA_DIR / "splits" / annotation_corpus(corpus) / "uem" / f"{uri}.uem"
 
 
 def dataset_uris(list_path: str | Path) -> list[str]:

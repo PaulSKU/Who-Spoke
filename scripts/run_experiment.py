@@ -7,7 +7,9 @@ Usage :
 
 Mode normal : traite tous les fichiers des jeux de `config.yaml` sur le périphérique
 `device`, écrit un RTTM par fichier dans `rttm/`, le journal `run.log` et les mesures
-`execution_<périphérique>.json`. Si le moteur produit d'autres sorties que celle qui est
+`execution_<périphérique>.json`. Conditions dégradées de D24 (corpus `summre-<condition>`) :
+signal de `data/processed/summre_degrade/<condition>/`, références et UEM de SUMM-RE ; leurs
+RTTM vont dans `rttm/<corpus>/`, les identifiants étant communs aux conditions. Si le moteur produit d'autres sorties que celle qui est
 évaluée (pyannote : sorties habituelle et exclusive, réglage `sortie`, D25), chacune est
 écrite dans `rttm_<nom>/` (par exemple `rttm_habituelle/`) ; seul `rttm/` est évalué.
 
@@ -58,6 +60,12 @@ instants, la charge moyenne de la machine (`sysctl vm.loadavg`, par `whospoke.ch
 relevée ; le bloc consigne aussi le nombre de cœurs de performance et
 `charge_concurrente`, repris par scripts/evaluate.py dans `temps` (D21, amendement du 01/11).
 
+Exécution partagée (D25, V2 et V3 ; `whospoke.partage`) : si `config.yaml` porte un bloc
+`execution_partagee`, seule l'expérience porteuse s'exécute ; à la fin de chaque exécution
+(complète, puis mesure CPU), la sortie de chaque autre expérience (`rttm_<sortie>/`) est
+copiée dans son `rttm/`, avec le rappel `execution_partagee.json` (empreintes des
+`execution_*.json` et des `config.yaml`).
+
 Le code doit être commité avant l'exécution : l'état de l'arbre (chemins contrôlés de
 D18) et la liste de tous les fichiers non commités sont consignés, puis repris par
 scripts/evaluate.py (`arbre_propre`).
@@ -90,6 +98,7 @@ from whospoke.experiment import (
     REPO_ROOT,
     dataset_uris,
     git_state,
+    hypothesis_dir,
     load_rttm,
     load_uem,
     processed_wav,
@@ -100,7 +109,8 @@ from whospoke.pipelines.baseline import Baseline, save_trace
 from whospoke.pipelines.diarizen import DiariZen
 from whospoke.pipelines.nemotron3 import Nemotron3Diarization
 from whospoke.pipelines.pyannote_community1 import PyannoteCommunity1
-from whospoke import charge, power
+from whospoke.pipelines.silero import pyannote_silero
+from whospoke import charge, partage, power
 
 # Moteurs externes (D23, rangs A4 et A5 ; docs/recherche/e4-moteurs-externes.md) : exécutés
 # en sous-processus dans leur environnement séparé (envs/), périphérique `cpu` ou `mps`.
@@ -109,6 +119,7 @@ PIPELINES = {
     Baseline.name: Baseline,
     Nemotron3Diarization.name: Nemotron3Diarization,
     DiariZen.name: DiariZen,
+    pyannote_silero.name: pyannote_silero,   # D25, V2 et V3 : pyannote + masque de Silero (E5)
 }
 
 
@@ -269,6 +280,15 @@ def main() -> None:
     config = yaml.safe_load(config_path.read_text())
     if not exp_dir.name.startswith(config["exp_id"]):
         sys.exit(f"Dossier {exp_dir.name} incohérent avec exp_id {config['exp_id']}")
+    shared = config.get("execution_partagee")
+    try:
+        partage.check_block(config)
+        if shared and shared["porteuse"] != config["exp_id"]:
+            sys.exit(f"Exécution partagée portée par {shared['porteuse']} : lancer sa configuration")
+        if shared and not args.mesure_cpu:
+            partage.check_partners_empty(config)
+    except partage.SharedRunError as error:
+        sys.exit(f"Exécution partagée : {error}")
 
     if args.mesure_cpu:
         device_name = "cpu"
@@ -361,11 +381,13 @@ def main() -> None:
         audio_s = waveform.shape[1] / sample_rate
         n_hyp = len(annotation.labels())
         if write_rttm:
-            with (rttm_dir / f"{uri}.rttm").open("w") as handle:
+            target = hypothesis_dir(exp_dir, corpus)
+            target.mkdir(parents=True, exist_ok=True)
+            with (target / f"{uri}.rttm").open("w") as handle:
                 annotation.write_rttm(handle)
             for name, other in result.autres_sorties.items():
-                other_dir = exp_dir / f"rttm_{name}"
-                other_dir.mkdir(exist_ok=True)
+                other_dir = hypothesis_dir(exp_dir, corpus, f"rttm_{name}")
+                other_dir.mkdir(parents=True, exist_ok=True)
                 with (other_dir / f"{uri}.rttm").open("w") as handle:
                     other.write_rttm(handle)
         if result.trace is not None:
@@ -431,6 +453,10 @@ def main() -> None:
         "fichiers": per_file,
     }
     output_json.write_text(json.dumps(result, ensure_ascii=False, indent=2, default=str) + "\n")
+    if shared:
+        written = partage.write_reminders(config, exp_dir, copy_rttm=write_rttm)
+        logger.info("exécution partagée : rappel écrit pour %s%s", ", ".join(written),
+                    " (RTTM copiés)" if write_rttm else "")
     if any("fenetres_trop_courtes" in row for row in per_file):
         logger.info("fenêtres trop courtes pour le modèle d'empreintes : %d sur %d",
                     sum(row.get("fenetres_trop_courtes", 0) for row in per_file),
