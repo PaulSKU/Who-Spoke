@@ -106,6 +106,7 @@ Date : AAAA-MM-JJ
 | `results_<corpus>_<partition>.json` | Métriques agrégées au schéma du §4.3, un fichier par jeu évalué (par exemple `results_ami_test.json`) | Script d'évaluation |
 | `per_file_<corpus>_<partition>.csv` | Métriques par fichier | Script d'évaluation |
 | `rttm/` | Hypothèses du système, un RTTM par fichier | Script d'exécution |
+| `rttm_<sortie>/` | Autre sortie du même calcul (par exemple `rttm_habituelle/`, `rttm_exclusive/` pour pyannote, D25), non évaluée dans cette expérience | Script d'exécution |
 | `run.log` | Journal d'exécution | Script d'exécution |
 | `execution_<device>.json` | Mesures d'une exécution : temps par fichier et par étape, chargement des modèles, commit, état de l'arbre (`arbre_propre`, `fichiers_non_commites`), versions, empreinte de `config.yaml` (D18), configuration effective du moteur (`describe()`), valeur retenue par un balayage (D19), relevés d'alimentation (bloc `alimentation`, D21 §3) | Script d'exécution |
 | `balayage_<corpus>_<partition>.csv` | Balayage d'un réglage sur dev (D19 §4), format ci-dessous | Script d'exécution |

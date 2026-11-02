@@ -1,7 +1,7 @@
 ---
 id: EXP-0017
 question: "La sortie exclusive de pyannote dégrade-t-elle AMI (D25, V1, règle 3) ?"
-verdict: en_cours
+verdict: ecarte
 decisions: [D25]
 ---
 
@@ -25,6 +25,6 @@ Sortie exclusive évaluée ; configuration d'EXP-0001 par ailleurs. La sortie ha
 
 Temps conformes (MPS et CPU). Exécution concurrente des sessions B et E (D21, amendement du 01/11), sans relevé de charge.
 
-## Interprétation
+## Interprétation (cockpit)
 
-À rédiger par le cockpit.
+Même conclusion sur AMI test (+4,56 points, IC [+2,79 ; +6,32], 16 fichiers sur 16 moins bons), avec une parole manquée qui passe de 11,2 à 18,5 points. Le résultat ne dépend donc pas du corpus : sur des réunions, supprimer le chevauchement coûte plus qu'il ne rapporte.

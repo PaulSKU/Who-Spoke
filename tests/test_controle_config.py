@@ -59,3 +59,13 @@ def test_temps_cpu_tire_de_l_execution_principale():
     assert block == {"sous_ensemble": "data/splits/ami/temps.txt", "duree_audio_s": 400.0,
                      "calcul_s": 6.0, "rtf": 0.015, "conforme": None,
                      "charge_concurrente": None}  # sans relevé de charge (D21, amendement du 01/11)
+
+
+def test_temps_par_corpus_quand_les_identifiants_se_repetent():
+    """D24 : mêmes fichiers dans plusieurs conditions ; chaque jeu garde ses propres temps."""
+    run = {"device": "mps", "chargement_modeles_s": 1.0, "fichiers": [
+        {"uri": "summre__a", "corpus": "summre-rev04", "duree_audio_s": 100.0, "calcul_s": 5.0},
+        {"uri": "summre__a", "corpus": "summre-bru05", "duree_audio_s": 100.0, "calcul_s": 9.0},
+    ]}
+    assert evaluate.timing_block(run, ["summre__a"], "summre-rev04")["calcul_s"] == 5.0
+    assert evaluate.timing_block(run, ["summre__a"], "summre-bru05")["calcul_s"] == 9.0
