@@ -603,3 +603,21 @@ Objectif : valider les choix de B4 ; créer les sources du chantier B5.
 Réalisé : `docs/constats.yaml` (10 constats rattachés aux étapes du catalogue, avec sources et confiance) ; `docs/synthese.md` (synthèse vivante, R-M3).
 Décisions : choix de B4 validés (frontière de tour à 0,25 s, contiguïté à 0,05 s, pauses entre deux passages de parole seulement, couleurs de la référence calées sur le premier moteur en comparaison).
 Suite : chantier B5.
+
+## 2026-11-01 — Retours des chantiers B5 et E4 ; premier regard sur EXP-0016 (cockpit)
+
+Objectif : valider les choix des sessions interface et outils ; préparer la fusion.
+Décisions :
+- B5 : repérage automatique des systèmes de référence et ordre SUMM-RE puis AMI validés. Le graphique reprend pour chaque type d'erreur le motif de la carte des erreurs (parole manquée pleine, fausse alarme hachurée, confusion en contour), pour qu'un même type d'erreur ait la même apparence partout ; le vert est foncé jusqu'à passer le contrôle de contraste en mode clair. Section `regroupements` du catalogue acceptée (invalidation du cache comprise).
+- E4 : voie transformers pour Nemotron 3 et fork de DiariZen validés ; NeMo-Speech.cpp gardé en repli. L'enregistrement des deux moteurs dans `run_experiment.py` revient à la piste A, après la fusion.
+- Premier regard sur EXP-0016, avant le rapport de la piste A : la sortie exclusive dégrade SUMM-RE test (DER sans collar 26,30 → 30,40 % ; fausse alarme −3,0, parole manquée +8,4, confusion −1,3). Le chevauchement réel perdu pèse plus que le faux chevauchement retiré. Si le bootstrap le confirme, V1 de D25 est écartée, et la bascule exclusive de l'interface (R-U12) est abandonnée.
+Suite : fusion d'`outils` et d'`ui` dans `main` à l'arrêt de la piste A (avant A3) ; chantiers B6 et E5.
+
+## 2026-11-02 — Retours des chantiers E5 et B6 (cockpit)
+
+Objectif : trancher les questions des sessions outils et interface.
+Décisions :
+- Réglage de V2 sur dev : le point retenu minimise le DER sans collar sur SUMM-RE dev, parmi les points dont le DER avec collar sur dev ne dépasse pas celui d'EXP-0007 (10,76 %). C'est une contrainte, et pas seulement une alerte, en cohérence avec la règle 2 de D25. Si le minimum tombe au bord de la grille, la grille est élargie une fois.
+- V2 et V3 en une seule exécution : admis. Une exécution de l'enveloppe à deux sorties donne deux expériences distinctes, V2 (sortie habituelle + Silero) et V3 (sortie exclusive + Silero). Chacune a son dossier, son config.yaml et son entrée au leaderboard, et leurs config.yaml mentionnent l'exécution partagée. Le temps de calcul n'est rapporté qu'une fois.
+- B6 : définitions des indicateurs validées (tour sans comblement, passage de parole au sens du *floor transfer offset* de Heldner et Edlund 2010, tours inclus non comptés, latence signée et médiane) ; fusion absorbant le locuteur de la ligne, avec annulation de la dernière seulement ; codes Audacity dans l'ordre de première prise de parole ; une image par analyse.
+Suite : chantiers B7 (cas limites de l'interface) et E6 (vérification d'une installation vierge).
