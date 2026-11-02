@@ -17,22 +17,30 @@ officiel, puis écrit :
   parole, type de réunion) ;
 - `correlations.csv` : rho de Spearman entre composantes du DER et descripteurs, par système
   et corpus ; descriptif, sans p-valeur ;
-- `categories.csv` et `categories_par_fichier.csv` : secondes d'erreur par catégorie de la
-  carte « Expliquer cette erreur » de l'application ;
+- `categories.csv` et `categories_par_fichier.csv` : secondes d'erreur par catégorie principale
+  de la carte « Expliquer cette erreur » de l'application ;
 - `extraits.csv` et le dossier d'écoute (hors du dépôt) : 6 à 8 extraits des corpus publics,
-  avec `index.html` et `grille.csv`, où la candidate note la cause perçue ;
-- `execution.json` : commit, arbre propre (D18), empreintes, contrôle des totaux.
+  avec `index.html` et `grille_ecoute.csv`, où la candidate note la cause perçue ;
+- `execution.json` : commit, arbre propre (D18), empreintes, contrôles.
 
-Catégories d'erreur : aucune seconde définition. Les zones d'erreur et leur contexte viennent
-de `app.sortie.error_map` (appariement optimal du DER, `_Context.describe`) ; une zone relève
-d'une catégorie quand la carte de l'interface affiche le constat correspondant
-(`app.app._context_sentences` : chevauchement > 0, tour court, pause, frontière), ou quand son
-locuteur de référence n'est pas apparié. Pour retrouver le DER du protocole, référence et
-hypothèse sont restreintes à l'UEM officiel avant l'appel : la carte de l'application prend
-l'UEM de 0 à la durée, sans parole ni hypothèse hors de l'UEM, le décompte est le même.
+Après l'écoute, la grille remplie (corpus publics) est versée dans le dossier de l'analyse :
+    uv run python scripts/analyses/a0003_cas_echec.py --config … --importer-grille grille_ecoute.csv
 
-Corpus maison : ses extraits ne sont exportés que dans le dossier local `extraits.locaux`
-(liste comprise), jamais dans le dossier de l'analyse ; il est refusé dans `extraits.corpus`.
+Catégories d'erreur : aucune seconde définition. Elles viennent de `app.sortie` (décisions du
+cockpit du 02/11, catégorie principale exclusive puis option b) : `error_map` donne, par type
+d'erreur, les secondes de chaque catégorie de `ERROR_CATEGORIES` (la part de chaque zone
+dans ±0,25 s d'une frontière de tour en « décalage de frontière », le reste dans la catégorie
+principale de la zone) ; elles somment aux composantes du DER sans collar. Contrôle, par
+système et corpus : « décalage de frontière » contre l'erreur pardonnée par le collar
+(composantes du per_file sans collar moins avec collar), écart résiduel rapporté. Les parts
+sont données sur toute l'erreur (somme à 100 %) et hors décalage de frontière (ce que le
+collar ne pardonne pas). Pour retrouver le DER du protocole, référence et hypothèse sont
+restreintes à l'UEM officiel avant l'appel : la carte de l'application prend l'UEM de 0 à la
+durée, sans parole ni hypothèse hors de l'UEM, le décompte est le même.
+
+Corpus maison : ses extraits et sa grille ne vont que dans le dossier local `extraits.locaux`,
+jamais dans le dossier de l'analyse ; il est refusé dans `extraits.corpus` et par
+`--importer-grille`.
 """
 
 from __future__ import annotations
@@ -65,8 +73,9 @@ sys.path.insert(0, str(REPO_ROOT))   # paquet `app` (carte des erreurs de l'appl
 from app import sortie  # noqa: E402
 
 ERROR_TYPES = ("manquee", "fausse_alarme", "confusion")
-CATEGORIES = ("chevauchement", "tour_court", "frontiere", "pause", "non_apparie")
-NONE = "aucune"
+CATEGORIES = tuple(sortie.ERROR_CATEGORIES)   # catégories principales, dans l'ordre de priorité
+BOUNDARY = "frontiere"                         # décalage de frontière : ce que pardonne le collar
+GRID = "grille_ecoute.csv"                     # grille d'écoute (remplie : versionnée, corpus publics)
 LOCAL_CORPORA = {"maison"}       # extraits jamais versionnés ni publiés (D27, D28 §1)
 RESOLUTION_S = 0.05              # grille de la recherche des fenêtres d'écoute
 TOTALS_TOLERANCE_S = 0.01        # écart admis entre la carte et le per_file, par composante
@@ -138,64 +147,53 @@ def file_errors(reference: Annotation, hypothesis: Annotation, uem: Timeline) ->
     return sortie.error_map(ref, hyp, uem.extent().end)
 
 
-def zone_categories(zone: dict, pairs: dict) -> set[str]:
-    """Catégories d'une zone : les constats affichés par la carte « Expliquer cette erreur »
-    (conditions de `app.app._context_sentences`), plus le locuteur de référence non apparié."""
-    context = zone["contexte"]
-    found = set()
-    if context["chevauchement_s"] > 0:
-        found.add("chevauchement")
-    if context["tour_court"]:
-        found.add("tour_court")
-    if context["frontiere_s"] is not None:
-        found.add("frontiere")
-    if context["pause"]:
-        found.add("pause")
-    if zone["reference"] is not None and zone["reference"] not in pairs:
-        found.add("non_apparie")
-    return found
-
-
-def categorized_zones(errors: dict) -> list[dict]:
-    pairs = errors["appariement"]
-    return [{"type": z["type"], "debut": z["debut"], "fin": z["fin"], "reference": z["reference"],
-             "hypothese": z["hypothese"], "categories": zone_categories(z, pairs)} for z in errors["zones"]]
-
-
-def tally(zones: list[dict]) -> dict[str, dict]:
-    """Secondes d'erreur par type (et `tous`) : total, par catégorie, seules, et sans catégorie."""
+def tally(errors: dict, per_file_row: dict) -> dict[str, dict]:
+    """Décompte d'un fichier, par type d'erreur (et `tous`) : secondes par catégorie principale
+    (`errors["categories"]` de la carte, qui somment aux composantes du DER sans collar),
+    durées des zones, et secondes pardonnées par le collar d'après le per_file
+    (composante sans collar moins composante avec collar)."""
     out = {}
-    for kind in ("tous", *ERROR_TYPES):
-        selected = [z for z in zones if kind == "tous" or z["type"] == kind]
-        durations = [z["fin"] - z["debut"] for z in selected]
-        row = {"erreur_s": sum(durations), "n_zones": len(selected),
-               "durees_zones": durations}
-        for category in CATEGORIES:
-            row[f"{category}_s"] = sum(d for d, z in zip(durations, selected) if category in z["categories"])
-            row[f"{category}_seule_s"] = sum(d for d, z in zip(durations, selected) if z["categories"] == {category})
-        row[f"{NONE}_s"] = sum(d for d, z in zip(durations, selected) if not z["categories"])
-        out[kind] = row
-    return out
-
-
-def tally_row(counts: dict, with_share: bool) -> dict:
-    row = {"erreur_s": round(counts["erreur_s"], 3), "n_zones": counts["n_zones"],
-           "duree_mediane_zone_s": round(statistics.median(counts["durees_zones"]), 3) if counts["durees_zones"] else None}
-    total = counts["erreur_s"]
-    for key in [*(f"{c}_s" for c in CATEGORIES), *(f"{c}_seule_s" for c in CATEGORIES), f"{NONE}_s"]:
-        row[key] = round(counts[key], 3)
-        if with_share:
-            row[key.removesuffix("_s") + "_pct"] = round(100.0 * counts[key] / total, 2) if total else None
-    return row
+    for kind in ERROR_TYPES:
+        out[kind] = {"categories": dict(errors["categories"][kind]),
+                     "durees_zones": [z["fin"] - z["debut"] for z in errors["zones"] if z["type"] == kind],
+                     "pardonne_collar_s": float(per_file_row[f"{kind}_c0_s"]) - float(per_file_row[f"{kind}_c025_s"])}
+    out["tous"] = {"categories": {c: sum(out[k]["categories"][c] for k in ERROR_TYPES) for c in CATEGORIES},
+                   "durees_zones": [d for k in ERROR_TYPES for d in out[k]["durees_zones"]],
+                   "pardonne_collar_s": sum(out[k]["pardonne_collar_s"] for k in ERROR_TYPES)}
+    return {kind: out[kind] for kind in ("tous", *ERROR_TYPES)}
 
 
 def merge_tallies(tallies: list[dict]) -> dict:
+    """Somme des décomptes de plusieurs fichiers."""
     merged = {}
     for kind in ("tous", *ERROR_TYPES):
         rows = [t[kind] for t in tallies]
-        merged[kind] = {key: (sum((r[key] for r in rows), []) if key == "durees_zones" else sum(r[key] for r in rows))
-                        for key in rows[0]} if rows else {}
+        merged[kind] = {"categories": {c: sum(r["categories"][c] for r in rows) for c in CATEGORIES},
+                        "durees_zones": [d for r in rows for d in r["durees_zones"]],
+                        "pardonne_collar_s": sum(r["pardonne_collar_s"] for r in rows)}
     return merged
+
+
+def tally_row(counts: dict, with_share: bool) -> dict:
+    """Ligne de résultats : secondes par catégorie principale ; avec `with_share`, parts de
+    l'erreur (somme à 100 %) et parts hors décalage de frontière (ce que le collar ne pardonne
+    pas) ; contrôle : décalage de frontière contre erreur pardonnée par le collar."""
+    seconds = counts["categories"]
+    total = sum(seconds.values())
+    kept = total - seconds[BOUNDARY]
+    durations = counts["durees_zones"]
+    row = {"erreur_s": round(total, 3), "n_zones": len(durations),
+           "duree_mediane_zone_s": round(statistics.median(durations), 3) if durations else None,
+           **{f"{c}_s": round(seconds[c], 3) for c in CATEGORIES}}
+    if with_share:
+        row.update({f"{c}_pct": round(100.0 * seconds[c] / total, 2) if total else None for c in CATEGORIES})
+    row["hors_frontiere_s"] = round(kept, 3)
+    if with_share:
+        row.update({f"{c}_hors_frontiere_pct": round(100.0 * seconds[c] / kept, 2) if kept > 0 else None
+                    for c in CATEGORIES if c != BOUNDARY})
+    row["pardonne_collar_s"] = round(counts["pardonne_collar_s"], 3)
+    row["ecart_frontiere_collar_s"] = round(seconds[BOUNDARY] - counts["pardonne_collar_s"], 3)
+    return row
 
 
 # --- Corrélations (D28 §1.3) -------------------------------------------------------------
@@ -216,17 +214,24 @@ def spearman(x: list, y: list) -> float | None:
 def window_scores(zones: list[dict], start_s: float, end_s: float, duration_s: float,
                   step_s: float) -> tuple[np.ndarray, dict[str, np.ndarray]]:
     """Débuts de fenêtre possibles (pas `step_s`, dans [start_s, end_s − duration_s]) et
-    secondes d'erreur de chaque fenêtre : `tous`, chaque catégorie et `aucune`."""
+    secondes d'erreur de chaque fenêtre : `tous` et chaque catégorie principale.
+
+    Heuristique de sélection, pas une mesure : la part d'une zone dans la tolérance des
+    frontières (`tolerance_s`) est répartie uniformément sur la zone en « frontiere », le reste
+    dans la catégorie de la zone (la carte donne la durée de cette part, pas sa position)."""
     n = int(math.ceil((end_s - start_s) / RESOLUTION_S)) + 1
-    keys = ("tous", *CATEGORIES, NONE)
-    cover = {key: np.zeros(n) for key in keys}
+    cover = {key: np.zeros(n) for key in ("tous", *CATEGORIES)}
     for zone in zones:
         a = max(0, int(round((zone["debut"] - start_s) / RESOLUTION_S)))
         b = min(n, int(round((zone["fin"] - start_s) / RESOLUTION_S)))
         if b <= a:
             continue
-        for key in ("tous", *(zone["categories"] or {NONE})):
-            cover[key][a:b] += RESOLUTION_S
+        length = zone["fin"] - zone["debut"]
+        boundary = 1.0 if zone["categorie"] == BOUNDARY else min(1.0, zone["tolerance_s"] / length)
+        cover["tous"][a:b] += RESOLUTION_S
+        cover[BOUNDARY][a:b] += RESOLUTION_S * boundary
+        if zone["categorie"] != BOUNDARY:
+            cover[zone["categorie"]][a:b] += RESOLUTION_S * (1.0 - boundary)
     width = int(round(duration_s / RESOLUTION_S))
     last = max(0.0, end_s - start_s - duration_s)
     starts = np.arange(0.0, last + 1e-9, step_s)
@@ -239,10 +244,12 @@ def window_scores(zones: list[dict], start_s: float, end_s: float, duration_s: f
 
 
 def select_excerpts(candidates: list[dict], spec: dict) -> list[dict]:
-    """Sélection : une fenêtre par catégorie (puis `aucune`), où la catégorie a le plus de
-    secondes d'erreur et en a au moins autant que toute autre ; puis les pires fichiers
-    (fenêtre de plus forte erreur) jusqu'à `n_max`. Un fichier au plus une fois ; plafonds
-    par système et par corpus. Chaque extrait garde son candidat dans `_source` (interne)."""
+    """Sélection : une fenêtre par catégorie principale (ordre de priorité, sauf
+    `categories_exclues`), où elle a le plus de secondes d'erreur et en a au moins autant que
+    toute autre catégorie retenue ; puis les pires fichiers (fenêtre de plus forte erreur)
+    jusqu'à `n_max`. Un fichier au plus une fois ; plafonds par système et par corpus.
+    Chaque extrait garde son candidat dans `_source` (interne)."""
+    included = [c for c in CATEGORIES if c not in set(spec.get("categories_exclues") or [])]
     duration, step = float(spec["duree_s"]), float(spec["pas_s"])
     for candidate in candidates:
         candidate["fenetres"] = window_scores(candidate["zones"], candidate["uem_debut"], candidate["uem_fin"],
@@ -264,7 +271,7 @@ def select_excerpts(candidates: list[dict], spec: dict) -> list[dict]:
                        **{f"fenetre_{key}_s": round(float(values[position]), 2) for key, values in scores.items()},
                        "_source": candidate})
 
-    for category in (*CATEGORIES, NONE):
+    for category in included:
         if len(chosen) >= spec["n_max"]:
             break
         best = None
@@ -272,7 +279,7 @@ def select_excerpts(candidates: list[dict], spec: dict) -> list[dict]:
             if not allowed(candidate):
                 continue
             starts, scores = candidate["fenetres"]
-            others = np.max([scores[k] for k in (*CATEGORIES, NONE) if k != category], axis=0)
+            others = np.max([scores[k] for k in included if k != category] or [np.zeros_like(scores["tous"])], axis=0)
             score = np.where((scores[category] > 0) & (scores[category] >= others), scores[category], -1.0)
             position = int(np.argmax(score))
             if score[position] > 0 and (best is None or score[position] > best[0]):
@@ -297,8 +304,12 @@ def public_fields(excerpt: dict) -> dict:
     return {k: v for k, v in excerpt.items() if not k.startswith("_")}
 
 
-def export_excerpts(excerpts: list[dict], target: Path, data_root: Path, title: str) -> None:
-    """Écrit les WAV, `grille.csv` (cause perçue à remplir), `index.html` et `extraits.csv`."""
+GRID_FIELDS = ["extrait", "fichier_audio", "systeme", "motif", "categorie", *CAUSES, "autre_cause", "remarques"]
+
+
+def export_excerpts(excerpts: list[dict], target: Path, data_root: Path, title: str, destination: str) -> None:
+    """Écrit les WAV, la grille vide (`grille_ecoute.csv`, cause perçue à remplir),
+    `index.html` et `extraits.csv` ; `destination` : où ranger la grille remplie."""
     target.mkdir(parents=True, exist_ok=True)
     for old in target.glob("x*.wav"):
         old.unlink()
@@ -315,9 +326,8 @@ def export_excerpts(excerpts: list[dict], target: Path, data_root: Path, title: 
     grid = [{"extrait": e["extrait"], "fichier_audio": e["fichier_audio"], "systeme": e["systeme"],
              "motif": e["motif"], "categorie": e["categorie"], **{cause: "" for cause in CAUSES},
              "autre_cause": "", "remarques": ""} for e in excerpts]
-    write_csv(target / "grille.csv", grid, ["extrait", "fichier_audio", "systeme", "motif", "categorie",
-                                            *CAUSES, "autre_cause", "remarques"])
-    (target / "index.html").write_text(_page(title, blocks), encoding="utf-8")
+    write_csv(target / GRID, grid, GRID_FIELDS)
+    (target / "index.html").write_text(_page(title, blocks, destination), encoding="utf-8")
 
 
 def _excerpt_html(excerpt: dict, data_root: Path) -> str:
@@ -347,16 +357,17 @@ def _excerpt_html(excerpt: dict, data_root: Path) -> str:
     for zone in excerpt["_source"]["zones"]:
         if zone["fin"] > a and zone["debut"] < b:
             s, e = max(zone["debut"], a), min(zone["fin"], b)
-            title = f"{zone['type']} : {', '.join(sorted(zone['categories'])) or NONE}"
+            title = (f"{zone['type']} : {sortie.ERROR_CATEGORIES[zone['categorie']]}"
+                     f" (dont {zone['tolerance_s']:.2f} s dans la tolérance d'une frontière)")
             shapes.append(f'<rect class="err {zone["type"]}" x="{label_w + (s - a) * scale:.1f}" y="{y}" '
                           f'width="{max((e - s) * scale, 1):.1f}" height="{row_h}"><title>{html.escape(title)}</title></rect>')
     height = y + row_h + 4
     svg = (f'<svg viewBox="0 0 {width} {height}" role="img" aria-label="Référence, hypothèse et erreurs">'
            + "".join(shapes) + "</svg>")
     motif = ("Pire fichier" if excerpt["motif"] == "pire_fichier"
-             else f"Catégorie dominante : {excerpt['categorie']}")
-    composition = ", ".join(f"{key} {excerpt[f'fenetre_{key}_s']:.1f} s" for key in (*CATEGORIES, NONE)
-                            if excerpt[f"fenetre_{key}_s"] > 0)
+             else f"Catégorie dominante : {sortie.ERROR_CATEGORIES[excerpt['categorie']].lower()}")
+    composition = ", ".join(f"{sortie.ERROR_CATEGORIES[key].lower()} {excerpt[f'fenetre_{key}_s']:.1f} s"
+                            for key in CATEGORIES if excerpt[f"fenetre_{key}_s"] > 0)
     checks = "".join(f'<label><input type="checkbox" name="{html.escape(c)}"> {html.escape(c)}</label>' for c in CAUSES)
     return (f'<section class="x" data-extrait="{excerpt["extrait"]}" data-audio="{html.escape(excerpt["fichier_audio"])}" '
             f'data-systeme="{html.escape(excerpt["systeme"])}" data-motif="{excerpt["motif"]}" '
@@ -371,7 +382,7 @@ def _excerpt_html(excerpt: dict, data_root: Path) -> str:
             f'<label class="w">Remarques : <input type="text" name="remarques"></label></fieldset></section>')
 
 
-def _page(title: str, blocks: list[str]) -> str:
+def _page(title: str, blocks: list[str], destination: str) -> str:
     causes = json.dumps(list(CAUSES), ensure_ascii=False)
     return f"""<!doctype html><html lang="fr"><meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1"><title>{html.escape(title)}</title>
@@ -389,8 +400,9 @@ label.w input{{width:70%}} button{{font-size:1rem;padding:6px 12px;margin:12px 0
 </style>
 <h1>{html.escape(title)}</h1>
 <p>Écoutez chaque extrait et cochez la ou les causes que vous percevez (D28 §1.5). Les zones colorées
-sont des constats sur la référence, pas des causes. Les réponses restent dans ce navigateur ; le bouton
-en bas télécharge la grille remplie (CSV), à remettre au cockpit.</p>
+sont des constats sur la référence, pas des causes ; survolez une zone pour lire sa catégorie. Les
+réponses restent dans ce navigateur ; le bouton en bas télécharge la grille remplie ({GRID}).
+{html.escape(destination)}</p>
 <p class="legende">Erreurs :<span style="background:var(--manquee)"></span>parole manquée
 <span style="background:var(--fa)"></span>fausse alarme<span style="background:var(--conf)"></span>confusion</p>
 {"".join(blocks)}
@@ -413,14 +425,14 @@ document.querySelectorAll("section.x").forEach(s => {{
 }});
 function champ(v) {{ v = String(v ?? ""); return /[",\\n]/.test(v) ? '"' + v.replace(/"/g, '""') + '"' : v; }}
 document.getElementById("exporter").addEventListener("click", () => {{
-  const lignes = [["extrait", "fichier_audio", "systeme", "motif", "categorie", ...CAUSES, "autre_cause", "remarques"]];
+  const lignes = [{json.dumps(GRID_FIELDS, ensure_ascii=False)}];
   document.querySelectorAll("section.x").forEach(s => {{
     const val = n => s.querySelector(`input[name="${{n}}"]`);
     lignes.push([s.dataset.extrait, s.dataset.audio, s.dataset.systeme, s.dataset.motif, s.dataset.categorie,
       ...CAUSES.map(c => val(c).checked ? "x" : ""), val("autre_cause").value, val("remarques").value]);
   }});
   const blob = new Blob([lignes.map(l => l.map(champ).join(",")).join("\\n") + "\\n"], {{type: "text/csv"}});
-  const a = document.createElement("a"); a.href = URL.createObjectURL(blob); a.download = "grille_remplie.csv"; a.click();
+  const a = document.createElement("a"); a.href = URL.createObjectURL(blob); a.download = "{GRID}"; a.click();
 }});
 </script></html>
 """
@@ -443,7 +455,7 @@ def run(config: dict, out_dir: Path, data_root: Path, listen_dir: Path | None,
 
     ranking, per_file_categories, aggregated, candidates = [], [], [], []
     descriptor_rows: dict[tuple[str, str], dict] = {}
-    fingerprints, controls = {}, {}
+    fingerprints, controls, collar_controls = {}, {}, {}
     references_used: dict[str, list[Path]] = {}
     for system in config["systemes"]:
         corpora = [s["corpus"] for s in system["sources"]]
@@ -481,8 +493,9 @@ def run(config: dict, out_dir: Path, data_root: Path, listen_dir: Path | None,
                     errors = file_errors(reference, hypothesis, uem)
                     for kind in ERROR_TYPES:
                         deviation = max(deviation, abs(errors["totaux"][kind] - float(row[f"{kind}_c0_s"])))
-                    zones = categorized_zones(errors)
-                    counts = tally(zones)
+                    zones = [{key: z[key] for key in ("type", "debut", "fin", "categorie", "tolerance_s")}
+                             for z in errors["zones"]]
+                    counts = tally(errors, row)
                     tallies.append(counts)
                     for kind, values in counts.items():
                         per_file_categories.append({"systeme": system["nom"], "exp_id": exp_id, "corpus": corpus,
@@ -514,6 +527,9 @@ def run(config: dict, out_dir: Path, data_root: Path, listen_dir: Path | None,
                 aggregated.append({"systeme": system["nom"], "exp_id": exp_id, "corpus": corpus,
                                    "partitions": "+".join(source["partitions"]), "n_fichiers": len(files),
                                    "type_erreur": kind, **tally_row(values, with_share=True)})
+            summary = tally_row(merged["tous"], with_share=False)
+            collar_controls[f"{system['nom']}/{corpus}"] = {
+                key: summary[key] for key in ("frontiere_s", "pardonne_collar_s", "ecart_frontiere_collar_s")}
 
     correlations = []
     spec = config["correlations"]
@@ -543,13 +559,17 @@ def run(config: dict, out_dir: Path, data_root: Path, listen_dir: Path | None,
 
     spec = config["extraits"]
     listing = {}
-    groups = [("public", set(spec["corpus"]), listen_dir, "A-0003 — écoute des cas d'échec")]
+    groups = [("public", set(spec["corpus"]), listen_dir, "A-0003 — écoute des cas d'échec",
+               f"Corpus publics : la grille remplie est versionnée dans analyses/A-0003_cas-echec/{GRID}, "
+               "par scripts/analyses/a0003_cas_echec.py --importer-grille.")]
     local = spec.get("locaux") or {}
     if listen_dir is not None and local:
         groups.append(("local", set(local.get("corpus", [])), listen_dir.parent / Path(local["dossier"]).name,
-                       "A-0003 — écoute, corpus maison (local, jamais publié)"))
+                       "A-0003 — écoute, corpus maison (local, jamais publié)",
+                       "Corpus maison : la grille remplie reste dans ce dossier, sur cette machine ; "
+                       "elle n'est jamais versionnée ni envoyée."))
     excerpts = []
-    for name, corpora, target, title in groups:
+    for name, corpora, target, title, destination in groups:
         pool = [c for c in candidates if c["corpus"] in corpora]
         if not pool:
             continue
@@ -557,7 +577,7 @@ def run(config: dict, out_dir: Path, data_root: Path, listen_dir: Path | None,
         if name == "public":
             excerpts = selected
         if target is not None and selected:
-            export_excerpts(selected, target, data_root, title)
+            export_excerpts(selected, target, data_root, title, destination)
             listing[name] = len(selected)
     fields = list(public_fields(excerpts[0])) if excerpts else ["extrait"]
     write_csv(out_dir / "extraits.csv", [public_fields(e) for e in excerpts], fields)
@@ -568,9 +588,39 @@ def run(config: dict, out_dir: Path, data_root: Path, listen_dir: Path | None,
         "app_sortie_sha256": hashlib.sha256(Path(sortie.__file__).read_bytes()).hexdigest(),
         "seuils_carte": {"tour_court_s": sortie.SHORT_TURN_S, "pause_courte_s": sortie.SHORT_PAUSE_S,
                          "frontiere_s": sortie.BOUNDARY_S, "contigu_s": sortie.TOUCH_S},
+        "categories": sortie.ERROR_CATEGORIES,
         "controle_totaux_ecart_max_s": controls,
+        "controle_frontiere_collar_s": collar_controls,
         "extraits": listing,
     }
+
+
+def import_grid(grid_path: Path, analysis_dir: Path) -> Path:
+    """Verse la grille d'écoute remplie par la candidate dans le dossier d'une analyse exécutée
+    (`grille_ecoute.csv`, versionnée) après contrôle : colonnes attendues, mêmes extraits et
+    mêmes fichiers audio que `extraits.csv`, corpus publics seulement, causes cochées par « x ».
+    Une grille déjà versée n'est jamais remplacée."""
+    if not (analysis_dir / "execution.json").exists():
+        sys.exit(f"{analysis_dir.name} : analyse non exécutée, pas de grille à verser")
+    target = analysis_dir / GRID
+    if target.exists():
+        sys.exit(f"{analysis_dir.name}/{GRID} existe déjà : une grille versée n'est pas remplacée")
+    with grid_path.open(newline="", encoding="utf-8-sig") as handle:
+        reader = csv.DictReader(handle)
+        fields, rows = reader.fieldnames, list(reader)
+    if fields != GRID_FIELDS:
+        sys.exit(f"{grid_path.name} : colonnes {fields} au lieu de {GRID_FIELDS}")
+    with (analysis_dir / "extraits.csv").open() as handle:
+        excerpts = {row["extrait"]: row for row in csv.DictReader(handle)}
+    if any(row.get("corpus") in LOCAL_CORPORA for row in excerpts.values()):
+        sys.exit("extraits.csv contient le corpus maison : sa grille reste locale")
+    if sorted(row["extrait"] for row in rows) != sorted(excerpts) or any(
+            row["fichier_audio"] != excerpts[row["extrait"]].get("fichier_audio") for row in rows):
+        sys.exit(f"{grid_path.name} : extraits différents de ceux de {analysis_dir.name}/extraits.csv")
+    if any(row[cause] not in ("", "x") for row in rows for cause in CAUSES):
+        sys.exit(f"{grid_path.name} : une cause est cochée par « x » ou laissée vide")
+    write_csv(target, rows, GRID_FIELDS)
+    return target
 
 
 def _home(path: Path) -> str:
@@ -589,11 +639,17 @@ def main() -> None:
     parser.add_argument("--experiences", type=Path, default=EXPERIMENTS_DIR,
                         help="dossier des expériences sources ; défaut : experiments/ du dépôt")
     parser.add_argument("--sans-extraits", action="store_true", help="ne pas exporter les extraits d'écoute")
+    parser.add_argument("--importer-grille", type=Path, default=None, metavar="CSV",
+                        help=f"verse la grille d'écoute remplie (corpus publics) dans le dossier de l'analyse "
+                             f"exécutée ({GRID}), sans rien recalculer")
     args = parser.parse_args()
     config_path = args.config.resolve()
     config = yaml.safe_load(config_path.read_text())
     trial = args.sortie is not None
     out_dir = args.sortie.resolve() if trial else config_path.parent
+    if args.importer_grille is not None:
+        print(f"[A-0003] grille versée : {_home(import_grid(args.importer_grille.resolve(), out_dir))}")
+        return
     if (out_dir / "execution.json").exists():
         sys.exit(f"{out_dir.name}/execution.json existe déjà : une analyse exécutée est immuable")
     if trial and out_dir.is_relative_to(REPO_ROOT / "analyses"):

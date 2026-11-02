@@ -125,32 +125,57 @@ def run(depot):
     return a0003.run(depot["config"], depot["out"], depot["data"], depot["ecoute"], depot["experiments"])
 
 
-# --- Catégories : même définition que la carte de l'application ---------------------------
+# --- Catégories : définition unique d'app/sortie.py -------------------------------------
 
 
-def test_zone_suit_les_constats_de_la_carte():
-    # A parle de 0 à 10 s, B de 10,3 à 20 s (pause de 0,3 s), C dit « oui » de 30 à 30,4 s.
-    ref = annotation("u", [(0.0, 10.0, "A"), (10.3, 20.0, "B"), (30.0, 30.4, "C"), (40.0, 50.0, "A")])
-    hyp = annotation("u", [(0.0, 10.3, "x"), (10.3, 20.0, "y"), (40.0, 50.0, "x")])
-    errors = a0003.file_errors(ref, hyp, Timeline([Segment(0.0, 60.0)]))
-    zones = {(z["type"], z["debut"]): z for z in a0003.categorized_zones(errors)}
-    assert zones[("fausse_alarme", 10.0)]["categories"] == {"pause", "frontiere"}
-    assert zones[("manquee", 30.0)]["categories"] == {"tour_court", "frontiere", "non_apparie"}
-    # Mêmes constats que ceux de la carte (`_Context.describe`), zone par zone.
-    for zone in errors["zones"]:
-        context = zone["contexte"]
-        found = zones[(zone["type"], zone["debut"])]["categories"]
-        assert ("chevauchement" in found) == (context["chevauchement_s"] > 0)
-        assert ("tour_court" in found) == bool(context["tour_court"])
-        assert ("pause" in found) == bool(context["pause"])
-        assert ("frontiere" in found) == (context["frontiere_s"] is not None)
+def protocol_row(ref, hyp, uem):
+    """Durées d'erreur du per_file du protocole, sans et avec collar."""
+    result = DiarizationEvaluator().add(ref, hyp, uem=uem)
+    return {f"{kind}_{suffix}_s": result[condition][f"{kind}_s"] for condition, suffix in
+            (("collar_0", "c0"), ("collar_0_25", "c025")) for kind in a0003.ERROR_TYPES}
 
 
-def test_seuils_lus_dans_l_application():
-    ref = annotation("u", [(0.0, 10.0, "A"), (20.0, 20.0 + sortie.SHORT_TURN_S + 0.01, "B")])
-    hyp = annotation("u", [(0.0, 10.0, "x")])
-    zones = a0003.categorized_zones(a0003.file_errors(ref, hyp, Timeline([Segment(0.0, 30.0)])))
-    assert "tour_court" not in zones[0]["categories"]
+# A et B appariés ; C (« oui » de 0,4 s) et D jamais trouvés ; z trouvé en trop ; B dit par x.
+REF = [(0.0, 10.0, "A"), (10.3, 20.0, "B"), (25.0, 28.0, "D"), (30.0, 30.4, "C"), (40.0, 50.0, "A"), (56.0, 58.0, "B")]
+HYP = [(0.0, 10.3, "x"), (10.3, 20.0, "y"), (40.0, 48.0, "x"), (52.0, 55.0, "z"), (56.0, 58.0, "x")]
+
+
+def test_categories_lues_dans_l_application():
+    assert a0003.CATEGORIES == tuple(sortie.ERROR_CATEGORIES)
+    assert a0003.CATEGORIES[0] == a0003.BOUNDARY and "trouve_en_trop" in a0003.CATEGORIES
+    ref, hyp, uem = annotation("u", REF), annotation("u", HYP), Timeline([Segment(0.0, 60.0)])
+    errors = a0003.file_errors(ref, hyp, uem)
+    counts = a0003.tally(errors, protocol_row(ref, hyp, uem))
+    for kind in a0003.ERROR_TYPES:                      # les secondes de la carte, sans recalcul
+        assert counts[kind]["categories"] == errors["categories"][kind]
+    assert counts["fausse_alarme"]["categories"]["trouve_en_trop"] == pytest.approx(3.0)
+    assert counts["manquee"]["categories"]["reference_non_appariee"] == pytest.approx(2.5)   # 3 s − 2 × 0,25
+    assert counts["confusion"]["categories"]["autre"] == pytest.approx(1.5)
+    assert counts["manquee"]["categories"]["tour_court"] == 0.0     # 0,4 s : tout dans la tolérance
+
+
+def test_frontiere_egale_l_erreur_pardonnee_par_le_collar():
+    ref, hyp, uem = annotation("u", REF), annotation("u", HYP), Timeline([Segment(0.0, 60.0)])
+    row = protocol_row(ref, hyp, uem)
+    counts = a0003.tally(a0003.file_errors(ref, hyp, uem), row)
+    for kind in a0003.ERROR_TYPES:
+        line = a0003.tally_row(counts[kind], with_share=False)
+        assert line["pardonne_collar_s"] == pytest.approx(row[f"{kind}_c0_s"] - row[f"{kind}_c025_s"], abs=1e-3)
+        assert line["ecart_frontiere_collar_s"] == pytest.approx(0.0, abs=1e-3)
+        assert line["erreur_s"] == pytest.approx(row[f"{kind}_c0_s"], abs=1e-3)
+
+
+def test_parts_sur_toute_l_erreur_et_hors_frontiere():
+    ref, hyp, uem = annotation("u", REF), annotation("u", HYP), Timeline([Segment(0.0, 60.0)])
+    errors = a0003.file_errors(ref, hyp, uem)
+    merged = a0003.merge_tallies([a0003.tally(errors, protocol_row(ref, hyp, uem))] * 2)
+    line = a0003.tally_row(merged["tous"], with_share=True)
+    assert sum(line[f"{c}_pct"] for c in a0003.CATEGORIES) == pytest.approx(100.0, abs=0.05)
+    others = [c for c in a0003.CATEGORIES if c != a0003.BOUNDARY]
+    assert sum(line[f"{c}_hors_frontiere_pct"] for c in others) == pytest.approx(100.0, abs=0.05)
+    assert line["hors_frontiere_s"] == pytest.approx(line["erreur_s"] - line["frontiere_s"], abs=1e-3)
+    assert line["erreur_s"] == pytest.approx(2 * sum(sum(v.values()) for v in errors["categories"].values()), abs=1e-3)
+    assert line["n_zones"] == 2 * len(errors["zones"])
 
 
 def test_uem_officiel_comme_le_protocole():
@@ -158,25 +183,12 @@ def test_uem_officiel_comme_le_protocole():
     hyp = annotation("u", [(0.0, 3.0, "x"), (6.0, 25.0, "y")])
     uem = Timeline([Segment(2.0, 22.0)])
     errors = a0003.file_errors(ref, hyp, uem)
-    row = DiarizationEvaluator().add(ref, hyp, uem=uem)["collar_0"]
+    row = protocol_row(ref, hyp, uem)
     for kind in a0003.ERROR_TYPES:
-        assert errors["totaux"][kind] == pytest.approx(row[f"{kind}_s"], abs=1e-6)
-    counts = a0003.tally(a0003.categorized_zones(errors))
-    assert counts["tous"]["erreur_s"] == pytest.approx(sum(row[f"{k}_s"] for k in a0003.ERROR_TYPES), abs=1e-3)
-
-
-def test_decompte_seules_et_aucune():
-    zones = [{"type": "manquee", "debut": 0.0, "fin": 2.0, "categories": {"chevauchement"}},
-             {"type": "manquee", "debut": 3.0, "fin": 4.0, "categories": {"chevauchement", "pause"}},
-             {"type": "confusion", "debut": 5.0, "fin": 5.5, "categories": set()}]
-    counts = a0003.tally(zones)
-    assert counts["tous"]["erreur_s"] == pytest.approx(3.5)
-    assert counts["tous"]["chevauchement_s"] == pytest.approx(3.0)
-    assert counts["tous"]["chevauchement_seule_s"] == pytest.approx(2.0)
-    assert counts["tous"]["aucune_s"] == pytest.approx(0.5)
-    assert counts["confusion"]["erreur_s"] == pytest.approx(0.5) and counts["fausse_alarme"]["n_zones"] == 0
-    row = a0003.tally_row(counts["tous"], with_share=True)
-    assert row["chevauchement_pct"] == pytest.approx(85.71) and row["duree_mediane_zone_s"] == 1.0
+        assert errors["totaux"][kind] == pytest.approx(row[f"{kind}_c0_s"], abs=1e-6)
+    line = a0003.tally_row(a0003.tally(errors, row)["tous"], with_share=False)
+    assert line["erreur_s"] == pytest.approx(sum(row[f"{k}_c0_s"] for k in a0003.ERROR_TYPES), abs=1e-3)
+    assert line["ecart_frontiere_collar_s"] == pytest.approx(0.0, abs=1e-3)
 
 
 # --- Descripteurs et corrélations --------------------------------------------------------
@@ -204,19 +216,26 @@ def test_spearman_descriptif():
 
 
 def test_fenetres_et_dominance():
-    zones = [{"type": "manquee", "debut": 10.0, "fin": 14.0, "categories": {"chevauchement"}},
-             {"type": "confusion", "debut": 40.0, "fin": 41.0, "categories": {"pause", "frontiere"}}]
+    zones = [{"type": "manquee", "debut": 10.0, "fin": 14.0, "categorie": "chevauchement", "tolerance_s": 0.5},
+             {"type": "confusion", "debut": 40.0, "fin": 41.0, "categorie": "pause", "tolerance_s": 0.0},
+             {"type": "fausse_alarme", "debut": 50.0, "fin": 50.2, "categorie": "frontiere", "tolerance_s": 0.2}]
     starts, scores = a0003.window_scores(zones, 0.0, 60.0, 15.0, 0.5)
     assert starts[-1] == pytest.approx(45.0)
-    assert scores["tous"].max() == pytest.approx(4.0, abs=0.06)
-    assert scores["chevauchement"][starts == 5.0][0] == pytest.approx(4.0, abs=0.06)
+    assert scores["tous"][starts == 5.0][0] == pytest.approx(4.0, abs=0.06)
+    assert scores["chevauchement"][starts == 5.0][0] == pytest.approx(3.5, abs=0.06)   # 4 s − 0,5 s de tolérance
+    assert scores["frontiere"][starts == 5.0][0] == pytest.approx(0.5, abs=0.06)
+    assert scores["frontiere"][starts == 45.0][0] == pytest.approx(0.2, abs=0.06)
     candidate = {"systeme": "s", "exp_id": "E", "corpus": "c", "partition": "dev", "uri": "u", "der_c0": 50.0,
                  "uem_debut": 0.0, "uem_fin": 60.0, "zones": zones}
-    chosen = a0003.select_excerpts([candidate], {"duree_s": 15, "pas_s": 0.5, "n_min": 1, "n_max": 3,
-                                                 "max_par_systeme": 3, "max_par_corpus": 3})
-    # Un fichier au plus une fois : la première catégorie trouvée le prend.
+    spec = {"duree_s": 15, "pas_s": 0.5, "n_min": 1, "n_max": 3, "max_par_systeme": 3, "max_par_corpus": 3,
+            "categories_exclues": ["frontiere"]}
+    chosen = a0003.select_excerpts([candidate], spec)
+    # Un fichier au plus une fois : la première catégorie retenue trouvée le prend.
     assert len(chosen) == 1 and chosen[0]["categorie"] == "chevauchement"
     assert chosen[0]["debut"] <= 10.0 and chosen[0]["fin"] >= 14.0 and chosen[0]["fin"] - chosen[0]["debut"] == 15.0
+    zones[0]["categorie"], zones[0]["tolerance_s"] = "frontiere", 4.0
+    chosen = a0003.select_excerpts([candidate], spec)
+    assert chosen[0]["categorie"] == "pause"                     # « frontiere » exclue des extraits
 
 
 def test_maison_refuse_dans_les_extraits_publics(depot):
@@ -248,8 +267,14 @@ def test_execution_complete(depot):
     total = sum(float(r[f"{k}_c0_s"]) for r in per_file.values() for k in a0003.ERROR_TYPES)
     row = next(r for r in categories if r["systeme"] == "sys-b" and r["type_erreur"] == "tous")
     assert float(row["erreur_s"]) == pytest.approx(total, abs=0.05)
-    for category in a0003.CATEGORIES:
-        assert float(row[f"{category}_seule_s"]) <= float(row[f"{category}_s"]) <= float(row["erreur_s"]) + 1e-6
+    assert sum(float(row[f"{c}_pct"]) for c in a0003.CATEGORIES) == pytest.approx(100.0, abs=0.05)
+    pardonne = sum(float(r[f"{k}_c0_s"]) - float(r[f"{k}_c025_s"]) for r in per_file.values() for k in a0003.ERROR_TYPES)
+    assert float(row["pardonne_collar_s"]) == pytest.approx(pardonne, abs=0.05)
+    control = details["controle_frontiere_collar_s"]["sys-b/fab"]
+    assert control["ecart_frontiere_collar_s"] == pytest.approx(control["frontiere_s"] - control["pardonne_collar_s"], abs=1e-3)
+    assert details["categories"] == sortie.ERROR_CATEGORIES
+    by_file = [r for r in read(out / "categories_par_fichier.csv") if r["systeme"] == "sys-b" and r["type_erreur"] == "tous"]
+    assert len(by_file) == 7 and sum(float(r["erreur_s"]) for r in by_file) == pytest.approx(float(row["erreur_s"]), abs=0.05)
     # Descripteurs : un par corpus × fichier ; type de réunion d'après la liste déclarée.
     descriptors = {(r["corpus"], r["uri"]): r for r in read(out / "descripteurs.csv")}
     assert len(descriptors) == 9
@@ -278,15 +303,17 @@ def test_extraits_publics_et_locaux(depot):
         assert float(r["fin"]) - float(r["debut"]) == pytest.approx(15.0)
         assert UEM[0] <= float(r["debut"]) and float(r["fin"]) <= UEM[1]
     page = (listen / "index.html").read_text()
-    assert page.count("<audio") == len(excerpts) and "grille_remplie.csv" in page
+    assert page.count("<audio") == len(excerpts) and a0003.GRID in page and "--importer-grille" in page
     assert "maison" not in page
-    grid = read(listen / "grille.csv")
+    assert all(r["categorie"] not in depot["config"]["extraits"]["categories_exclues"] for r in excerpts)
+    grid = read(listen / a0003.GRID)
     assert [g["extrait"] for g in grid] == [r["extrait"] for r in excerpts] == [f"x{k}" for k in range(1, len(grid) + 1)]
     assert list(excerpts[0])[0] == "extrait"
     assert all(g[c] == "" for g in grid for c in a0003.CAUSES)
     # Corpus maison : dossier local à part, avec sa propre liste ; rien dans le dossier de l'analyse.
     local = depot["ecoute"].parent / "ecoute_maison"
     local_rows = read(local / "extraits.csv")
+    assert (local / a0003.GRID).exists() and "jamais versionnée" in (local / "index.html").read_text()
     assert local_rows and {r["corpus"] for r in local_rows} == {"maison"}
     assert details["extraits"]["local"] == len(local_rows)
     assert not any("maison" in path.name for path in depot["out"].iterdir())
@@ -317,3 +344,41 @@ def test_script_lancable_hors_de_pytest():
     result = subprocess.run([sys.executable, str(REPO_ROOT / "scripts" / "analyses" / "a0003_cas_echec.py"), "--help"],
                             cwd=REPO_ROOT / "scripts", capture_output=True, text=True)
     assert result.returncode == 0, result.stderr
+
+
+def test_grille_versee_apres_controle(depot, tmp_path):
+    run(depot)
+    out = depot["out"]
+    (out / "execution.json").write_text("{}")
+    filled = tmp_path / "remplie.csv"
+    rows = read(depot["ecoute"] / a0003.GRID)
+    rows[0]["rires"], rows[0]["remarques"] = "x", "deux voix, « mm », rires"
+    a0003.write_csv(filled, rows, a0003.GRID_FIELDS)
+    target = a0003.import_grid(filled, out)
+    assert target == out / a0003.GRID and read(target)[0]["rires"] == "x"
+    with pytest.raises(SystemExit):                       # jamais remplacée
+        a0003.import_grid(filled, out)
+
+
+@pytest.mark.parametrize("defaut", ["extrait_manquant", "audio_different", "cause_mal_cochee", "colonnes", "non_executee"])
+def test_grille_refusee(depot, tmp_path, defaut):
+    run(depot)
+    out = depot["out"]
+    if defaut != "non_executee":
+        (out / "execution.json").write_text("{}")
+    rows = read(depot["ecoute"] / a0003.GRID)
+    fields = list(a0003.GRID_FIELDS)
+    if defaut == "extrait_manquant":
+        rows = rows[1:]
+    elif defaut == "audio_different":
+        rows[0]["fichier_audio"] = "autre.wav"
+    elif defaut == "cause_mal_cochee":
+        rows[0]["bruit"] = "oui"
+    elif defaut == "colonnes":
+        fields = fields[:-1]
+        rows = [{k: r[k] for k in fields} for r in rows]
+    filled = tmp_path / "remplie.csv"
+    a0003.write_csv(filled, rows, fields)
+    with pytest.raises(SystemExit):
+        a0003.import_grid(filled, out)
+    assert not (out / a0003.GRID).exists()
