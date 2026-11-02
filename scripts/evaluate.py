@@ -24,6 +24,13 @@ false si l'un d'eux ne l'est pas, null si l'état n'a pas pu être lu ou n'a pas
 dont il est tiré. Un temps non conforme n'est reporté ni dans le README ni dans une
 comparaison de temps de calcul.
 
+`temps.charge_concurrente` (D21, amendement du 01/11) : true si la charge moyenne sur 1 min
+dépasse le nombre de cœurs de performance à un relevé au moins de l'exécution concernée,
+false sinon, null si la charge n'a pas été relevée (exécutions antérieures à l'amendement)
+ou n'est pas lisible (règle de `whospoke.charge.concurrent_load`). `temps_cpu.charge_concurrente`
+suit la même règle pour l'exécution dont il est tiré. Les résultats déjà écrits ne sont pas
+requalifiés.
+
 `arbre_propre` vaut true si les exécutions et l'évaluation ont eu lieu sur le même commit,
 sans fichier non commité sous les chemins contrôlés de D18 (`whospoke.experiment.is_controlled`),
 d'après les listes `fichiers_non_commites` consignées par les exécutions.
@@ -72,6 +79,7 @@ from whospoke.experiment import (
     reference_rttm,
     uem_path,
 )
+from whospoke.charge import concurrent_load
 from whospoke.power import is_compliant
 
 LEADERBOARD = REPO_ROOT / "results" / "leaderboard.csv"
@@ -97,6 +105,14 @@ def power_compliance(execution: dict) -> bool | None:
     return is_compliant((execution.get("alimentation") or {}).get("releves"))
 
 
+def load_concurrency(execution: dict) -> bool | None:
+    """Charge concurrente d'une exécution (D21, amendement du 01/11) ; null sans relevé de charge."""
+    block = execution.get("alimentation") or {}
+    if not block.get("coeurs_performance"):
+        return None
+    return concurrent_load(block.get("releves") or [], block["coeurs_performance"])
+
+
 def timing_block(execution: dict, files: list[str]) -> dict:
     """Bloc `temps` d'un jeu : somme des temps de calcul de ses fichiers."""
     by_uri = {row["uri"]: row for row in execution["fichiers"]}
@@ -108,6 +124,7 @@ def timing_block(execution: dict, files: list[str]) -> dict:
         "calcul_s": round(compute, 2),
         "rtf": round(compute / audio, 4),
         "conforme": power_compliance(execution),
+        "charge_concurrente": load_concurrency(execution),
     }
 
 
@@ -122,6 +139,7 @@ def cpu_block(execution: dict | None, subset: str | None = None) -> dict | None:
             "calcul_s": round(execution["calcul_s"], 2),
             "rtf": round(execution["rtf"], 4),
             "conforme": power_compliance(execution),
+            "charge_concurrente": load_concurrency(execution),
         }
     by_uri = {row["uri"]: row for row in execution["fichiers"]}
     rows = execution["fichiers"] if subset is None else [by_uri[uri] for uri in dataset_uris(subset)]
@@ -133,6 +151,7 @@ def cpu_block(execution: dict | None, subset: str | None = None) -> dict | None:
         "calcul_s": round(compute, 2),
         "rtf": round(compute / audio, 4),
         "conforme": power_compliance(execution),
+        "charge_concurrente": load_concurrency(execution),
     }
 
 

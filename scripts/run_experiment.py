@@ -53,7 +53,10 @@ part et n'entre pas dans le RTF.
 Alimentation (D21 §3) : l'état d'alimentation (`pmset -g batt` sur macOS) est relevé au
 début de l'exécution, puis toutes les 60 s dans un fil d'arrière-plan, puis à la fin ; les
 relevés sont consignés dans le bloc `alimentation` de `execution_<périphérique>.json`, d'où
-scripts/evaluate.py tire `temps.conforme` (secteur pendant toute l'exécution).
+scripts/evaluate.py tire `temps.conforme` (secteur pendant toute l'exécution). Aux mêmes
+instants, la charge moyenne de la machine (`sysctl vm.loadavg`, par `whospoke.charge`) est
+relevée ; le bloc consigne aussi le nombre de cœurs de performance et
+`charge_concurrente`, repris par scripts/evaluate.py dans `temps` (D21, amendement du 01/11).
 
 Le code doit être commité avant l'exécution : l'état de l'arbre (chemins contrôlés de
 D18) et la liste de tous les fichiers non commités sont consignés, puis repris par
@@ -95,7 +98,7 @@ from whospoke.experiment import (
 )
 from whospoke.pipelines.baseline import Baseline, save_trace
 from whospoke.pipelines.pyannote_community1 import PyannoteCommunity1
-from whospoke.power import PowerMonitor
+from whospoke import charge, power
 
 PIPELINES = {PyannoteCommunity1.name: PyannoteCommunity1, Baseline.name: Baseline}
 
@@ -106,6 +109,20 @@ SWEEP_COLUMNS = [
     "mae_n_locuteurs", "taux_exact_n_locuteurs", "n_locuteurs_moyen_hypothese",
     "n_locuteurs_moyen_reference",
 ]
+
+
+def machine_block(readings: list[dict], cores: int, interval_s: float) -> dict:
+    """Bloc `alimentation` de `execution_<périphérique>.json` : relevés d'alimentation et de
+    charge (D21 §3 et amendement du 01/11), conformité et charge concurrente."""
+    return {
+        "commande": " ".join(power.COMMAND),
+        "commande_charge": charge.SOURCE,
+        "intervalle_s": interval_s,
+        "coeurs_performance": cores,
+        "releves": readings,
+        "conforme": power.is_compliant(readings),
+        "charge_concurrente": charge.concurrent_load(readings, cores),
+    }
 
 
 def setup_logging(exp_dir: Path) -> logging.Logger:
@@ -265,9 +282,11 @@ def main() -> None:
     trace_dir = exp_dir / "trace"
 
     logger = setup_logging(exp_dir)
-    power = PowerMonitor()
-    first = power.start()
-    logger.info("alimentation au début : %s (%s)", first["source"] or "illisible", first["brut"])
+    monitor = charge.MachineMonitor(interval_s=power.INTERVAL_S)
+    cores = charge.performance_cores()
+    first = monitor.start()
+    logger.info("alimentation au début : %s (%s) ; charge sur 1 min %s pour %d cœurs de performance",
+                first["source"] or "illisible", first["brut"], first["charge_1min"], cores)
     state = git_state()
     logger.info("expérience %s, mode %s", config["exp_id"], "mesure CPU" if args.mesure_cpu else "complet")
     logger.info("commit %s, arbre propre (chemins contrôlés, D18) : %s", state["commit"], state["clean"])
@@ -358,12 +377,15 @@ def main() -> None:
                     index, len(jobs), partition, uri, audio_s, compute_s, compute_s / audio_s, n_hyp,
                     "" if num_speakers is None else f" (imposé : {num_speakers})", clustering)
 
-    last = power.stop()
-    power_block = power.block()
+    last = monitor.stop()  # fil de relevés arrêté : la liste n'évolue plus
+    power_block = machine_block(list(monitor.readings), cores, monitor.interval_s)
     logger.info("alimentation à la fin : %s ; %d relevés, conforme : %s", last["source"] or "illisible",
                 len(power_block["releves"]), power_block["conforme"])
     if power_block["conforme"] is not True:
         logger.warning("temps de calcul non conforme au protocole §3.5 (secteur non attesté)")
+    peak = max((r["charge_1min"] for r in power_block["releves"] if r["charge_1min"] is not None), default=None)
+    logger.info("charge concurrente : %s (charge maximale sur 1 min : %s, %d cœurs de performance)",
+                power_block["charge_concurrente"], peak, cores)
 
     total_audio = sum(row["duree_audio_s"] for row in per_file)
     total_compute = sum(row["calcul_s"] for row in per_file)
