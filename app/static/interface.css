@@ -16,6 +16,12 @@
     0 6px 6px -3px rgba(0,0,0,0.06),
     0 12px 12px -6px rgba(0,0,0,0.04);
   --ws-ease: cubic-bezier(0.23, 1, 0.32, 1);
+  /* Graphique de l'Avancement (R-U7) : trois premiers emplacements de la palette
+     catégorielle, validés sur #ffffff (validate_palette.js) ; le vert est pris un pas
+     plus foncé (#199e70) pour passer le contraste de 3:1 en clair. */
+  --av-err-manquee: #2a78d6;
+  --av-err-fausse_alarme: #eb6834;
+  --av-err-confusion: #199e70;
 }
 .dark {
   --ws-ink: #ecece9;
@@ -26,6 +32,10 @@
   --ws-track: #232428;
   --color-accent: #ecece9;
   --color-accent-soft: #2d2e33;
+  /* Pas sombres de la palette, validés sur #1b1c1f. */
+  --av-err-manquee: #3987e5;
+  --av-err-fausse_alarme: #d95926;
+  --av-err-confusion: #199e70;
   --ws-shadow-md:
     0 0 0 1px rgba(255,255,255,0.07),
     0 1px 2px -1px rgba(0,0,0,0.5),
@@ -33,14 +43,21 @@
 }
 
 /* --- Page ---------------------------------------------------------------------- */
+/* Marges latérales fluides, hors @media : Gradio préfixe les sélecteurs placés dans une
+   règle @media, et `.gradio-container` ou `.main` n'y seraient plus atteints. 16 px de
+   gouttière à 375 px de large, 24 px (et 32 px pour .main) au-delà. */
 .gradio-container {
   max-width: 1280px !important;
   margin: 0 auto !important;
-  padding: 0 24px !important;
+  padding: 0 clamp(16px, 4.27vw, 24px) !important;
   font-variant-numeric: tabular-nums;
   -webkit-font-smoothing: antialiased;
 }
-footer { opacity: 0.7; }
+
+.gradio-container .main {
+  padding-left: clamp(0px, calc((100vw - 480px) / 2), 32px) !important;
+  padding-right: clamp(0px, calc((100vw - 480px) / 2), 32px) !important;
+}
 
 .ws-header {
   display: flex; align-items: flex-end; justify-content: space-between; gap: 16px;
@@ -59,10 +76,25 @@ footer { opacity: 0.7; }
 .ws-badge::before {
   content: ""; width: 6px; height: 6px; border-radius: 50%; background: var(--ws-slate);
 }
+.ws-badges { display: flex; flex-wrap: wrap; gap: 8px; }
+
+/* Indicateur « moteurs prêts » (R-D2) : l'état est écrit ; la pastille le double. */
+.ws-engines[data-state="ready"]::before { background: var(--ws-ink); }
+.ws-engines[data-state="run"]::before {
+  width: 8px; height: 8px; box-sizing: border-box; background: transparent;
+  border: 1.5px solid var(--ws-ink); border-right-color: transparent; animation: st-spin 0.8s linear infinite;
+}
+.ws-engines[data-state="warn"]::before, .ws-engines[data-state="off"]::before {
+  box-sizing: border-box; background: transparent; border: 1.5px solid var(--ws-slate);
+}
 
 /* Onglets : soulignement fin, sans couleur. */
 .tab-wrapper, .tab-container { border-bottom: 1px solid var(--ws-line) !important; }
-button[role="tab"] { font-weight: 500 !important; color: var(--ws-slate) !important; }
+button[role="tab"] {
+  font-weight: 500 !important; color: var(--ws-slate) !important;
+  /* Les quatre onglets tiennent sur 343 px (375 px moins les gouttières). */
+  padding-left: clamp(8px, 2.5vw, 16px) !important; padding-right: clamp(8px, 2.5vw, 16px) !important;
+}
 button[role="tab"][aria-selected="true"] { color: var(--ws-ink) !important; }
 button[role="tab"][aria-selected="true"]::after,
 .tab-container .selected::after { background: var(--ws-ink) !important; height: 2px !important; }
@@ -104,6 +136,40 @@ button.primary:active, button.secondary:active, .wsp-play:active { transform: sc
 }
 .ws-run { min-height: 44px; font-weight: 600 !important; letter-spacing: -0.005em; }
 
+/* Durée annoncée avant le lancement (R-D2 ; D17, amendement 2). */
+.ws-estimate {
+  background: var(--ws-canvas); border-radius: 10px; padding: 10px 12px; font-size: 0.85rem; line-height: 1.45;
+}
+.ws-estimate[data-state="warn"] { box-shadow: inset 3px 0 0 var(--ws-ink); }
+.ws-estimate-head { margin: 0; font-weight: 600; color: var(--ws-ink); }
+.ws-estimate-list { margin: 4px 0 0; padding-left: 18px; color: var(--ws-slate); }
+.ws-estimate-list:empty { display: none; }
+.ws-estimate .ws-caption { margin-top: 4px; }
+/* Avertissements (B7) : fichier silencieux, référence mal assortie ou illisible. Écrits en
+   toutes lettres, marqués d'un filet d'encre ; aucune couleur d'état. */
+.ws-estimate-alert {
+  margin: 8px 0 0; padding: 6px 0 6px 10px; color: var(--ws-ink); font-size: 0.85rem; line-height: 1.5;
+  box-shadow: inset 3px 0 0 var(--ws-ink);
+}
+.ws-callout.ws-alert { color: var(--ws-ink); box-shadow: inset 3px 0 0 var(--ws-ink); overflow-wrap: anywhere; }
+
+/* Bandeau des réglages repliés après l'analyse (R-U1). */
+.ws-band {
+  background: var(--ws-surface) !important; border-radius: 14px !important;
+  box-shadow: var(--ws-shadow-md) !important; padding: 10px 12px 10px 20px !important;
+  align-items: center !important; gap: 12px !important;
+}
+.ws-band > .block, .ws-band .block { background: transparent !important; box-shadow: none !important; border: none !important; }
+.ws-band-info { min-width: min(240px, 100%) !important; flex: 1 1 0% !important; }
+.ws-band-text { display: flex; flex-wrap: wrap; align-items: baseline; gap: 2px 0; margin: 0; font-size: 0.9rem; color: var(--ws-slate); }
+.ws-band-text > span:not(:last-child)::after { content: "·"; margin: 0 10px; color: var(--ws-line); }
+.ws-band-text .strong { color: var(--ws-ink); font-weight: 600; overflow-wrap: anywhere; }
+.ws-band-button { white-space: nowrap; }
+
+/* Cache des résultats : repli discret sous le bouton principal. */
+.ws-cache { box-shadow: 0 0 0 1px var(--ws-line) !important; border-radius: 10px !important; }
+.ws-cache .label-wrap { font-size: 0.875rem; }
+
 /* Focus visible partout, contraste ≥ 3:1. */
 :is(button, a, input, textarea, select, [tabindex]):focus-visible {
   outline: 2px solid var(--ws-ink) !important; outline-offset: 2px !important;
@@ -116,11 +182,14 @@ button.primary:active, button.secondary:active, .wsp-play:active { transform: sc
 .st-detail { color: var(--ws-slate); font-size: 0.875rem; }
 .st-bar { height: 6px; border-radius: 999px; background: var(--ws-track); overflow: hidden; }
 .st-bar > div { height: 100%; border-radius: 999px; background: var(--ws-ink); transition: width 300ms linear; }
+/* Étapes lues en colonne, dans l'ordre du pipeline (R-U5) : de haut en bas, puis colonne suivante. */
 .st-steps {
-  list-style: none; padding: 0; margin: 0; display: grid; gap: 6px 24px;
-  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); font-size: 0.875rem;
+  list-style: none; padding: 0; margin: 0; columns: 3 220px; column-gap: 24px; font-size: 0.875rem;
 }
-.st-steps li { display: flex; align-items: center; gap: 10px; min-height: 24px; color: var(--ws-slate); }
+.st-steps li {
+  display: flex; align-items: center; gap: 10px; min-height: 24px; color: var(--ws-slate);
+  break-inside: avoid; margin-bottom: 6px;
+}
 .st-steps li .st-label { flex: 1; }
 .st-steps li .st-val { font-size: 0.8rem; }
 .st-mark {
@@ -143,6 +212,15 @@ button.primary:active, button.secondary:active, .wsp-play:active { transform: sc
   background: var(--ws-surface); transform: rotate(45deg);
 }
 .st-fail .st-mark::after { transform: rotate(-45deg); }
+/* Résultat réaffiché depuis le cache : pastille pleine, visible au premier coup d'œil. */
+.st-badges { margin: 0; display: flex; flex-wrap: wrap; gap: 6px; }
+.ws-cache-badge {
+  display: inline-flex; align-items: center; gap: 8px; padding: 4px 10px; border-radius: 999px;
+  font-size: 0.8rem; font-weight: 600; color: var(--ws-surface); background: var(--ws-ink);
+}
+.ws-cache-badge::before {
+  content: ""; width: 6px; height: 6px; border-radius: 50%; background: var(--ws-surface);
+}
 .st-error {
   margin: 0; padding: 10px 12px; border-radius: 8px; font-size: 0.875rem; line-height: 1.45;
   color: var(--ws-ink); background: var(--ws-track); box-shadow: inset 3px 0 0 var(--ws-ink);
@@ -186,9 +264,92 @@ button.primary:active, button.secondary:active, .wsp-play:active { transform: sc
 }
 .ws-callout code { font-size: 0.8rem; }
 
-/* Tableau éditable des noms : police du texte, pas de monospace. */
-.ws-names { --font-mono: var(--font); }
-.ws-names * { font-family: var(--font) !important; }
+/* Tableau des locuteurs : nom éditable dans la ligne, extrait typique (R-U6). */
+.ws-speakers td.ws-speaker { white-space: nowrap; }
+.ws-speaker { display: flex; align-items: center; }
+.ws-speaker-name { display: inline-flex; flex-direction: column; min-width: 0; }
+.ws-name-input {
+  width: min(12em, 40vw); max-width: 100%; height: 30px; padding: 0 8px; border-radius: 6px; font: inherit; font-weight: 600;
+  color: var(--ws-ink); background: var(--ws-surface); border: 1px solid transparent;
+  box-shadow: 0 0 0 1px var(--ws-line); transition: box-shadow 150ms ease;
+}
+.ws-name-input::placeholder { color: var(--ws-ink); opacity: 1; }
+.ws-name-input:hover { box-shadow: 0 0 0 1px var(--ws-slate); }
+.ws-name-input:focus { outline: none; box-shadow: 0 0 0 2px var(--ws-ink); }
+.ws-name-input:focus::placeholder { color: var(--ws-slate); }
+.ws-speakers .ws-speaker .sub { margin: 2px 0 0 8px; }
+.ws-play-cell { width: 1%; }
+.ws-excerpt {
+  width: 32px; height: 32px; border: none; border-radius: 50%; cursor: pointer; font: inherit; font-size: 0.75rem;
+  background: var(--ws-surface); color: var(--ws-ink); box-shadow: 0 0 0 1px var(--ws-line);
+  transition: transform 100ms var(--ws-ease), background-color 150ms ease;
+}
+.ws-excerpt:active:not(:disabled) { transform: scale(0.94); }
+.ws-excerpt:disabled { opacity: 0.35; cursor: default; }
+@media (hover: hover) and (pointer: fine) { .ws-excerpt:not(:disabled):hover { background: var(--ws-canvas); } }
+.ws-sr {
+  position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden;
+  clip: rect(0 0 0 0); white-space: nowrap; border: 0;
+}
+
+/* Fusion de locuteurs (R-U9) : liste par ligne, fusions en vigueur, DER avant → après. */
+.ws-merge {
+  height: 30px; max-width: 11em; padding: 0 6px; border-radius: 6px; font: inherit; font-size: 0.8rem;
+  color: var(--ws-ink); background: var(--ws-surface); border: none; box-shadow: 0 0 0 1px var(--ws-line);
+  cursor: pointer;
+}
+.ws-merge:focus-visible { outline: none; box-shadow: 0 0 0 2px var(--ws-ink); }
+.ws-merges {
+  display: flex; flex-wrap: wrap; align-items: center; gap: 6px 12px; margin-top: 12px; padding: 10px 12px;
+  border-radius: 8px; background: var(--ws-canvas); font-size: 0.85rem;
+}
+.ws-merges-title { font-weight: 600; }
+.ws-merges-list { margin: 0; padding-left: 1.4em; display: flex; flex-wrap: wrap; gap: 0 1.6em; }
+.ws-merge-undo, .ws-png {
+  height: 30px; padding: 0 12px; border: none; border-radius: 8px; cursor: pointer; font: inherit;
+  font-size: 0.8rem; font-weight: 500; color: var(--ws-ink); background: var(--ws-surface);
+  box-shadow: 0 0 0 1px var(--ws-line); transition: transform 100ms var(--ws-ease), background-color 150ms ease;
+  max-width: 100%;
+}
+.ws-merge-undo { margin-left: auto; }
+.ws-merge-undo:active, .ws-png:active { transform: scale(0.97); }
+@media (hover: hover) and (pointer: fine) {
+  .ws-merge-undo:hover, .ws-png:hover, .ws-merge:hover { background: var(--ws-canvas); }
+}
+.ws-merge-der { color: var(--ws-ink); box-shadow: inset 3px 0 0 var(--ws-ink); }
+
+/* Interactions (R-U10) : plus long monologue, tours, latence, matrice « qui suit qui ». */
+.ws-monologue {
+  display: flex; flex-wrap: wrap; align-items: center; gap: 6px 12px; margin: 0 0 14px; font-size: 0.9rem;
+}
+.ws-monologue-label { color: var(--ws-slate); font-size: 0.85rem; }
+.ws-monologue .sub { color: var(--ws-slate); }
+.ws-who { white-space: nowrap; }
+.ws-matrix th[scope="row"] { font-weight: 500; color: var(--ws-ink); font-size: 0.875rem; padding: 8px 12px 8px 0; }
+.ws-matrix td.ws-mx, .ws-matrix td.ws-mx-diag { text-align: center; min-width: 3.2em; padding: 8px 6px; }
+.ws-matrix td.ws-mx {
+  font-weight: 600; background: color-mix(in srgb, var(--ws-ink) var(--mx, 0%), transparent) !important;
+  box-shadow: inset 0 0 0 1px var(--ws-surface);   /* filet de surface entre deux cases teintées */
+}
+.ws-matrix td.ws-mx-diag { color: var(--ws-slate); }
+.ws-matrix thead th.num {
+  text-align: center; vertical-align: bottom; white-space: normal; overflow-wrap: break-word;
+  min-width: 3.2em; max-width: 9em; line-height: 1.3;
+}
+/* Noms des lignes figés à gauche, sur deux lignes au plus : avec 12 locuteurs aux noms
+   longs, la matrice défile sans perdre qui avait la parole (B7). */
+.ws-matrix th[scope="row"] {
+  position: sticky; left: 0; z-index: 1; background: var(--ws-surface) !important;
+  white-space: normal; max-width: 13em; min-width: 8em; overflow-wrap: anywhere;
+}
+.ws-matrix th[scope="row"].ws-who { white-space: normal; }
+.ws-mx-num { display: inline-block; min-width: 1.6em; color: var(--ws-slate); font-variant-numeric: tabular-nums; }
+.ws-matrix thead th:first-child { position: sticky; left: 0; z-index: 1; background: var(--ws-surface) !important; }
+.ws-mx-corner { font-weight: 400; font-size: 0.75rem; white-space: normal; display: block; max-width: 11em; }
+
+/* Image de la timeline (R-U11). */
+.ws-image-export { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 12px; margin-top: 12px; }
+.ws-png-status { font-size: 0.8rem; color: var(--ws-slate); }
 
 /* Exports : liste en lecture seule, noms complets, sans bouton de retrait. */
 .ws-exports .label-clear-button { display: none !important; }
@@ -228,7 +389,7 @@ button.primary:active, button.secondary:active, .wsp-play:active { transform: sc
 .pl-role { margin: 0 0 12px; max-width: 72ch; line-height: 1.5; }
 .pl-facts { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 8px 24px; margin: 0 0 14px; }
 .pl-facts dt { color: var(--ws-slate); font-size: 0.8rem; }
-.pl-facts dd { margin: 2px 0 0; font-size: 0.9rem; }
+.pl-facts dd { margin: 2px 0 0; font-size: 0.9rem; min-width: 0; overflow-wrap: anywhere; }
 .pl-facts ul { margin: 0; padding-left: 16px; }
 .pl-table td { vertical-align: top; font-size: 0.875rem; }
 .pl-table td:first-child { white-space: normal; min-width: 160px; }
@@ -241,10 +402,22 @@ button.primary:active, button.secondary:active, .wsp-play:active { transform: sc
 .pl-rev { display: block; color: var(--ws-slate); font-size: 0.78rem; margin-top: 2px; }
 .pl-rev-missing { font-style: italic; }
 .pl-uncatalogued td { background: var(--ws-canvas) !important; }
+/* Pipeline relié aux mesures (R-U8) : constats sous l'étape, blocs d'un même réseau. */
+.pl-constats { margin-top: 14px; padding: 12px 14px; border-radius: 10px; background: var(--ws-canvas); }
+.pl-constats-title { margin: 0 0 6px; font-weight: 600; font-size: 0.875rem; }
+.pl-constats-list { margin: 0; padding: 0; list-style: none; display: grid; gap: 10px; }
+.pl-constats-list p { margin: 0; line-height: 1.5; max-width: 90ch; font-size: 0.875rem; }
+.pl-constat-meta { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; margin-top: 4px !important; }
+.pl-constat-meta .sub { display: inline; color: var(--ws-slate); font-size: 0.8rem; }
+.pl-part { margin-top: 16px; padding-top: 12px; border-top: 1px solid var(--ws-line); }
+.pl-part-title { margin: 0 0 8px; font-size: 0.95rem; }
+.pl-part-title .sub { display: block; margin-top: 2px; font-weight: 400; font-size: 0.85rem; color: var(--ws-slate); max-width: 80ch; }
 
 /* --- Onglet Avancement (D26, I2) --------------------------------------------------- */
 .av-table td { vertical-align: top; font-size: 0.875rem; }
 .av-table td:nth-child(2) { min-width: 220px; line-height: 1.45; }
+.av-queue td:nth-child(2) { min-width: 280px; }
+.av-queue td:nth-child(3), .av-queue td:nth-child(4) { min-width: 140px; line-height: 1.45; }
 .av-missing { color: var(--ws-slate); font-style: italic; }
 .av-flag {
   display: inline-block; margin-top: 4px; padding: 1px 8px; border-radius: 999px; font-size: 0.75rem;
@@ -261,6 +434,46 @@ button.primary:active, button.secondary:active, .wsp-play:active { transform: sc
 .av-notes:active { transform: scale(0.97); }
 @media (hover: hover) and (pointer: fine) { .av-notes:hover { background: var(--ws-canvas); } }
 .av-notes-view { max-width: 90ch; }
+
+/* « Ce que nous avons appris » (R-U7). */
+.av-learned { margin-top: 14px; padding: 14px 16px; border-radius: 10px; background: var(--ws-canvas); }
+.av-learned-title { margin: 0 0 8px; font-size: 0.95rem; font-weight: 600; }
+.av-learned-list { margin: 0; padding: 0; list-style: none; display: grid; gap: 12px; }
+.av-learned-item { padding-left: 12px; box-shadow: inset 2px 0 0 var(--ws-line); }
+.av-learned-item p { margin: 0; line-height: 1.5; max-width: 90ch; }
+.av-learned-meta { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; margin-top: 4px !important; }
+.av-learned-meta .sub { display: inline; color: var(--ws-slate); font-size: 0.8rem; }
+.av-confidence {
+  display: inline-block; padding: 1px 8px; border-radius: 999px; font-size: 0.75rem; font-weight: 600;
+  box-shadow: 0 0 0 1px var(--ws-ink); color: var(--ws-ink);
+}
+.av-conf-certain { background: var(--ws-ink); color: var(--ws-surface); }
+.av-conf-incertain { box-shadow: 0 0 0 1px var(--ws-slate); color: var(--ws-slate); font-weight: 500; }
+.av-source { height: 24px; padding: 0 8px; font-size: 0.75rem; }
+.av-source-missing { color: var(--ws-slate); font-size: 0.75rem; }
+.av-synthesis { margin-top: 10px; }
+.av-framing { margin-top: 12px; }
+.av-framing summary, .av-values summary { cursor: pointer; font-size: 0.875rem; font-weight: 500; padding: 6px 0; }
+
+/* Graphique des systèmes de référence : deux mises en page du même SVG. */
+.av-figure { margin: 0; }
+.av-chart { display: block; height: auto; max-width: 820px; }
+.av-chart text { font-family: var(--font); font-size: 12px; font-variant-numeric: tabular-nums; }
+.av-chart .av-txt { fill: var(--ws-ink); }
+.av-chart .av-strong { font-weight: 600; }
+.av-chart .av-muted { fill: var(--ws-slate); }
+.av-chart .av-small { font-size: 11px; }
+.av-chart .av-grid { stroke: var(--ws-line); stroke-width: 1; }
+.av-chart .av-seg { transition: opacity 120ms ease; }
+@media (hover: hover) and (pointer: fine) { .av-chart .av-seg:hover { opacity: 0.8; } }
+.av-chart-narrow { display: none; }
+@media (max-width: 560px) {
+  .av-chart-wide { display: none; }
+  .av-chart-narrow { display: block; }
+}
+@media (forced-colors: active) {
+  .av-chart .av-seg { forced-color-adjust: none; }
+}
 
 /* --- Glossaire (D26, I3) ----------------------------------------------------------- */
 a.gl-link {
@@ -293,10 +506,25 @@ a.gl-index {
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after { transition-duration: 0.01ms !important; animation-duration: 0.01ms !important; animation-iteration-count: 1 !important; }
 }
-.ws-table-wrap { overflow-x: auto; max-width: 100%; }
+/* Largeur nulle et largeur minimale pleine : le tableau ne contribue pas à la largeur
+   intrinsèque de la carte, il défile dans son cadre au lieu d'élargir la page à 375 px. */
+.ws-table-wrap { overflow-x: auto; max-width: 100%; width: 0; min-width: 100%; }
 @media (max-width: 720px) {
-  .gradio-container { padding: 0 16px !important; }
   .ws-share-bar { display: none; }
   .ws-card { min-width: 0 !important; }
   .ws-card { padding: 16px !important; }
+  /* Temps de traitement et exports l'un sous l'autre : côte à côte, les noms des exports
+     n'auraient plus la place de s'afficher. */
+  .ws-pair { flex-direction: column !important; }
+  /* Noms des exports sur deux lignes plutôt que coupés. */
+  .ws-exports td.filename { display: block !important; white-space: normal !important; overflow-wrap: anywhere; }
+  .ws-exports td.filename .stem, .ws-exports td.filename .ext { display: inline !important; white-space: normal !important; }
 }
+
+/* Titre des notifications en français (B7) : Gradio y écrit le type du message, initiale
+   en majuscule (« Error », « Warning », « Info »), sans passer par sa traduction. */
+.toast-title.error, .toast-title.warning, .toast-title.info { font-size: 0 !important; }
+.toast-title.error::before, .toast-title.warning::before, .toast-title.info::before { font-size: 16px; }
+.toast-title.error::before { content: "Erreur"; }
+.toast-title.warning::before { content: "Attention"; }
+.toast-title.info::before { content: "Information"; }

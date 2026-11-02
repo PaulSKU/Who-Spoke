@@ -18,6 +18,14 @@ absents du catalogue, ou l'inverse, sont signalés en tête de page.
 Révisions des modèles (D18, amendement du 01/11) : lues dans la valeur d'un réglage
 `*.modele` au format `dépôt@commit (architecture)`, ou dans un réglage `*.revision` ;
 sinon, la page affiche « révision non consignée ».
+
+Pipeline relié aux mesures (audit R-U8) : sous chaque étape, les constats de
+`docs/constats.yaml` dont l'`etape` est celle-ci et dont les `moteurs` comprennent le
+moteur affiché (liste vide : tous) ; « evaluation » va sous l'étape Évaluation. Un constat
+dont l'étape n'existe pas au catalogue est signalé en tête de page. Les étapes qu'un même
+réseau réalise sont présentées dans un seul bloc, réglages distingués par étape, selon la
+section `regroupements` du catalogue (pyannote : détection et segmentation) ; à défaut dans
+le catalogue de `--depot`, celle du catalogue de ce code est utilisée.
 """
 
 from __future__ import annotations
@@ -30,6 +38,7 @@ from pathlib import Path
 
 import yaml
 
+from app import constats as constats_file
 from app import moteurs
 from whospoke import audio
 from whospoke.evaluation.metrics import CONDITIONS, DiarizationEvaluator
@@ -81,17 +90,27 @@ class Stage:
     defined_in: str
     rows: list[Row]
     note: str = ""
+    constats: list = field(default_factory=list)    # constats_file.Constat de cette étape
+    parts: list["Stage"] = field(default_factory=list)   # étapes d'un même réseau, regroupées
+
+    @property
+    def step_ids(self) -> list[str]:
+        return [part.id for part in self.parts] if self.parts else [self.id]
+
+    @property
+    def all_constats(self) -> list:
+        return [c for part in self.parts for c in part.constats] if self.parts else self.constats
 
     @property
     def errors(self) -> list[str]:
         seen: list[str] = []
-        for row in self.rows:
+        for row in self.rows + [row for part in self.parts for row in part.rows]:
             seen += [c for c in row.components if c not in NON_ERRORS and c not in seen]
         return seen
 
     @property
     def models(self) -> list[Row]:
-        return [row for row in self.rows if row.revision is not None]
+        return [row for row in self.rows + [r for part in self.parts for r in part.rows] if row.revision is not None]
 
 
 @dataclass
@@ -108,6 +127,7 @@ class Page:
     not_catalogued: list[str] = field(default_factory=list)      # dans la configuration, pas au catalogue
     not_configured: list[str] = field(default_factory=list)      # au catalogue, pas dans la configuration
     wrong_step: list[str] = field(default_factory=list)          # étape différente
+    constat_issues: list[str] = field(default_factory=list)      # constats à étape inconnue, fichier mal formé
 
 
 def format_value(name: str, value) -> str:
@@ -144,16 +164,7 @@ def load_catalogue(root: Path) -> dict:
 
 def execution_file(spec: moteurs.EngineSpec, root: Path) -> Path:
     """execution_<périphérique>.json de l'exécution principale de l'expérience source."""
-    experiments = root / "experiments"
-    directory = moteurs.experiment_dir(spec.source_exp, experiments)
-    device = moteurs.source_device(spec, experiments)
-    main = directory / f"execution_{device}.json"
-    if main.is_file():
-        return main
-    others = sorted(directory.glob("execution_*.json"))
-    if not others:
-        raise moteurs.EngineUnavailable(f"{spec.source_exp} n'a pas encore été exécutée")
-    return others[0]
+    return moteurs.execution_path(spec, root / "experiments")
 
 
 def _common_normalisation(catalogue: dict, page: Page) -> Stage:
@@ -267,7 +278,50 @@ def load_page(spec: moteurs.EngineSpec, root: Path) -> Page:
         ))
     page.not_configured += sorted(set(entries) - configured)
     page.evaluation = _evaluation(config)
+    _attach_constats(page, root, set(steps))
+    page.stages = _grouped(page.stages, _groups(catalogue, spec.pipeline))
     return page
+
+
+def _groups(catalogue: dict, pipeline_name: str) -> list[dict]:
+    """Regroupements d'étapes du moteur : catalogue de `--depot`, à défaut celui de ce code."""
+    groups = catalogue.get("regroupements")
+    if groups is None:
+        from whospoke.pipelines.base import load_catalogue as own_catalogue
+
+        groups = own_catalogue().get("regroupements") or {}
+    return list(groups.get(pipeline_name) or [])
+
+
+def _grouped(stages: list[Stage], groups: list[dict]) -> list[Stage]:
+    """Étapes d'un même réseau réunies dans un bloc, à la place de la première d'entre elles ;
+    chacune garde ses réglages et ses constats."""
+    for group in groups:
+        members = [stage for stage in stages if stage.id in group.get("etapes", [])]
+        if len(members) < 2:
+            continue
+        order = {step: i for i, step in enumerate(group["etapes"])}
+        members.sort(key=lambda stage: order[stage.id])
+        block = Stage(id=group["id"], label=group.get("libelle", group["id"]), family=members[0].family,
+                      role=group.get("role", ""), defined_in=members[0].defined_in, rows=[], parts=members)
+        position = min(stages.index(stage) for stage in members)
+        stages = [stage for stage in stages if stage not in members]
+        stages.insert(position, block)
+    return stages
+
+
+def _attach_constats(page: Page, root: Path, known_steps: set[str]) -> None:
+    data = constats_file.read(root)
+    page.constat_issues += data.problems
+    by_step = {stage.id: stage for stage in page.stages}
+    by_step[constats_file.EVALUATION] = page.evaluation
+    for constat in data.items:
+        if constat.etape not in known_steps and constat.etape != constats_file.EVALUATION:
+            page.constat_issues.append(f"constat {constat.id} : étape « {constat.etape} » absente du catalogue")
+            continue
+        stage = by_step.get(constat.etape)
+        if stage is not None and constat.concerns(page.spec.key):
+            stage.constats.append(constat)
 
 
 # --- Rendu -------------------------------------------------------------------------
@@ -290,10 +344,42 @@ def _row_html(row: Row) -> str:
             f'<td>{effect}</td><td>{chips}</td></tr>')
 
 
+CONFIDENCE = {"certain": "certain", "probable": "probable", "incertain": "incertain"}
+
+
+def _constats_html(constats: list, label: str | None = None) -> str:
+    if not constats:
+        return ""
+    items = "".join(
+        f'<li><p>{escape(c.texte)}</p><p class="pl-constat-meta">'
+        f'<span class="av-confidence av-conf-{escape(c.confiance)}">{escape(CONFIDENCE.get(c.confiance, c.confiance))}</span>'
+        f'<span class="sub">{escape(c.id)} · sources : {escape(", ".join(c.sources) or "—")}</span></p></li>'
+        for c in constats)
+    title = "Constats mesurés" + (f" : {label}" if label else "")
+    return (f'<div class="pl-constats"><p class="pl-constats-title">{escape(title)}</p>'
+            f'<ul class="pl-constats-list">{items}</ul></div>')
+
+
+def _table_html(rows: list[Row]) -> str:
+    return ('<div class="ws-table-wrap"><table class="ws-table pl-table"><thead><tr>'
+            '<th scope="col">Réglage</th><th scope="col">Valeur en vigueur</th><th scope="col">Origine</th>'
+            '<th scope="col">Ce que ça fait</th><th scope="col">Joue sur</th></tr></thead>'
+            f'<tbody>{"".join(_row_html(row) for row in rows)}</tbody></table></div>')
+
+
 def _stage_html(stage: Stage, selected: bool) -> str:
     models = "".join(f'<li>{escape(row.value)} — {escape(row.revision or NO_REVISION)}</li>' for row in stage.models)
     errors = ", ".join(stage.errors) or "aucune erreur propre"
-    rows = "".join(_row_html(row) for row in stage.rows)
+    if stage.parts:
+        # Bloc d'un même réseau : réglages et constats de chaque étape, sous son nom.
+        body = "".join(
+            f'<section class="pl-part" aria-label="{escape(part.label)}"><h4 class="pl-part-title">{escape(part.label)}'
+            f'<span class="sub">{escape(part.role)}</span></h4>'
+            + (_table_html(part.rows) if part.rows else '<p class="ws-empty-note">Aucun réglage propre.</p>')
+            + _constats_html(part.constats, part.label) + "</section>"
+            for part in stage.parts)
+    else:
+        body = _table_html(stage.rows) + _constats_html(stage.constats)
     return (
         f'<section class="pl-sheet" data-stage="{stage.id}" aria-label="{escape(stage.label)}"'
         f'{"" if selected else " hidden"}>'
@@ -303,18 +389,17 @@ def _stage_html(stage: Stage, selected: bool) -> str:
         + (f'<div><dt>Modèle</dt><dd><ul>{models}</ul></dd></div>' if models else "")
         + f'<div><dt>Erreurs produites</dt><dd>{escape(errors)}</dd></div>'
         f'<div><dt>Défini dans</dt><dd><code>{escape(stage.defined_in)}</code></dd></div></dl>'
-        '<div class="ws-table-wrap"><table class="ws-table pl-table"><thead><tr>'
-        '<th scope="col">Réglage</th><th scope="col">Valeur en vigueur</th><th scope="col">Origine</th>'
-        '<th scope="col">Ce que ça fait</th><th scope="col">Joue sur</th></tr></thead>'
-        f'<tbody>{rows}</tbody></table></div></section>'
+        f'{body}</section>'
     )
 
 
 def _button(stage: Stage, selected: bool, evaluation: bool = False) -> str:
     cls = "pl-step pl-eval" if evaluation else "pl-step"
+    count = len(stage.all_constats)
+    measured = f" · {count} constat{'s' if count > 1 else ''}" if count else ""
     return (f'<button type="button" class="{cls}" data-stage="{stage.id}" aria-pressed="{str(selected).lower()}">'
             f'<span class="pl-step-name">{escape(stage.label)}</span>'
-            f'<span class="pl-step-family">{escape(stage.family)}</span></button>')
+            f'<span class="pl-step-family">{escape(stage.family)}{measured}</span></button>')
 
 
 def render(page: Page) -> str:
@@ -335,6 +420,8 @@ def render(page: Page) -> str:
                       + ", ".join(page.not_configured))
     if page.wrong_step:
         issues.append("Étape différente : " + " ; ".join(page.wrong_step))
+    if page.constat_issues:
+        issues.append("docs/constats.yaml : " + " ; ".join(page.constat_issues))
     callout = ""
     if issues:
         callout = ('<div class="pl-issues" role="note"><p class="strong">Écarts entre la configuration et le '

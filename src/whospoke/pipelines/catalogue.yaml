@@ -507,3 +507,12 @@ communs:
     effet: "Aucun chemin de fichier n'est passé aux moteurs : le décodeur de pyannote (torchcodec) est contourné."
     composantes: [aucun effet sur le DER]
     decision: D16
+
+# Étapes présentées ensemble sur la page Pipeline (audit R-U8) : un même réseau qui réalise
+# plusieurs étapes. Les réglages restent distingués par étape dans le bloc.
+regroupements:
+  pyannote-community-1:
+    - id: segmentation_neuronale
+      libelle: "Segmentation neuronale (détection et segmentation)"
+      etapes: [detection, segmentation]
+      role: "Un seul réseau, le modèle de segmentation de pyannote, détecte la parole et découpe chaque fenêtre en tours locaux, chevauchements compris : détection et segmentation sont deux sorties du même calcul."

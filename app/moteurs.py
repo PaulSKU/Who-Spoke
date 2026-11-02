@@ -119,6 +119,43 @@ def source_device(spec: EngineSpec, root: Path = EXPERIMENTS_DIR) -> str:
     return source_config(spec, root)["device"]
 
 
+def execution_path(spec: EngineSpec, root: Path = EXPERIMENTS_DIR) -> Path:
+    """execution_<périphérique>.json de l'exécution principale de l'expérience source (à
+    défaut, la première exécution trouvée)."""
+    directory = experiment_dir(spec.source_exp, root)
+    main = directory / f"execution_{source_device(spec, root)}.json"
+    if main.is_file():
+        return main
+    others = sorted(directory.glob("execution_*.json"))
+    if not others:
+        raise EngineUnavailable(f"{spec.source_exp} n'a pas encore été exécutée")
+    return others[0]
+
+
+def effective_configuration(spec: EngineSpec, root: Path = EXPERIMENTS_DIR) -> dict:
+    """`configuration_effective` de l'exécution principale de l'expérience source, celle
+    qu'affiche la page Pipeline (D17) ; dictionnaire vide si elle n'est pas consignée."""
+    try:
+        return json.loads(execution_path(spec, root).read_text()).get("configuration_effective") or {}
+    except (OSError, ValueError, EngineUnavailable):
+        return {}
+
+
+def model_revisions(spec: EngineSpec, root: Path = EXPERIMENTS_DIR) -> dict[str, str]:
+    """Révisions figées des modèles pré-entraînés du moteur (D18, amendement du 01/11) :
+    {dépôt : commit}. La baseline MFCC n'en utilise aucun."""
+    from whospoke import embeddings
+    from whospoke.pipelines import pyannote_community1
+
+    if spec.pipeline == pyannote_community1.PyannoteCommunity1.name:
+        return {pyannote_community1.MODEL_ID: pyannote_community1.MODEL_REVISION}
+    representation = (source_config(spec, root)["pipeline"].get("parametres") or {}).get("representation")
+    return {
+        "ecapa": {embeddings.ECAPA_SOURCE: embeddings.ECAPA_REVISION},
+        "wespeaker": {embeddings.WESPEAKER_SOURCE: embeddings.WESPEAKER_REVISION},
+    }.get(representation, {})
+
+
 def engine_params(spec: EngineSpec, root: Path = EXPERIMENTS_DIR) -> dict:
     """Paramètres de construction repris de l'expérience source (θ retenu compris)."""
     config = source_config(spec, root)
@@ -188,23 +225,31 @@ def find_rttm(rttm_dir: Path, name: str) -> Path:
     matches = sorted(rttm_dir.glob(f"*__{name}.rttm"))
     if len(matches) == 1:
         return matches[0]
-    raise FileNotFoundError(
-        f"Moteur factice : aucun RTTM pour {name!r} dans {_shown(rttm_dir)}"
-        if not matches else f"Moteur factice : nom ambigu {name!r} ({len(matches)} RTTM)"
-    )
+    if not matches:
+        raise FileNotFoundError(
+            f"Moteur factice : aucune sortie pour « {name} ». Le moteur factice ne calcule rien, il relit "
+            f"les RTTM de son expérience source ({_shown(rttm_dir)}). Déposez un fichier de ce corpus "
+            "(par exemple 007a_ECRH), ajoutez une sortie fabriquée avec --factice-rttm, ou relancez "
+            "l'application sans --factice pour analyser ce fichier.")
+    raise FileNotFoundError(f"Moteur factice : nom ambigu « {name} » ({len(matches)} RTTM) : renommez le "
+                            "fichier avec l'identifiant complet (par exemple summre__007a_ECRH).")
 
 
 class FakeEngine(Engine):
-    """Moteur factice au contrat D19 : étapes simulées, RTTM d'une expérience existante."""
+    """Moteur factice au contrat D19 : étapes simulées, RTTM d'une expérience existante.
+
+    `fabricated` : dossier de sorties fabriquées (`<nom du fichier déposé>.rttm`), cherchées
+    avant celles de l'expérience source ; sert aux cas limites de l'interface (B7)."""
 
     name = "factice"
 
     def __init__(self, spec: EngineSpec, root: Path = EXPERIMENTS_DIR,
-                 simulated_s: float = 6.0, ticks_per_step: int = 4) -> None:
+                 simulated_s: float = 6.0, ticks_per_step: int = 4, fabricated: Path | None = None) -> None:
         super().__init__()
         self.spec = spec
         self.rttm_dir = experiment_dir(spec.source_exp, root) / "rttm"
-        if not self.rttm_dir.is_dir():
+        self.fabricated = fabricated
+        if not self.rttm_dir.is_dir() and fabricated is None:
             raise EngineUnavailable(f"{spec.source_exp} n'a encore produit aucun RTTM")
         self.simulated_s = simulated_s
         self.ticks_per_step = ticks_per_step
@@ -222,7 +267,8 @@ class FakeEngine(Engine):
         self.check_input(waveform, sample_rate)
         if uri is None:
             raise ValueError("Moteur factice : uri requis pour retrouver le RTTM")
-        path = find_rttm(self.rttm_dir, uri)
+        made = self.fabricated / f"{uri}.rttm" if self.fabricated is not None else None
+        path = made if made is not None and made.is_file() else find_rttm(self.rttm_dir, uri)
         self._source = path
         duration_s = waveform.shape[1] / sample_rate
         pause = self.simulated_s / (len(self.spec.steps) * self.ticks_per_step)
@@ -234,7 +280,9 @@ class FakeEngine(Engine):
                 if progress is not None:
                     progress(step, tick / self.ticks_per_step)
             durations[step] = time.perf_counter() - start
-        source_uri = path.stem
+        # Uri lu dans le fichier : celui d'une sortie fabriquée suit le nom déposé, blancs remplacés.
+        first = next((line.split() for line in path.read_text().splitlines() if line.startswith("SPEAKER ")), None)
+        source_uri = first[1] if first and len(first) > 1 else path.stem
         annotation = load_rttm(path, source_uri).crop(Segment(0.0, duration_s), mode="intersection")
         annotation.uri = uri
         infos = {"rttm_source": _shown(path), "n_locuteurs_ignore": num_speakers}

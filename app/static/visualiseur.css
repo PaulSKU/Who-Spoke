@@ -3,13 +3,17 @@
 .wsp-root {
   --wsp-label-w: 132px;
   color: var(--ws-ink);
+  width: 0; min-width: 100%;   /* n'élargit jamais la carte (375 px) */
 }
+/* Référence appariée : étiquettes « 021 ↔ SPEAKER_01 », colonne plus large. */
+.wsp-root.wsp-wide { --wsp-label-w: 184px; }
 .wsp-empty .wsp-body { display: none; }
 .wsp-placeholder { display: none; color: var(--ws-slate); font-size: 0.9rem; margin: 0; padding: 4px 0; }
 .wsp-empty .wsp-placeholder { display: block; }
 
 .wsp-toolbar { display: flex; align-items: center; gap: 12px; margin-bottom: 12px; flex-wrap: wrap; }
-.wsp-play, .wsp-zoom button {
+.wsp-tools { display: flex; align-items: center; gap: 8px; margin-left: auto; flex-wrap: wrap; }
+.wsp-play, .wsp-zoom button, .wsp-follow, .wsp-help-toggle {
   height: 32px; padding: 0 12px; border: none; border-radius: 8px; cursor: pointer;
   font: inherit; font-size: 0.875rem; font-weight: 500;
   background: var(--ws-surface); color: var(--ws-ink);
@@ -18,13 +22,59 @@
 }
 .wsp-play { min-width: 84px; }
 .wsp-zoom-in, .wsp-zoom-out { width: 32px; padding: 0 !important; font-size: 1rem !important; }
-.wsp-play:active, .wsp-zoom button:active { transform: scale(0.97); }
+.wsp-help-toggle { width: 32px; padding: 0 !important; font-weight: 600 !important; }
+.wsp-follow[aria-pressed="true"] { box-shadow: 0 0 0 1.5px var(--ws-ink); }
+.wsp-follow[aria-pressed="false"] { color: var(--ws-slate); }
+.wsp-play:active, .wsp-zoom button:active, .wsp-follow:active, .wsp-help-toggle:active { transform: scale(0.97); }
 .wsp-zoom button:disabled { opacity: 0.4; cursor: default; transform: none; }
 @media (hover: hover) and (pointer: fine) {
-  .wsp-play:hover, .wsp-zoom button:not(:disabled):hover { background: var(--ws-canvas); }
+  .wsp-play:hover, .wsp-zoom button:not(:disabled):hover, .wsp-follow:hover, .wsp-help-toggle:hover {
+    background: var(--ws-canvas);
+  }
 }
 .wsp-time { font-variant-numeric: tabular-nums; font-size: 0.875rem; }
-.wsp-zoom { display: flex; align-items: center; gap: 8px; margin-left: auto; }
+.wsp-zoom { display: flex; align-items: center; gap: 8px; }
+
+/* Pastille « parle : X » pendant la lecture, et locuteur isolé (R-U3). */
+.wsp-speaking, .wsp-iso {
+  display: inline-flex; align-items: center; gap: 4px; padding: 3px 10px; border-radius: 999px;
+  font-size: 0.85rem; white-space: nowrap; max-width: 100%; overflow: hidden; text-overflow: ellipsis;
+}
+.wsp-speaking { background: var(--ws-canvas); box-shadow: 0 0 0 1px var(--ws-line); }
+.wsp-speaking .wsp-swatch { margin: 0 2px 0 4px; }
+.wsp-speaking strong { font-weight: 600; }
+.wsp-speaking[data-state="silence"] { color: var(--ws-slate); }
+.wsp-iso { box-shadow: 0 0 0 1.5px var(--ws-ink); font-weight: 500; }
+.wsp-speaking[hidden], .wsp-iso[hidden], .wsp-help[hidden] { display: none; }
+.wsp-label.wsp-dim, .wsp-track.wsp-dim { opacity: 0.25; transition: opacity 150ms ease; }
+
+/* Aide des raccourcis. */
+.wsp-help {
+  margin: 0 0 12px; padding: 12px 14px; border-radius: 10px; background: var(--ws-canvas);
+  font-size: 0.85rem; line-height: 1.5;
+}
+.wsp-help dl { display: grid; grid-template-columns: max-content minmax(0, 1fr); gap: 4px 14px; margin: 0; }
+.wsp-help dt { white-space: nowrap; }
+.wsp-help dd { margin: 0; }
+.wsp-help p { margin: 8px 0 0; color: var(--ws-slate); }
+.wsp-help-speakers { margin: 0; padding: 0; list-style: none; display: flex; flex-wrap: wrap; gap: 2px 14px; }
+.wsp-help-speakers:empty { display: none; }
+.wsp-root kbd {
+  font: inherit; font-size: 0.78rem; padding: 0 6px; border-radius: 4px; background: var(--ws-surface);
+  box-shadow: 0 0 0 1px var(--ws-line), 0 1px 0 1px var(--ws-line);
+}
+
+/* Vue d'ensemble (R-U2) : tout le fichier, fenêtre visible déplaçable. */
+.wsp-overview {
+  display: grid; grid-template-columns: var(--wsp-label-w) minmax(0, 1fr); align-items: center; margin-bottom: 10px;
+}
+.wsp-overview-label { font-size: 0.75rem; color: var(--ws-slate); padding-right: 12px; }
+.wsp-minimap { position: relative; border-radius: 6px; }
+.wsp-window {
+  cursor: grab; touch-action: none; border-radius: 4px; box-shadow: inset 0 0 0 1.5px var(--ws-ink);
+}
+.wsp-window.wsp-dragging { cursor: grabbing; }
+.wsp-window:focus-visible { outline: 2px solid var(--ws-ink); outline-offset: 2px; }
 .wsp-zoom-range { width: 140px; accent-color: var(--ws-ink); }
 .wsp-zoom-fit { white-space: nowrap; }
 .wsp-hint { color: var(--ws-slate); font-size: 0.8rem; margin: 10px 0 0; }
@@ -32,11 +82,18 @@
 .wsp-wave { margin-left: var(--wsp-label-w); }
 .wsp-rows { display: grid; grid-template-columns: var(--wsp-label-w) minmax(0, 1fr); margin-top: 10px; }
 .wsp-labels, .wsp-lanes { display: grid; gap: 4px; align-content: start; }
+/* Colonne des noms à la largeur de sa piste : un nom long finit par « … » au lieu d'élargir
+   la grille et de passer sous les pistes (B7). La légende d'un groupe déborde toujours. */
+.wsp-labels { grid-template-columns: minmax(0, 1fr); }
 .wsp-label {
   height: 24px; display: flex; align-items: center; overflow: hidden; white-space: nowrap;
   font-size: 0.85rem; padding-right: 12px; box-sizing: border-box;
 }
-.wsp-label { text-overflow: ellipsis; }
+.wsp-label-text { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+/* Nom d'un locuteur du premier moteur : un clic l'isole (au-delà de 9 locuteurs, seul moyen). */
+.wsp-label-iso { cursor: pointer; border-radius: 4px; }
+.wsp-label-iso:focus-visible { outline: 2px solid var(--ws-ink); outline-offset: -2px; }
+@media (hover: hover) and (pointer: fine) { .wsp-label-iso:hover .wsp-label-text { text-decoration: underline; } }
 .wsp-swatch { flex: none; display: inline-block; width: 8px; height: 8px; border-radius: 2px; margin-right: 8px; }
 .wsp-viewport { position: relative; overflow: hidden; }
 .wsp-canvas { position: relative; will-change: transform; }
@@ -59,10 +116,16 @@
 .wsp-axis { position: relative; height: 20px; margin-top: 6px; color: var(--ws-slate); font-size: 0.75rem; }
 .wsp-tick { position: absolute; top: 2px; transform: translateX(-50%); font-variant-numeric: tabular-nums; white-space: nowrap; }
 .wsp-tick:first-child { transform: none; }
+/* Dernière graduation alignée à droite quand elle touche le bord : jamais rognée (R-U5). */
+.wsp-tick.wsp-tick-end { transform: translateX(-100%); }
 @media (max-width: 640px) {
   .wsp-root { --wsp-label-w: 88px; }
-  .wsp-zoom { margin-left: 0; width: 100%; }
-  .wsp-zoom-range { flex: 1; }
+  .wsp-root.wsp-wide { --wsp-label-w: 112px; }
+  .wsp-explain dl { grid-template-columns: 1fr; }
+  .wsp-tools { margin-left: 0; width: 100%; }
+  .wsp-zoom { flex: 1 1 100%; min-width: 0; }
+  .wsp-zoom-range { flex: 1 1 40px; width: auto; min-width: 0; }
+  .wsp-help dl { grid-template-columns: 1fr; }
 }
 
 /* Carte des erreurs (D26, I4) : motifs d'encre, la rangée nommée porte l'identité. */
@@ -72,7 +135,12 @@
   color: var(--ws-slate); font-size: 0.75rem; height: 20px; margin-top: 6px;
   overflow: visible; position: relative; z-index: 1;
 }
-.wsp-spacer { height: 20px; margin-top: 6px; border-top: 1px solid var(--ws-line); }
+/* Rangée d'intitulé opaque, au-dessus de la tête de lecture : l'intitulé reste hors de son
+   tracé (R-U5). */
+.wsp-spacer {
+  height: 20px; margin-top: 6px; border-top: 1px solid var(--ws-line);
+  position: relative; z-index: 3; background: var(--ws-surface);
+}
 .wsp-labels > .wsp-caption:first-child, .wsp-lanes > .wsp-spacer:first-child { margin-top: 0; border-top: none; }
 .wsp-seg.wsp-err-manquee, .wsp-swatch.wsp-err-manquee { background: var(--ws-ink); }
 .wsp-seg.wsp-err-fausse_alarme, .wsp-swatch.wsp-err-fausse_alarme {
@@ -87,3 +155,23 @@
 .wsp-seg.wsp-err-fausse_alarme.wsp-selected, .wsp-seg.wsp-err-confusion.wsp-selected {
   box-shadow: inset 0 0 0 1.5px var(--ws-ink), 0 0 0 2px var(--ws-surface), 0 0 0 4px var(--ws-ink);
 }
+
+/* « Expliquer cette erreur » (R-U4) : constats factuels, jamais une cause. */
+.wsp-explain {
+  margin-top: 12px; padding: 12px 14px; border-radius: 10px; background: var(--ws-canvas);
+  box-shadow: inset 3px 0 0 var(--ws-ink); font-size: 0.875rem; line-height: 1.5;
+}
+.wsp-explain[hidden] { display: none; }
+.wsp-explain-head { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+.wsp-explain-title { margin: 0; font-size: 0.95rem; font-weight: 600; }
+.wsp-explain-close {
+  flex: none; width: 28px; height: 28px; border: none; border-radius: 8px; cursor: pointer; font: inherit;
+  font-size: 1.1rem; line-height: 1; background: var(--ws-surface); color: var(--ws-ink);
+  box-shadow: 0 0 0 1px var(--ws-line);
+}
+.wsp-explain dl { display: grid; grid-template-columns: max-content minmax(0, 1fr); gap: 2px 14px; margin: 8px 0 0; }
+.wsp-explain dt { color: var(--ws-slate); }
+.wsp-explain dd { margin: 0; overflow-wrap: anywhere; }
+.wsp-explain-sub { margin: 10px 0 2px; color: var(--ws-slate); }
+.wsp-explain-context { margin: 0; padding-left: 18px; }
+.wsp-explain-note { margin: 8px 0 0; color: var(--ws-slate); font-size: 0.8rem; }

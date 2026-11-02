@@ -59,10 +59,17 @@ def test_groupes_superposes_avec_reference_et_deux_cartes(compared, reference):
     value = interface._viewer_value(interface._with_reference(compared, reference))
     groups = {g["id"]: g for g in value["groupes"]}
     assert list(groups) == ["a", "b", "ref"]
-    assert groups["b"]["titre"] == "Baseline MFCC" and groups["ref"]["titre"] == "Référence"
-    # Premier moteur en couleurs ; second moteur et référence en gris neutre.
+    assert groups["b"]["titre"] == "Baseline MFCC"
+    assert groups["ref"]["titre"] == "Référence, appariée à pyannote community-1"
+    # Premier moteur en couleurs ; second moteur en gris neutre ; référence aux couleurs du
+    # locuteur du premier moteur qui lui est apparié (R-U4).
     assert groups["a"]["locuteurs"][0]["couleur"] == interface.PALETTE_LIGHT[0]
-    assert {s["couleur"] for s in groups["b"]["locuteurs"] + groups["ref"]["locuteurs"]} == {interface.NEUTRAL_LIGHT}
+    assert {s["couleur"] for s in groups["b"]["locuteurs"]} == {interface.NEUTRAL_LIGHT}
+    pairs = groups["a"]["erreurs"]["appariement"]
+    colors = {s["id"]: s["couleur"] for s in groups["a"]["locuteurs"]}
+    for speaker in groups["ref"]["locuteurs"]:
+        assert speaker["apparie"] == pairs.get(speaker["id"])
+        assert speaker["couleur"] == colors.get(speaker["apparie"], interface.NEUTRAL_LIGHT)
     # Référence coupée à la durée de l'audio : C disparaît.
     assert [s["id"] for s in groups["ref"]["locuteurs"]] == ["A", "B"]
     assert groups["a"]["erreurs"] and groups["b"]["erreurs"] and groups["ref"]["erreurs"] is None
@@ -88,14 +95,16 @@ def test_tableau_cote_a_cote(compared, reference):
 
 def test_exports_des_deux_resultats(compared):
     paths = [Path(p) for p in interface._exports(compared)]
-    assert sorted(p.name for p in paths) == ["essai_baseline-mfcc.json", "essai_baseline-mfcc.rttm",
-                                             "essai_pyannote-community-1.json", "essai_pyannote-community-1.rttm"]
+    assert sorted(p.name for p in paths) == [
+        "essai_baseline-mfcc.json", "essai_baseline-mfcc.rttm", "essai_baseline-mfcc_audacity.txt",
+        "essai_pyannote-community-1.json", "essai_pyannote-community-1.rttm",
+        "essai_pyannote-community-1_audacity.txt", "essai_timeline.svg"]
     data = {p.name: json.loads(p.read_text()) for p in paths if p.suffix == ".json"}
     assert data["essai_baseline-mfcc.json"]["moteur"] == "factice (baseline-mfcc)"
     assert data["essai_pyannote-community-1.json"]["moteur"] == "factice (pyannote-community-1)"
     # Hors comparaison, le nom reste celui du fichier.
     single = [Path(p).name for p in interface._exports(dict(compared, comparaison=None))]
-    assert sorted(single) == ["essai.json", "essai.rttm"]
+    assert sorted(single) == ["essai.json", "essai.rttm", "essai_audacity.txt", "essai_timeline.svg"]
 
 
 def test_avancement_temps_et_der_des_deux_moteurs(compared, reference):
