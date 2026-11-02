@@ -174,6 +174,25 @@ def test_ecart_sans_intervalle_sous_cinq_fichiers():
     assert rendu.compare(None, per_file(b)) == (None, "per_file absent")
 
 
+def test_ecart_a_pyannote_du_meme_corpus(depot):
+    text = page(depot, "systemes.md")
+    summre, ami = text.split("## AMI (SDM)")
+    assert "Écart à pyannote community-1 (EXP-0007), sans collar [IC 95 %]" in summre
+    assert "ce n'est pas une comparaison à une seule variable" in summre
+    a, b = files(8, base=(20.0, 3.0, 8.0)), files(8, wrong_count={0, 1})
+    ci = bootstrap_der_ci([sum(e) for e, _, _ in a.values()], [t for _, t, _ in a.values()],
+                          [sum(e) for e, _, _ in b.values()], [t for _, t, _ in b.values()])
+    ecapa = next(li for li in summre.splitlines() if li.startswith("| EXP-0012 |")).split(" | ")
+    assert ecapa[5] == f"{rendu.num(ci['estimation'], sign=True)} [{rendu.num(ci['borne_inf'], sign=True)} ; " \
+                       f"{rendu.num(ci['borne_sup'], sign=True)}]"
+    assert ecapa[7].rstrip(" |") == "0 / 8 sur 8"
+    # MFCC : pas de référence déclarée, mais un écart à pyannote ; pyannote face à lui-même : rien.
+    mfcc = next(li for li in summre.splitlines() if li.startswith("| EXP-0009 |")).split(" | ")
+    assert mfcc[1:5] == ["—"] * 4 and mfcc[5].startswith("+")
+    assert next(li for li in summre.splitlines() if li.startswith("| EXP-0007 |")).split(" | ")[5] == "— (elle-même)"
+    assert "pyannote absent du corpus" in ami
+
+
 def test_reference_absente_signalee(depot):
     experiment(depot, "EXP-0020", "baseline-x-summre", "summre", files(8), reference="EXP-0099",
                variable="seuil", verdict="en_cours")
@@ -239,6 +258,41 @@ def test_robustesse_propre_de_l_experience_prioritaire(depot):
     text = page(depot, "robustesse.md")
     assert "| Baseline ECAPA — EXP-0031 | propre (EXP-0031) |" in text
     assert "`bru05` (bruit, RSB 5 dB)" in text
+
+
+def test_robustesse_moteurs_compares_a_pyannote(depot):
+    def a3(exp_id, slug, corpus, base, reference, **kwargs):
+        experiment(depot, exp_id, slug, corpus, files(8, base=base), reference=reference, variable="condition",
+                   verdict="en_cours", **kwargs)
+    pyannote = dict(pipeline="pyannote-community-1", vad="integree")
+    # Variante exclusive (propre : EXP-0016), au plus petit numéro : ce n'est pas la référence.
+    a3("EXP-0029", "pyannote-exclusive-degrade", "summre-rev04", (30.0, 2.0, 3.0), "EXP-0016", **pyannote)
+    a3("EXP-0030", "pyannote-degrade", "summre-rev04", (20.0, 5.0, 6.0), "EXP-0007", **pyannote)
+    a3("EXP-0031", "ecapa-degrade", "summre-rev04", (25.0, 4.0, 12.0), "EXP-0012", representation="ecapa")
+    a3("EXP-0031", "ecapa-degrade", "summre-bru05", (25.0, 4.0, 12.0), "EXP-0012", representation="ecapa")
+    section = page(depot, "robustesse.md").split("## Comparaison à pyannote community-1, à condition égale")[1]
+    assert "DER du moteur moins DER de pyannote community-1 — EXP-0030" in section
+    rows = [li.split(" | ") for li in section.splitlines() if li.startswith("| ")][1:]
+    assert [(r[0], r[1]) for r in rows] == [
+        ("| pyannote community-1 — EXP-0029", "propre"), ("| pyannote community-1 — EXP-0029", "`rev04`"),
+        ("| Baseline ECAPA — EXP-0031", "propre"), ("| Baseline ECAPA — EXP-0031", "`rev04`"),
+        ("| Baseline ECAPA — EXP-0031", "`bru05`")]
+    ecapa, pyan = files(8, base=(25.0, 4.0, 12.0)), files(8, base=(20.0, 5.0, 6.0))
+    ci = bootstrap_der_ci([sum(e) for e, _, _ in ecapa.values()], [t for _, t, _ in ecapa.values()],
+                          [sum(e) for e, _, _ in pyan.values()], [t for _, t, _ in pyan.values()])
+    assert rows[3][2].startswith(rendu.num(ci["estimation"], sign=True) + " [")
+    assert rows[3][4].rstrip(" |") == "0 / 8 sur 8"
+    assert rows[4][2] == "pyannote sans cette condition"
+    # Propre contre propre : EXP-0012 contre EXP-0007.
+    clean = rendu.compare(rendu.read_per_file(next((depot / "experiments").glob("EXP-0012_*")), "summre", "test"),
+                          rendu.read_per_file(next((depot / "experiments").glob("EXP-0007_*")), "summre", "test"))
+    assert rows[2][2] == clean[0]["c0"].text()
+
+
+def test_robustesse_sans_pyannote(depot):
+    experiment(depot, "EXP-0031", "ecapa-degrade", "summre-rev04", files(8), reference="EXP-0012",
+               variable="condition", representation="ecapa", verdict="en_cours")
+    assert "Aucune expérience de pyannote community-1 dans A3" in page(depot, "robustesse.md")
 
 
 # --- Temps ----------------------------------------------------------------------------

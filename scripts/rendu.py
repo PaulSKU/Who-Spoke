@@ -330,19 +330,41 @@ def flagged(run: Run, text: str) -> str:
     return f"{text} (invalidée)" if run.invalidated else text
 
 
-def gap_cells(repo: Repository, run: Run) -> list[str]:
-    """Référence déclarée, écarts dans les deux conditions de collar, fichiers meilleurs et moins bons."""
-    reference = repo.run(run.item.reference, run.corpus, run.partition)
+PYANNOTE = ("pyannote-community-1", None)       # moteur de démonstration (système de `av.REFERENCE_SYSTEMS`)
+
+
+def pyannote_run(repo: Repository, corpus: str) -> Run | None:
+    """pyannote community-1 sur ce corpus, choisi comme dans le graphique de l'Avancement
+    (`av.reference_systems`) : première expérience en condition réaliste, nombre de locuteurs
+    estimé, avec un résultat de test non invalidé (EXP-0007 sur SUMM-RE, EXP-0001 sur AMI)."""
+    for item in sorted(repo.items, key=lambda i: i.id):
+        run = repo.run(item.id, corpus)
+        if (item.kind == "experience" and av._system(item) == PYANNOTE and item.mode == "estime"
+                and item.vad != "oracle" and run is not None and not run.invalidated):
+            return run
+    return None
+
+
+def gap_to(run: Run, other: Run | None, missing: str = "référence absente",
+           subset: set[str] | None = None) -> list[str]:
+    """Écart apparié à `other` dans les deux conditions de collar, fichiers où `run` fait mieux / moins bien."""
+    if other is None:
+        return [missing, "—", "—"]
+    if other is run:
+        return ["— (elle-même)", "—", "—"]
+    gaps, reason = compare(run.per_file, other.per_file, subset)
+    if gaps is None:
+        return [reason, "—", "—"]
+    c0 = gaps["c0"]
+    return [c0.text(), gaps["c025"].text(), f"{c0.better} / {c0.worse} sur {c0.n}"]
+
+
+def declared_cells(repo: Repository, run: Run) -> list[str]:
+    """Référence déclarée (variable modifiée), puis l'écart à celle-ci."""
     if not run.item.reference:
         return ["—", "—", "—", "—"]
-    label = f"{run.item.reference} ({run.item.variable or '?'})"
-    if reference is None:
-        return [label, "référence absente", "—", "—"]
-    gaps, reason = compare(run.per_file, reference.per_file)
-    if gaps is None:
-        return [label, reason, "—", "—"]
-    c0 = gaps["c0"]
-    return [label, gaps["c0"].text(), gaps["c025"].text(), f"{c0.better} / {c0.worse} sur {c0.n}"]
+    reference = repo.run(run.item.reference, run.corpus, run.partition)
+    return [f"{run.item.reference} ({run.item.variable or '?'})", *gap_to(run, reference)]
 
 
 def systems_page(repo: Repository) -> str:
@@ -370,18 +392,28 @@ def systems_page(repo: Repository) -> str:
                     num((r.metrics.get("collar_0") or {}).get("fausse_alarme")),
                     num((r.metrics.get("collar_0") or {}).get("confusion")), speakers_exact(r)]
                    for label, r in zip(labels, runs)]
-        gaps = [[r.item.id, *gap_cells(repo, r)] for r in runs if r.item.reference]
+        pyannote = pyannote_run(repo, corpus)
+        gaps = [[r.item.id, *declared_cells(repo, r), *gap_to(r, pyannote, "pyannote absent du corpus")]
+                for r in runs]
         lines += [f"## {title}", ""]
         lines += md_table(["Système", "Expérience", "Verdict", "DER sans collar", "DER collar 0,25 s",
                            "Parole manquée", "Fausse alarme", "Confusion", "Nombre de locuteurs exact"], metrics)
-        if gaps:
-            lines += ["", f"Écart à la référence déclarée ({title}, test) : DER de l'expérience moins DER de sa "
-                          "référence, en points, intervalle de confiance à 95 % par bootstrap apparié sur les "
-                          f"fichiers ({RESAMPLES_TEXT} tirages, graine {SEED}). Un écart négatif est une amélioration.",
-                      ""]
-            lines += md_table(["Expérience", "Référence (variable modifiée)", "Écart sans collar [IC 95 %]",
-                               "Écart collar 0,25 s [IC 95 %]", "Fichiers où l'expérience fait mieux / moins bien (sans collar)"],
-                              gaps)
+        name = f"pyannote community-1 ({pyannote.item.id})" if pyannote else "pyannote community-1"
+        lines += ["", f"Écarts ({title}, test) : DER de l'expérience moins DER du système comparé, en points, "
+                      "intervalle de confiance à 95 % par bootstrap apparié sur les fichiers "
+                      f"({RESAMPLES_TEXT} tirages, graine {SEED}) ; un écart négatif est une amélioration. "
+                      "Première comparaison, principale : à la référence déclarée de l'expérience, qui ne diffère "
+                      f"que par la variable modifiée (protocole, D9). Seconde comparaison : à {name}, moteur de "
+                      "démonstration, sur le même corpus ; ce n'est pas une comparaison à une seule variable "
+                      "(moteur, détection, représentation et réglages peuvent tous différer).", ""]
+        lines += md_table(["Expérience", "Référence déclarée (variable modifiée)",
+                           "Écart à la référence déclarée, sans collar [IC 95 %]",
+                           "Écart à la référence déclarée, collar 0,25 s [IC 95 %]",
+                           "Fichiers où l'expérience fait mieux / moins bien que sa référence (sans collar)",
+                           f"Écart à {name}, sans collar [IC 95 %]", f"Écart à {name}, collar 0,25 s [IC 95 %]",
+                           f"Fichiers où l'expérience fait mieux / moins bien que {name} (sans collar)"], gaps)
+        if pyannote is not None and pyannote not in runs:
+            used.append(pyannote)
         lines.append("")
     if not used:
         lines += ["Aucun résultat de test.", ""]
@@ -475,6 +507,44 @@ def clean_run(repo: Repository, item: av.Item) -> Run | None:
     return repo.run(item.reference, "summre")
 
 
+def versus_pyannote(repo: Repository, by_item: dict[str, list[Run]], condition_key) -> list[str]:
+    """Chaque autre moteur d'A3 contre pyannote, condition par condition (propre compris).
+
+    L'expérience pyannote d'A3 est celle dont le propre est pyannote community-1 sur SUMM-RE
+    (`pyannote_run`, EXP-0007), sinon la première expérience pyannote d'A3 : une variante
+    (sortie exclusive, par exemple) a pour propre sa propre référence."""
+    candidates = [repo.by_id[e] for e in sorted(by_item) if av._system(repo.by_id[e]) == PYANNOTE]
+    if not candidates:
+        return ["Aucune expérience de pyannote community-1 dans A3 : comparaison impossible."]
+    reference = pyannote_run(repo, "summre")
+    pyannote = next((i for i in candidates if reference is not None and clean_run(repo, i) is reference),
+                    candidates[0])
+    runs = {ROBUSTNESS_CORPUS.match(r.corpus)["condition"]: r for r in by_item[pyannote.id]}
+    runs[CLEAN] = clean_run(repo, pyannote)
+    rows = []
+    for exp_id in sorted(by_item):
+        if exp_id == pyannote.id:
+            continue
+        item = repo.by_id[exp_id]
+        engine = f"{system_label(item)} — {exp_id}"
+        own = [(CLEAN, clean_run(repo, item))] + [(ROBUSTNESS_CORPUS.match(r.corpus)["condition"], r)
+                                                  for r in sorted(by_item[exp_id], key=condition_key)]
+        for code, run in own:
+            if run is None:
+                continue
+            rows.append([engine, CLEAN if code == CLEAN else f"`{code}`",
+                         *gap_to(run, runs.get(code), "pyannote sans cette condition")])
+    name = f"pyannote community-1 — {pyannote.id}"
+    if not rows:
+        return [f"Aucun autre moteur que {name} dans A3."]
+    return [f"Écart : DER du moteur moins DER de {name}, dans la même condition et sur les mêmes réunions, "
+            f"en points, intervalle de confiance à 95 % par bootstrap apparié ({RESAMPLES_TEXT} tirages, "
+            f"graine {SEED}) ; un écart négatif signifie que le moteur fait mieux que pyannote.", "",
+            *md_table(["Moteur", "Condition", f"Écart à {name}, sans collar [IC 95 %]",
+                       f"Écart à {name}, collar 0,25 s [IC 95 %]",
+                       "Réunions où le moteur fait mieux / moins bien que pyannote (sans collar)"], rows)]
+
+
 def robustness_page(repo: Repository) -> str:
     config = degrade_config(repo.root)
     specs = config.get("conditions") or {}
@@ -493,7 +563,8 @@ def robustness_page(repo: Repository) -> str:
             by_item.setdefault(run.item.id, []).append(run)
     if not by_item:
         lines += ["Aucun résultat d'A3 pour l'instant : ce tableau se remplit dès qu'une expérience contient des "
-                  "`results_summre-<condition>_test.json`.", "",
+                  "`results_summre-<condition>_test.json`, avec l'écart au propre, les sous-groupes Zoom et autres, et la "
+                  "comparaison de chaque moteur à pyannote community-1 à condition égale.", "",
                   "Conditions prévues (`configs/summre_degrade.yaml`) : "
                   + " ; ".join(f"`{code}` ({condition_label(spec)})" for code, spec in specs.items()) + ".", ""]
         lines += sources_lines([])
@@ -544,6 +615,8 @@ def robustness_page(repo: Repository) -> str:
                            "Autres : écart collar 0,25 s [IC 95 %]", "Autres : réunions"], group_rows)
     else:
         lines.append("Non calculables : liste des réunions Zoom, propre ou per_file absents.")
+    lines += ["", "## Comparaison à pyannote community-1, à condition égale (D24 §3)", ""]
+    lines += versus_pyannote(repo, by_item, condition_key)
     lines.append("")
     lines += sources_lines(list(dict.fromkeys(used)),
                            [f"Conditions : `{DEGRADE_CONFIG.as_posix()}`."])
