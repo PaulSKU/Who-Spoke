@@ -45,3 +45,14 @@ def test_rt60_t20_et_annexe_t60():
     for condition, target in (("rev04", 0.4), ("rev08", 0.8), ("salle", 0.6)):
         assert abs(rows[condition]["t20_mediane_s"] - target) < 0.15
         assert rows[condition]["annexe_t60_mediane_s"] > rows[condition]["t20_mediane_s"]
+
+
+def test_pas_d_intervalle_sous_le_minimum():
+    """Décision du 02/11 : aucun IC sous 5 réunions, l'écart seul."""
+    worse = {u: row(2.0, 0.0, 0.0, 10.0, 20.0) for u in "abc"}
+    clean = {u: row(1.0, 0.0, 0.0, 10.0, 10.0) for u in "abc"}
+    out = a0002.compare(worse, clean, list("abc"), {"tirages": 100, "graine": 0}, min_files=5)
+    assert out["ecart_c0"] == pytest.approx(10.0)
+    assert out["ic_inf_c0"] == "" and out["ic_sup_c025"] == ""
+    full = a0002.compare(worse, clean, list("abc"), {"tirages": 100, "graine": 0}, min_files=3)
+    assert full["ic_inf_c0"] == pytest.approx(10.0)
