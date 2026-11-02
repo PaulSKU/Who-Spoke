@@ -17,7 +17,7 @@ Série : `app.avancement.ORACLE_SERIES` (EXP-0002, EXP-0003, EXP-0004, EXP-0005,
 **Sources.** Expériences (commit d'exécution) : EXP-0001 (`d9f177a`), EXP-0002 (`540bb5e`), EXP-0003 (`3abe688`), EXP-0004 (`3abe688`), EXP-0005 (`3abe688`), EXP-0006 (`3abe688`), EXP-0010 (`fba633a`), EXP-0011 (`14fde7e`).
 Fichiers : `results/leaderboard.csv` (contrôle), `results_<corpus>_<partition>.json` et `per_file_<corpus>_<partition>.csv` de chaque expérience.
 
-**Constats liés** (`docs/constats.yaml`, version 1 du 2026-11-01) :
+**Constats liés** (`docs/constats.yaml`, version 1 du 2026-11-02) :
 
 - C01 (certain) : La détection par énergie est le premier défaut de la baseline : avec ECAPA, la parole manquée fait 32,3 des 45,9 points de DER sur AMI test, et 21,9 des 33,4 points sur SUMM-RE test. Sources : EXP-0010, EXP-0012.
 - C02 (certain) : Une détection de parole parfaite retire 15,3 points de DER à la baseline MFCC sur AMI test (64,4 → 49,1 %). Sources : EXP-0002, EXP-0004.

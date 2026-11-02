@@ -18,10 +18,11 @@ uv run python scripts/rendu.py
 
 ![DER test sans collar des systèmes de référence](figures/systemes_reference.svg)
 
-**Sources.** Expériences (commit d'exécution) : EXP-0001 (`d9f177a`), EXP-0002 (`540bb5e`), EXP-0007 (`568efbb`), EXP-0009 (`568efbb`), EXP-0010 (`fba633a`), EXP-0012 (`3856355`), EXP-0013 (`2a08ff7`), EXP-0015 (`5bcb295`).
+**Sources.** Expériences (commit d'exécution) : EXP-0001 (`d9f177a`), EXP-0002 (`540bb5e`), EXP-0007 (`568efbb`), EXP-0009 (`568efbb`), EXP-0010 (`fba633a`), EXP-0012 (`3856355`), EXP-0013 (`2a08ff7`), EXP-0015 (`5bcb295`), EXP-0018 (`2fcf766`).
 Fichiers : `results/leaderboard.csv` (contrôle), `results_<corpus>_<partition>.json` et `per_file_<corpus>_<partition>.csv` de chaque expérience.
 Barres : `app.avancement.reference_systems`, comme l'onglet Avancement.
 
 ## Contrôles
 
 - `results/leaderboard.csv` et les results_*.json concordent (38 lignes, à 0,005 point près).
+- En-têtes de notes.md manquants ou illisibles (verdict non affiché) : EXP-0020, EXP-0021.
