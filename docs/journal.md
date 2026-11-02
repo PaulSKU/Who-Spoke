@@ -944,3 +944,30 @@ Problèmes :
 - Le correctif de la coche montre que `--update-snapshots` ne réécrit, depuis Playwright 1.50, que les captures hors tolérance : `npm run captures:maj` passe `--update-snapshots=all`.
 - Restent pour B11 : tailles des exports à l'anglaise (V11, composant de Gradio), barre d'outils sur quatre lignes à 375 px (V5), en-tête (V6), « Nouvelle analyse » serré en mode présentation.
 Suite : B11 (onglet Analyse), puis B12 et B13.
+
+## 2026-11-02 — Interface : onglet Analyse, finitions (B11) et retours de B10 (Claude Code)
+
+Objectif : retours du cockpit sur B10, puis chantier B11 (audit visuel du 02/11, §5) dans le worktree `ui` (déjà à jour avec `main`), moteur factice, sans modèle, fusion ni dépendance ajoutée.
+Réalisé :
+- Retours de B10 : test des exports (RTTM, JSON, étiquettes Audacity) : point décimal, tiret ASCII, aucune espace fine ; bordure des champs de saisie au jeton `--ws-control-line` (thème `input_border_color`, nom des locuteurs, liste de fusion), le fond du champ étant celui de la carte.
+- V3 : identifiant sous le nom seulement après renommage.
+- V5 : barre d'outils en groupes (lecture ; vue ; zoom ; aide à droite) qui reviennent à la ligne en entier ; à 375 px, deux lignes, libellés courts (nom accessible long) et zoom avec « Énergie et seuil » derrière une loupe ; une ligne en mode présentation à 1280 px.
+- V6 : configuration et moteur dans un panneau « Détails » replié, composant à part de l'en-tête ; en mode présentation, titre et interrupteur seulement.
+- V7 : statuts collés à leur étape, colonnes égales lues de haut en bas, liste repliée en « 7 étapes terminées en 3 s » après une analyse réussie.
+- V8 : carte « Comment ça marche » seule à droite avant toute analyse ; état et résultats au lancement.
+- V9 : étiquettes « SPK_A → S1 » et « SPK_E → aucun », nom complet en infobulle.
+- V10 : « pas de chevauchement dans la référence ».
+- V11 : exports en liste HTML, tailles en français (`formatage.taille`).
+- V13 : aides repliées sous « Comment lire ce tableau », masquées en mode présentation ; dans l'Évaluation, le résultat par zone reste visible, seule la méthode est repliée.
+- « Nouvelle analyse » : largeur de son libellé, aussi en mode présentation.
+- Captures avant et après (Playwright, `tests/visuel/avant-apres-b11.spec.ts`) : `docs/audit/b11-avant-apres/` (13 vues, 1440 px clair, 375 px sombre, présentation). Référence sans chevauchement ajoutée à la réunion de synthèse (`preparer.py`) pour V10.
+- Tests : `tests/test_app_analyse_b11.py` (9) et 2 tests ajoutés à `test_app_systeme_visuel.py` (exports, champs) ; tests de l'appariement, de la fusion et des composants mis à jour (étiquettes courtes, liste HTML des exports, loupe). Tests ciblés pendant le travail, suite complète une fois à la fin, commit enchaîné par `&&` : 588 réussis, 12 ignorés, 3 lents exclus.
+Résultats : aucune expérience. Contrôle visuel : stylelint sans écart ; 20 captures de référence mises à jour pour ces changements voulus (l'en-tête change sur les quatre onglets), puis stables ; axe-core sans violation en clair et en sombre.
+Décisions : aucune. Choix de la session, à valider :
+- « S1 » est le rang du locuteur trouvé (ordre de première prise de parole, comme les touches 1 à 9 et les codes Audacity), et non son nom, qui peut être long ou renommé.
+- À 375 px, « Énergie et seuil » est replié avec le zoom derrière la loupe (sinon trois lignes) ; libellés courts « Onde », « Spectre », « Suivre ».
+- La carte « Comment ça marche » masque aussi le panneau d'état avant la première analyse ; « Nouvelle analyse » garde les résultats précédents affichés.
+- Dans l'Évaluation, la phrase du DER par zone et le nombre de locuteurs restent visibles ; seule la méthode est repliée.
+- Statut sous la forme « · terminé » après le libellé de l'étape.
+Problèmes : à 375 px, Avancement et Glossaire restent dans le menu « … » de Gradio (limite connue, B13). Le panneau « Détails » se referme quand on change de moteur (il est redessiné).
+Suite : B12 (onglet Pipeline), puis B13.

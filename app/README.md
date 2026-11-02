@@ -556,3 +556,22 @@ cd tests/visuel && npm run controle
 | `npm run defauts:avant`, `npm run defauts:apres` | Captures des défauts V1, V2 et V4, hors références (`tests/visuel/defauts/`, non versionné) |
 
 Résultat au 02/11 : stylelint sans écart ; axe-core sans violation dans les deux modes ; 20 captures de référence (4,9 Mo). Les captures avant et après des défauts V1, V2 et V4 sont dans `docs/audit/b10-avant-apres/`. Tests Python : `tests/test_app_systeme_visuel.py` (couverture des variantes sombres, jetons employés tous définis, jetons composés, règles des feuilles, contrastes WCAG AA, composants, icône, formatage).
+
+## Onglet Analyse : finitions (chantier B11, audit visuel du 02/11, §5)
+
+| Défaut | Correction | Où |
+|---|---|---|
+| V3 | Identifiant du moteur sous le nom seulement quand le locuteur a été renommé | `_stats_html` |
+| V5 | Barre d'outils en groupes qui reviennent à la ligne en entier : lecture (bouton, temps, pastilles) ; vue (Forme d'onde / Spectrogramme, Suivre la lecture, Énergie et seuil) ; zoom (−, curseur, +, Tout afficher) ; aide « ? » à droite. Sous 640 px : deux lignes (lecture et aide, puis la vue, en libellés courts « Onde », « Spectre », « Suivre », le long restant le nom accessible) ; zoom et « Énergie et seuil » repliés derrière une loupe (`aria-expanded`). Mode présentation : une ligne à 1280 px | `VIEWER_TEMPLATE`, `visualiseur.css`, `visualiseur.js` |
+| V6 | Configuration et moteur en vigueur dans un panneau « Détails » replié, sous l'en-tête, composant à part (le redessin de l'en-tête pendant le préchauffage ne le referme pas). Mode présentation : en-tête réduit au titre et à l'interrupteur | `_header_html`, `_details_html` |
+| V7 | Statut collé à son étape (« Détection de parole · terminé ») ; trois colonnes de même largeur, lues de haut en bas ; une fois l'analyse réussie, liste repliée en une ligne dépliable (« 7 étapes terminées en 3 s ») | `_status_html` (`done_s`) |
+| V8 | Avant toute analyse, une seule carte « Comment ça marche » à droite (trois étapes, ce qu'on obtiendra, bouton vers l'onglet Pipeline) ; l'état et les résultats apparaissent au lancement | `_howto_html`, `results_col` ; `data-ws-tab` dans `glossaire.js` |
+| V9 | Étiquettes de la référence courtes : « SPK_A → S1 » (S1 : rang du locuteur trouvé, comme les touches 1 à 9 et les codes Audacity), « SPK_E → aucun » ; nom complet en infobulle ; colonne des noms à sa largeur normale | `_reference_group` (`titre`) |
+| V10 | « 12,96 % ; pas de chevauchement dans la référence » au lieu de « —  en chevauchement » ; deux styles d'encadré seulement (B10) | `_zone_text` |
+| V11 | Exports en liste HTML : lien de téléchargement, nature et taille en français (« JSON, fiche de reproductibilité · 8,8 Ko ») | `_exports_html` |
+| V13 | Textes d'aide repliés sous « Comment lire ce tableau » (Locuteurs, Interactions, matrice, Évaluation, Appariement, image) ; masqués en mode présentation | `_how_to_read` |
+| « Nouvelle analyse » | Largeur de son libellé et marges propres, aussi en mode présentation | `interface.css` |
+
+Retours de B10 appliqués : la bordure des champs de saisie (thème `input_border_color`, nom des locuteurs, liste de fusion) prend le jeton `--ws-control-line`, à 3:1 au moins face à la carte, dont le fond est le même ; un test vérifie que RTTM, JSON et étiquettes Audacity gardent point décimal, tiret ASCII et aucune espace fine.
+
+Vérifié avec les captures Playwright (`tests/visuel/avant-apres-b11.spec.ts`, `ETAT=avant|apres`) : 1440 px en clair, 375 px en sombre, mode présentation 1280 × 720 ; avant et après dans `docs/audit/b11-avant-apres/`. Captures de référence mises à jour pour ces changements voulus (l'en-tête change sur les quatre onglets), puis contrôle complet sans écart (stylelint, 20 captures, axe-core en clair et en sombre). Tests : `tests/test_app_analyse_b11.py` (9).
