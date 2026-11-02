@@ -141,7 +141,7 @@ def test_matrice_qui_suit_qui_accessible():
     assert [int(count) for _, count in cells] == [1, 1, 1, 0, 1, 0]   # effectif écrit dans chaque case
     assert html.count("ws-mx-diag") == 3 and "sans objet" in html
     assert "Plus long monologue" in html and 'data-debut="0.0" data-fin="5.0"' in html
-    assert "−0,50 s" not in html and "+0,25 s" in html and "2 réponses" in html
+    assert "−0,50\u202fs" not in html and "+0,25\u202fs" in html and "2 réponses" in html
     assert "Les indicateurs" in interface._interactions_html(None)
 
 
@@ -221,7 +221,7 @@ def test_tracabilite_consignee_a_l_analyse(tmp_path, monkeypatch):
     assert trace["configuration_effective"]
     texts = [v for v in final.values() if isinstance(v, str)]
     assert any("ws-matrix" in t or "Plus long monologue" in t for t in texts)
-    assert any('class="ws-png"' in t for t in texts)
+    assert any('class="ws-btn ws-png"' in t for t in texts)
     sheet = json.loads(Path(next(p for p in interface._exports(result) if p.endswith(".json"))).read_text())
     assert sheet["reproductibilite"]["reaffiche_depuis_le_cache"] is False
     again = next(v for v in list(analyse(None, audio, *settings, None, True))[-1].values()

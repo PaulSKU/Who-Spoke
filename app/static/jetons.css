@@ -1,0 +1,159 @@
+/* Jetons du système visuel (audit visuel du 02/11, §4 ; chantier B10). Seul fichier où
+   figurent des valeurs de couleur, d'ombre, d'arrondi et d'espacement : le thème Gradio
+   (app/theme.py) et les feuilles interface.css et visualiseur.css n'emploient que ces
+   variables (contrôlé par stylelint, tests/visuel/.stylelintrc.json).
+
+   Injecté tel quel dans <head> par launch(head=…) (app/theme.py, `head`) : Gradio réécrit
+   et préfixe le CSS passé par `css`, ce qui casserait :root, html et body sous une règle
+   @media et supprimerait @supports ou @layer. Le mode sombre est la classe .dark que
+   Gradio pose sur <body> ; le mode présentation, la classe ws-presentation de <html>. */
+
+:root {
+  /* Teintes neutres ; la couleur est réservée aux locuteurs (D26). */
+  --ws-ink: #18191d;            /* texte, bouton principal, focus, coche */
+  --ws-slate: #5f616a;          /* texte secondaire : 6,2:1 sur la surface */
+  --ws-line: #e2e2df;           /* filets décoratifs */
+  --ws-control-line: #85878e;   /* bord des ronds et cases non cochés : ≥ 3:1 (WCAG 1.4.11) */
+  --ws-canvas: #f4f4f2;         /* fond de page, encadrés d'information */
+  --ws-surface: #ffffff;        /* cartes, champs */
+  --ws-track: #f0f0ed;          /* fonds de piste, barres */
+  --ws-on-ink: #ffffff;         /* texte sur fond d'encre */
+  --ws-selection: rgba(24, 25, 29, 0.10);   /* segment sélectionné sur la forme d'onde */
+  --ws-wave: #c9c9c4;           /* forme d'onde */
+  --ws-wave-progress: #5f616a;  /* forme d'onde déjà lue */
+  --ws-wave-overlay: rgba(24, 25, 29, 0.08);
+
+  /* Graphique de l'Avancement (R-U7) : trois premiers emplacements de la palette
+     catégorielle, validés sur la surface ; vert pris un pas plus foncé (contraste 3:1). */
+  --av-err-manquee: #2a78d6;
+  --av-err-fausse_alarme: #eb6834;
+  --av-err-confusion: #199e70;
+
+  /* Arrondis : un pour les cartes, un plus petit pour les contrôles et les blocs internes
+     (jamais plus que la carte qui les contient), pilule et rond pour badges et pastilles,
+     marque pour les petits signes (cases, échantillons de couleur). */
+  --ws-radius-card: 12px;
+  --ws-radius-control: 8px;
+  --ws-radius-mark: 3px;
+  --ws-radius-pill: 999px;
+  --ws-radius-round: 50%;
+
+  /* Ombres : les cartes seulement ; en sombre, un filet. Anneaux et filets nommés pour les
+     contours des contrôles (pas d'ombre portée). */
+  --ws-shadow-card:
+    0 0 0 1px rgba(0, 0, 0, 0.06),
+    0 1px 1px -0.5px rgba(0, 0, 0, 0.06),
+    0 3px 3px -1.5px rgba(0, 0, 0, 0.06),
+    0 6px 6px -3px rgba(0, 0, 0, 0.06),
+    0 12px 12px -6px rgba(0, 0, 0, 0.04);
+
+  /* Espacement : grille de 4 et 8 px. */
+  --ws-space-1: 4px;
+  --ws-space-2: 8px;
+  --ws-space-3: 12px;
+  --ws-space-4: 16px;
+  --ws-space-5: 24px;
+  --ws-space-6: 32px;
+
+  /* Contrôles. */
+  --ws-control-h: 32px;         /* boutons, bouton-icône (44 px sur écran tactile) */
+  --ws-icon: 16px;              /* icônes SVG dans les boutons */
+
+  /* Mouvement : explicite, 200 ms au plus, ease-out ; coupé en mouvement réduit. */
+  --ws-ease: cubic-bezier(0.23, 1, 0.32, 1);
+  --ws-fast: 100ms;
+  --ws-medium: 150ms;
+}
+
+.dark {
+  --ws-ink: #ecece9;
+  --ws-slate: #a3a49e;          /* 6,8:1 sur la surface */
+  --ws-line: #2d2e33;
+  --ws-control-line: #73757d;   /* ≥ 3,3:1 sur la surface, la page et les pistes */
+  --ws-canvas: #121315;
+  --ws-surface: #1b1c1f;
+  --ws-track: #232428;
+  --ws-on-ink: #121315;
+  --ws-selection: rgba(236, 236, 233, 0.16);
+  --ws-wave: #4a4b50;
+  --ws-wave-progress: #a3a49e;
+  --ws-wave-overlay: rgba(236, 236, 233, 0.14);
+  --av-err-manquee: #3987e5;
+  --av-err-fausse_alarme: #d95926;
+  --av-err-confusion: #199e70;
+  --ws-shadow-card: 0 0 0 1px rgba(255, 255, 255, 0.08);
+}
+
+/* Jetons composés (anneaux, filets, sélection) : déclarés sur :root et sur .dark, pour
+   être recalculés avec les teintes du mode en vigueur. Déclarés sur :root seulement, ils
+   garderaient les teintes claires en sombre (une variable est résolue là où elle est
+   déclarée, puis héritée telle quelle). */
+:root, .dark {
+  --ws-ring: 0 0 0 1px var(--ws-line);                 /* contour d'un contrôle secondaire */
+  --ws-ring-strong: 0 0 0 1.5px var(--ws-ink);         /* contour d'un état actif */
+  --ws-ring-slate: 0 0 0 1px var(--ws-slate);          /* contour au survol, état incertain */
+  --ws-ring-ink: 0 0 0 1px var(--ws-ink);
+  --ws-flash: 0 0 0 8px var(--ws-canvas);              /* terme du glossaire atteint par un lien */
+  --ws-ring-focus: 0 0 0 2px var(--ws-ink);            /* focus des champs dessinés à la main */
+  --ws-ring-surface: inset 0 0 0 1px var(--ws-surface); /* filet de surface entre deux cases */
+  --ws-halo: 0 0 0 1px var(--ws-surface);              /* curseur lisible sur un fond foncé */
+  --ws-ink-inset: inset 0 0 0 1px var(--ws-ink);       /* motif « fausse alarme » */
+  --ws-ink-inset-strong: inset 0 0 0 1.5px var(--ws-ink); /* motif « confusion », fenêtre visible */
+  --ws-key: 0 0 0 1px var(--ws-line), 0 1px 0 1px var(--ws-line);   /* touche de clavier */
+  --ws-rule-attention: inset 3px 0 0 var(--ws-ink);    /* filet gauche d'un encadré d'attention */
+  --ws-rule-soft: inset 2px 0 0 var(--ws-line);
+  --ws-selected: 0 0 0 2px var(--ws-surface), 0 0 0 4px var(--ws-ink);   /* segment sélectionné */
+  --ws-hovered: 0 0 0 2px var(--ws-surface), 0 0 0 3.5px var(--ws-ink);
+}
+
+/* Point des radios cochés : la variable `radio_circle` du thème (point de la couleur du fond,
+   app/theme.py) n'est lue que sous .gradio-style ; la feuille de réinitialisation de Gradio
+   (`.gradio-container-6-31-0 [type="radio"]:checked`) impose sinon un SVG blanc, invisible
+   sur le disque d'encre clair du mode sombre (V1). */
+.gradio-container input[type="radio"]:checked {
+  background-image: var(--radio-circle) !important;
+}
+
+/* Coche des cases : Gradio la dessine en SVG blanc (`checkbox_check`, sans variante sombre),
+   invisible sur le fond d'encre clair d'une case cochée en sombre ; elle prend le fond. */
+.dark .gradio-container input[type="checkbox"]:checked {
+  background-image: url("data:image/svg+xml,%3csvg viewBox='0 0 16 16' fill='%23121315' xmlns='http://www.w3.org/2000/svg'%3e%3cpath d='M12.207 4.793a1 1 0 010 1.414l-5 5a1 1 0 01-1.414 0l-2-2a1 1 0 011.414-1.414L6.5 9.086l4.293-4.293a1 1 0 011.414 0z'/%3e%3c/svg%3e");
+}
+
+/* --- Mode présentation (B8) -------------------------------------------------------
+   Vidéoprojecteur ou écran partagé, lu de loin à 1280 × 720. Texte et commandes agrandis
+   d'un quart (nos tailles sont en rem ; celles de Gradio, en px, relevées d'autant, aussi
+   sur .dark où Gradio les redéclare) ; teintes secondaires, filets et pistes renforcés. */
+html.ws-presentation { font-size: 125%; }
+html.ws-presentation, html.ws-presentation .dark {
+  --text-xxs: 11px; --text-xs: 13px; --text-sm: 15px; --text-md: 18px; --text-lg: 20px;
+  --text-xl: 27px; --text-xxl: 32px;
+  --ws-control-h: 40px;
+  --ws-icon: 20px;
+}
+html.ws-presentation {
+  --ws-slate: #44464d;          /* 9,4:1 sur la surface */
+  --ws-line: #b6b7b1;
+  --ws-control-line: #6e7078;
+  --ws-track: #e4e4df;
+  --ws-shadow-card: 0 0 0 1px var(--ws-line), 0 1px 2px -1px rgba(0, 0, 0, 0.12);
+}
+html.ws-presentation .dark {
+  --ws-slate: #c8c9c3;          /* 10,3:1 sur la surface */
+  --ws-line: #4f5158;
+  --ws-control-line: #8a8c93;
+  --ws-track: #2f3035;
+  --ws-shadow-card: 0 0 0 1px var(--ws-line);
+}
+
+/* Écran tactile : zones de clic d'au moins 44 px (Apple HIG). */
+@media (pointer: coarse) {
+  :root { --ws-control-h: 44px; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    transition-duration: 0.01ms !important; animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+  }
+}

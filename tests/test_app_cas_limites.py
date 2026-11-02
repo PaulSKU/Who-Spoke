@@ -59,7 +59,7 @@ READABLE = [case for case in fabrique.CASES_AUDIO
 @ffmpeg
 @pytest.mark.parametrize("name,kind,seconds", READABLE, ids=[case[0] for case in READABLE])
 def test_formats_lisibles_normalises(tmp_path, monkeypatch, name, kind, seconds):
-    """Vidéo, stéréo, 44,1 et 48 kHz, m4a, ogg, 3 s, silence : WAV 16 kHz mono, bonne durée."""
+    """Vidéo, stéréo, 44,1 et 48 kHz, m4a, ogg, 3\u202fs, silence : WAV 16 kHz mono, bonne durée."""
     fns = handlers(tmp_path, monkeypatch)
     path = fabrique.audio(kind, tmp_path / "audio" / name, seconds)
     prepared, announce = prepare(fns, path)
@@ -98,7 +98,7 @@ def test_message_audio_sans_ffmpeg_ni_cause_connue():
 
 @pytest.fixture
 def made(tmp_path, monkeypatch):
-    """Audio de 60 s et sorties fabriquées de chaque cas ; renvoie (handlers, chemin de l'audio)."""
+    """Audio de 60\u202fs et sorties fabriquées de chaque cas ; renvoie (handlers, chemin de l'audio)."""
     if shutil.which("ffmpeg") is None:
         pytest.skip("ffmpeg absent")
     audio = fabrique.audio("wav_16k", tmp_path / "base.wav", 60.0)
@@ -168,9 +168,9 @@ def test_tours_de_50_ms(made):
     result, _ = made("tours de 50 ms")
     assert len(result["annotation"]) == 1200
     html = interface._interactions_html(result)
-    assert "0,05 s" in html and "0,1 s" not in html                  # durée moyenne et plus long tour
-    assert temps.format_duration(0.05) == "0,05 s" and temps.format_duration(0.0) == "0 s"
-    assert temps.format_duration(4.2) == "4 s"
+    assert "0,05\u202fs" in html and "0,1\u202fs" not in html                  # durée moyenne et plus long tour
+    assert temps.format_duration(0.05) == "0,05\u202fs" and temps.format_duration(0.0) == "0\u202fs"
+    assert temps.format_duration(4.2) == "4\u202fs"
     script = (interface.STATIC_DIR / "visualiseur.js").read_text()
     assert "function fmtSpan" in script and "span.length" in script
 
@@ -259,7 +259,7 @@ def test_moteur_factice_sorties_fabriquees_et_message(tmp_path):
 
 
 def test_quatre_vingt_dix_minutes_de_tours(tmp_path):
-    """90 min de tours (sans audio) : calculs, visualiseur, image et étiquettes sans erreur."""
+    """90\u202fmin de tours (sans audio) : calculs, visualiseur, image et étiquettes sans erreur."""
     duration = 5400.0
     hyp = annotation(fabrique.turns_round_robin(4, duration, 3.0, 0.4))
     ref = annotation(fabrique.turns_round_robin(4, duration, 2.9, 0.5))

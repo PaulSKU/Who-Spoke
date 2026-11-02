@@ -1,0 +1,28 @@
+{
+  "rules": {
+    "color-no-hex": true,
+    "color-named": "never",
+    "function-disallowed-list": ["rgb", "rgba", "hsl", "hsla", "hwb", "lab", "lch", "oklab", "oklch"],
+    "declaration-property-value-allowed-list": {
+      "/^box-shadow$/": ["none", "/^var\\(--ws-[a-z-]+\\)(,\\s*var\\(--ws-[a-z-]+\\))*$/"],
+      "/^border(-(top|bottom)-(left|right))?-radius$/": [
+        "0", "/^var\\(--ws-radius-[a-z]+\\)$/", "/^calc\\(var\\(--ws-radius-[a-z]+\\) - [0-9]+px\\)$/"
+      ]
+    },
+    "at-rule-allowed-list": ["media", "keyframes", "font-face"],
+    "media-feature-name-disallowed-list": ["prefers-color-scheme"],
+    "selector-disallowed-list": ["/svelte-/", "/(^|[\\s,>+~(])(:root|body)\\b/"]
+  },
+  "overrides": [
+    {
+      "files": ["**/jetons.css"],
+      "rules": {
+        "color-no-hex": null,
+        "color-named": null,
+        "function-disallowed-list": null,
+        "declaration-property-value-allowed-list": null,
+        "selector-disallowed-list": ["/svelte-/"]
+      }
+    }
+  ]
+}

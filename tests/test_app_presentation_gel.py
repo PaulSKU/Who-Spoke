@@ -202,8 +202,11 @@ def test_fiche_de_reproductibilite_consigne_la_configuration():
 
 
 def test_bouton_du_mode_presentation_dans_l_en_tete():
-    assert 'class="ws-present" aria-pressed="false"' in interface._header_html(False)
-    assert 'class="ws-present" aria-pressed="true"' in interface._header_html(False, presentation=True)
+    # Interrupteur commun (B10) : état écrit par aria-pressed, curseur visible.
+    off, on = interface._header_html(False), interface._header_html(False, presentation=True)
+    assert 'class="ws-btn ws-switch ws-present" aria-pressed="false"' in off
+    assert 'class="ws-btn ws-switch ws-present" aria-pressed="true"' in on
+    assert '<span class="ws-switch-track" aria-hidden="true"></span>Mode présentation' in on
 
 
 def test_option_presentation_pose_le_mode_des_le_chargement():
@@ -216,11 +219,12 @@ def test_option_presentation_pose_le_mode_des_le_chargement():
 
 
 def test_mode_presentation_agrandit_renforce_et_masque():
+    # Jetons du mode présentation dans jetons.css (B10), injecté sans réécriture dans <head>.
+    tokens = (STATIC_DIR / "jetons.css").read_text()
+    assert "html.ws-presentation { font-size: 125%; }" in tokens and "--text-md: 18px;" in tokens
+    assert "html.ws-presentation, html.ws-presentation .dark {" in tokens   # tailles redéclarées en sombre
+    assert "html.ws-presentation .dark {" in tokens and "--ws-control-h: 40px;" in tokens
     css = (STATIC_DIR / "interface.css").read_text()
-    block = css[css.index("html.ws-presentation {"):]
-    assert "font-size: 125%;" in block and "--text-md: 18px;" in block
-    assert "html.ws-presentation, html.ws-presentation .dark {" in css     # tailles redéclarées en sombre
-    assert "html.ws-presentation .dark {" in css
     assert "html.ws-presentation .ws-secondary { display: none !important; }" in css
     viewer = (STATIC_DIR / "visualiseur.css").read_text()
     assert "html.ws-presentation & {" in viewer and ".wsp-hint { display: none; }" in viewer

@@ -216,7 +216,7 @@ def test_carte_affiche_la_categorie_puis_les_autres_constats():
     assert overlap["categorie_libelle"] == "Chevauchement"
     assert overlap["categorie_texte"] == ("Hors de la tolérance d'une frontière : la zone tombe dans un "
                                           "chevauchement de la référence.")
-    assert overlap["categorie_tolerance"] == "Dont 0,65 s dans la tolérance d'une frontière (pardonnés par le collar)."
+    assert overlap["categorie_tolerance"] == "Dont 0,65\u202fs dans la tolérance d'une frontière (pardonnés par le collar)."
     assert not any("chevauchement" in text for text in overlap["constats"])   # pas répété
     assert not any("Un de ses bords" in text for text in overlap["constats"])  # remplacé par la part pardonnée
     boundary = by_zone[("manquee", 26.0, 26.1)]
@@ -227,7 +227,7 @@ def test_carte_affiche_la_categorie_puis_les_autres_constats():
                                             "n'est apparié à aucun locuteur trouvé.")
     pause = by_zone[("fausse_alarme", 30.0, 30.8)]
     assert pause["categorie_texte"].startswith("Hors de la tolérance d'une frontière : elle recoupe une pause "
-                                               "de la référence de 1 s au plus (0,80 s)")
+                                               "de la référence de 1\u202fs au plus (0,80\u202fs)")
     extra = by_zone[("fausse_alarme", 52.0, 54.0)]
     assert extra["categorie_libelle"] == "Locuteur trouvé en trop" and extra["constats"] == []
     assert extra["categorie_texte"] == "Le locuteur trouvé n'est apparié à aucun locuteur de la référence."

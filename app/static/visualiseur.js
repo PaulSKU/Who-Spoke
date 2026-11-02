@@ -31,12 +31,21 @@ const MAX_PX_PER_S = 150;   // zoom maximal : 150 px par seconde d'audio (D17 ; 
 const ZOOM_STEP = 10;      // pas des boutons et de Ctrl + molette, sur l'échelle 0–100
 const WINDOW_KEY_STEP = 0.1;   // ← → sur la fenêtre de la vue d'ensemble : 10 % de la vue
 
+// Espace fine insécable devant les unités, comme app/formatage.py.
+const NNBSP = '\u202f';
+
 function fmt(t) {
   const h = Math.floor(t / 3600);
   const m = Math.floor((t % 3600) / 60);
   const s = Math.floor(t % 60);
   const mm = h ? String(m).padStart(2, '0') : String(m);
   return (h ? h + ':' : '') + mm + ':' + String(s).padStart(2, '0');
+}
+
+// Valeur d'un jeton de jetons.css (--ws-*) : wavesurfer et les canevas reçoivent des couleurs,
+// pas des variables CSS ; elles sont lues au rendu, dans le mode en vigueur.
+function token(name) {
+  return getComputedStyle(element).getPropertyValue(name).trim();
 }
 
 function isDark() {
@@ -320,8 +329,8 @@ function drawEnergy() {
   const { scroll, width, pps } = visibleWindow();
   const ctx = fitCanvas(canvas, width, ENERGY_HEIGHT);
   const styles = getComputedStyle(element);
-  const ink = styles.getPropertyValue('--ws-ink').trim() || (isDark() ? '#ecece9' : '#18191d');
-  const slate = styles.getPropertyValue('--ws-slate').trim() || (isDark() ? '#a3a49e' : '#5f616a');
+  const ink = styles.getPropertyValue('--ws-ink').trim();
+  const slate = styles.getPropertyValue('--ws-slate').trim();
   const values = data.values;
   const n = values.length;
   // Courbe : minimum et maximum de l'énergie sur chaque pixel (enveloppe), 1,5 px.
@@ -367,7 +376,7 @@ function drawEnergy() {
 }
 
 function decibels(value) {
-  return (value < 0 ? '−' : '') + Math.abs(value).toFixed(1).replace('.', ',') + ' dB';
+  return (value < 0 ? '−' : '') + Math.abs(value).toFixed(1).replace('.', ',') + NNBSP + 'dB';
 }
 
 // Infobulle de la bande d'énergie : instant, énergie, position par rapport au seuil.
@@ -403,7 +412,7 @@ function setView(view) {
     const current = ws.options.height;
     const wanted = spectro ? specHeight() : element._waveOptions.height;
     const options = spectro
-      ? { height: wanted, waveColor: 'rgba(0,0,0,0)', progressColor: 'rgba(0,0,0,0)' }
+      ? { height: wanted, waveColor: 'transparent', progressColor: 'transparent' }
       : element._waveOptions;
     if (current !== wanted || ws.options.waveColor !== options.waveColor) ws.setOptions(options);
   }
@@ -685,7 +694,7 @@ function jumpTurn(direction) {
 const ERROR_TITLES = { manquee: 'Parole manquée', fausse_alarme: 'Fausse alarme', confusion: 'Confusion' };
 
 function seconds(value) {
-  return value.toFixed(2).replace('.', ',') + ' s';
+  return value.toFixed(2).replace('.', ',') + NNBSP + 's';
 }
 
 // « 1:30,4 » : au dixième de seconde, pour les zones courtes.
@@ -703,7 +712,7 @@ function fmtSpan(start, end) {
   return {
     range: short ? fmtTenths(start) + ' – ' + fmtTenths(end) : fmt(start) + ' – ' + fmt(end),
     words: short ? fmtTenths(start) + ' à ' + fmtTenths(end) : fmt(start) + ' à ' + fmt(end),
-    length: shown.replace('.', ',') + ' s',
+    length: shown.replace('.', ',') + NNBSP + 's',
   };
 }
 
@@ -820,7 +829,7 @@ function drawSelection() {
   const s = element._selected;
   if (!s || (!s.extrait && !selectables(v).some(isSelected))) return;
   regions.addRegion({
-    start: s.debut, end: s.fin, color: isDark() ? 'rgba(236,236,233,0.16)' : 'rgba(24,25,29,0.10)',
+    start: s.debut, end: s.fin, color: token('--ws-selection'),
     drag: false, resize: false,
   });
 }
@@ -1020,23 +1029,23 @@ function render() {
     const minimap = WaveSurfer.Minimap.create({
       container: $('.wsp-minimap'),
       height: 32,
-      waveColor: dark ? '#4a4b50' : '#c9c9c4',
-      progressColor: dark ? '#a3a49e' : '#5f616a',
-      cursorColor: dark ? '#ecece9' : '#18191d',
+      waveColor: token('--ws-wave'),
+      progressColor: token('--ws-wave-progress'),
+      cursorColor: token('--ws-ink'),
       cursorWidth: 1,
       barWidth: 1,
       barGap: 1,
-      overlayColor: dark ? 'rgba(236,236,233,0.14)' : 'rgba(24,25,29,0.08)',
+      overlayColor: token('--ws-wave-overlay'),
     });
     // Couleurs de la forme d'onde, rendues en revenant de la vue spectrogramme.
-    element._waveOptions = { height: 80, waveColor: dark ? '#4a4b50' : '#c9c9c4', progressColor: dark ? '#a3a49e' : '#5f616a' };
+    element._waveOptions = { height: 80, waveColor: token('--ws-wave'), progressColor: token('--ws-wave-progress') };
     const spectro = element._view === 'spectro' && !!v.spectrogramme;
     ws = WaveSurfer.create({
       container: wave,
       height: spectro ? specHeight() : 80,
-      waveColor: spectro ? 'rgba(0,0,0,0)' : element._waveOptions.waveColor,
-      progressColor: spectro ? 'rgba(0,0,0,0)' : element._waveOptions.progressColor,
-      cursorColor: dark ? '#ecece9' : '#18191d',
+      waveColor: spectro ? 'transparent' : element._waveOptions.waveColor,
+      progressColor: spectro ? 'transparent' : element._waveOptions.progressColor,
+      cursorColor: token('--ws-ink'),
       cursorWidth: 2,
       barWidth: 2,
       barGap: 1,
@@ -1069,8 +1078,13 @@ function render() {
       showSpeaking(t);
     };
     ws.on('timeupdate', show);
-    ws.on('play', () => { button.textContent = 'Pause'; showSpeaking(ws.getCurrentTime()); });
-    ws.on('pause', () => { button.textContent = 'Lecture'; showSpeaking(ws.getCurrentTime()); });
+    // Icône et libellé du bouton : l'icône montre l'action, le libellé aussi (« Pause » en lecture).
+    const playing = (on) => {
+      button.toggleAttribute('data-playing', on);
+      button.querySelector('.wsp-play-text').textContent = on ? 'Pause' : 'Lecture';
+    };
+    ws.on('play', () => { playing(true); showSpeaking(ws.getCurrentTime()); });
+    ws.on('pause', () => { playing(false); showSpeaking(ws.getCurrentTime()); });
     ws.on('scroll', () => { syncScroll(); updateWindowLabel(); });
     ws.on('zoom', () => { syncScroll(); updateWindowLabel(); });
     ws.once('ready', () => {

@@ -41,8 +41,9 @@ from html import escape
 
 import gradio as gr
 
-from app import (avancement, glossaire, image, interactions, moteurs, pipeline, reproductibilite, sortie,
-                 spectrogramme, temps, theme)
+from app import (avancement, formatage, glossaire, image, interactions, moteurs, pipeline, reproductibilite,
+                 sortie, spectrogramme, temps, theme)
+from app.icones import icon
 from app.cache import (ResultCache, annotation_from_tracks, annotation_tracks, audio_fingerprint, code_version,
                        engine_code_fingerprint, result_key)
 from whospoke.audio import AudioError, load_waveform, normalize
@@ -91,18 +92,15 @@ def _result_colors(result: dict) -> dict[str, tuple[str, str]]:
 
 def _signed(value: float, digits: int = 2) -> str:
     """« +0,42 s », « −0,18 s » ; « 0,00 s », sans signe, pour une valeur qui s'arrondit à zéro."""
-    shown = _num(abs(value), digits)
-    if float(shown.replace(",", ".")) == 0:
-        return shown + " s"
-    return ("−" if value < 0 else "+") + shown + " s"
+    return formatage.unite(value, "s", digits, sign=round(value, digits) != 0)
 
 
 def _pct(value: float | None, digits: int = 1) -> str:
-    return "—" if value is None else f"{value:.{digits}f}".replace(".", ",") + " %"
+    return formatage.pourcentage(value, digits)
 
 
 def _num(value: float, digits: int = 3) -> str:
-    return f"{value:.{digits}f}".replace(".", ",")
+    return formatage.nombre(value, digits)
 
 
 class ModelMissing(RuntimeError):
@@ -243,7 +241,7 @@ def _status_html(steps: list[str], state: dict[str, float], title: str, detail: 
         elif value >= 1.0:
             cls, text = "done", "terminé"
         elif value > 0.0:
-            cls, text = "run", f"{int(100 * value)} %"
+            cls, text = "run", formatage.pourcentage(int(100 * value), 0)
         else:
             cls, text = "todo", "en attente"
         label = (labels or {}).get(step) or PRE_LABELS.get(step) or STEP_LABELS.get(step, step)
@@ -274,7 +272,7 @@ def _estimate_source(run: dict, fake: bool) -> str:
     overhead = run.get("overhead")
     if overhead is not None:
         day = datetime.strptime(overhead.measured_on, "%Y-%m-%d").strftime("%d/%m/%Y")
-        return f"{text}, surcoût fixe {_num(overhead.seconds, 1)} s mesuré le {day}"
+        return f"{text}, surcoût fixe {_num(overhead.seconds, 1)}\u202fs mesuré le {day}"
     return text if fake else f"{text}, surcoût fixe non mesuré"
 
 
@@ -407,13 +405,15 @@ def _stats_html(result: dict | None) -> str:
         ident, shown = escape(row["id"], quote=True), escape(row["nom"], quote=True)
         excerpt = excerpts.get(row["id"])
         if excerpt is None:
-            play = ('<button type="button" class="ws-excerpt" disabled title="Toute la parole de ce '
-                    'locuteur est en chevauchement">▶</button>')
+            play = (f'<button type="button" class="ws-btn ws-btn-icon ws-excerpt" disabled '
+                    f'aria-label="Pas d\'extrait de {shown} : toute sa parole est en chevauchement" '
+                    f'title="Toute la parole de ce locuteur est en chevauchement">{icon("lecture")}</button>')
         else:
-            length = f"{_num(excerpt[1] - excerpt[0], 1)} s"
-            play = (f'<button type="button" class="ws-excerpt" data-debut="{excerpt[0]}" data-fin="{excerpt[1]}" '
-                    f'data-id="{ident}" aria-label="Écouter un extrait typique de {shown} ({length})" '
-                    f'title="Plus long tour sans chevauchement, {length}">▶</button>')
+            length = f"{_num(excerpt[1] - excerpt[0], 1)}\u202fs"
+            play = (f'<button type="button" class="ws-btn ws-btn-icon ws-excerpt" data-debut="{excerpt[0]}" '
+                    f'data-fin="{excerpt[1]}" data-id="{ident}" '
+                    f'aria-label="Écouter un extrait typique de {shown} ({length})" '
+                    f'title="Plus long tour sans chevauchement, {length}">{icon("lecture")}</button>')
         rows.append(
             f'<tr><td class="ws-speaker"><span class="ws-swatch" style="background:{color}" aria-hidden="true"></span>'
             f'<span class="ws-speaker-name"><input type="text" class="ws-name-input" data-id="{ident}" '
@@ -438,7 +438,7 @@ def _stats_html(result: dict | None) -> str:
         f'{_merges_html(result)}'
         '<p class="ws-caption">Renommer : saisissez un nom, puis Entrée ou quittez le champ ; vide, '
         "l'identifiant du moteur est gardé. ▶ : extrait typique, le plus long tour sans chevauchement "
-        f'({_num(sortie.EXCERPT_MAX_S, 0)} s au plus), lu dans la timeline. Chevauchement : part du temps de parole '
+        f'({_num(sortie.EXCERPT_MAX_S, 0)}\u202fs au plus), lu dans la timeline. Chevauchement : part du temps de parole '
         'du locuteur pendant laquelle au moins une autre personne parle. Fusionner : la parole du locuteur de la '
         'ligne rejoint celle du locuteur choisi, qui garde son nom et sa couleur ; statistiques, timeline, exports '
         'et DER sont recalculés, le résultat en cache reste celui du moteur.</p>'
@@ -468,7 +468,7 @@ def _merges_html(result: dict) -> str:
     source, target = fusions[-1]
     return (f'<div class="ws-merges" role="status"><span class="ws-merges-title">Fusions en vigueur</span>'
             f'<ol class="ws-merges-list">{items}</ol>'
-            f'<button type="button" class="ws-merge-undo">Annuler la dernière fusion '
+            f'<button type="button" class="ws-btn ws-merge-undo">Annuler la dernière fusion '
             f'({escape(names.get(source, source))} → {escape(names.get(target, target))})</button></div>')
 
 
@@ -498,16 +498,16 @@ def _interactions_html(result: dict | None) -> str:
                 f'<span class="ws-who">{who(longest["locuteur"])}</span>'
                 f'<span class="strong">{temps.format_duration(longest["duree_s"])}</span>'
                 f'<span class="sub">à {image.clock(longest["debut"])}</span>'
-                f'<button type="button" class="ws-excerpt" data-debut="{longest["debut"]}" data-fin="{end}" '
-                f'aria-label="Écouter le début du plus long monologue ({heard} s)" '
-                f'title="Écouter le début ({heard} s)">▶</button></p>')
+                f'<button type="button" class="ws-btn ws-btn-icon ws-excerpt" data-debut="{longest["debut"]}" '
+                f'data-fin="{end}" aria-label="Écouter le début du plus long monologue ({heard} s)" '
+                f'title="Écouter le début ({heard} s)">{icon("lecture")}</button></p>')
     rows = []
     for row in data["locuteurs"]:
         latency = ("—" if row["latence_mediane_s"] is None
                    else f'{_signed(row["latence_mediane_s"])}<span class="sub">{row["n_reponses"]} réponse'
                         f'{"s" if row["n_reponses"] > 1 else ""}</span>')
         mean = ("—" if row["duree_moyenne_tour_s"] is None
-                else f'{_num(row["duree_moyenne_tour_s"], 2 if row["duree_moyenne_tour_s"] < 1 else 1)} s')
+                else f'{_num(row["duree_moyenne_tour_s"], 2 if row["duree_moyenne_tour_s"] < 1 else 1)}\u202fs')
         rows.append(f'<tr><td class="ws-who">{who(row["id"])}</td><td class="num">{row["n_tours"]}</td>'
                     f'<td class="num">{mean}</td>'
                     f'<td class="num">{temps.format_duration(row["plus_long_tour_s"])}</td>'
@@ -689,7 +689,7 @@ def _errors_for(reference, result: dict) -> dict | None:
     totals = errors["totaux"]
     total = totals["reference"] or 1.0
     errors["rangees"] = [
-        {"type": kind, "libelle": label, "duree": f"{_num(totals[kind], 2)} s",
+        {"type": kind, "libelle": label, "duree": f"{_num(totals[kind], 2)}\u202fs",
          "part": _pct(100 * totals[kind] / total, 2)}
         for kind, label in ERROR_LABELS.items()
     ]
@@ -709,7 +709,7 @@ def _explain_zone(zone: dict) -> None:
     partial = outside is not None and zone["tolerance_s"] > 0
     zone["categorie_libelle"] = sortie.ERROR_CATEGORIES[category]
     if category == "frontiere":
-        text = (f"La zone tient entièrement dans la tolérance de {_num(sortie.BOUNDARY_S, 2)} s d'une frontière de tour "
+        text = (f"La zone tient entièrement dans la tolérance de {_num(sortie.BOUNDARY_S, 2)}\u202fs d'une frontière de tour "
                 "de la référence : le collar la pardonne.")
     elif category == "reference_non_appariee":
         text = f"Le locuteur de référence {zone['reference']} n'est apparié à aucun locuteur trouvé."
@@ -725,7 +725,7 @@ def _explain_zone(zone: dict) -> None:
         found.pop(category, None)
     if partial:
         text = "Hors de la tolérance d'une frontière : " + text[0].lower() + text[1:]
-        zone["categorie_tolerance"] = (f"Dont {_num(zone['tolerance_s'], 2)} s dans la tolérance d'une frontière "
+        zone["categorie_tolerance"] = (f"Dont {_num(zone['tolerance_s'], 2)}\u202fs dans la tolérance d'une frontière "
                                        "(pardonnés par le collar).")
     else:
         zone["categorie_tolerance"] = ""
@@ -743,20 +743,20 @@ def _context_sentences(context: dict, duration_s: float) -> dict[str, str]:
             sentences["chevauchement"] = "La zone tombe dans un chevauchement de la référence."
         else:
             share = _pct(100 * overlap / duration_s, 0) if duration_s > 0 else "—"
-            sentences["chevauchement"] = (f"La zone recoupe un chevauchement de la référence sur {_num(overlap, 2)} s "
+            sentences["chevauchement"] = (f"La zone recoupe un chevauchement de la référence sur {_num(overlap, 2)}\u202fs "
                                           f"({share} de sa durée).")
     short = context["tour_court"]
     if short:
-        sentences["tour_court"] = (f"Elle recoupe un tour de la référence de moins de {_num(sortie.SHORT_TURN_S, 1)} s "
-                                   f"({short['locuteur']}, {_num(short['duree_s'], 2)} s).")
+        sentences["tour_court"] = (f"Elle recoupe un tour de la référence de moins de {_num(sortie.SHORT_TURN_S, 1)}\u202fs "
+                                   f"({short['locuteur']}, {_num(short['duree_s'], 2)}\u202fs).")
     pause = context["pause"]
     if pause:
         verb = "recoupe" if pause["relation"] == "recoupe" else "est contiguë à"
-        sentences["pause"] = (f"Elle {verb} une pause de la référence de {_num(sortie.SHORT_PAUSE_S, 0)} s au plus "
-                              f"({_num(pause['duree_s'], 2)} s).")
+        sentences["pause"] = (f"Elle {verb} une pause de la référence de {_num(sortie.SHORT_PAUSE_S, 0)}\u202fs au plus "
+                              f"({_num(pause['duree_s'], 2)}\u202fs).")
     if context.get("frontiere_s") is not None:
-        sentences["frontiere"] = (f"Un de ses bords est à {_num(sortie.BOUNDARY_S, 2)} s au plus d'une frontière de "
-                                  f"tour de la référence (écart {_num(context['frontiere_s'], 2)} s).")
+        sentences["frontiere"] = (f"Un de ses bords est à {_num(sortie.BOUNDARY_S, 2)}\u202fs au plus d'une frontière de "
+                                  f"tour de la référence (écart {_num(context['frontiere_s'], 2)}\u202fs).")
     return sentences
 
 
@@ -836,7 +836,7 @@ def _image_html(result: dict | None) -> str:
     if result is None:
         return ""
     name = f"{sortie.rttm_name(result['uri'])}_timeline.png"
-    return (f'<div class="ws-image-export"><button type="button" class="ws-png" data-name="{escape(name, quote=True)}" '
+    return (f'<div class="ws-image-export"><button type="button" class="ws-btn ws-png" data-name="{escape(name, quote=True)}" '
             f'data-svg="{escape(_timeline_svg(result), quote=True)}">Image PNG de la timeline</button>'
             '<span class="ws-png-status" role="status"></span></div>'
             '<p class="ws-caption">Image en mode clair, toute la durée sur une seule échelle. Le SVG est dans la '
@@ -861,7 +861,7 @@ def _comparison_html(result: dict | None) -> str:
         rtf = item["calcul_s"] / item["duree_s"] if item["duree_s"] else 0.0
         rows.append(f'<tr><td class="strong">{escape(item["libelle"])}</td><td class="num">{n_speakers}</td>'
                     f'<td class="num strong">{der_c0}</td><td class="num">{der_c025}</td>'
-                    f'<td class="num">{_num(item["calcul_s"], 2)} s</td><td class="num">{_num(rtf, 4)}</td></tr>')
+                    f'<td class="num">{_num(item["calcul_s"], 2)}\u202fs</td><td class="num">{_num(rtf, 4)}</td></tr>')
     if reference is not None:
         rows.append(f'<tr><td>Référence</td><td class="num">{len(reference.labels())}</td>'
                     '<td class="num">—</td><td class="num">—</td><td class="num">—</td><td class="num">—</td></tr>')
@@ -869,7 +869,7 @@ def _comparison_html(result: dict | None) -> str:
             else '<p class="ws-caption">Déposez une référence RTTM pour comparer les DER.</p>')
     return ('<div class="ws-table-wrap"><table class="ws-table"><thead><tr><th scope="col">Moteur</th>'
             '<th scope="col" class="num">Locuteurs</th><th scope="col" class="num">DER sans collar</th>'
-            '<th scope="col" class="num">DER collar 0,25 s</th><th scope="col" class="num">Temps de calcul</th>'
+            '<th scope="col" class="num">DER collar 0,25\u202fs</th><th scope="col" class="num">Temps de calcul</th>'
             f'<th scope="col" class="num">RTF</th></tr></thead><tbody>{"".join(rows)}</tbody></table></div>'
             f'{note}<p class="ws-caption">DER sur toute la durée du fichier, sans UEM : non comparable aux '
             'résultats sur corpus. Temps de calcul sans le chargement du modèle.</p>')
@@ -895,16 +895,16 @@ def _cache_badges(results: list[dict]) -> list[str]:
 def _times_html(result: dict | None) -> str:
     if result is None:
         return _empty("Les durées de chaque étape s'afficheront après l'analyse.")
-    rows = [("Normalisation audio (ffmpeg)", f"{_num(result['normalisation_s'], 2)} s")]
+    rows = [("Normalisation audio (ffmpeg)", f"{_num(result['normalisation_s'], 2)}\u202fs")]
     if result.get("cache"):
         loading = "aucun (cache)"
     else:
-        loading = "déjà chargé" if result["chargement_s"] is None else f"{_num(result['chargement_s'], 2)} s"
+        loading = "déjà chargé" if result["chargement_s"] is None else f"{_num(result['chargement_s'], 2)}\u202fs"
     rows.append(("Chargement du modèle", loading))
-    rows += [(STEP_LABELS.get(step, step), f"{_num(seconds, 2)} s")
+    rows += [(STEP_LABELS.get(step, step), f"{_num(seconds, 2)}\u202fs")
              for step, seconds in result["durees_etapes"].items()]
     body = "".join(f'<tr><td>{escape(label)}</td><td class="num">{value}</td></tr>' for label, value in rows)
-    body += f'<tr><td class="strong">Calcul total</td><td class="num strong">{_num(result["calcul_s"], 2)} s</td></tr>'
+    body += f'<tr><td class="strong">Calcul total</td><td class="num strong">{_num(result["calcul_s"], 2)}\u202fs</td></tr>'
     rtf = result["calcul_s"] / result["duree_s"] if result["duree_s"] else 0.0
     measured = result["rtf_mesure"]
     caption = (f"Audio de {temps.format_duration(result['duree_s'])} sur <code>{escape(result['device'])}</code> : "
@@ -939,7 +939,7 @@ def _der_html(result: dict | None, reference_path: str | None) -> str:
         return ('<div class="ws-callout ws-alert" role="alert">Référence illisible : le fichier déposé n\'est plus '
                 'disponible. Déposez-le de nouveau.</div>')
     rows = []
-    for name, title in (("collar_0", "Sans collar (principale)"), ("collar_0_25", "Collar ± 0,25 s")):
+    for name, title in (("collar_0", "Sans collar (principale)"), ("collar_0_25", "Collar ± 0,25\u202fs")):
         r = report[name]
         rows.append(
             f'<tr><td>{title}</td><td class="num strong">{_pct(r["der"], 2)}</td>'
@@ -985,7 +985,7 @@ def _merge_der_html(result: dict, reference, reference_path: str, after: dict) -
         result["der_avant"] = {"reference": reference_path, "rapport": before}
     n = len(result["fusions"])
     parts = [f'{label} {_pct(before[name]["der"], 2)} → <span class="strong">{_pct(after[name]["der"], 2)}</span>'
-             for name, label in (("collar_0", "sans collar"), ("collar_0_25", "collar ± 0,25 s"))]
+             for name, label in (("collar_0", "sans collar"), ("collar_0_25", "collar ± 0,25\u202fs"))]
     delta = after["collar_0"]["der"] - before["collar_0"]["der"]
     trend = "baisse" if delta < 0 else ("hausse" if delta > 0 else "inchangé")
     return (f'<div class="ws-callout ws-merge-der" role="status">Après {n} fusion{"s" if n > 1 else ""} : DER '
@@ -1002,7 +1002,7 @@ def _matching_html(rows: list[dict], names: dict) -> str:
         ref = escape(str(row["reference"])) if row["reference"] is not None else '<span class="sub">aucun</span>'
         found = (escape(hyp_names[row["hypothese"]]) if row["hypothese"] is not None
                  else '<span class="sub">non apparié</span>')
-        common = f"{_num(row['commun_s'], 1)} s" if row["reference"] is not None and row["hypothese"] is not None else "—"
+        common = f"{_num(row['commun_s'], 1)}\u202fs" if row["reference"] is not None and row["hypothese"] is not None else "—"
         coverage = "—" if row["couverture"] is None else _pct(100 * row["couverture"])
         purity = "—" if row["purete"] is None else _pct(100 * row["purete"])
         body.append(f'<tr><td>{ref}</td><td>{found}</td><td class="num">{common}</td>'
@@ -1165,10 +1165,10 @@ def _header_html(fake: bool, status: WarmupStatus | None = None, demo: moteurs.D
         badges += '<span class="ws-badge">Moteur factice : aucune inférence</span>'
     # Mode présentation (B8) : l'état vit dans la classe de <html> (presentation.js), qui
     # resynchronise aria-pressed quand Gradio redessine l'en-tête.
-    badges += ('<button type="button" class="ws-present" '
+    badges += ('<button type="button" class="ws-btn ws-switch ws-present" '
                f'aria-pressed="{"true" if presentation else "false"}" '
                'title="Texte et commandes agrandis, contrastes renforcés, réglages secondaires masqués">'
-               'Mode présentation</button>')
+               '<span class="ws-switch-track" aria-hidden="true"></span>Mode présentation</button>')
     return ('<header class="ws-header"><div><h1>Who Spoke?</h1>'
             "<p>Qui parle, et quand. L'analyse tourne sur cette machine : l'audio ne la quitte pas.</p>"
             f'{_config_html(demo, engine_key or demo.default_engine)}'
@@ -1183,7 +1183,7 @@ def _shown_path(path: Path) -> str:
 
 def _cache_info_html(store: ResultCache) -> str:
     count, size = store.stats()
-    amount = "aucun résultat" if not count else f"{count} résultat{'s' if count > 1 else ''}, {_num(size / 1024, 0)} Ko"
+    amount = "aucun résultat" if not count else f"{count} résultat{'s' if count > 1 else ''}, {formatage.taille(size)}"
     return (f'<p class="ws-caption">Cache : {amount}, dans <code>{escape(_shown_path(store.directory))}</code>. '
             "Ni audio ni nom de fichier : segments, durées et réglages seulement.</p>")
 
@@ -1207,23 +1207,26 @@ VIEWER_TEMPLATE = (
     '<p class="wsp-placeholder">Déposez un fichier audio puis lancez l\'analyse : '
     'la forme d\'onde et une piste par locuteur s\'afficheront ici.</p>'
     '<div class="wsp-body"><div class="wsp-toolbar">'
-    '<button type="button" class="wsp-play">Lecture</button>'
+    f'<button type="button" class="ws-btn wsp-play">{icon("lecture")}{icon("pause")}'
+    '<span class="wsp-play-text">Lecture</span></button>'
     '<span class="wsp-time" aria-live="off"></span>'
     '<span class="wsp-speaking" hidden></span>'
     '<span class="wsp-iso" role="status" hidden></span>'
     '<div class="wsp-tools">'
     '<div class="wsp-zoom" role="group" aria-label="Zoom de la timeline">'
-    '<button type="button" class="wsp-zoom-out" aria-label="Dézoomer">−</button>'
+    f'<button type="button" class="ws-btn ws-btn-icon wsp-zoom-out" aria-label="Dézoomer">{icon("moins")}</button>'
     '<input type="range" class="wsp-zoom-range" min="0" max="100" step="1" value="0" '
     'aria-label="Niveau de zoom">'
-    '<button type="button" class="wsp-zoom-in" aria-label="Zoomer">+</button>'
-    '<button type="button" class="wsp-zoom-fit">Tout afficher</button></div>'
-    '<div class="wsp-view" role="group" aria-label="Vue de l\'audio (D28)">'
+    f'<button type="button" class="ws-btn ws-btn-icon wsp-zoom-in" aria-label="Zoomer">{icon("plus")}</button>'
+    '<button type="button" class="ws-btn wsp-zoom-fit">Tout afficher</button></div>'
+    '<div class="ws-segmented wsp-view" role="group" aria-label="Vue de l\'audio (D28)">'
     '<button type="button" class="wsp-view-wave" aria-pressed="true">Forme d\'onde</button>'
     '<button type="button" class="wsp-view-spec" aria-pressed="false">Spectrogramme</button></div>'
-    '<button type="button" class="wsp-energy-toggle" aria-pressed="false" hidden>Énergie et seuil</button>'
-    '<button type="button" class="wsp-follow" aria-pressed="true">Suivre la lecture</button>'
-    '<button type="button" class="wsp-help-toggle" aria-expanded="false" aria-controls="wsp-help" '
+    '<button type="button" class="ws-btn ws-switch wsp-energy-toggle" aria-pressed="false" hidden>'
+    '<span class="ws-switch-track" aria-hidden="true"></span>Énergie et seuil</button>'
+    '<button type="button" class="ws-btn ws-switch wsp-follow" aria-pressed="true">'
+    '<span class="ws-switch-track" aria-hidden="true"></span>Suivre la lecture</button>'
+    '<button type="button" class="ws-btn ws-btn-icon wsp-help-toggle" aria-expanded="false" aria-controls="wsp-help" '
     'aria-label="Raccourcis clavier" title="Raccourcis clavier (?)">?</button></div></div>'
     '<div class="wsp-help" id="wsp-help" role="region" aria-label="Raccourcis clavier" hidden>'
     '<dl><dt><kbd>Espace</kbd></dt><dd>Lecture ou pause</dd>'
@@ -1250,7 +1253,8 @@ VIEWER_TEMPLATE = (
     '<p class="wsp-errsum" hidden></p>'
     '<section class="wsp-explain" id="wsp-explain" aria-live="polite" aria-label="Expliquer cette erreur" hidden>'
     '<div class="wsp-explain-head"><h3 class="wsp-explain-title"></h3>'
-    '<button type="button" class="wsp-explain-close" aria-label="Fermer l\'explication">×</button></div>'
+    f'<button type="button" class="ws-btn ws-btn-icon wsp-explain-close" aria-label="Fermer l\'explication">'
+    f'{icon("fermer")}</button></div>'
     '<p class="wsp-explain-cat"><span class="wsp-explain-cat-label">Catégorie principale</span> '
     '<strong class="wsp-explain-cat-name"></strong><span class="wsp-explain-cat-text"></span> '
     '<span class="wsp-explain-cat-tol"></span></p>'
@@ -1476,7 +1480,7 @@ def build_app(fake: bool = False, fake_max_s: float = 20.0, repo_root: Path = RE
             if run["warm"]:
                 state = "moteur prêt, surcoût fixe non compté"
             elif run["overhead_s"]:
-                state = f"moteur froid, surcoût fixe de {_num(run['overhead_s'], 1)} s compté"
+                state = f"moteur froid, surcoût fixe de {_num(run['overhead_s'], 1)}\u202fs compté"
             else:
                 state = "moteur froid"
             lines.append(f"{where} : {state} ; RTF {_num(run['rtf'], 4)} ({run['measured'].exp_id})")
@@ -1488,7 +1492,7 @@ def build_app(fake: bool = False, fake_max_s: float = 20.0, repo_root: Path = RE
         else:
             head = f"Durée estimée du calcul : {temps.format_range((low, high))} {audio}."
         items = "".join(f"<li>{escape(line)}</li>" for line in lines)
-        note = (f'<p class="ws-caption">Moteur factice : calcul simulé, {_num(fake_max_s, 0)} s au plus.</p>'
+        note = (f'<p class="ws-caption">Moteur factice : calcul simulé, {_num(fake_max_s, 0)}\u202fs au plus.</p>'
                 if fake and computed else "")
         note += "".join(f'<p class="ws-caption">{escape(run["note"])}</p>' for run in runs if run["note"])
         if prepared.get("silencieux"):
@@ -1897,7 +1901,7 @@ def build_app(fake: bool = False, fake_max_s: float = 20.0, repo_root: Path = RE
                     progress_chart = gr.HTML(sections["graphique"], js_on_load=None)
                 with gr.Column(elem_classes="ws-card"):
                     gr.HTML(_title("Expériences et analyses", "Dans l'ordre chronologique. DER sans collar, "
-                                   "chevauchements comptés ; en dessous, avec collar de 0,25 s."), js_on_load=None)
+                                   "chevauchements comptés ; en dessous, avec collar de 0,25\u202fs."), js_on_load=None)
                     progress_timeline = gr.HTML(sections["frise"], js_on_load=NOTES_JS)
                 with gr.Column(elem_classes="ws-card", visible=False) as notes_card:
                     notes_view = gr.Markdown(elem_classes="av-notes-view")
@@ -1993,9 +1997,10 @@ def build_app(fake: bool = False, fake_max_s: float = 20.0, repo_root: Path = RE
 
 
 def page_head(presentation: bool = False) -> str:
-    """Scripts de page : renvois du glossaire, puis mode présentation (posé d'emblée si demandé)."""
+    """En-tête de page : jetons du système visuel (hors réécriture du CSS par Gradio), renvois du
+    glossaire, puis mode présentation (posé d'emblée si demandé)."""
     flag = "<script>window.WS_PRESENTATION = true;</script>" if presentation else ""
-    return (f"<script>{(STATIC_DIR / 'glossaire.js').read_text()}</script>{flag}"
+    return (f"{theme.head()}<script>{(STATIC_DIR / 'glossaire.js').read_text()}</script>{flag}"
             f"<script>{(STATIC_DIR / 'presentation.js').read_text()}</script>")
 
 

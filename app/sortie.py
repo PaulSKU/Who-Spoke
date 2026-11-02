@@ -35,6 +35,8 @@ from pyannote.core import Annotation, Segment, Timeline
 
 from whospoke.evaluation.metrics import CONDITIONS, DiarizationEvaluator
 
+from app import formatage
+
 _DECIMALS = 3
 
 
@@ -293,13 +295,13 @@ def reference_warnings(reference: Annotation, hypothesis: Annotation, audio_uri:
     beyond = speech.crop(Segment(duration_s, max(end, duration_s)), mode="intersection").duration() if end > duration_s else 0.0
     if beyond > LONGER_MIN_S:
         warnings.append(f"La référence va jusqu'à {_clock(end)}, l'audio s'arrête à {_clock(duration_s)} : "
-                        f"{beyond:.1f}".replace(".", ",") + " s de parole de la référence, après la fin de l'audio, "
+                        f"{formatage.unite(beyond, 's', 1)} de parole de la référence, après la fin de l'audio, "
                         "sont ignorées. Vérifiez que l'audio est complet (enregistrement coupé ?) et que c'est la bonne référence.")
     found = hypothesis.get_timeline().support()
     after = found.crop(Segment(end, duration_s), mode="intersection").duration() if end < duration_s else 0.0
     if after >= SHORTER_MIN_S and after >= SHORTER_MIN_SHARE * (found.duration() or 1.0):
         warnings.append(f"La référence s'arrête à {_clock(end)} sur {_clock(duration_s)} d'audio : les "
-                        f"{after:.0f} s de parole trouvées après comptent en fausse alarme et gonflent le DER. "
+                        f"{formatage.unite(after, 's')} de parole trouvées après comptent en fausse alarme et gonflent le DER. "
                         f"Si la référence n'annote que le début de l'enregistrement, coupez l'audio à {_clock(end)} "
                         "avant de le déposer.")
     return warnings

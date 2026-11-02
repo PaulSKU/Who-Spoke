@@ -81,8 +81,8 @@ def depot(tmp_path):
     (docs / "planning.md").write_text(
         "# Planning\n\n## File d'attente de la piste A (D23, amendement du 01/11)\n\n"
         "| Rang | Contenu | Calcul estimé | Prérequis |\n|---|---|---|---|\n"
-        "| A1 | pyannote figé ; contrôle que la sortie reproduit EXP-0007 | ≈ 2 h | — |\n"
-        "| A2 | D24 : robustesse, `configs/x.yaml` | génération ≈ 1 h ; calcul ≈ 6 h | A1 ; D17 et D24 |\n"
+        "| A1 | pyannote figé ; contrôle que la sortie reproduit EXP-0007 | ≈ 2\u202fh | — |\n"
+        "| A2 | D24 : robustesse, `configs/x.yaml` | génération ≈ 1\u202fh ; calcul ≈ 6\u202fh | A1 ; D17 et D24 |\n"
         "| A3 | Options | — | S'il reste du temps |\n\n## Calendrier\n")
     return root
 
@@ -112,8 +112,8 @@ def test_frise_dans_l_ordre_avec_der_test_en_premier(depot):
     assert [r.partition for r in exp2.results] == ["test", "dev"]
     assert exp2.result("test").der_c0 == 64.38 and exp2.result("test").der_c025 == 61.21
     html = av.render(depot)["frise"]
-    assert html.index("64,38 %") < html.index("64,95 %")          # test avant dev
-    assert "collar 0,25 s : 61,21 %" in html
+    assert html.index("64,38\u202f%") < html.index("64,95\u202f%")          # test avant dev
+    assert "collar 0,25\u202fs : 61,21\u202f%" in html
     assert html.count(av.MISSING_HEADER) >= 2                       # EXP-0003 et EXP-0006
     assert "en-tête illisible" in html and "invalidée" in html
     assert "référence" in html and "informatif" in html and "analyse a posteriori" in html
@@ -124,8 +124,8 @@ def test_frise_dans_l_ordre_avec_der_test_en_premier(depot):
 def test_decomposition_par_les_oracles(depot):
     html = av.render(depot)["oracles"]
     assert "EXP-0003" in html and "mode_n_locuteurs" in html
-    assert "-0,96 pt" in html                                       # 63,42 − 64,38
-    assert "26,15 %" in html                                        # confusion
+    assert "\u22120,96\u202fpt" in html                                       # 63,42 − 64,38
+    assert "26,15\u202f%" in html                                        # confusion
     assert "absente de ce dépôt" in html                            # EXP-0010, EXP-0011
 
 
@@ -144,7 +144,7 @@ def test_decisions_et_statuts(depot):
 def test_file_d_attente_et_etat_constate(depot):
     queue = av.read_queue(depot)
     assert [q.rank for q in queue] == ["A1", "A2", "A3"]
-    assert queue[1].estimate == "génération ≈ 1 h ; calcul ≈ 6 h" and queue[1].prerequisites == "A1 ; D17 et D24"
+    assert queue[1].estimate == "génération ≈ 1\u202fh ; calcul ≈ 6\u202fh" and queue[1].prerequisites == "A1 ; D17 et D24"
     # Expérience citée comme référence : aucun état « avec résultats » qui ferait croire A1 fait.
     assert queue[0].state == "—"
     # Fiches citées dans le contenu ou les prérequis, chacune une fois.
@@ -152,7 +152,7 @@ def test_file_d_attente_et_etat_constate(depot):
     html = av.render(depot)["file"]
     for column in ("Rang", "Contenu", "Calcul estimé", "Prérequis", "État constaté"):
         assert f">{column}</th>" in html
-    assert "<code>configs/x.yaml</code>" in html and "≈ 2 h" in html
+    assert "<code>configs/x.yaml</code>" in html and "≈ 2\u202fh" in html
 
 
 def test_notes_affichees_sans_en_tete(depot):
