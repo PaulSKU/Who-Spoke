@@ -54,7 +54,9 @@ instants pour toutes les conditions et pour `propre`, dans
 `data/processed/summre_degrade/ecoute/` (non versionné), avec une page `index.html` de
 lecture locale. Réunions tirées par la graine (une réunion Zoom, deux en présentiel) ;
 fenêtre choisie, dans l'UEM, pour le plus grand nombre de locuteurs actifs, puis la plus
-grande durée de parole.
+grande durée de parole. S'y ajoutent les premières `ecoute.duree_s` secondes de chaque bruit
+DEMAND seul (canal utilisé, niveau d'origine), pour vérifier qu'aucun ne contient de parole
+intelligible, quel que soit le bruit affecté aux trois extraits.
 """
 
 from __future__ import annotations
@@ -552,9 +554,21 @@ def listening(config: dict) -> Path:
         extracts.append((stem, uri, start, files))
         lines.append(f"- `{stem}` : {uri}, de {start:.0f} s à {start + duration:.0f} s"
                      f"{' (Zoom)' if uri in zoom else ''}")
+    channel = config["bruit"]["canal"]
+    noises = {}
+    for env in config["bruit"]["environnements"]:
+        rate, data = wavfile.read(demand_channel(env, channel))
+        noises[env] = f"bruit_{env}.wav"
+        wavfile.write(target / noises[env], rate, data[: int(duration * rate)])
+    assigned = {uri: json.loads((out_dir / "generation.json").read_text())["affectations"][uri]["bruit"]
+                for _, uri, _, _ in extracts} if (out_dir / "generation.json").exists() else {}
+    lines = [line + (f" ; bruit {assigned[uri]}" if uri in assigned else "")
+             for line, (_, uri, _, _) in zip(lines, extracts)]
     (target / "LISEZMOI.md").write_text(
         "# Écoute de contrôle de D24\n\nExtraits, identiques pour toutes les conditions :\n\n"
-        + "\n".join(lines) + "\n\nOuvrir `index.html` dans un navigateur (lecture locale).\n")
+        + "\n".join(lines) + "\n\nBruits DEMAND seuls (canal " + channel + ", niveau d'origine) : "
+        + ", ".join(f"`{name}`" for name in noises.values())
+        + ".\n\nOuvrir `index.html` dans un navigateur (lecture locale).\n")
     cells = "".join(f"<th>{html.escape(c)}</th>" for c in conditions)
     body = "".join(
         f"<tr><td>{html.escape(stem)}</td>" + "".join(
@@ -565,7 +579,11 @@ def listening(config: dict) -> Path:
         "<style>body{font-family:sans-serif;margin:16px}td,th{padding:4px 8px;text-align:left}"
         "audio{width:180px}</style><h1>Écoute de contrôle de D24</h1>"
         f"<p>Trois extraits de {duration:.0f} s, aux mêmes instants pour chaque condition.</p>"
-        f"<table><tr><th>Extrait</th>{cells}</tr>{body}</table>")
+        f"<table><tr><th>Extrait</th>{cells}</tr>{body}</table>"
+        "<h2>Bruits seuls</h2><p>Aucun ne doit contenir de parole intelligible (D24 §1).</p><table>"
+        + "".join(f'<tr><td>{html.escape(env)}</td><td><audio controls preload="none" '
+                  f'src="{html.escape(name)}"></audio></td></tr>' for env, name in noises.items())
+        + "</table>")
     return target
 
 
