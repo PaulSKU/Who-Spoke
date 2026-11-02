@@ -1,0 +1,43 @@
+# D24 — SUMM-RE test dégradé : configuration de scripts/data/make_summre_degrade.py.
+# Génération déterministe ; le SHA-256 de ce fichier est consigné dans le manifeste
+# data/manifests/summre_degrade.csv et dans generation.json.
+graine: 0
+source:
+  corpus: summre
+  liste: data/splits/summre/test.txt
+sortie: data/processed/summre_degrade
+
+# Réverbération (D24 §1) : salle parallélépipédique, micro au centre de la table, chaque
+# locuteur à une position distincte entre 1 et 2,5 m (distance horizontale), assis.
+salle:
+  dimensions_m: [6.0, 4.5, 2.8]
+  micro_m: [3.0, 2.25, 0.75]
+  hauteur_bouche_m: 1.2
+  distance_m: [1.0, 2.5]
+  marge_mur_m: 0.4
+  ecart_angulaire_min_deg: 30
+
+# Bruit additif non vocal (D24 §1) : DEMAND, 16 kHz, un canal ; MUSAN écarté (archive
+# unique de 11,1 Go pour le seul sous-ensemble noise). Environnements intérieurs sans
+# discussion au premier plan : OMEETING (discussion enregistrée) est exclu.
+bruit:
+  source: DEMAND (zenodo.org/records/1227121)
+  canal: ch01
+  environnements: [OOFFICE, PCAFETER, DLIVING, DWASHING]
+  decalage_max_s: 280.0
+  fondu_s: 1.0
+
+conditions:
+  rev04: {reverberation: {rt60_s: 0.4}}
+  rev08: {reverberation: {rt60_s: 0.8}}
+  bru15: {bruit: {rsb_db: 15}}
+  bru05: {bruit: {rsb_db: 5}}
+  cod16: {codec: {debit_kbps: 16}}
+  cod08: {codec: {debit_kbps: 8}}
+  salle: {reverberation: {rt60_s: 0.6}, bruit: {rsb_db: 10}}
+
+# Écoute de contrôle par la candidate avant toute expérience (D24 §1).
+ecoute:
+  extraits: 3
+  duree_s: 20
+  liste_zoom: data/splits/summre/zoom_test.txt

@@ -19,8 +19,10 @@ les paquets installés par uv.lock) :
   aussi tout autre SDK OpenTelemetry (celui de pyannote.audio compris).
 - Sans télémétrie trouvée : speechbrain, torch, torchaudio, lightning, optuna, librosa ;
   silero-vad 6.2.3 (chantier E5, ajouté à la fusion : poids lus dans le paquet, aucun
-  appel réseau en usage). pyannoteai (client du service payant de pyannote) n'est jamais
-  appelé.
+  appel réseau en usage) ; pyroomacoustics 0.10.1 (D24, 02/11 : seul
+  `datasets.utils.download_uncompress` ouvre une URL, jamais appelé ; simulation d'une
+  salle sous hook d'audit sans aucun événement réseau). pyannoteai (client du service
+  payant de pyannote) n'est jamais appelé.
 
 Tout moteur ajouté (D23) complète cette liste avant son intégration, ainsi que
 `docs/methode.md` §7. Les moteurs en environnement séparé (Nemotron 3, DiariZen ;
