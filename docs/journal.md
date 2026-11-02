@@ -914,3 +914,33 @@ Décisions : aucune. Points à signaler au cockpit :
 - Pour A-0003 (piste E) : lire `error_map(...)["categories"]` et les champs de zone, sans recoder les règles.
 Problèmes : aucun. `app/moteurs.py` n'est pas modifié : l'empreinte du code des moteurs et le cache des résultats sont inchangés.
 Suite : fusion d'`ui` dans `outils` par la session E, puis dans `main` à l'arrêt de la piste A.
+
+## 2026-11-02 — Interface : système visuel, composants communs, formatage français, contrôle automatique (B10) (Claude Code)
+
+Objectif : chantier B10 du planning (audit visuel du 02/11, §3, §4 et §7) dans le worktree `ui`, moteur factice, sans modèle, fusion ni dépendance Python ajoutée. `ui` contenait déjà tout `main` (aucune resynchronisation nécessaire). L'option b des frontières, demandée en préalable, était déjà faite et poussée (`229b578`, journal `a00ed7d`) : l'audit visuel avait été mené sur `59a83b8`, juste avant.
+Réalisé :
+- Jetons dans `app/static/jetons.css`, seul fichier contenant des valeurs (couleurs, ombres, arrondis, espacement, hauteur des contrôles, mouvement), injecté sans réécriture dans `<head>` par `launch(head=…)`, l'équivalent en chaîne de `head_paths`. Un fichier HTML versionné pour `head_paths` aurait dû contenir un chemin absolu. Les jetons composés (anneaux, filets) sont redéclarés sur `:root, .dark`, sans quoi ils gardaient les teintes claires en sombre.
+- `app/theme.py` : les 104 variables du thème qui ont une variante `_dark` dans Gradio 6.31 sont toutes définies, dans les deux modes, par des jetons. Pas d'ombre sur les contrôles, filet en sombre pour les cartes. Grille d'espacement de 4 et 8 px ; arrondis uniques (carte 12 px, contrôle 8 px, marque, pilule, rond).
+- V1 : bord des ronds et cases non cochés à 3:1 au moins (`#85878e` en clair, `#73757d` en sombre), sans ombre ni liseré. Point du radio coché en `radial-gradient` sur `var(--background-fill-primary)`. La variable du thème ne suffit pas (elle n'est lue que sous `.gradio-style`, la réinitialisation de Gradio impose un SVG blanc) : une règle de `jetons.css` l'applique. Anneau de focus rendu sur `label:has(input:focus-visible)`.
+- `interface.css` et `visualiseur.css` réécrits avec les seuls jetons : aucune couleur, ombre ni arrondi en dur, pas de `:root`, `body`, `svelte-*` ni `prefers-color-scheme`, aucune règle `@` autre que `@media` et `@keyframes`. Couleurs de wavesurfer et des canevas lues dans les jetons.
+- Composants communs : bouton secondaire, principal et icône (32 px, SVG en `currentColor`, `app/icones.py`, triangle ▶ centré sur son centre de gravité, V4), interrupteur avec `aria-pressed` (Suivre la lecture, Énergie et seuil, Mode présentation), contrôle segmenté (Forme d'onde / Spectrogramme), deux encadrés (information, attention avec filet et icône). Tableau des locuteurs (V2) : séparateur porté par la ligne, cellules centrées verticalement.
+- `app/formatage.py`, une seule fonction de formatage français (virgule, U+202F pour les milliers et devant unités et %, signe moins typographique, s/min/h, o/Ko/Mo/Go), employée par `app.py`, `temps`, `graphique`, `avancement`, `pipeline`, `sortie` ; `visualiseur.js` suit la même règle ; chiffres tabulaires.
+- Contrôle automatique dans `tests/visuel/` (Node, devDependencies locales) : 20 captures de référence Playwright (clair et sombre × 1440 et 375 px, plus le mode présentation, quatre onglets, forme d'onde et valeurs variables masquées, réunion de synthèse sans donnée de corpus), axe-core en clair et en sombre, stylelint (règles de l'audit). Commandes dans `app/README.md` (B10).
+- Corrigé en passant : la coche des étapes terminées ne s'affichait pas (la réécriture du CSS par Gradio perd le raccourci `border: solid var(…)`).
+- Captures avant et après de V1, V2 et V4, en clair et en sombre : `docs/audit/b10-avant-apres/`.
+- Tests : `tests/test_app_systeme_visuel.py` (29 : couverture des variantes sombres, valeurs du thème par jetons, jetons dans l'en-tête, jetons employés tous définis, jetons composés, règles des deux feuilles, anneau de focus, contrastes WCAG AA dans les deux modes, composants, icône, boutons d'extrait, formatage, plus de formatage à la main) ; attentes de 12 fichiers de tests mises à jour (espace fine, classes des boutons, jetons du mode présentation). Tests ciblés pendant le travail, suite complète une fois à la fin, commit enchaîné par `&&` : 577 réussis, 12 ignorés, 3 lents exclus.
+Résultats : aucune expérience. stylelint sans écart (et 9 écarts sur 9 détectés dans un fichier fautif d'essai) ; axe-core sans violation dans les deux modes, après exclusion de la seule règle `target-size` sur les segments de la timeline ; 20 captures de référence (4,9 Mo), identiques d'un lancement à l'autre, tolérance de 20 pixels.
+Décisions : aucune. Choix de la session, à valider :
+- `launch(head=…)` plutôt que `head_paths` (même effet, sans fichier à chemin absolu).
+- Bord des ronds et cases au jeton `--ws-control-line` ; champs de texte gardés au filet clair (`--ws-line`), plus discret, faute de règle WCAG qui l'impose à un champ étiqueté.
+- Exclusion de `target-size` (WCAG 2.2, 2.5.8) sur les segments de la timeline, dont la largeur est la durée représentée.
+- Captures d'Avancement et de Glossaire sur la hauteur de l'écran seulement (pages longues tirées des documents du dépôt : en pleine page, 10 Mo et une référence à refaire à chaque entrée de journal).
+- Tolérance des captures : 20 pixels (0,2 % laissait passer l'absence de la coche des étapes).
+- Signe moins typographique (U+2212) et unités en puissances de 1 000 (Ko = 1 000 octets).
+- Le bouton « Mode présentation » devient un interrupteur (forme demandée par V6, contenu de l'en-tête laissé à B11).
+Problèmes :
+- Dépendances Node ajoutées (développement seulement, hors `pyproject.toml` et `uv.lock`) : `@playwright/test` 1.56.1, `@axe-core/playwright` 4.11.0, `stylelint` 16.25.0, dans `tests/visuel/package.json`, avec `package-lock.json`. Navigateur : le Chrome installé ; aucun navigateur téléchargé.
+- L'audit annonçait le correctif du radio par la seule variable `radio_circle` (« [probable] ») : insuffisant dans Gradio 6.31 ; règle complémentaire dans `jetons.css`.
+- Le correctif de la coche montre que `--update-snapshots` ne réécrit, depuis Playwright 1.50, que les captures hors tolérance : `npm run captures:maj` passe `--update-snapshots=all`.
+- Restent pour B11 : tailles des exports à l'anglaise (V11, composant de Gradio), barre d'outils sur quatre lignes à 375 px (V5), en-tête (V6), « Nouvelle analyse » serré en mode présentation.
+Suite : B11 (onglet Analyse), puis B12 et B13.

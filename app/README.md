@@ -499,3 +499,60 @@ Un moteur absent de `moteurs` n'est plus refusé : il n'est pas proposé, et l'e
 Vérifié dans le navigateur, moteur factice, 007a_ECRH avec sa référence et une configuration sans la baseline WeSpeaker : carte en sombre à 1280 px, en clair à 375 px (largeur de page 375 px), quatre catégories rencontrées (décalage de frontière, chevauchement, pause courte, autre), en-tête et liste des moteurs (Baseline MFCC, Baseline ECAPA, pyannote).
 
 Tests : `tests/test_app_categories.py` (10 depuis l'option b), tests du gel (`test_app_presentation_gel.py`, 3 nouveaux) et de la carte mis à jour. Suite complète après l'option b : 548 réussis, 12 ignorés, 3 lents exclus.
+
+## Système visuel et contrôle automatique (chantier B10, audit visuel du 02/11, §3, §4 et §7)
+
+### Jetons, thème et feuilles de style
+
+| Élément | Règle | Où |
+|---|---|---|
+| Jetons | Seul endroit où figurent des valeurs de couleur, d'ombre, d'arrondi et d'espacement : teintes neutres, bord des contrôles (`--ws-control-line`, au moins 3:1 sur les trois fonds, WCAG 1.4.11), arrondis (carte 12 px, contrôle 8 px, marque, pilule, rond), ombre des cartes (filet en sombre), anneaux et filets nommés, espacement de 4 et 8 px, hauteur des contrôles (32 px ; 40 px en présentation ; 44 px sur écran tactile), mouvement. Redéfinis sous `.dark` et en mode présentation ; les jetons composés (anneaux, filets) sont déclarés sur `:root, .dark` pour être recalculés dans chaque mode | `app/static/jetons.css` |
+| Injection | Les jetons, les règles globales (mouvement réduit, écran tactile) et les correctifs des radios et des cases sont placés dans `<head>` par `launch(head=…)`, l'équivalent en chaîne de `head_paths` : Gradio ne les réécrit pas. Le reste passe par `css` | `theme.head`, `app.page_head` |
+| Thème | Chacune des 104 variables du thème qui ont une variante `_dark` dans Gradio 6.31 est définie dans les deux modes, avec le même jeton (`var(--ws-…)`), qui change de valeur sous `.dark`. Aucune ombre sur les contrôles. Grille d'espacement `gr.themes.Size(2, 4, 4, 8, 8, 12, 16 px)`, arrondis par jetons | `theme.WITH_DARK`, `theme.WITHOUT_DARK` |
+| Radios et cases (V1) | Ronds et cases non cochés bordés de `--ws-control-line` (3,1:1 au moins en clair, 3,4:1 en sombre) ; ni ombre ni liseré ; point du radio coché de la couleur du fond (`radio_circle` en `radial-gradient` sur `var(--background-fill-primary)`). La variable n'étant lue que sous `.gradio-style`, une règle de `jetons.css` l'applique aux radios de l'application (sinon, la feuille de réinitialisation de Gradio impose un SVG blanc, invisible en sombre). Coche des cases de la couleur du fond en sombre | `theme.py`, `jetons.css` |
+| Focus | Anneau de 2 px à l'encre, décalé de 2 px, sur tous les contrôles ; rendu aux radios et cases sur leur étiquette (`label:has(input:focus-visible)`), Gradio le retirant de l'entrée | `interface.css` |
+| Feuilles | `interface.css` et `visualiseur.css` n'emploient que des jetons : aucune couleur, ombre ni arrondi en dur, aucun sélecteur `svelte-*`, pas de `:root` ni de `body`, aucune règle `@` autre que `@media`, `@keyframes` et `@font-face`, mode sombre par `.dark` seulement | stylelint et `tests/test_app_systeme_visuel.py` |
+| Canevas et wavesurfer | Couleurs lues dans les jetons au rendu (`token('--ws-wave')` …), plus de valeurs en dur dans `visualiseur.js` | `visualiseur.js` |
+
+Corrigés en passant : la coche des étapes terminées n'apparaissait pas, car la réécriture du CSS par Gradio perd le raccourci `border: solid var(…)` (propriétés détaillées désormais) ; les jetons composés gardaient les teintes claires en sombre.
+
+### Composants communs
+
+| Composant | Classe | Emploi |
+|---|---|---|
+| Bouton secondaire | `ws-btn` | « Tout afficher », « Annuler la dernière fusion », « Image PNG de la timeline », notes et sources de l'Avancement ; contour fin, pas d'ombre |
+| Bouton principal | `ws-btn ws-btn-primary` (et le bouton « Analyser » de Gradio, même thème) | Un seul par écran |
+| Bouton-icône | `ws-btn ws-btn-icon` | 32 px de côté (44 px sur écran tactile), icône SVG de 16 px en `currentColor`, nom accessible par `aria-label` : extraits ▶ du tableau des locuteurs et du plus long monologue, zoom − et +, aide « ? », fermeture de l'explication. Triangle ▶ centré sur son centre de gravité, soit 1,2 px à droite de sa boîte (V4) | 
+| Interrupteur | `ws-btn ws-switch` + `aria-pressed` | « Suivre la lecture », « Énergie et seuil », « Mode présentation » : curseur à gauche ou à droite et contour renforcé, l'état ne repose pas sur la seule couleur |
+| Contrôle segmenté | `ws-segmented` | Forme d'onde / Spectrogramme |
+| Encadrés | `ws-callout` (information : fond discret) ; `ws-attention` (attention : filet gauche et icône « ! ») | Les encadrés existants sont ramenés à ces deux styles (annonce de durée, avertissements, erreur d'analyse, écarts du Pipeline, portée du DER, fusions, constats, aide des raccourcis, « Expliquer cette erreur ») |
+| Bouton lecture | `ws-btn wsp-play` | Icône et libellé (« Lecture » ou « Pause ») ; largeur fixe |
+
+Icônes : `app/icones.py`. Tableau des locuteurs (V2) : séparateur porté par la ligne (`border-collapse`), toutes les cellules centrées verticalement ; le filet est continu d'un bord à l'autre.
+
+### Nombres en français
+
+`app/formatage.py`, seule fonction de formatage des nombres affichés : virgule décimale, espace fine insécable (U+202F) entre les milliers et devant les unités et `%`, signe moins typographique, unités françaises (`duree` : « 2 min 05 s » ; `taille` : « 7,2 Ko », « 3,4 Mo »). Employée par les tableaux, les textes, le graphique de l'Avancement, la page Pipeline et les messages ; `visualiseur.js` suit la même règle. Jamais pour les fichiers lus par une machine (RTTM, JSON, étiquettes Audacity). Reste à faire (B11, V11) : les tailles des exports, affichées par le composant de fichiers de Gradio (« 7.2 KB »).
+
+### Contrôle automatique
+
+Outils Node de développement, en `devDependencies` de `tests/visuel/package.json` (`@playwright/test` 1.56.1, `@axe-core/playwright` 4.11.0, `stylelint` 16.25.0, versions exactes, `package-lock.json` versionné) ; rien dans `pyproject.toml` ni `uv.lock`. Navigateur : le Chrome installé (`channel: 'chrome'`) ; à défaut, `npx playwright install chromium` puis `PW_CHROMIUM=1`. Playwright lance lui-même l'application en mode factice (port 7872) sur une réunion de synthèse sans donnée de corpus (`tests/visuel/preparer.py` : audio de 90 s, 4 locuteurs, référence à 5 locuteurs).
+
+```bash
+cd tests/visuel && npm ci
+```
+
+```bash
+cd tests/visuel && npm run controle
+```
+
+| Commande (dans `tests/visuel`) | Contrôle |
+|---|---|
+| `npm run styles` | stylelint (`.stylelintrc.json`) : couleurs (`color-no-hex`, `color-named`, fonctions `rgb()`…), ombres et arrondis seulement par jetons, règles `@` permises, pas de `prefers-color-scheme`, pas de `:root`, `body` ni `svelte-*` ; `jetons.css` est la seule exception pour les valeurs |
+| `npm run captures` | 20 captures de référence (`tests/visuel/references/`) : clair et sombre × 1440 et 375 px, plus le mode présentation (sombre, 1280 × 720), sur les quatre onglets ; Analyse et Pipeline en pleine page, Avancement et Glossaire sur la hauteur de l'écran. Écart toléré : 20 pixels (les captures sont identiques d'un lancement à l'autre ; à 0,2 %, l'absence de la coche des étapes passait inaperçue). Masqués : forme d'onde et vue d'ensemble, durées mesurées, bandeau (périphérique), temps et exports, indicateur des moteurs. Vérifie aussi qu'aucune page ne déborde en largeur |
+| `npm run captures:maj` | Régénère toutes les références (`--update-snapshots=all` : sans `=all`, Playwright ne réécrit que les captures hors tolérance) après un changement voulu, à relire avant de les commiter |
+| `npm run accessibilite` | axe-core, règles WCAG 2.0, 2.1 et 2.2 A et AA, en clair et en sombre, sur les quatre onglets après une analyse. Une seule exclusion : la taille des cibles (2.5.8) sur les segments de la timeline, dont la largeur est la durée représentée (exception « présentation essentielle » ; le zoom les agrandit et ← → parcourent les tours au clavier) |
+| `npm run controle` | Les trois à la suite |
+| `npm run defauts:avant`, `npm run defauts:apres` | Captures des défauts V1, V2 et V4, hors références (`tests/visuel/defauts/`, non versionné) |
+
+Résultat au 02/11 : stylelint sans écart ; axe-core sans violation dans les deux modes ; 20 captures de référence (4,9 Mo). Les captures avant et après des défauts V1, V2 et V4 sont dans `docs/audit/b10-avant-apres/`. Tests Python : `tests/test_app_systeme_visuel.py` (couverture des variantes sombres, jetons employés tous définis, jetons composés, règles des feuilles, contrastes WCAG AA, composants, icône, formatage).
