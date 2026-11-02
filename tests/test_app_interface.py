@@ -41,7 +41,7 @@ def test_etat_d_avancement():
     html = interface._status_html(["analyse", "detection", "attribution"],
                                   {"analyse": 1.0, "detection": 0.5}, "En cours", fraction=0.5)
     # L'état de chaque étape est écrit en toutes lettres, pas porté par la seule couleur.
-    assert "terminé" in html and "50 %" in html and "en attente" in html and "Détection de parole" in html
+    assert "terminé" in html and "50\u202f%" in html and "en attente" in html and "Détection de parole" in html
     assert 'aria-live="polite"' in html and 'aria-valuenow="50"' in html
     assert interface._step_fraction(["analyse", "detection"], {"analyse": 1.0, "detection": 0.5}) == 0.75
 
@@ -60,7 +60,7 @@ def test_etat_d_echec():
                                   error="Modèle <absent> du cache")
     assert '<li class="st-fail">' in html and "échec" in html
     assert 'role="alert"' in html and "Modèle &lt;absent&gt; du cache" in html
-    assert "st-root st-failed" in html and html.count("terminé") == 2 and "40 %" not in html
+    assert "st-root st-failed" in html and html.count("terminé") == 2 and "40\u202f%" not in html
     assert "st-fail" not in interface._status_html(steps, state, "En cours")
 
 
@@ -72,7 +72,7 @@ def test_provenance_de_l_estimation():
     run = {"rtf": 0.0512, "measured": SimpleNamespace(exp_id="EXP-0007"),
            "overhead": FixedOverhead(2.25, "2026-11-01")}
     assert interface._estimate_source(run, fake=False) == (
-        "RTF 0,0512 mesuré par EXP-0007, surcoût fixe 2,2 s mesuré le 01/11/2026")
+        "RTF 0,0512 mesuré par EXP-0007, surcoût fixe 2,2\u202fs mesuré le 01/11/2026")
     run["overhead"] = None
     assert interface._estimate_source(run, fake=False).endswith("surcoût fixe non mesuré")
     assert interface._estimate_source(run, fake=True) == "RTF 0,0512 mesuré par EXP-0007"
@@ -88,8 +88,8 @@ def test_der_dans_les_deux_conditions_avec_mention_sans_uem(tmp_path):
                          "SPEAKER ref 1 4.0 4.0 <NA> <NA> B <NA> <NA>\n")
     html = interface._der_html({"annotation": hypothesis, "duree_s": 10.0}, str(reference))
     assert "Durée entière du fichier, sans UEM : non comparable aux résultats sur corpus." in html
-    assert "Sans collar (principale)" in html and "Collar ± 0,25 s" in html
-    assert "0,00 %" in html
+    assert "Sans collar (principale)" in html and "Collar ± 0,25\u202fs" in html
+    assert "0,00\u202f%" in html
 
 
 def test_visualiseur_avec_zoom():
@@ -158,8 +158,8 @@ def test_carte_des_erreurs_affiche_les_nombres_du_der(tmp_path):
     cells = re.findall(r'<td class="num[^"]*">([^<]+)</td>', der_row)   # DER, manquée, FA, confusion, JER
     # Manquée 2,5 s, fausse alarme 3 s, confusion 1,5 s, sur 9 s de parole de référence
     # (A 4 s et B 5 s : le chevauchement 3–4 compte pour chacun).
-    assert [row["part"] for row in errors["rangees"]] == cells[1:4] == ["27,78 %", "33,33 %", "16,67 %"]
-    assert [row["duree"] for row in errors["rangees"]] == ["2,50 s", "3,00 s", "1,50 s"]
+    assert [row["part"] for row in errors["rangees"]] == cells[1:4] == ["27,78\u202f%", "33,33\u202f%", "16,67\u202f%"]
+    assert [row["duree"] for row in errors["rangees"]] == ["2,50\u202fs", "3,00\u202fs", "1,50\u202fs"]
     assert [row["libelle"] for row in errors["rangees"]] == ["Parole manquée", "Fausse alarme", "Confusion"]
     assert interface._error_map(result, None) is None
     assert "wsp-errsum" in interface.VIEWER_TEMPLATE

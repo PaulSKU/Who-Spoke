@@ -516,3 +516,52 @@ regroupements:
       libelle: "Segmentation neuronale (détection et segmentation)"
       etapes: [detection, segmentation]
       role: "Un seul réseau, le modèle de segmentation de pyannote, détecte la parole et découpe chaque fenêtre en tours locaux, chevauchements compris : détection et segmentation sont deux sorties du même calcul."
+
+# Forme des données en sortie de chaque étape : étiquettes des flèches du schéma de la page
+# Pipeline (audit visuel du 02/11, §6 ; B12). `modele` : texte dont chaque {réglage} est lu
+# dans la configuration effective de l'expérience source (dans le code pour la
+# normalisation), mis en forme comme dans le tableau des réglages ; si un réglage manque,
+# la page affiche `generique` et signale l'écart. Aucune valeur n'est écrite ici.
+formes:
+  communs:
+    normalisation:
+      modele: "signal {audio.frequence_hz}, {audio.canaux} canal"
+      generique: "signal audio"
+  pyannote-community-1:
+    segmentation:
+      modele: "fenêtres de {segmentation.duree_fenetre_s}, {segmentation.locuteurs_par_fenetre} locuteurs locaux"
+      generique: "tours locaux par fenêtre"
+    empreintes:
+      modele: "vecteurs de dimension {embedding.dimension}"
+      generique: "un vecteur par tour local"
+    regroupement:
+      modele: "groupes, nombre {n_locuteurs}"
+      generique: "groupes de locuteurs"
+    sortie:
+      modele: "tours de parole (RTTM)"
+      generique: "tours de parole"
+  baseline:
+    analyse:
+      modele: "trames de {frame_s} tous les {hop_s}, {n_mfcc} MFCC"
+      generique: "trames d'énergie et de MFCC"
+    normalisation_cepstrale:
+      modele: "MFCC normalisés"
+      generique: "MFCC normalisés"
+    detection:
+      modele: "régions de parole d'au moins {min_speech_s}"
+      generique: "régions de parole"
+    segmentation:
+      modele: "fenêtres de {window_s}, pas de {window_step_s}"
+      generique: "fenêtres de parole"
+    representation:
+      modele: "vecteurs de dimension {empreintes.dimension}"
+      generique: "un vecteur par fenêtre"
+    regroupement:
+      modele: "groupes, nombre {n_locuteurs}"
+      generique: "groupes de locuteurs"
+    attribution:
+      modele: "tours de parole, pauses de moins de {merge_gap_s} comblées"
+      generique: "tours de parole"
+    sortie:
+      modele: "tours de parole (RTTM)"
+      generique: "tours de parole"

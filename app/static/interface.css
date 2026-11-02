@@ -1,51 +1,14 @@
-/* Feuille de style de l'application (D17). Teintes : app/theme.py ; la couleur est
-   réservée aux locuteurs. Ombres en couches (sm, md), mouvement court et limité aux
-   réponses à une action, respect de prefers-reduced-motion. */
-
-:root {
-  --ws-ink: #18191d;
-  --ws-slate: #5f616a;
-  --ws-line: #e2e2df;
-  --ws-canvas: #f4f4f2;
-  --ws-surface: #ffffff;
-  --ws-track: #f0f0ed;
-  --ws-shadow-md:
-    0 0 0 1px rgba(0,0,0,0.06),
-    0 1px 1px -0.5px rgba(0,0,0,0.06),
-    0 3px 3px -1.5px rgba(0,0,0,0.06),
-    0 6px 6px -3px rgba(0,0,0,0.06),
-    0 12px 12px -6px rgba(0,0,0,0.04);
-  --ws-ease: cubic-bezier(0.23, 1, 0.32, 1);
-  /* Graphique de l'Avancement (R-U7) : trois premiers emplacements de la palette
-     catégorielle, validés sur #ffffff (validate_palette.js) ; le vert est pris un pas
-     plus foncé (#199e70) pour passer le contraste de 3:1 en clair. */
-  --av-err-manquee: #2a78d6;
-  --av-err-fausse_alarme: #eb6834;
-  --av-err-confusion: #199e70;
-}
-.dark {
-  --ws-ink: #ecece9;
-  --ws-slate: #a3a49e;
-  --ws-line: #2d2e33;
-  --ws-canvas: #121315;
-  --ws-surface: #1b1c1f;
-  --ws-track: #232428;
-  --color-accent: #ecece9;
-  --color-accent-soft: #2d2e33;
-  /* Pas sombres de la palette, validés sur #1b1c1f. */
-  --av-err-manquee: #3987e5;
-  --av-err-fausse_alarme: #d95926;
-  --av-err-confusion: #199e70;
-  --ws-shadow-md:
-    0 0 0 1px rgba(255,255,255,0.07),
-    0 1px 2px -1px rgba(0,0,0,0.5),
-    0 8px 16px -8px rgba(0,0,0,0.5);
-}
+/* Feuille de style de l'application (D17 ; système visuel de l'audit visuel du 02/11).
+   Valeurs : uniquement les jetons de jetons.css (--ws-*) ; aucune couleur, ombre ni arrondi
+   en dur (stylelint, tests/visuel/.stylelintrc.json). Gradio réécrit et préfixe cette
+   feuille : pas de :root, html ou body sous @media, pas d'autre règle @ que @media et
+   @keyframes (elles sont dans jetons.css) ; le mode sombre est ciblé par .dark, jamais par
+   prefers-color-scheme ; aucun sélecteur svelte-*. Mouvement court, explicite, coupé en
+   mouvement réduit (jetons.css). */
 
 /* --- Page ---------------------------------------------------------------------- */
-/* Marges latérales fluides, hors @media : Gradio préfixe les sélecteurs placés dans une
-   règle @media, et `.gradio-container` ou `.main` n'y seraient plus atteints. 16 px de
-   gouttière à 375 px de large, 24 px (et 32 px pour .main) au-delà. */
+/* Marges latérales fluides, hors @media : 16 px de gouttière à 375 px de large, 24 px (et
+   32 px pour .main) au-delà. */
 .gradio-container {
   max-width: 1280px !important;
   margin: 0 auto !important;
@@ -60,8 +23,8 @@
 }
 
 .ws-header {
-  display: flex; align-items: flex-end; justify-content: space-between; gap: 16px;
-  flex-wrap: wrap; padding: 28px 0 8px;
+  display: flex; align-items: flex-end; justify-content: space-between; gap: var(--ws-space-4);
+  flex-wrap: wrap; padding: 28px 0 var(--ws-space-2);
 }
 .ws-header h1 {
   margin: 0; font-size: 1.75rem; line-height: 1.1; letter-spacing: -0.02em; font-weight: 650;
@@ -69,14 +32,30 @@
 }
 .ws-header p { margin: 6px 0 0; color: var(--ws-slate); font-size: 0.95rem; max-width: 62ch; }
 .ws-badge {
-  display: inline-flex; align-items: center; gap: 8px; padding: 4px 10px;
-  border-radius: 999px; font-size: 0.8rem; color: var(--ws-ink);
-  box-shadow: 0 0 0 1px var(--ws-line); background: var(--ws-surface);
+  display: inline-flex; align-items: center; gap: var(--ws-space-2); padding: var(--ws-space-1) 10px;
+  border-radius: var(--ws-radius-pill); font-size: 0.8rem; color: var(--ws-ink);
+  box-shadow: var(--ws-ring); background: var(--ws-surface);
 }
 .ws-badge::before {
-  content: ""; width: 6px; height: 6px; border-radius: 50%; background: var(--ws-slate);
+  content: ""; width: 6px; height: 6px; border-radius: var(--ws-radius-round); background: var(--ws-slate);
 }
-.ws-badges { display: flex; flex-wrap: wrap; gap: 8px; }
+.ws-badges { display: flex; flex-wrap: wrap; align-items: center; gap: var(--ws-space-2); }
+
+/* Configuration en vigueur (D17, amendement 1) dans un panneau « Détails » replié (V6) :
+   une information de vérification, pas de démonstration. Deux blocs (configuration,
+   moteur), chacun d'un tenant, côte à côte ou l'un sous l'autre. */
+.ws-details { font-size: 0.85rem; color: var(--ws-slate); }
+.ws-details summary {
+  display: inline-flex; align-items: center; gap: var(--ws-space-1); cursor: pointer; padding: 2px 0;
+  border-radius: var(--ws-radius-mark);
+}
+.ws-details[open] summary { color: var(--ws-ink); }
+.ws-details p.ws-config {
+  margin: var(--ws-space-1) 0 0; font-size: 0.85rem; color: var(--ws-slate); display: flex; flex-wrap: wrap;
+  gap: 0 20px;
+}
+.ws-config code { font-size: 0.95em; color: var(--ws-ink); overflow-wrap: anywhere; }   /* chemin de --config-demo */
+.ws-config .strong { color: var(--ws-ink); font-weight: 600; }
 
 /* Indicateur « moteurs prêts » (R-D2) : l'état est écrit ; la pastille le double. */
 .ws-engines[data-state="ready"]::before { background: var(--ws-ink); }
@@ -90,28 +69,123 @@
 
 /* Onglets : soulignement fin, sans couleur. */
 .tab-wrapper, .tab-container { border-bottom: 1px solid var(--ws-line) !important; }
-button[role="tab"] {
-  font-weight: 500 !important; color: var(--ws-slate) !important;
-  /* Les quatre onglets tiennent sur 343 px (375 px moins les gouttières). */
-  padding-left: clamp(8px, 2.5vw, 16px) !important; padding-right: clamp(8px, 2.5vw, 16px) !important;
+button[role="tab"] { font-weight: 500 !important; color: var(--ws-slate) !important; }
+/* À 375 px, les quatre onglets tiennent sur 343 px (375 px moins les gouttières) sans le menu
+   « … » de Gradio (B13). Gradio mesure une copie masquée de la barre (boutons sans rôle
+   « tab ») pour décider qui déborde : la règle vise donc les deux copies. Taille en px : la
+   barre tient aussi en mode présentation. */
+@media (max-width: 640px) {
+  .tab-container > button { padding: 0 var(--ws-space-2) !important; font-size: 13px !important; }
 }
 button[role="tab"][aria-selected="true"] { color: var(--ws-ink) !important; }
 button[role="tab"][aria-selected="true"]::after,
 .tab-container .selected::after { background: var(--ws-ink) !important; height: 2px !important; }
 
+/* --- Composants communs (audit visuel, §4) --------------------------------------- */
+/* Boutons : trois variantes (principal, secondaire, icône), deux tailles (32 px ; 44 px pour
+   le bouton principal de l'analyse et sur écran tactile). Désactivé : même forme, opacité
+   réduite. Aucune ombre : un contour fin pour le secondaire. */
+.ws-btn {
+  display: inline-flex; align-items: center; justify-content: center; gap: var(--ws-space-2);
+  height: var(--ws-control-h); padding: 0 var(--ws-space-3); border: none; border-radius: var(--ws-radius-control);
+  font: inherit; font-size: 0.875rem; font-weight: 500; line-height: 1; white-space: nowrap; cursor: pointer;
+  color: var(--ws-ink); background: var(--ws-surface); box-shadow: var(--ws-ring);
+  transition: transform var(--ws-fast) var(--ws-ease), background-color var(--ws-medium) ease-out,
+    opacity var(--ws-medium) ease-out;
+}
+.ws-btn-primary { color: var(--ws-on-ink); background: var(--ws-ink); box-shadow: none; }
+.ws-btn-icon { width: var(--ws-control-h); padding: 0; flex: none; }
+/* Petit bouton, dans un tableau ou une liste (notes.md, sources des constats ; B13). */
+.ws-btn-sm { height: var(--ws-control-h-sm); padding: 0 10px; font-size: 0.8rem; margin: 0 !important; }   /* marge basse de la prose Gradio */
+.ws-btn svg { width: var(--ws-icon); height: var(--ws-icon); flex: none; }
+.ws-btn:active:not(:disabled) { transform: scale(0.97); }
+.ws-btn:disabled { opacity: 0.4; cursor: default; }
+.ws-btn[hidden] { display: none; }
+@media (hover: hover) and (pointer: fine) {
+  .ws-btn:not(.ws-btn-primary):not(:disabled):hover { background: var(--ws-canvas); }
+  .ws-btn-primary:not(:disabled):hover { opacity: 0.88; }
+}
+
+/* Interrupteur : bascule avec aria-pressed, état visible par la position du curseur et le
+   contour, pas par la seule couleur. */
+.ws-switch-track {
+  position: relative; width: 26px; height: 16px; flex: none; border-radius: var(--ws-radius-pill);
+  background: var(--ws-control-line); transition: background-color var(--ws-medium) ease-out;
+}
+.ws-switch-track::after {
+  content: ""; position: absolute; top: 2px; left: 2px; width: 12px; height: 12px;
+  border-radius: var(--ws-radius-round); background: var(--ws-surface);
+  transition: transform var(--ws-medium) var(--ws-ease);
+}
+.ws-switch[aria-pressed="true"] { box-shadow: var(--ws-ring-strong); }
+.ws-switch[aria-pressed="true"] .ws-switch-track { background: var(--ws-ink); }
+.ws-switch[aria-pressed="true"] .ws-switch-track::after { transform: translateX(10px); background: var(--ws-on-ink); }
+.ws-switch[aria-pressed="false"] { color: var(--ws-slate); }
+
+/* Contrôle segmenté : choix exclusif (Forme d'onde / Spectrogramme). */
+.ws-segmented {
+  display: inline-flex; gap: 2px; padding: 2px; border-radius: var(--ws-radius-control);
+  background: var(--ws-track); box-shadow: var(--ws-ring);
+}
+.ws-segmented > button {
+  height: calc(var(--ws-control-h) - 4px); padding: 0 var(--ws-space-3); border: none;
+  border-radius: calc(var(--ws-radius-control) - 2px); font: inherit; font-size: 0.875rem; font-weight: 500;
+  white-space: nowrap; cursor: pointer; color: var(--ws-slate); background: transparent;
+  transition: background-color var(--ws-medium) ease-out, color var(--ws-medium) ease-out;
+}
+.ws-segmented > button[aria-pressed="true"] { color: var(--ws-ink); background: var(--ws-surface); box-shadow: var(--ws-ring); }
+.ws-segmented > button:disabled { opacity: 0.4; cursor: default; }
+@media (hover: hover) and (pointer: fine) {
+  .ws-segmented > button[aria-pressed="false"]:not(:disabled):hover { color: var(--ws-ink); }
+}
+
+/* Étiquette de confiance (constats de l'onglet Avancement, glossaire) : écrite, la teinte ne
+   fait que la doubler. */
+.ws-conf {
+  display: inline-block; padding: 1px var(--ws-space-2); border-radius: var(--ws-radius-pill); font-size: 0.75rem;
+  font-weight: 600; line-height: 1.4; box-shadow: var(--ws-ring-strong); color: var(--ws-ink); white-space: nowrap;
+}
+.ws-conf-certain { background: var(--ws-ink); color: var(--ws-on-ink); }
+.ws-conf-incertain { box-shadow: var(--ws-ring-slate); color: var(--ws-slate); font-weight: 500; }
+
+/* Encadrés : deux styles seulement. Information : fond discret. Attention : filet gauche et
+   icône « ! » ; jamais de couleur d'état. */
+.ws-callout, .ws-scope, .ws-merges, .ws-estimate, .pl-constats, .av-learned {
+  padding: var(--ws-space-2) var(--ws-space-3); border-radius: var(--ws-radius-control);
+  background: var(--ws-canvas); color: var(--ws-ink); font-size: 0.85rem; line-height: 1.5;
+}
+.ws-attention, .ws-callout.ws-alert, .ws-estimate[data-state="warn"], .ws-estimate-alert, .st-error, .pl-issues {
+  position: relative; padding: var(--ws-space-2) var(--ws-space-3) var(--ws-space-2) 36px;
+  border-radius: var(--ws-radius-control); background: var(--ws-canvas); color: var(--ws-ink);
+  box-shadow: var(--ws-rule-attention); font-size: 0.85rem; line-height: 1.5; overflow-wrap: anywhere;
+}
+.ws-attention::before, .ws-callout.ws-alert::before, .ws-estimate[data-state="warn"]::before,
+.ws-estimate-alert::before, .st-error::before, .pl-issues::before {
+  content: "!"; position: absolute; left: var(--ws-space-3); top: 10px; width: 16px; height: 16px;
+  display: flex; align-items: center; justify-content: center; border-radius: var(--ws-radius-round);
+  font-size: 11px; font-weight: 700; line-height: 1; color: var(--ws-on-ink); background: var(--ws-ink);
+}
+
+/* Focus visible partout, contraste ≥ 3:1, jamais rogné. Gradio retire l'anneau des radios et
+   des cases (outline: none) : il est rendu à leur étiquette. */
+:is(button, a, input, textarea, select, [tabindex]):focus-visible {
+  outline: 2px solid var(--ws-ink) !important; outline-offset: 2px !important;
+}
+label:has(input:focus-visible) { outline: 2px solid var(--ws-ink); outline-offset: 2px; }
+
 /* --- Cartes -------------------------------------------------------------------- */
 .ws-card {
   background: var(--ws-surface) !important;
   border: none !important;
-  border-radius: 14px !important;
-  box-shadow: var(--ws-shadow-md) !important;
+  border-radius: var(--ws-radius-card) !important;
+  box-shadow: var(--ws-shadow-card) !important;
   padding: 20px !important;
-  gap: 18px !important;
+  gap: var(--ws-space-4) !important;
 }
 .ws-card > .block, .ws-card .block, .ws-card .form {
   background: transparent !important; box-shadow: none !important; border: none !important;
 }
-.ws-card .form { gap: 18px !important; }
+.ws-card .form { gap: var(--ws-space-4) !important; }
 .ws-section-title {
   margin: 0; font-size: 0.95rem; font-weight: 600; color: var(--ws-ink); letter-spacing: -0.005em;
 }
@@ -120,87 +194,96 @@ button[role="tab"][aria-selected="true"]::after,
 .ws-note p { margin: 0; }
 .ws-empty-note { color: var(--ws-slate); font-size: 0.9rem; padding: 6px 0; }
 
-/* Zones de dépôt : pointillés discrets, fond de page. */
-.ws-card [data-testid="file"] .wrap, .ws-card .upload-container {
-  background: var(--ws-canvas) !important; border-radius: 10px !important;
+/* Carte « Comment ça marche », seule à droite avant toute analyse (V8). */
+.ws-howto-steps { list-style: none; margin: 0; padding: 0; display: grid; gap: var(--ws-space-4); }
+.ws-howto-steps li { display: flex; align-items: flex-start; gap: var(--ws-space-3); }
+.ws-howto-num {
+  flex: none; width: 24px; height: 24px; display: flex; align-items: center; justify-content: center;
+  border-radius: var(--ws-radius-round); font-size: 0.8rem; font-weight: 600; color: var(--ws-on-ink); background: var(--ws-ink);
 }
-.ws-card button.center, .ws-card .file-preview-holder { border-radius: 10px !important; }
+.ws-howto-step { margin: 2px 0 0; font-weight: 600; color: var(--ws-ink); }
+.ws-howto-results { margin: 0; padding-left: 18px; font-size: 0.9rem; line-height: 1.6; }
+.ws-howto-more { margin: var(--ws-space-4) 0 0; }
 
-/* Bouton principal : retour d'appui immédiat. */
-button.primary, button.secondary, .wsp-play {
-  transition: transform 100ms var(--ws-ease), background-color 150ms ease, opacity 150ms ease;
+/* Zones de dépôt : fond de page, arrondi des contrôles. */
+.ws-card [data-testid="file"] .wrap, .ws-card .upload-container {
+  background: var(--ws-canvas) !important; border-radius: var(--ws-radius-control) !important;
 }
-button.primary:active, button.secondary:active, .wsp-play:active { transform: scale(0.97); }
+.ws-card button.center, .ws-card .file-preview-holder { border-radius: var(--ws-radius-control) !important; }
+
+/* Boutons de Gradio : retour d'appui immédiat, comme .ws-btn. */
+button.primary, button.secondary {
+  transition: transform var(--ws-fast) var(--ws-ease), background-color var(--ws-medium) ease-out,
+    opacity var(--ws-medium) ease-out;
+}
+button.primary:active, button.secondary:active { transform: scale(0.97); }
 @media (hover: hover) and (pointer: fine) {
   button.primary:hover { opacity: 0.88; }
 }
 .ws-run { min-height: 44px; font-weight: 600 !important; letter-spacing: -0.005em; }
 
-/* Durée annoncée avant le lancement (R-D2 ; D17, amendement 2). */
-.ws-estimate {
-  background: var(--ws-canvas); border-radius: 10px; padding: 10px 12px; font-size: 0.85rem; line-height: 1.45;
-}
-.ws-estimate[data-state="warn"] { box-shadow: inset 3px 0 0 var(--ws-ink); }
+/* Durée annoncée avant le lancement (R-D2 ; D17, amendement 2) : encadré d'information. */
 .ws-estimate-head { margin: 0; font-weight: 600; color: var(--ws-ink); }
-.ws-estimate-list { margin: 4px 0 0; padding-left: 18px; color: var(--ws-slate); }
+.ws-estimate-list { margin: var(--ws-space-1) 0 0; padding-left: 18px; color: var(--ws-slate); }
 .ws-estimate-list:empty { display: none; }
-.ws-estimate .ws-caption { margin-top: 4px; }
-/* Avertissements (B7) : fichier silencieux, référence mal assortie ou illisible. Écrits en
-   toutes lettres, marqués d'un filet d'encre ; aucune couleur d'état. */
-.ws-estimate-alert {
-  margin: 8px 0 0; padding: 6px 0 6px 10px; color: var(--ws-ink); font-size: 0.85rem; line-height: 1.5;
-  box-shadow: inset 3px 0 0 var(--ws-ink);
-}
-.ws-callout.ws-alert { color: var(--ws-ink); box-shadow: inset 3px 0 0 var(--ws-ink); overflow-wrap: anywhere; }
+.ws-estimate .ws-caption { margin-top: var(--ws-space-1); }
+.ws-estimate-alert { margin: var(--ws-space-2) 0 0; background: transparent; }
 
 /* Bandeau des réglages repliés après l'analyse (R-U1). */
 .ws-band {
-  background: var(--ws-surface) !important; border-radius: 14px !important;
-  box-shadow: var(--ws-shadow-md) !important; padding: 10px 12px 10px 20px !important;
-  align-items: center !important; gap: 12px !important;
+  background: var(--ws-surface) !important; border-radius: var(--ws-radius-card) !important;
+  box-shadow: var(--ws-shadow-card) !important; padding: 10px var(--ws-space-3) 10px 20px !important;
+  align-items: center !important; gap: var(--ws-space-3) !important;
 }
 .ws-band > .block, .ws-band .block { background: transparent !important; box-shadow: none !important; border: none !important; }
 .ws-band-info { min-width: min(240px, 100%) !important; flex: 1 1 0% !important; }
 .ws-band-text { display: flex; flex-wrap: wrap; align-items: baseline; gap: 2px 0; margin: 0; font-size: 0.9rem; color: var(--ws-slate); }
 .ws-band-text > span:not(:last-child)::after { content: "·"; margin: 0 10px; color: var(--ws-line); }
 .ws-band-text .strong { color: var(--ws-ink); font-weight: 600; overflow-wrap: anywhere; }
-.ws-band-button { white-space: nowrap; }
+/* « Nouvelle analyse » : largeur de son libellé et marges propres, aussi en mode présentation. */
+.ws-band-button {
+  white-space: nowrap; min-width: max-content !important; padding: 0 var(--ws-space-4) !important;
+  min-height: var(--ws-control-h);
+}
 
 /* Cache des résultats : repli discret sous le bouton principal. */
-.ws-cache { box-shadow: 0 0 0 1px var(--ws-line) !important; border-radius: 10px !important; }
+.ws-cache { box-shadow: var(--ws-ring) !important; border-radius: var(--ws-radius-control) !important; }
 .ws-cache .label-wrap { font-size: 0.875rem; }
 
-/* Focus visible partout, contraste ≥ 3:1. */
-:is(button, a, input, textarea, select, [tabindex]):focus-visible {
-  outline: 2px solid var(--ws-ink) !important; outline-offset: 2px !important;
-}
-
 /* --- État d'avancement --------------------------------------------------------- */
-.st-root { display: grid; gap: 12px; }
-.st-head { display: flex; justify-content: space-between; align-items: baseline; gap: 12px; flex-wrap: wrap; }
+.st-root { display: grid; gap: var(--ws-space-3); }
+.st-head { display: flex; justify-content: space-between; align-items: baseline; gap: var(--ws-space-3); flex-wrap: wrap; }
 .st-title { font-weight: 600; font-size: 1rem; letter-spacing: -0.01em; margin: 0; color: var(--ws-ink); }
 .st-detail { color: var(--ws-slate); font-size: 0.875rem; }
-.st-bar { height: 6px; border-radius: 999px; background: var(--ws-track); overflow: hidden; }
-.st-bar > div { height: 100%; border-radius: 999px; background: var(--ws-ink); transition: width 300ms linear; }
-/* Étapes lues en colonne, dans l'ordre du pipeline (R-U5) : de haut en bas, puis colonne suivante. */
+.st-bar { height: 6px; border-radius: var(--ws-radius-pill); background: var(--ws-track); overflow: hidden; }
+.st-bar > div { height: 100%; border-radius: var(--ws-radius-pill); background: var(--ws-ink); transition: width 200ms linear; }
+/* Étapes lues en colonne, dans l'ordre du pipeline (R-U5) : de haut en bas, puis colonne
+   suivante, trois colonnes de même largeur ; le statut suit son étape (V7). */
 .st-steps {
-  list-style: none; padding: 0; margin: 0; columns: 3 220px; column-gap: 24px; font-size: 0.875rem;
+  list-style: none; padding: 0; margin: 0; font-size: 0.875rem; display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr)); grid-template-rows: repeat(var(--st-rows, 3), auto);
+  grid-auto-flow: column; gap: 6px var(--ws-space-5);
 }
-.st-steps li {
-  display: flex; align-items: center; gap: 10px; min-height: 24px; color: var(--ws-slate);
-  break-inside: avoid; margin-bottom: 6px;
+.st-steps li { display: flex; align-items: center; gap: var(--ws-space-2); min-height: 24px; color: var(--ws-slate); min-width: 0; }
+.st-steps li .st-label { min-width: 0; }
+.st-steps li .st-val { font-size: 0.8rem; color: var(--ws-slate); white-space: nowrap; }
+.st-steps li .st-val::before { content: "· "; }
+/* Analyse finie : liste repliée en une ligne, dépliable (V7). */
+.st-fold summary { cursor: pointer; font-size: 0.875rem; color: var(--ws-slate); padding: 2px 0; border-radius: var(--ws-radius-mark); }
+.st-fold[open] summary { margin-bottom: var(--ws-space-2); color: var(--ws-ink); }
+@media (max-width: 640px) {
+  .st-steps { grid-template-columns: minmax(0, 1fr); grid-template-rows: none; grid-auto-flow: row; }
 }
-.st-steps li .st-label { flex: 1; }
-.st-steps li .st-val { font-size: 0.8rem; }
 .st-mark {
-  flex: none; width: 16px; height: 16px; border-radius: 50%; box-sizing: border-box;
-  border: 1.5px solid var(--ws-line); position: relative;
+  flex: none; width: 16px; height: 16px; border-radius: var(--ws-radius-round); box-sizing: border-box;
+  border: 1.5px solid var(--ws-control-line); position: relative;
 }
 .st-done { color: var(--ws-ink) !important; }
 .st-done .st-mark { background: var(--ws-ink); border-color: var(--ws-ink); }
 .st-done .st-mark::after {
   content: ""; position: absolute; left: 5px; top: 2px; width: 4px; height: 8px;
-  border: solid var(--ws-surface); border-width: 0 2px 2px 0; transform: rotate(45deg);
+  /* Propriétés détaillées : la réécriture de Gradio perd le raccourci « border: solid var(…) ». */
+  border-style: solid; border-color: var(--ws-on-ink); border-width: 0 2px 2px 0; transform: rotate(45deg);
 }
 .st-run { color: var(--ws-ink) !important; font-weight: 600; }
 .st-run .st-mark { border-color: var(--ws-ink); border-right-color: transparent; animation: st-spin 0.8s linear infinite; }
@@ -209,84 +292,88 @@ button.primary:active, button.secondary:active, .wsp-play:active { transform: sc
 .st-fail .st-mark { border-color: var(--ws-ink); background: var(--ws-ink); }
 .st-fail .st-mark::before, .st-fail .st-mark::after {
   content: ""; position: absolute; left: 6.25px; top: 3px; width: 1.5px; height: 7px;
-  background: var(--ws-surface); transform: rotate(45deg);
+  background: var(--ws-on-ink); transform: rotate(45deg);
 }
 .st-fail .st-mark::after { transform: rotate(-45deg); }
 /* Résultat réaffiché depuis le cache : pastille pleine, visible au premier coup d'œil. */
 .st-badges { margin: 0; display: flex; flex-wrap: wrap; gap: 6px; }
 .ws-cache-badge {
-  display: inline-flex; align-items: center; gap: 8px; padding: 4px 10px; border-radius: 999px;
-  font-size: 0.8rem; font-weight: 600; color: var(--ws-surface); background: var(--ws-ink);
+  display: inline-flex; align-items: center; gap: var(--ws-space-2); padding: var(--ws-space-1) 10px;
+  border-radius: var(--ws-radius-pill); font-size: 0.8rem; font-weight: 600; color: var(--ws-on-ink);
+  background: var(--ws-ink);
 }
 .ws-cache-badge::before {
-  content: ""; width: 6px; height: 6px; border-radius: 50%; background: var(--ws-surface);
+  content: ""; width: 6px; height: 6px; border-radius: var(--ws-radius-round); background: var(--ws-on-ink);
 }
-.st-error {
-  margin: 0; padding: 10px 12px; border-radius: 8px; font-size: 0.875rem; line-height: 1.45;
-  color: var(--ws-ink); background: var(--ws-track); box-shadow: inset 3px 0 0 var(--ws-ink);
-  overflow-wrap: anywhere;
-}
+.st-error { margin: 0; }
 
 /* --- Tableaux de résultats ----------------------------------------------------- */
+/* Séparateur porté par la ligne (border-collapse), cellules centrées verticalement : le filet
+   est continu d'un bord à l'autre, quelle que soit la hauteur de chaque cellule (V2). */
 .ws-table { width: 100%; border-collapse: collapse; font-size: 0.9rem; border: none !important; margin: 0 !important; }
-.ws-table thead, .ws-table tbody, .ws-table tr { border: none !important; background: transparent !important; }
-.ws-table th, .ws-table td {
-  border-top: none !important; border-left: none !important; border-right: none !important;
-  background: transparent !important;
-}
+.ws-table thead, .ws-table tbody { border: none !important; background: transparent !important; }
+.ws-table tr { border: none !important; border-bottom: 1px solid var(--ws-line) !important; background: transparent !important; }
+.ws-table tbody tr:last-child { border-bottom: none !important; }
+.ws-table th, .ws-table td { border: none !important; background: transparent !important; vertical-align: middle; }
 .ws-table th {
-  border-bottom: 1px solid var(--ws-line) !important;
   text-align: left; font-weight: 500; color: var(--ws-slate); font-size: 0.8rem;
-  padding: 0 12px 8px 0; border-bottom: 1px solid var(--ws-line); white-space: nowrap;
+  padding: 0 var(--ws-space-3) var(--ws-space-2) 0; white-space: nowrap; vertical-align: bottom;
 }
-.ws-table td { padding: 10px 12px 10px 0; border-bottom: 1px solid var(--ws-line) !important; vertical-align: middle; color: var(--ws-ink); }
-.ws-table tr:last-child td { border-bottom: none !important; }
+.ws-table td { padding: 10px var(--ws-space-3) 10px 0; color: var(--ws-ink); }
 .ws-table th:last-child, .ws-table td:last-child { padding-right: 0; }
-.ws-table .num { text-align: right; white-space: nowrap; }
+.ws-table .num { text-align: right; white-space: nowrap; font-variant-numeric: tabular-nums; }
 .ws-table th.num { text-align: right; }
 .ws-table .strong { font-weight: 600; }
 .ws-table td:first-child { white-space: nowrap; }
 .ws-table .sub { display: block; color: var(--ws-slate); font-size: 0.8rem; }
-.ws-swatch { display: inline-block; width: 10px; height: 10px; border-radius: 3px; margin-right: 10px; vertical-align: 0; }
-.ws-share { display: flex; align-items: center; gap: 10px; justify-content: flex-end; }
-.ws-share-bar { width: 72px; height: 6px; border-radius: 999px; background: var(--ws-track); overflow: hidden; }
-.ws-share-bar > span { display: block; height: 100%; border-radius: 999px; }
-.ws-scope {
-  font-size: 0.85rem; color: var(--ws-ink); background: var(--ws-canvas);
-  border-radius: 8px; padding: 8px 12px; margin: 0 0 12px; line-height: 1.5;
+.ws-swatch {
+  display: inline-block; width: 10px; height: 10px; border-radius: var(--ws-radius-mark); margin-right: 10px;
+  vertical-align: 0;
 }
-.ws-subtitle { margin: 4px 0 8px; font-size: 0.9rem; font-weight: 600; }
+.ws-share { display: flex; align-items: center; gap: 10px; justify-content: flex-end; }
+.ws-share-bar { width: 72px; height: 6px; border-radius: var(--ws-radius-pill); background: var(--ws-track); overflow: hidden; }
+.ws-share-bar > span { display: block; height: 100%; border-radius: var(--ws-radius-pill); }
+.ws-scope { margin: 0 0 var(--ws-space-3); }
+.ws-subtitle { margin: var(--ws-space-1) 0 var(--ws-space-2); font-size: 0.9rem; font-weight: 600; }
 .ws-subtitle:not(:first-child) { margin-top: 18px; }
 .ws-caption { color: var(--ws-slate); font-size: 0.85rem; margin: 10px 0 0; line-height: 1.5; }
-.ws-callout {
-  font-size: 0.85rem; color: var(--ws-slate); background: var(--ws-canvas);
-  border-radius: 8px; padding: 10px 12px; margin-bottom: 12px; line-height: 1.5;
+/* Aide d'un tableau, repliée (V13). */
+.ws-howto-read { margin-top: 10px; }
+.ws-howto-read summary {
+  cursor: pointer; font-size: 0.85rem; color: var(--ws-slate); padding: 2px 0; border-radius: var(--ws-radius-mark);
 }
-.ws-callout code { font-size: 0.8rem; }
+.ws-howto-read[open] summary { color: var(--ws-ink); }
+.ws-howto-read .ws-caption { margin-top: var(--ws-space-1); }
+/* Contenu replié qui n'est pas une aide (valeurs d'un graphique, décisions de cadrage) :
+   même sommaire, à l'encre ; reste visible en mode présentation. */
+.ws-fold { margin-top: 10px; }
+.ws-fold > summary {
+  cursor: pointer; font-size: 0.875rem; font-weight: 500; color: var(--ws-ink); padding: 2px 0;
+  border-radius: var(--ws-radius-mark);
+}
+.ws-fold[open] > summary { margin-bottom: var(--ws-space-2); }
+.ws-callout { margin-bottom: var(--ws-space-3); color: var(--ws-slate); }
+.ws-callout.ws-alert { color: var(--ws-ink); }
+/* Chemin du RTTM repris en mode factice : coupé n'importe où plutôt que d'élargir la page
+   à 375 px (B8). */
+.ws-callout code { font-size: 0.8rem; overflow-wrap: anywhere; }
 
 /* Tableau des locuteurs : nom éditable dans la ligne, extrait typique (R-U6). */
 .ws-speakers td.ws-speaker { white-space: nowrap; }
 .ws-speaker { display: flex; align-items: center; }
 .ws-speaker-name { display: inline-flex; flex-direction: column; min-width: 0; }
 .ws-name-input {
-  width: min(12em, 40vw); max-width: 100%; height: 30px; padding: 0 8px; border-radius: 6px; font: inherit; font-weight: 600;
+  width: min(18em, 48vw); max-width: 100%; height: var(--ws-control-h); padding: 0 var(--ws-space-2);
+  border-radius: var(--ws-radius-control); font: inherit; font-weight: 600;
   color: var(--ws-ink); background: var(--ws-surface); border: 1px solid transparent;
-  box-shadow: 0 0 0 1px var(--ws-line); transition: box-shadow 150ms ease;
+  box-shadow: var(--ws-ring-control); transition: box-shadow var(--ws-medium) ease-out;
 }
 .ws-name-input::placeholder { color: var(--ws-ink); opacity: 1; }
-.ws-name-input:hover { box-shadow: 0 0 0 1px var(--ws-slate); }
-.ws-name-input:focus { outline: none; box-shadow: 0 0 0 2px var(--ws-ink); }
+.ws-name-input:hover { box-shadow: var(--ws-ring-slate); }
+.ws-name-input:focus { outline: none; box-shadow: var(--ws-ring-focus); }
 .ws-name-input:focus::placeholder { color: var(--ws-slate); }
-.ws-speakers .ws-speaker .sub { margin: 2px 0 0 8px; }
+.ws-speakers .ws-speaker .sub { margin: 2px 0 0 var(--ws-space-2); }
 .ws-play-cell { width: 1%; }
-.ws-excerpt {
-  width: 32px; height: 32px; border: none; border-radius: 50%; cursor: pointer; font: inherit; font-size: 0.75rem;
-  background: var(--ws-surface); color: var(--ws-ink); box-shadow: 0 0 0 1px var(--ws-line);
-  transition: transform 100ms var(--ws-ease), background-color 150ms ease;
-}
-.ws-excerpt:active:not(:disabled) { transform: scale(0.94); }
-.ws-excerpt:disabled { opacity: 0.35; cursor: default; }
-@media (hover: hover) and (pointer: fine) { .ws-excerpt:not(:disabled):hover { background: var(--ws-canvas); } }
 .ws-sr {
   position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden;
   clip: rect(0 0 0 0); white-space: nowrap; border: 0;
@@ -294,42 +381,31 @@ button.primary:active, button.secondary:active, .wsp-play:active { transform: sc
 
 /* Fusion de locuteurs (R-U9) : liste par ligne, fusions en vigueur, DER avant → après. */
 .ws-merge {
-  height: 30px; max-width: 11em; padding: 0 6px; border-radius: 6px; font: inherit; font-size: 0.8rem;
-  color: var(--ws-ink); background: var(--ws-surface); border: none; box-shadow: 0 0 0 1px var(--ws-line);
-  cursor: pointer;
+  height: var(--ws-control-h); max-width: 11em; padding: 0 6px; border-radius: var(--ws-radius-control);
+  font: inherit; font-size: 0.8rem; color: var(--ws-ink); background: var(--ws-surface); border: none;
+  box-shadow: var(--ws-ring-control); cursor: pointer;
 }
-.ws-merge:focus-visible { outline: none; box-shadow: 0 0 0 2px var(--ws-ink); }
+.ws-merge:focus-visible { outline: none; box-shadow: var(--ws-ring-focus); }
 .ws-merges {
-  display: flex; flex-wrap: wrap; align-items: center; gap: 6px 12px; margin-top: 12px; padding: 10px 12px;
-  border-radius: 8px; background: var(--ws-canvas); font-size: 0.85rem;
+  display: flex; flex-wrap: wrap; align-items: center; gap: 6px var(--ws-space-3); margin-top: var(--ws-space-3);
 }
 .ws-merges-title { font-weight: 600; }
 .ws-merges-list { margin: 0; padding-left: 1.4em; display: flex; flex-wrap: wrap; gap: 0 1.6em; }
-.ws-merge-undo, .ws-png {
-  height: 30px; padding: 0 12px; border: none; border-radius: 8px; cursor: pointer; font: inherit;
-  font-size: 0.8rem; font-weight: 500; color: var(--ws-ink); background: var(--ws-surface);
-  box-shadow: 0 0 0 1px var(--ws-line); transition: transform 100ms var(--ws-ease), background-color 150ms ease;
-  max-width: 100%;
-}
-.ws-merge-undo { margin-left: auto; }
-.ws-merge-undo:active, .ws-png:active { transform: scale(0.97); }
-@media (hover: hover) and (pointer: fine) {
-  .ws-merge-undo:hover, .ws-png:hover, .ws-merge:hover { background: var(--ws-canvas); }
-}
-.ws-merge-der { color: var(--ws-ink); box-shadow: inset 3px 0 0 var(--ws-ink); }
+.ws-merge-undo { margin-left: auto; max-width: 100%; }
+@media (hover: hover) and (pointer: fine) { .ws-merge:hover { background: var(--ws-canvas); } }
 
 /* Interactions (R-U10) : plus long monologue, tours, latence, matrice « qui suit qui ». */
 .ws-monologue {
-  display: flex; flex-wrap: wrap; align-items: center; gap: 6px 12px; margin: 0 0 14px; font-size: 0.9rem;
+  display: flex; flex-wrap: wrap; align-items: center; gap: 6px var(--ws-space-3); margin: 0 0 14px; font-size: 0.9rem;
 }
 .ws-monologue-label { color: var(--ws-slate); font-size: 0.85rem; }
 .ws-monologue .sub { color: var(--ws-slate); }
 .ws-who { white-space: nowrap; }
-.ws-matrix th[scope="row"] { font-weight: 500; color: var(--ws-ink); font-size: 0.875rem; padding: 8px 12px 8px 0; }
-.ws-matrix td.ws-mx, .ws-matrix td.ws-mx-diag { text-align: center; min-width: 3.2em; padding: 8px 6px; }
+.ws-matrix th[scope="row"] { font-weight: 500; color: var(--ws-ink); font-size: 0.875rem; padding: var(--ws-space-2) var(--ws-space-3) var(--ws-space-2) 0; }
+.ws-matrix td.ws-mx, .ws-matrix td.ws-mx-diag { text-align: center; min-width: 3.2em; padding: var(--ws-space-2) 6px; }
 .ws-matrix td.ws-mx {
   font-weight: 600; background: color-mix(in srgb, var(--ws-ink) var(--mx, 0%), transparent) !important;
-  box-shadow: inset 0 0 0 1px var(--ws-surface);   /* filet de surface entre deux cases teintées */
+  box-shadow: var(--ws-ring-surface);   /* filet de surface entre deux cases teintées */
 }
 .ws-matrix td.ws-mx-diag { color: var(--ws-slate); }
 .ws-matrix thead th.num {
@@ -343,74 +419,147 @@ button.primary:active, button.secondary:active, .wsp-play:active { transform: sc
   white-space: normal; max-width: 13em; min-width: 8em; overflow-wrap: anywhere;
 }
 .ws-matrix th[scope="row"].ws-who { white-space: normal; }
+.ws-mx-who { display: -webkit-box; -webkit-box-orient: vertical; -webkit-line-clamp: 2; line-clamp: 2; overflow: hidden; }
 .ws-mx-num { display: inline-block; min-width: 1.6em; color: var(--ws-slate); font-variant-numeric: tabular-nums; }
 .ws-matrix thead th:first-child { position: sticky; left: 0; z-index: 1; background: var(--ws-surface) !important; }
 .ws-mx-corner { font-weight: 400; font-size: 0.75rem; white-space: normal; display: block; max-width: 11em; }
 
 /* Image de la timeline (R-U11). */
-.ws-image-export { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 12px; margin-top: 12px; }
+.ws-image-export { display: flex; flex-wrap: wrap; align-items: center; gap: var(--ws-space-2) var(--ws-space-3); margin-top: var(--ws-space-3); }
 .ws-png-status { font-size: 0.8rem; color: var(--ws-slate); }
 
-/* Exports : liste en lecture seule, noms complets, sans bouton de retrait. */
-.ws-exports .label-clear-button { display: none !important; }
-.ws-exports td.filename { max-width: none !important; }
-.ws-exports td.filename .stem { max-width: none !important; overflow: visible !important; text-overflow: clip !important; }
-.ws-exports tr.file { font-size: 0.9rem; }
+/* Exports (V11) : liste HTML, nom complet, nature et taille en français. */
+.ws-files { list-style: none; margin: 0; padding: 0; display: grid; }
+.ws-files li { border-bottom: 1px solid var(--ws-line); }
+.ws-files li:last-child { border-bottom: none; }
+.ws-file {
+  display: flex; flex-wrap: wrap; align-items: baseline; justify-content: space-between; gap: 2px var(--ws-space-3);
+  padding: var(--ws-space-2) 0; color: var(--ws-ink); text-decoration: none; border-radius: var(--ws-radius-mark);
+}
+.ws-file-name { font-weight: 500; overflow-wrap: anywhere; min-width: 0; }
+.ws-file-meta { color: var(--ws-slate); font-size: 0.8rem; white-space: nowrap; font-variant-numeric: tabular-nums; }
+@media (hover: hover) and (pointer: fine) { .ws-file:hover .ws-file-name { text-decoration: underline; } }
 
 /* --- Onglet Pipeline (D17, D26) -------------------------------------------------- */
-.pl-root { display: grid; gap: 16px; }
+.pl-root { display: grid; gap: var(--ws-space-4); }
 .pl-meta { color: var(--ws-slate); font-size: 0.85rem; margin: 0; line-height: 1.6; }
 .pl-meta code, .pl-facts code, .pl-table code { font-size: 0.8rem; }
-.pl-issues {
-  font-size: 0.85rem; background: var(--ws-canvas); border-radius: 8px; padding: 10px 14px;
-  box-shadow: inset 3px 0 0 var(--ws-ink);
-}
-.pl-issues p { margin: 0 0 4px; }
+.pl-issues p { margin: 0 0 var(--ws-space-1); }
 .pl-issues ul { margin: 0; padding-left: 18px; color: var(--ws-slate); }
-.pl-flow { display: flex; flex-wrap: wrap; align-items: stretch; gap: 8px; }
-.pl-arrow { align-self: center; color: var(--ws-slate); }
-.pl-sep { width: 1px; background: var(--ws-line); margin: 0 8px; align-self: stretch; }
-.pl-step {
-  display: flex; flex-direction: column; gap: 2px; text-align: left; cursor: pointer;
-  min-width: 128px; padding: 10px 12px; border: none; border-radius: 10px; font: inherit;
-  background: var(--ws-surface); color: var(--ws-ink);
-  box-shadow: 0 1px 2px -1px rgba(0,0,0,0.08), 0 0 0 1px var(--ws-line);
-  transition: transform 100ms var(--ws-ease), background-color 150ms ease;
+/* Schéma de gauche à droite (B12, audit visuel §6) : SVG à l'échelle de la carte, étapes en
+   onglets ; Évaluation détachée derrière un filet pointillé. */
+.pl-diagram-wrap { min-width: 0; }
+.pl-diagram { display: block; width: 100%; height: auto; font-family: var(--font); font-variant-numeric: tabular-nums; }
+.pl-node { cursor: pointer; }
+.pl-box { fill: var(--ws-surface); stroke: var(--ws-control-line); stroke-width: 1; transition: fill var(--ws-medium) ease-out; }
+.pl-box-eval { stroke: var(--ws-slate); stroke-dasharray: 4 3; }
+.pl-node[aria-selected="true"] .pl-box, .pl-node[aria-selected="true"] .pl-frame { stroke: var(--ws-ink); stroke-width: 2; }
+@media (hover: hover) and (pointer: fine) { .pl-node:hover .pl-box { fill: var(--ws-canvas); } }
+/* Focus au clavier : le contour de l'étape s'épaissit (l'anneau d'un groupe SVG n'est pas
+   dessiné par tous les navigateurs) ; jamais rogné, il reste dans la boîte. */
+/* Seconde étape où naît une erreur (barre de la naissance des erreurs) : contour pointillé. */
+.pl-node.pl-also .pl-box, .pl-node.pl-also .pl-frame { stroke: var(--ws-ink); stroke-width: 2; stroke-dasharray: 5 3; }
+.pl-node:focus { outline: none !important; }
+.pl-node:focus-visible .pl-box, .pl-node:focus-visible .pl-frame { stroke: var(--ws-ink); stroke-width: 3.5; stroke-dasharray: none; }
+.pl-frame { fill: none; stroke: var(--ws-control-line); stroke-width: 1; }
+.pl-frame-label { fill: var(--ws-slate); font-size: 11px; font-weight: 600; }
+.pl-num { fill: var(--ws-ink); }
+.pl-num-text { fill: var(--ws-on-ink); font-size: 10px; font-weight: 700; }
+.pl-n-title { fill: var(--ws-ink); font-size: 12px; font-weight: 600; }
+.pl-n-sub { fill: var(--ws-slate); font-size: 10.5px; }
+.pl-n-rev { fill: var(--ws-slate); font-size: 10px; font-family: var(--font-mono); }
+.pl-n-badge { fill: var(--ws-ink); font-size: 10px; }
+.pl-n-shape { fill: var(--ws-slate); font-size: 10.5px; }
+.pl-n-meta { fill: var(--ws-slate); font-size: 10px; }
+.pl-arrow { stroke: var(--ws-slate); stroke-width: 1.5; }
+.pl-arrow-dash { stroke-dasharray: 4 3; }
+.pl-arrow-head { fill: var(--ws-slate); }
+.pl-sep-line { stroke: var(--ws-slate); stroke-width: 1; stroke-dasharray: 3 4; }
+/* Aperçus : encre ; couleurs des locuteurs pour la segmentation et le regroupement seulement. */
+.pl-pv-line { fill: none; stroke: var(--ws-ink); stroke-width: 1.2; }
+.pl-pv-ink { fill: var(--ws-ink); }
+.pl-pv-soft { fill: var(--ws-slate); }
+.pl-pv-dash { fill: none; stroke: var(--ws-ink); stroke-width: 1; stroke-dasharray: 2 2; }
+.pl-spk-1 { fill: var(--ws-spk-1); }
+.pl-spk-2 { fill: var(--ws-spk-2); }
+.pl-spk-3 { fill: var(--ws-spk-3); }
+
+/* Naissance des erreurs : DER test de l'expérience source, motifs de la carte des erreurs. */
+.pl-errors { display: grid; gap: var(--ws-space-2); }
+.pl-errors-head { margin: 0; font-size: 0.9rem; }
+.pl-errors-head .sub { color: var(--ws-slate); }
+.pl-errbar { display: flex; gap: 2px; height: 22px; }
+.pl-errseg {
+  flex-basis: 0; min-width: 8px; padding: 0; border: none; border-radius: var(--ws-radius-mark); cursor: pointer;
+  transition: opacity var(--ws-medium) ease-out;
 }
-.pl-step:active { transform: scale(0.97); }
-@media (hover: hover) and (pointer: fine) { .pl-step:hover { background: var(--ws-canvas); } }
-.pl-step[aria-pressed="true"] { box-shadow: 0 0 0 2px var(--ws-ink); }
-.pl-eval { box-shadow: 0 0 0 1px var(--ws-line); outline: 1px dashed var(--ws-slate); outline-offset: -4px; }
-.pl-eval[aria-pressed="true"] { box-shadow: 0 0 0 2px var(--ws-ink); }
-.pl-step-name { font-weight: 600; font-size: 0.9rem; }
-.pl-step-family { color: var(--ws-slate); font-size: 0.78rem; }
+@media (hover: hover) and (pointer: fine) { .pl-errseg:hover { opacity: 0.8; } }
+.pl-err-manquee { background: var(--ws-ink); }
+.pl-err-fausse_alarme {
+  background: repeating-linear-gradient(135deg, var(--ws-ink) 0 2px, transparent 2px 5px); box-shadow: var(--ws-ink-inset);
+}
+.pl-err-confusion { background: var(--ws-surface); box-shadow: var(--ws-ink-inset-strong); }
+.pl-errlegend { list-style: none; margin: 0; padding: 0; display: flex; flex-wrap: wrap; gap: var(--ws-space-1) 20px; font-size: 0.85rem; }
+.pl-errlegend li { display: flex; align-items: center; gap: 6px; }
+.pl-errlegend .sub { color: var(--ws-slate); }
+.pl-errkey { display: inline-block; width: 16px; height: 10px; border-radius: var(--ws-radius-mark); }
+
+/* Petit écran : liste numérotée verticale, une étape dépliée à la fois. */
+.pl-stepper { display: none; list-style: none; margin: 0; padding: 0; }
+.pl-st-toggle {
+  display: flex; align-items: flex-start; gap: var(--ws-space-3); width: 100%; padding: var(--ws-space-2) 0;
+  border: none; border-radius: var(--ws-radius-control); background: none; font: inherit; text-align: left;
+  color: var(--ws-ink); cursor: pointer;
+}
+.pl-st-num {
+  flex: none; width: 24px; height: 24px; display: flex; align-items: center; justify-content: center;
+  border-radius: var(--ws-radius-round); font-size: 0.8rem; font-weight: 600; color: var(--ws-on-ink); background: var(--ws-ink);
+}
+.pl-st-eval .pl-st-num { color: var(--ws-ink); background: transparent; box-shadow: var(--ws-ring-strong); }
+.pl-st-text { display: flex; flex-direction: column; min-width: 0; }
+.pl-st-title { font-weight: 600; }
+.pl-st-sub { color: var(--ws-slate); font-size: 0.8rem; }
+.pl-st-toggle[aria-expanded="true"] .pl-st-title { text-decoration: underline; text-underline-offset: 3px; }
+.pl-st-panel { margin: 0 0 var(--ws-space-2) 36px; font-size: 0.875rem; }
+.pl-st-model { margin: 0 0 6px; }
+.pl-st-shape { margin: 0 0 var(--ws-space-1) 36px; color: var(--ws-slate); font-size: 0.8rem; }
+.pl-kv { display: grid; gap: var(--ws-space-1); margin: 0 0 var(--ws-space-2); }
+.pl-kv div { display: flex; flex-wrap: wrap; gap: 0 6px; }
+.pl-kv dt { color: var(--ws-slate); }
+.pl-kv dt::after { content: " :"; }
+.pl-kv dd { margin: 0; overflow-wrap: anywhere; }
+@media (max-width: 640px) {
+  .pl-diagram-wrap, .pl-sheets { display: none; }
+  .pl-stepper { display: block; }
+}
 .pl-sheet h3 { margin: 2px 0 6px; font-size: 1.1rem; letter-spacing: -0.01em; }
 .pl-family { margin: 0; color: var(--ws-slate); font-size: 0.8rem; }
-.pl-role { margin: 0 0 12px; max-width: 72ch; line-height: 1.5; }
-.pl-facts { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 8px 24px; margin: 0 0 14px; }
+.pl-role { margin: 0 0 var(--ws-space-3); max-width: 72ch; line-height: 1.5; }
+.pl-facts { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: var(--ws-space-2) var(--ws-space-5); margin: 0 0 14px; }
 .pl-facts dt { color: var(--ws-slate); font-size: 0.8rem; }
 .pl-facts dd { margin: 2px 0 0; font-size: 0.9rem; min-width: 0; overflow-wrap: anywhere; }
-.pl-facts ul { margin: 0; padding-left: 16px; }
+.pl-facts ul { margin: 0; padding-left: var(--ws-space-4); }
 .pl-table td { vertical-align: top; font-size: 0.875rem; }
 .pl-table td:first-child { white-space: normal; min-width: 160px; }
 .pl-table td:nth-child(3) { white-space: nowrap; }
 .pl-table td:nth-child(4) { min-width: 260px; line-height: 1.45; }
 .pl-chip {
-  display: inline-block; margin: 0 4px 4px 0; padding: 2px 8px; border-radius: 999px;
-  font-size: 0.75rem; background: var(--ws-canvas); box-shadow: 0 0 0 1px var(--ws-line); white-space: nowrap;
+  display: inline-block; margin: 0 var(--ws-space-1) var(--ws-space-1) 0; padding: 2px var(--ws-space-2);
+  border-radius: var(--ws-radius-pill); font-size: 0.75rem; background: var(--ws-canvas); box-shadow: var(--ws-ring);
+  white-space: nowrap;
 }
 .pl-rev { display: block; color: var(--ws-slate); font-size: 0.78rem; margin-top: 2px; }
 .pl-rev-missing { font-style: italic; }
 .pl-uncatalogued td { background: var(--ws-canvas) !important; }
 /* Pipeline relié aux mesures (R-U8) : constats sous l'étape, blocs d'un même réseau. */
-.pl-constats { margin-top: 14px; padding: 12px 14px; border-radius: 10px; background: var(--ws-canvas); }
+.pl-constats { margin-top: 14px; padding: var(--ws-space-3) 14px; }
 .pl-constats-title { margin: 0 0 6px; font-weight: 600; font-size: 0.875rem; }
 .pl-constats-list { margin: 0; padding: 0; list-style: none; display: grid; gap: 10px; }
 .pl-constats-list p { margin: 0; line-height: 1.5; max-width: 90ch; font-size: 0.875rem; }
-.pl-constat-meta { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; margin-top: 4px !important; }
+.pl-constat-meta { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; margin-top: var(--ws-space-1) !important; }
 .pl-constat-meta .sub { display: inline; color: var(--ws-slate); font-size: 0.8rem; }
-.pl-part { margin-top: 16px; padding-top: 12px; border-top: 1px solid var(--ws-line); }
-.pl-part-title { margin: 0 0 8px; font-size: 0.95rem; }
+.pl-part { margin-top: var(--ws-space-4); padding-top: var(--ws-space-3); border-top: 1px solid var(--ws-line); }
+.pl-part-title { margin: 0 0 var(--ws-space-2); font-size: 0.95rem; }
 .pl-part-title .sub { display: block; margin-top: 2px; font-weight: 400; font-size: 0.85rem; color: var(--ws-slate); max-width: 80ch; }
 
 /* --- Onglet Avancement (D26, I2) --------------------------------------------------- */
@@ -420,40 +569,44 @@ button.primary:active, button.secondary:active, .wsp-play:active { transform: sc
 .av-queue td:nth-child(3), .av-queue td:nth-child(4) { min-width: 140px; line-height: 1.45; }
 .av-missing { color: var(--ws-slate); font-style: italic; }
 .av-flag {
-  display: inline-block; margin-top: 4px; padding: 1px 8px; border-radius: 999px; font-size: 0.75rem;
-  box-shadow: 0 0 0 1px var(--ws-ink); color: var(--ws-ink);
+  display: inline-block; margin-top: var(--ws-space-1); padding: 1px var(--ws-space-2); border-radius: var(--ws-radius-pill);
+  font-size: 0.75rem; box-shadow: var(--ws-ring-strong); color: var(--ws-ink);
 }
 .av-verdict { white-space: nowrap; }
 .av-reference, .av-retenu { font-weight: 600; }
-.av-notes {
-  height: 28px; padding: 0 10px; border: none; border-radius: 8px; cursor: pointer; font: inherit;
-  font-size: 0.8rem; background: var(--ws-surface); color: var(--ws-ink); white-space: nowrap;
-  box-shadow: 0 1px 2px -1px rgba(0,0,0,0.08), 0 0 0 1px var(--ws-line);
-  transition: transform 100ms var(--ws-ease), background-color 150ms ease;
-}
-.av-notes:active { transform: scale(0.97); }
-@media (hover: hover) and (pointer: fine) { .av-notes:hover { background: var(--ws-canvas); } }
 .av-notes-view { max-width: 90ch; }
 
 /* « Ce que nous avons appris » (R-U7). */
-.av-learned { margin-top: 14px; padding: 14px 16px; border-radius: 10px; background: var(--ws-canvas); }
-.av-learned-title { margin: 0 0 8px; font-size: 0.95rem; font-weight: 600; }
-.av-learned-list { margin: 0; padding: 0; list-style: none; display: grid; gap: 12px; }
-.av-learned-item { padding-left: 12px; box-shadow: inset 2px 0 0 var(--ws-line); }
+.av-learned { margin-top: 14px; padding: 14px var(--ws-space-4); font-size: inherit; }
+.av-learned-title { margin: 0 0 var(--ws-space-2); font-size: 0.95rem; font-weight: 600; }
+.av-learned-list { margin: 0; padding: 0; list-style: none; display: grid; gap: var(--ws-space-3); }
+.av-learned-item { padding-left: var(--ws-space-3); box-shadow: var(--ws-rule-soft); }
 .av-learned-item p { margin: 0; line-height: 1.5; max-width: 90ch; }
-.av-learned-meta { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; margin-top: 4px !important; }
+.av-learned-meta { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; margin-top: var(--ws-space-1) !important; }
 .av-learned-meta .sub { display: inline; color: var(--ws-slate); font-size: 0.8rem; }
-.av-confidence {
-  display: inline-block; padding: 1px 8px; border-radius: 999px; font-size: 0.75rem; font-weight: 600;
-  box-shadow: 0 0 0 1px var(--ws-ink); color: var(--ws-ink);
-}
-.av-conf-certain { background: var(--ws-ink); color: var(--ws-surface); }
-.av-conf-incertain { box-shadow: 0 0 0 1px var(--ws-slate); color: var(--ws-slate); font-weight: 500; }
-.av-source { height: 24px; padding: 0 8px; font-size: 0.75rem; }
 .av-source-missing { color: var(--ws-slate); font-size: 0.75rem; }
 .av-synthesis { margin-top: 10px; }
-.av-framing { margin-top: 12px; }
-.av-framing summary, .av-values summary { cursor: pointer; font-size: 0.875rem; font-weight: 500; padding: 6px 0; }
+.av-framing { margin-top: var(--ws-space-3); }
+.av-learned-meta .ws-btn-sm { font-variant-numeric: tabular-nums; }
+.av-table code { font-size: 0.8rem; }
+/* Petit écran : les tableaux de l'onglet s'empilent en fiches, chaque valeur précédée de son
+   en-tête (data-label) ; plus de défilement horizontal pour lire une ligne (B13). */
+@media (max-width: 640px) {
+  .ws-table-wrap:has(> .av-stack) { width: auto; overflow-x: visible; }
+  .av-stack thead { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); }
+  .av-stack, .av-stack tbody, .av-stack tr, .av-stack td { display: block; width: auto; }
+  .av-stack tr { padding: var(--ws-space-2) 0; }
+  .av-stack td, .av-stack td:first-child {
+    position: relative; padding: 2px 0 2px 6.5rem; min-width: 0 !important; white-space: normal; text-align: left;
+  }
+  .av-stack td.num { text-align: left; }
+  .av-stack td[data-label]::before {
+    content: attr(data-label); position: absolute; left: 0; top: 4px; width: 6rem; color: var(--ws-slate);
+    font-size: 0.75rem; line-height: 1.3;
+  }
+  .av-stack td:first-child { padding-left: 0; padding-bottom: var(--ws-space-1); }
+  .av-stack td:first-child::before { display: none; }
+}
 
 /* Graphique des systèmes de référence : deux mises en page du même SVG. */
 .av-figure { margin: 0; }
@@ -464,7 +617,7 @@ button.primary:active, button.secondary:active, .wsp-play:active { transform: sc
 .av-chart .av-muted { fill: var(--ws-slate); }
 .av-chart .av-small { font-size: 11px; }
 .av-chart .av-grid { stroke: var(--ws-line); stroke-width: 1; }
-.av-chart .av-seg { transition: opacity 120ms ease; }
+.av-chart .av-seg { transition: opacity 120ms ease-out; }
 @media (hover: hover) and (pointer: fine) { .av-chart .av-seg:hover { opacity: 0.8; } }
 .av-chart-narrow { display: none; }
 @media (max-width: 560px) {
@@ -485,40 +638,36 @@ a.gl-link {
 .gl-root { display: grid; gap: 14px; }
 .gl-indexes { display: flex; flex-wrap: wrap; gap: 6px; }
 a.gl-index {
-  padding: 3px 10px !important; border-radius: 999px; font-size: 0.8rem; text-decoration: none; color: var(--ws-ink);
-  background: var(--ws-canvas); box-shadow: 0 0 0 1px var(--ws-line);
+  padding: 3px 10px !important; border-radius: var(--ws-radius-pill); font-size: 0.8rem; text-decoration: none;
+  color: var(--ws-ink); background: var(--ws-canvas); box-shadow: var(--ws-ring);
 }
-@media (hover: hover) and (pointer: fine) { a.gl-index:hover { box-shadow: 0 0 0 1px var(--ws-ink); } }
+@media (hover: hover) and (pointer: fine) { a.gl-index:hover { box-shadow: var(--ws-ring-ink); } }
 .gl-part { margin: 10px 0 0; font-size: 1rem; }
 .gl-part-text { margin: 0; max-width: 80ch; line-height: 1.55; }
-.gl-term { padding: 12px 0; border-top: 1px solid var(--ws-line); scroll-margin-top: 16px; border-radius: 6px; }
+/* Filet du haut par une ombre : un arrondi sur une bordure seule courbait ses extrémités. */
+.gl-term { padding: var(--ws-space-3) 0; box-shadow: var(--ws-rule-top); scroll-margin-top: var(--ws-space-4); }
+.gl-target { border-radius: var(--ws-radius-control); }
 .gl-term h4 { margin: 0 0 6px; font-size: 1rem; letter-spacing: -0.01em; }
 .gl-en { color: var(--ws-slate); font-weight: 400; font-style: italic; }
-.gl-short { margin: -2px 0 8px; color: var(--ws-slate); font-size: 0.82rem; }
+.gl-short { margin: -2px 0 var(--ws-space-2); color: var(--ws-slate); font-size: 0.82rem; }
 .gl-alias { color: var(--ws-slate); font-weight: 400; font-size: 0.85rem; margin-left: 6px; }
-.gl-term dl { display: grid; grid-template-columns: minmax(120px, 170px) minmax(0, 1fr); gap: 4px 16px; margin: 0; }
+.gl-term dl { display: grid; grid-template-columns: minmax(120px, 170px) minmax(0, 1fr); gap: var(--ws-space-1) var(--ws-space-4); margin: 0; }
 .gl-term dt { color: var(--ws-slate); font-size: 0.85rem; }
 .gl-term dd { margin: 0; line-height: 1.5; max-width: 80ch; }
 .gl-target { animation: gl-flash 1.6s ease-out; }
-@keyframes gl-flash { from { background: var(--ws-canvas); box-shadow: 0 0 0 8px var(--ws-canvas); } to { background: transparent; box-shadow: none; } }
+@keyframes gl-flash { from { background: var(--ws-canvas); box-shadow: var(--ws-flash); } to { background: transparent; box-shadow: none; } }
 @media (max-width: 640px) { .gl-term dl { grid-template-columns: 1fr; } }
 
-@media (prefers-reduced-motion: reduce) {
-  *, *::before, *::after { transition-duration: 0.01ms !important; animation-duration: 0.01ms !important; animation-iteration-count: 1 !important; }
-}
 /* Largeur nulle et largeur minimale pleine : le tableau ne contribue pas à la largeur
    intrinsèque de la carte, il défile dans son cadre au lieu d'élargir la page à 375 px. */
 .ws-table-wrap { overflow-x: auto; max-width: 100%; width: 0; min-width: 100%; }
 @media (max-width: 720px) {
   .ws-share-bar { display: none; }
   .ws-card { min-width: 0 !important; }
-  .ws-card { padding: 16px !important; }
+  .ws-card { padding: var(--ws-space-4) !important; }
   /* Temps de traitement et exports l'un sous l'autre : côte à côte, les noms des exports
      n'auraient plus la place de s'afficher. */
   .ws-pair { flex-direction: column !important; }
-  /* Noms des exports sur deux lignes plutôt que coupés. */
-  .ws-exports td.filename { display: block !important; white-space: normal !important; overflow-wrap: anywhere; }
-  .ws-exports td.filename .stem, .ws-exports td.filename .ext { display: inline !important; white-space: normal !important; }
 }
 
 /* Titre des notifications en français (B7) : Gradio y écrit le type du message, initiale
@@ -528,3 +677,25 @@ a.gl-index {
 .toast-title.error::before { content: "Erreur"; }
 .toast-title.warning::before { content: "Attention"; }
 .toast-title.info::before { content: "Information"; }
+
+/* --- Mode présentation (B8) : jetons dans jetons.css ; ici, ce qui est masqué. --------- */
+html.ws-presentation .ws-secondary { display: none !important; }
+html.ws-presentation .ws-header { padding-top: 20px; }
+/* Aides des tableaux masquées (V13) ; en-tête réduit au titre et aux interrupteurs (V6). */
+html.ws-presentation .ws-howto-read { display: none !important; }
+/* Avancement et Glossaire (B13) : chemins des fiches et sources des termes masqués. */
+html.ws-presentation .av-path, html.ws-presentation .gl-source { display: none !important; }
+/* Pipeline (B12) : texte du schéma agrandi (le texte est coupé pour ces tailles), révisions
+   masquées, barre de la naissance des erreurs mise en avant, en tête de page. */
+html.ws-presentation .pl-n-title { font-size: 12.5px; }
+html.ws-presentation .pl-n-sub, html.ws-presentation .pl-n-shape { font-size: 12px; }
+html.ws-presentation .pl-n-badge { font-size: 11.5px; }
+html.ws-presentation .pl-n-rev, html.ws-presentation .pl-rev { display: none; }
+html.ws-presentation .pl-errors { order: -1; }
+html.ws-presentation .pl-errbar { height: 36px; }
+html.ws-presentation .ws-tagline, html.ws-presentation .ws-details-wrap,
+html.ws-presentation .ws-badge:not(.ws-engines) { display: none !important; }
+/* L'état du préchauffage reste visible, en indicateur discret (retour du cockpit sur B11). */
+html.ws-presentation .ws-engines { font-size: 0.75rem; padding: 2px var(--ws-space-2); }
+html.ws-presentation .toast-title.error::before, html.ws-presentation .toast-title.warning::before,
+html.ws-presentation .toast-title.info::before { font-size: 20px; }

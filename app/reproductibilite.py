@@ -2,7 +2,8 @@
 
 Ce qu'il faut pour refaire l'analyse et retrouver le même résultat : versions des
 logiciels, commit du code et empreinte du code des moteurs, révisions figées des modèles
-et réglages effectifs (D18), périphérique et machine, durées de chaque étape. Ni audio, ni
+et réglages effectifs (D18), configuration de démonstration en vigueur (fichier du gel et
+son empreinte), périphérique et machine, durées de chaque étape. Ni audio, ni
 nom de fichier, ni chemin local : l'audio n'est désigné que par l'empreinte de ses
 échantillons normalisés (celle de la clé du cache).
 """
@@ -71,6 +72,9 @@ def sheet(result: dict) -> dict:
         "moteur": result["moteur_cle"],
         "moteur_factice": result["factice"],
         "experience_source": result["configuration"]["experience_source"],
+        # Configuration de démonstration en vigueur (D17, amendement 1) : configs/demo.yaml et
+        # son empreinte, ou la correspondance de app/moteurs.py avant le gel.
+        "configuration_demo": trace.get("configuration_demo"),
         "revisions_modeles": trace.get("revisions_modeles", {}),
         "configuration_effective": trace.get("configuration_effective", {}),
         "reglages": result["configuration"]["reglages"],

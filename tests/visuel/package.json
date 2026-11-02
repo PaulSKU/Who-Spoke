@@ -1,0 +1,19 @@
+{
+  "name": "who-spoke-controle-visuel",
+  "private": true,
+  "description": "Contrôle visuel de l'interface (audit visuel du 02/11, chantier B10) : captures de référence, axe-core, stylelint. Outils de développement seulement, hors de l'environnement Python.",
+  "scripts": {
+    "captures": "playwright test references",
+    "captures:maj": "playwright test references --update-snapshots=changed",
+    "accessibilite": "playwright test accessibilite",
+    "styles": "stylelint \"../../app/static/**/*.css\"",
+    "controle": "npm run styles && playwright test references accessibilite",
+    "defauts:avant": "DEFAUTS=avant playwright test defauts",
+    "defauts:apres": "DEFAUTS=apres playwright test defauts"
+  },
+  "devDependencies": {
+    "@axe-core/playwright": "4.11.0",
+    "@playwright/test": "1.56.1",
+    "stylelint": "16.25.0"
+  }
+}

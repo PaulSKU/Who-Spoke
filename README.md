@@ -79,6 +79,7 @@ Options : `--moteur` (`pyannote-community-1`, `baseline-mfcc`, `baseline-ecapa`,
 | `experiments/`, `analyses/` | Expériences et analyses a posteriori, avec leur interprétation (`notes.md`) |
 | `docs/journal.md` | Journal de bord |
 | `results/leaderboard.csv` | Une ligne par expérience et par jeu évalué |
+| [`docs/rendu/`](docs/rendu/README.md) | Tableaux et figures du rendu, générés par `scripts/rendu.py` (systèmes, oracles, robustesse, temps) |
 
 ## État d'avancement
 

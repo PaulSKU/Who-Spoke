@@ -23,6 +23,8 @@ import math
 from dataclasses import dataclass
 from html import escape
 
+from app import formatage
+
 KINDS = (("manquee", "Parole manquée"), ("fausse_alarme", "Fausse alarme"), ("confusion", "Confusion"))
 # Motifs de la carte des erreurs (`visualiseur.css`) : plein, hachures, contour.
 STYLES = {"manquee": "plein", "fausse_alarme": "hachures", "confusion": "contour"}
@@ -43,11 +45,11 @@ class Bar:
 
 
 def _num(value: float, digits: int = 2) -> str:
-    return f"{value:.{digits}f}".replace(".", ",")
+    return formatage.nombre(value, digits)
 
 
 def _pct(value: float) -> str:
-    return _num(value) + " %"
+    return formatage.pourcentage(value, 2)
 
 
 def _scale_max(groups: list[tuple[str, list[Bar]]]) -> int:
@@ -207,4 +209,4 @@ def figure(groups: list[tuple[str, list[Bar]]]) -> str:
             f'<div class="av-chart-narrow">{svg(groups, True, "avn")}</div>'
             '<figcaption class="ws-caption">Partition test, sans collar, chevauchements comptés : la longueur '
             'totale de chaque barre est le DER. Survoler un segment donne sa valeur ; toutes les valeurs sont dans le tableau ci-dessous.</figcaption></figure>'
-            f'<details class="av-values"><summary>Valeurs du graphique (tableau)</summary>{table(groups)}</details>')
+            f'<details class="av-values ws-fold"><summary>Valeurs du graphique (tableau)</summary>{table(groups)}</details>')

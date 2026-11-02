@@ -128,7 +128,7 @@ def test_graphique_accessible_et_proportionnel(depot):
     svg = graphique.svg(groups, narrow=False, uid="t")
     assert 'role="img"' in svg and 'aria-labelledby="t-t t-d"' in svg
     assert "<title id=\"t-t\">DER test sans collar des systèmes de référence, par corpus</title>" in svg
-    assert "Baseline MFCC 64,38 % (parole manquée 32,28 %, fausse alarme 4,99 %, confusion 27,11 %)" in svg
+    assert "Baseline MFCC 64,38\u202f% (parole manquée 32,28\u202f%, fausse alarme 4,99\u202f%, confusion 27,11\u202f%)" in svg
     # Motifs de la carte des erreurs en plus des couleurs : parole manquée pleine, fausse
     # alarme hachurée, confusion en contour (fond de surface, trait de la couleur).
     assert 'style="fill:var(--av-err-manquee)"' in svg
@@ -153,7 +153,7 @@ def test_graphique_accessible_et_proportionnel(depot):
     assert 'viewBox="0 0 340 ' in narrow and 'viewBox="0 0 760 ' in svg
     figure = graphique.figure(groups)
     assert "av-chart-wide" in figure and "av-chart-narrow" in figure and "Valeurs du graphique" in figure
-    assert "<td class=\"num strong\">64,38 %</td>" in figure
+    assert "<td class=\"num strong\">64,38\u202f%</td>" in figure
     assert "Aucun résultat" in graphique.figure([])
 
 
@@ -163,9 +163,9 @@ def test_encadre_ce_que_nous_avons_appris(depot):
     # Constats clés seulement, texte échappé, confiance écrite.
     assert "par énergie" in html and "&lt;b&gt;" in html and "<b>par" not in html
     assert "Fausse alarme dans les pauses" not in html                  # cle: false
-    assert "av-conf-certain" in html and "av-conf-probable" in html and "av-conf-incertain" in html
+    assert "ws-conf-certain" in html and "ws-conf-probable" in html and "ws-conf-incertain" in html
     # Source présente : bouton qui affiche ses notes ; absente : signalée, sans bouton.
-    assert 'class="av-notes av-source" data-id="EXP-0012"' in html
+    assert 'class="ws-btn ws-btn-sm av-notes av-source" data-id="EXP-0012"' in html
     assert 'data-id="EXP-0099"' not in html and "Absente de ce dépôt" in html
     assert "docs/constats.yaml : à corriger" in html and "C06" in html
     assert 'data-id="synthese"' in html
@@ -182,7 +182,7 @@ def test_synthese_rendue_dans_la_page(depot):
 def test_decisions_de_cadrage_repliees_et_chemin_masque(depot):
     sections = av.render(depot)
     decisions = sections["decisions"]
-    before, _, folded = decisions.partition('<details class="av-framing">')
+    before, _, folded = decisions.partition('<details class="av-framing ws-fold">')
     assert "D16" in before and "D1<" not in before                      # D16 et suivantes visibles
     assert "D1<" in folded and "D2<" in folded and "dont 1 avec un point ouvert" in folded
     assert str(depot) not in "".join(sections.values())
@@ -220,7 +220,7 @@ def test_constats_sous_les_etapes_du_moteur(pipeline_depot):
     html = pipeline.render(page)
     assert "docs/constats.yaml : " in html and "étape « inexistante » absente du catalogue" in html
     assert "Constats mesurés" in html and "La détection &lt;b&gt;par énergie&lt;/b&gt;" in html
-    assert "EXP-0012, EXP-0099" in html and "Détection · 1 constat<" in html
+    assert "EXP-0012, EXP-0099" in html and '>1 constat</text>' in html     # nombre sur l'étape du schéma
 
 
 def test_pyannote_segmentation_neuronale_en_un_bloc(pipeline_depot):
@@ -235,7 +235,11 @@ def test_pyannote_segmentation_neuronale_en_un_bloc(pipeline_depot):
     assert [c.id for c in block.parts[0].constats] == ["C03"] and [c.id for c in block.parts[1].constats] == ["C02"]
     html = pipeline.render(page)
     assert html.count('class="pl-part"') == 2 and "2 constats" in html
-    assert html.count('data-stage="segmentation_neuronale"') == 2       # un bouton, une fiche
+    assert html.count('id="pl-tab-segmentation_neuronale"') == 1          # un onglet
+    assert html.count('id="pl-sheet-segmentation_neuronale"') == 1        # une fiche
+    # Parole manquée et fausse alarme naissent dans ce bloc : leurs segments le sélectionnent.
+    assert html.count('class="pl-errseg') == 3
+    assert 'class="pl-frame-label"' in html and "Un seul réseau" in html
     # Le bloc est la première étape affichée après la normalisation, comme la détection avant.
     assert ids[:2] == ["normalisation", "segmentation_neuronale"]
 

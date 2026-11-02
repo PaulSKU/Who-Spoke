@@ -70,15 +70,15 @@ def test_surcout_fixe_non_compte_pour_un_moteur_prechauffe():
            "overhead": FixedOverhead(1.1, "2026-11-01"), "warm": True}
     assert interface._estimate_source(run, fake=False).endswith("moteur préchauffé : surcoût fixe non compté")
     run["warm"] = False
-    assert interface._estimate_source(run, fake=False).endswith("surcoût fixe 1,1 s mesuré le 01/11/2026")
+    assert interface._estimate_source(run, fake=False).endswith("surcoût fixe 1,1\u202fs mesuré le 01/11/2026")
 
 
 @pytest.mark.parametrize("span, recalibrated, text", [
     (None, False, "temps restant inconnu (RTF non mesuré sur ce périphérique)"),
     ((0.0, 0.0), False, "estimation dépassée, calcul en cours"),
-    ((0.0, 6.0), False, "reste au plus 6 s"),
-    ((20.0, 29.0), False, "reste entre 20 s et 29 s"),
-    ((12.0, 12.0), True, "reste environ 12 s, recalé sur la vitesse observée"),
+    ((0.0, 6.0), False, "reste au plus 6\u202fs"),
+    ((20.0, 29.0), False, "reste entre 20\u202fs et 29\u202fs"),
+    ((12.0, 12.0), True, "reste environ 12\u202fs, recalé sur la vitesse observée"),
 ])
 def test_texte_du_temps_restant(span, recalibrated, text):
     assert interface._remaining_text(span, recalibrated) == text
@@ -117,7 +117,7 @@ def test_bandeau_des_reglages_replies():
                {"libelle": "Baseline ECAPA", "device": "cpu",
                 "configuration": {"nombre_locuteurs": {"mode": "fourchette", "min": 2, "max": 6}}}]
     html = interface._band_html(prepared, results)
-    assert "&lt;réunion&gt;.wav" in html and "5 min 00 s" in html
+    assert "&lt;réunion&gt;.wav" in html and "5\u202fmin 00\u202fs" in html
     assert "pyannote community-1 puis Baseline ECAPA" in html and "entre 2 et 6 locuteurs" in html
     assert "mps, cpu" in html
 

@@ -1,0 +1,111 @@
+# A-0003 — cas d'échec (D28 §1).
+# Analyse a posteriori (D21 §1, methode.md §4.7) : aucun système n'est exécuté ; seules les
+# sorties existantes (RTTM, per_file_*.csv) et les références sont lues.
+#
+#   uv run python scripts/analyses/a0003_cas_echec.py --config analyses/A-0003_cas-echec/config.yaml
+#
+# Systèmes extensibles (D28 §1) : ajouter une entrée dans `systemes` (ou une source à un
+# système existant) AVANT la première exécution officielle ; une fois `execution.json`
+# écrit, l'analyse est immuable et toute extension donne une nouvelle analyse.
+# Exemples d'ajouts prévus (à décommenter quand les expériences existent) :
+#   - Nemotron 3, DiariZen, V2 de D25 : un système chacun, sources AMI et SUMM-RE ;
+#   - conditions de D24 : sources `corpus: summre-<condition>`, `partitions: [test]`
+#     (EXP-0020 pour pyannote, EXP-0021 pour la baseline ECAPA) ;
+#   - corpus maison : sources `corpus: maison`, `partitions: [<partition du corpus maison>]`.
+analyse_id: A-0003
+slug: cas-echec
+question: >-
+  Sur quels fichiers et dans quelles situations les systèmes échouent-ils, et quelles
+  caractéristiques des réunions accompagnent les échecs ?
+
+systemes:
+  - nom: pyannote                  # pyannote community-1, nombre de locuteurs estimé
+    sources:
+      - {exp_id: EXP-0001, corpus: ami, partitions: [dev, test]}
+      - {exp_id: EXP-0007, corpus: summre, partitions: [dev, test]}
+  - nom: baseline-ecapa            # baseline ECAPA (D22), réglages retenus sur dev
+    sources:
+      - {exp_id: EXP-0010, corpus: ami, partitions: [dev, test]}
+      - {exp_id: EXP-0012, corpus: summre, partitions: [dev, test]}
+  # - nom: pyannote-d24
+  #   sources:
+  #     - {exp_id: EXP-0020, corpus: summre-bru05, partitions: [test]}
+  # - nom: nemotron3
+  #   sources:
+  #     - {exp_id: EXP-00NN, corpus: ami, partitions: [dev, test]}
+
+# Listes de partition : data/splits/<corpus>/<partition>.txt (corpus de référence pour une
+# condition de D24). Références, UEM et audio : chemins du protocole (whospoke.experiment),
+# la racine des données pouvant être donnée par --donnees.
+
+# 1. Classement : DER sans collar par fichier (per_file_<corpus>_<partition>.csv de
+#    l'expérience), par système et par corpus, partitions réunies ; rang 1 = pire fichier.
+classement:
+  critere: der_c0
+  n_pires: 5
+
+# 2. Descripteurs tirés de la référence restreinte à l'UEM officiel :
+#    n_locuteurs ; part_chevauchement (durée où au moins deux locuteurs parlent / durée de
+#    parole) ; part_tours_courts (part des tours, en nombre, de moins de tour_court_s) ;
+#    duree_moyenne_tour_s ; part_parole (durée de parole / durée de l'UEM) ; type de réunion.
+#    Erreur sur le nombre de locuteurs (K̂ − K, et sa valeur absolue), tirée du per_file.
+descripteurs:
+  tour_court_s: 1.0
+  type_reunion:                    # fichiers listés : « zoom » ; autres fichiers du corpus : « autre »
+    summre: [data/splits/summre/zoom_dev.txt, data/splits/summre/zoom_test.txt]
+
+# 3. Corrélations de rang de Spearman, par système et par corpus, partitions réunies.
+#    Descriptives : les fichiers ne sont pas des tirages indépendants d'une même population,
+#    aucune p-valeur n'est calculée ni aucun test conclu.
+correlations:
+  composantes: [der_c0, manquee_c0, fausse_alarme_c0, confusion_c0]
+  descripteurs: [n_locuteurs, part_chevauchement, part_tours_courts, duree_moyenne_tour_s,
+                 part_parole, erreur_n_locuteurs, erreur_n_locuteurs_abs, zoom]
+
+# 4. Catégorisation des secondes d'erreur (sans collar, chevauchements comptés) : définition
+#    unique d'app/sortie.py (ERROR_CATEGORIES, error_map), décisions du cockpit du 02/11
+#    (catégorie principale exclusive, ordre de priorité, puis option b). Chaque zone d'erreur
+#    est découpée aux bords de la tolérance de ±0,25 s autour des frontières de tour de la
+#    référence : la partie dans la tolérance est un « décalage de frontière », le reste reçoit
+#    la catégorie principale de la zone (chevauchement, locuteur de référence non apparié,
+#    locuteur trouvé en trop, tour court, pause courte, autre). Les catégories somment à
+#    l'erreur sans collar (100 %). Parts rapportées sur toute l'erreur et hors décalage de
+#    frontière (ce que le collar ne pardonne pas). Contrôle par système et corpus : secondes
+#    de décalage de frontière contre secondes pardonnées par le collar (per_file : composantes
+#    sans collar moins avec collar), écart résiduel rapporté. Aucune catégorie n'est déclarée
+#    ici : le script les lit dans app/sortie.py. Seuil du tour court : 1 s (amendement du 02/11).
+#    Croisement catégorie × type d'erreur (manquée, fausse alarme, confusion), parts de toute
+#    l'erreur et de l'erreur hors décalage de frontière (amendement du 02/11).
+
+# 5. Extraits d'écoute, corpus publics seulement : un par catégorie principale (ordre de
+#    priorité, sauf categories_exclues), fenêtre où elle a le plus de secondes d'erreur et en
+#    a au moins autant que toute autre catégorie retenue ; puis les pires fichiers (fenêtre de
+#    plus forte erreur), jusqu'à n_max. Un fichier au plus une fois. Exportés hors du dépôt,
+#    dans dossier/ (index.html, grille_ecoute.csv à remplir). La grille remplie par la
+#    candidate est versée dans ce dossier d'analyse (--importer-grille, grille_ecoute.csv).
+extraits:
+  corpus: [ami, summre]            # jamais « maison » (refusé par le script)
+  categories_exclues: [frontiere]  # ce que pardonne le collar : pas un cas d'échec à écouter
+  duree_s: 15
+  pas_s: 0.5                       # pas de recherche de la fenêtre
+  n_min: 6
+  n_max: 8
+  max_par_systeme: 4
+  max_par_corpus: 5
+  dossier: data/processed/a0003/ecoute
+  # Corpus maison (le 9/11) : extraits strictement locaux, jamais versionnés ni publiés,
+  # même règle de sélection, dans un dossier à part avec leur propre liste et leur grille.
+  locaux:
+    corpus: [maison]
+    dossier: data/processed/a0003/ecoute_maison
+
+resultats:
+  - classement.csv                 # une ligne par système × fichier, rang et 5 pires
+  - descripteurs.csv               # une ligne par corpus × fichier
+  - correlations.csv               # une ligne par système × corpus × composante × descripteur
+  - categories.csv                 # une ligne par système × corpus × type d'erreur
+  - categories_par_fichier.csv     # une ligne par système × fichier × type d'erreur
+  - categories_par_type.csv        # une ligne par système × corpus × catégorie × type d'erreur
+  - extraits.csv                   # extraits des corpus publics (pas ceux du corpus maison)
+  - execution.json                 # commit, arbre propre, empreintes, contrôles (totaux, collar)
+  - grille_ecoute.csv              # après l'écoute : grille remplie par la candidate (--importer-grille)

@@ -71,9 +71,12 @@ def test_pistes_de_reference_aux_couleurs_de_l_appariement():
     group = interface._reference_group(_result({"S1": "Bob"}))
     speakers = {s["id"]: s for s in group["locuteurs"]}
     colors = interface._speaker_colors(sortie.speaker_labels(HYPOTHESIS))
-    assert speakers["A"]["nom"] == "A ↔ S0" and speakers["A"]["couleur"] == colors["S0"][0]
-    assert speakers["B"]["nom"] == "B ↔ Bob" and speakers["B"]["couleur_sombre"] == colors["S1"][1]
-    assert speakers["C"]["nom"] == "C (non apparié)" and speakers["C"]["couleur"] == interface.NEUTRAL_LIGHT
+    # Étiquette courte (V9) : rang du locuteur trouvé ; nom complet, renommage compris, en infobulle.
+    assert speakers["A"]["nom"] == "A → S1" and speakers["A"]["couleur"] == colors["S0"][0]
+    assert speakers["B"]["nom"] == "B → S2" and speakers["B"]["couleur_sombre"] == colors["S1"][1]
+    assert speakers["B"]["titre"] == "B (référence), apparié à Bob"
+    assert speakers["C"]["nom"] == "C → aucun" and speakers["C"]["couleur"] == interface.NEUTRAL_LIGHT
+    assert speakers["C"]["titre"] == "C (référence), apparié à aucun locuteur trouvé"
     assert group["titre"] == "Référence, appariée à pyannote community-1"
     # Sans carte des erreurs (référence inutilisable) : gris, sans mention d'appariement.
     plain = interface._reference_group(dict(_result(), erreurs=None))
@@ -98,15 +101,16 @@ def test_contexte_des_zones():
     # Fausse alarme de S2 (22–23), loin de tout : aucun contexte.
     far = next(z for z in by_type["fausse_alarme"] if z["debut"] == 22.0)
     assert far["contexte"] == {"chevauchement_s": 0.0, "tour_court": None, "pause": None, "frontiere_s": None}
+    assert far["tolerance_s"] == 0.0 and far["categorie"] == "trouve_en_trop"
 
 
 def test_constats_factuels_jamais_une_cause():
     errors = interface._errors_for(REFERENCE, {"annotation": HYPOTHESIS, "duree_s": DURATION})
-    sentences = [text for zone in errors["zones"] for text in zone["constats"]]
-    assert "La zone tombe dans un chevauchement de la référence." in sentences
-    assert any(t.startswith("Elle recoupe un tour de la référence de moins de 0,5 s (C, 0,30 s)") for t in sentences)
-    assert any(t.startswith("Elle recoupe une pause de la référence de moins de 1 s (0,60 s)") for t in sentences)
-    assert any("Aucun de ces contextes" in t for t in sentences)
+    sentences = [text for zone in errors["zones"] for text in (zone["categorie_texte"], *zone["constats"])]
+    assert "Hors de la tolérance d'une frontière : la zone tombe dans un chevauchement de la référence." in sentences
+    assert any(t.startswith("Elle recoupe un tour de la référence de moins de 1\u202fs (C, 0,30\u202fs)") for t in sentences)
+    assert any(t.endswith("elle recoupe une pause de la référence de 1\u202fs au plus (0,60\u202fs).") for t in sentences)
+    assert any("aucune des catégories précédentes" in t for t in sentences)
     for text in sentences:
         for word in ("parce", "cause", "car ", "à cause", "due", "dû"):
             assert word not in text.lower(), text
@@ -165,8 +169,8 @@ def test_renommage_envoye_par_le_tableau(tmp_path):
         result, str(reference), SimpleNamespace(_data={"names": {"S0": "  Alice ", "S9": "x"}}))
     assert updated["names"] == {"S0": "Alice", "S1": "", "S2": ""}
     assert any(s["nom"] == "Alice" for s in viewer["groupes"][0]["locuteurs"])
-    assert "A ↔ Alice" in {s["nom"] for s in viewer["groupes"][-1]["locuteurs"]}
-    assert "Alice" in der and "Alice" in inter and len(exports) == 4
+    assert "A (référence), apparié à Alice" in {s["titre"] for s in viewer["groupes"][-1]["locuteurs"]}
+    assert "Alice" in der and "Alice" in inter and exports.count('class="ws-file"') == 4   # liste HTML (V11)
     # Noms en double refusés : le tableau revient aux noms en vigueur, rien d'autre ne change.
     refused = changed(updated, str(reference), SimpleNamespace(_data={"names": {"S0": "Alice", "S1": "Alice"}}))
     assert 'value="Alice"' in refused[1] and 'value=""' in refused[1]
