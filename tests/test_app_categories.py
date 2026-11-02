@@ -53,8 +53,9 @@ def test_categories_somment_aux_composantes_du_der_sans_collar():
         for zone in errors["zones"]:
             assert zone["categorie"] in sortie.ERROR_CATEGORIES
             seen.add(zone["categorie"])
-    # Hors tolérance, un tour de moins de 0,5 s ne peut pas être recoupé (voir main_category).
-    assert seen == set(sortie.ERROR_CATEGORIES) - {"tour_court"}
+    # Toutes les catégories sont atteintes, « tour court » compris (seuil de 1 s : un tour de
+    # 0,5 à 1 s garde une partie centrale hors tolérance ; D28, amendement du 02/11).
+    assert seen == set(sortie.ERROR_CATEGORIES)
 
 
 def test_egalite_stricte_sur_des_durees_exactes():
@@ -118,6 +119,22 @@ def test_tours_courts_et_pauses_courtes_absorbes_par_la_tolerance():
     zone = next(z for z in errors["zones"] if z["debut"] == 5.0)
     assert zone["contexte"]["tour_court"] == {"locuteur": "B", "duree_s": 0.3}   # constat gardé
     assert errors["categories"]["confusion"]["tour_court"] == 0.0
+
+
+def test_tour_court_compte_hors_tolerance():
+    # B répond « oui » en 0,8 s (5–5,8), attribué à A : la partie centrale 5,25–5,55 est hors
+    # tolérance et recoupe un tour de moins de 1 s ; le reste est un décalage de frontière.
+    assert sortie.SHORT_TURN_S == 1.0
+    reference = annotation([(0.0, 5.0, "A"), (5.0, 5.8, "B"), (5.8, 10.0, "A"), (12.0, 20.0, "B")])
+    hypothesis = annotation([(0.0, 10.0, "X"), (12.0, 20.0, "Y")])
+    errors, cats = categories_of(reference, hypothesis, 22.0)
+    assert cats[("confusion", 5.0, 5.8)] == "tour_court"
+    assert errors["categories"]["confusion"]["tour_court"] == pytest.approx(0.3)
+    assert errors["categories"]["confusion"]["frontiere"] == pytest.approx(0.5)
+    # Un tour de 1 s exactement n'est pas « de moins de 1 s ».
+    reference = annotation([(0.0, 5.0, "A"), (5.0, 6.0, "B"), (6.0, 10.0, "A"), (12.0, 20.0, "B")])
+    errors, cats = categories_of(reference, hypothesis, 22.0)
+    assert cats[("confusion", 5.0, 6.0)] == "autre"
 
 
 def _removed_by_collar(report: dict) -> dict[str, float]:

@@ -405,7 +405,7 @@ def matching_report(reference: Annotation, hypothesis: Annotation, duration_s: f
 
 
 # Contexte d'une zone d'erreur (« Expliquer cette erreur », audit R-U4) : seuils affichés.
-SHORT_TURN_S = 0.5      # tour de référence court (strictement moins de)
+SHORT_TURN_S = 1.0      # tour de référence court (strictement moins de ; D28, amendement du 02/11)
 SHORT_PAUSE_S = 1.0     # pause courte entre deux plages de parole de la référence (au plus)
 BOUNDARY_S = 0.25       # frontière de tour : ce que pardonne le collar du protocole (collar=0.5, ±0,25 s)
 TOUCH_S = 0.05          # une pause « contiguë » à la zone
@@ -437,15 +437,16 @@ def main_category(zone: dict, context: dict | None, pairs: dict) -> str:
     2. chevauchement : cette partie recoupe un chevauchement de la référence ;
     3. locuteur de référence non apparié (parole manquée ou confusion) ;
     4. locuteur trouvé en trop, non apparié (fausse alarme ou confusion) ;
-    5. tour court : elle recoupe un tour de la référence de moins de 0,5 s ;
+    5. tour court : elle recoupe un tour de la référence de moins de 1 s ;
     6. pause courte : elle recoupe une pause de la référence de 1 s au plus, ou la touche ;
     7. autre.
 
     `zone` : type et locuteurs (noms d'origine) ; `context` : faits de la référence sur la
     partie hors tolérance (`_Context.describe_parts`) ; `pairs` : appariement du DER.
     Un tour de moins de 0,5 s ou une pause de 0,5 s au plus tiennent dans la tolérance de
-    leurs propres frontières : hors tolérance, « tour court » ne s'applique jamais et
-    « pause courte » seulement aux pauses de plus de 0,5 s.
+    leurs propres frontières : hors tolérance, « tour court » ne s'applique qu'aux tours de
+    0,5 à 1 s (leur partie centrale, hors des ±0,25 s de leurs bords) et « pause courte »
+    qu'aux pauses de plus de 0,5 s.
     """
     if context is None:
         return "frontiere"
