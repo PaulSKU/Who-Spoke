@@ -13,14 +13,16 @@ Partition test, condition réaliste (nombre de locuteurs non donné, détection 
 | pyannote community-1 (sortie) | EXP-0016 (pyannote-c1-summre-exclusive) | en cours | 30,40 % | 17,78 % | 15,55 | 8,30 | 6,55 | 31/37 (83,8 %) |
 | pyannote community-1 (mode_n_locuteurs) | EXP-0018 (pyannote-c1-summre-borne-2-6) | en cours | 25,82 % | 14,31 % | 7,15 | 11,28 | 7,39 | 31/37 (83,8 %) |
 
-Écart à la référence déclarée (SUMM-RE, test) : DER de l'expérience moins DER de sa référence, en points, intervalle de confiance à 95 % par bootstrap apparié sur les fichiers (1 000 tirages, graine 0). Un écart négatif est une amélioration.
+Écarts (SUMM-RE, test) : DER de l'expérience moins DER du système comparé, en points, intervalle de confiance à 95 % par bootstrap apparié sur les fichiers (1 000 tirages, graine 0) ; un écart négatif est une amélioration. Première comparaison, principale : à la référence déclarée de l'expérience, qui ne diffère que par la variable modifiée (protocole, D9). Seconde comparaison : à pyannote community-1 (EXP-0007), moteur de démonstration, sur le même corpus ; ce n'est pas une comparaison à une seule variable (moteur, détection, représentation et réglages peuvent tous différer).
 
-| Expérience | Référence (variable modifiée) | Écart sans collar [IC 95 %] | Écart collar 0,25 s [IC 95 %] | Fichiers où l'expérience fait mieux / moins bien (sans collar) |
-|---|---|---|---|---|
-| EXP-0012 | EXP-0009 (representation) | −15,95 [−19,49 ; −12,53] | −18,25 [−22,58 ; −14,02] | 36 / 1 sur 37 |
-| EXP-0015 | EXP-0009 (representation) | −13,50 [−17,68 ; −9,78] | −15,92 [−20,78 ; −11,44] | 32 / 5 sur 37 |
-| EXP-0016 | EXP-0007 (sortie) | +4,10 [+3,24 ; +5,03] | +2,97 [+2,21 ; +3,81] | 1 / 36 sur 37 |
-| EXP-0018 | EXP-0007 (mode_n_locuteurs) | −0,48 [−1,48 ; +0,00] | −0,50 [−1,58 ; +0,00] | 1 / 0 sur 37 |
+| Expérience | Référence déclarée (variable modifiée) | Écart à la référence déclarée, sans collar [IC 95 %] | Écart à la référence déclarée, collar 0,25 s [IC 95 %] | Fichiers où l'expérience fait mieux / moins bien que sa référence (sans collar) | Écart à pyannote community-1 (EXP-0007), sans collar [IC 95 %] | Écart à pyannote community-1 (EXP-0007), collar 0,25 s [IC 95 %] | Fichiers où l'expérience fait mieux / moins bien que pyannote community-1 (EXP-0007) (sans collar) |
+|---|---|---|---|---|---|---|---|
+| EXP-0007 | — | — | — | — | — (elle-même) | — | — |
+| EXP-0009 | — | — | — | — | +23,06 [+19,05 ; +26,92] | +27,85 [+22,89 ; +32,71] | 4 / 33 sur 37 |
+| EXP-0012 | EXP-0009 (representation) | −15,95 [−19,49 ; −12,53] | −18,25 [−22,58 ; −14,02] | 36 / 1 sur 37 | +7,12 [+3,72 ; +9,77] | +9,60 [+6,59 ; +12,40] | 4 / 33 sur 37 |
+| EXP-0015 | EXP-0009 (representation) | −13,50 [−17,68 ; −9,78] | −15,92 [−20,78 ; −11,44] | 32 / 5 sur 37 | +9,56 [+6,02 ; +12,44] | +11,92 [+8,63 ; +14,88] | 4 / 33 sur 37 |
+| EXP-0016 | EXP-0007 (sortie) | +4,10 [+3,24 ; +5,03] | +2,97 [+2,21 ; +3,81] | 1 / 36 sur 37 | +4,10 [+3,24 ; +5,03] | +2,97 [+2,21 ; +3,81] | 1 / 36 sur 37 |
+| EXP-0018 | EXP-0007 (mode_n_locuteurs) | −0,48 [−1,48 ; +0,00] | −0,50 [−1,58 ; +0,00] | 1 / 0 sur 37 | −0,48 [−1,48 ; +0,00] | −0,50 [−1,58 ; +0,00] | 1 / 0 sur 37 |
 
 ## AMI (SDM)
 
@@ -33,14 +35,16 @@ Partition test, condition réaliste (nombre de locuteurs non donné, détection 
 | pyannote community-1 (sortie) | EXP-0017 (pyannote-c1-ami-sdm-exclusive) | en cours | 24,48 % | 16,76 % | 18,48 | 2,52 | 3,48 | 12/16 (75,0 %) |
 | pyannote community-1 (mode_n_locuteurs) | EXP-0019 (pyannote-c1-ami-sdm-borne-2-6) | en cours | 19,92 % | 13,21 % | 11,16 | 3,81 | 4,94 | 12/16 (75,0 %) |
 
-Écart à la référence déclarée (AMI (SDM), test) : DER de l'expérience moins DER de sa référence, en points, intervalle de confiance à 95 % par bootstrap apparié sur les fichiers (1 000 tirages, graine 0). Un écart négatif est une amélioration.
+Écarts (AMI (SDM), test) : DER de l'expérience moins DER du système comparé, en points, intervalle de confiance à 95 % par bootstrap apparié sur les fichiers (1 000 tirages, graine 0) ; un écart négatif est une amélioration. Première comparaison, principale : à la référence déclarée de l'expérience, qui ne diffère que par la variable modifiée (protocole, D9). Seconde comparaison : à pyannote community-1 (EXP-0001), moteur de démonstration, sur le même corpus ; ce n'est pas une comparaison à une seule variable (moteur, détection, représentation et réglages peuvent tous différer).
 
-| Expérience | Référence (variable modifiée) | Écart sans collar [IC 95 %] | Écart collar 0,25 s [IC 95 %] | Fichiers où l'expérience fait mieux / moins bien (sans collar) |
-|---|---|---|---|---|
-| EXP-0010 | EXP-0002 (representation) | −18,50 [−23,70 ; −13,83] | −20,36 [−25,93 ; −15,06] | 15 / 1 sur 16 |
-| EXP-0013 | EXP-0002 (representation) | −15,22 [−20,10 ; −10,54] | −17,26 [−22,75 ; −11,85] | 14 / 2 sur 16 |
-| EXP-0017 | EXP-0001 (sortie) | +4,56 [+2,79 ; +6,32] | +3,55 [+1,87 ; +5,27] | 0 / 16 sur 16 |
-| EXP-0019 | EXP-0001 (mode_n_locuteurs) | +0,00 [+0,00 ; +0,00] | +0,00 [+0,00 ; +0,00] | 0 / 0 sur 16 |
+| Expérience | Référence déclarée (variable modifiée) | Écart à la référence déclarée, sans collar [IC 95 %] | Écart à la référence déclarée, collar 0,25 s [IC 95 %] | Fichiers où l'expérience fait mieux / moins bien que sa référence (sans collar) | Écart à pyannote community-1 (EXP-0001), sans collar [IC 95 %] | Écart à pyannote community-1 (EXP-0001), collar 0,25 s [IC 95 %] | Fichiers où l'expérience fait mieux / moins bien que pyannote community-1 (EXP-0001) (sans collar) |
+|---|---|---|---|---|---|---|---|
+| EXP-0001 | — | — | — | — | — (elle-même) | — | — |
+| EXP-0002 | — | — | — | — | +44,46 [+40,53 ; +48,35] | +48,00 [+43,43 ; +52,43] | 0 / 16 sur 16 |
+| EXP-0010 | EXP-0002 (representation) | −18,50 [−23,70 ; −13,83] | −20,36 [−25,93 ; −15,06] | 15 / 1 sur 16 | +25,96 [+22,93 ; +28,53] | +27,64 [+24,51 ; +30,45] | 0 / 16 sur 16 |
+| EXP-0013 | EXP-0002 (representation) | −15,22 [−20,10 ; −10,54] | −17,26 [−22,75 ; −11,85] | 14 / 2 sur 16 | +29,24 [+25,95 ; +32,42] | +30,74 [+27,18 ; +34,47] | 0 / 16 sur 16 |
+| EXP-0017 | EXP-0001 (sortie) | +4,56 [+2,79 ; +6,32] | +3,55 [+1,87 ; +5,27] | 0 / 16 sur 16 | +4,56 [+2,79 ; +6,32] | +3,55 [+1,87 ; +5,27] | 0 / 16 sur 16 |
+| EXP-0019 | EXP-0001 (mode_n_locuteurs) | +0,00 [+0,00 ; +0,00] | +0,00 [+0,00 ; +0,00] | 0 / 0 sur 16 | +0,00 [+0,00 ; +0,00] | +0,00 [+0,00 ; +0,00] | 0 / 0 sur 16 |
 
 **Sources.** Expériences (commit d'exécution) : EXP-0001 (`d9f177a`), EXP-0002 (`540bb5e`), EXP-0007 (`568efbb`), EXP-0009 (`568efbb`), EXP-0010 (`fba633a`), EXP-0012 (`3856355`), EXP-0013 (`2a08ff7`), EXP-0015 (`5bcb295`), EXP-0016 (`12a67a6`), EXP-0017 (`4dc5e63`), EXP-0018 (`2fcf766`), EXP-0019 (`45b309d`).
 Fichiers : `results/leaderboard.csv` (contrôle), `results_<corpus>_<partition>.json` et `per_file_<corpus>_<partition>.csv` de chaque expérience.
