@@ -747,6 +747,7 @@ function explain(group, index) {
   // Catégorie principale (une seule, exclusive : app/sortie.py), puis les autres constats.
   $('.wsp-explain-cat-name').textContent = zone.categorie_libelle || '';
   $('.wsp-explain-cat-text').textContent = zone.categorie_texte ? '. ' + zone.categorie_texte : '';
+  $('.wsp-explain-cat-tol').textContent = zone.categorie_tolerance || '';   // option b : part pardonnée
   $('.wsp-explain-cat').hidden = !zone.categorie_libelle;
   const list = $('.wsp-explain-context');
   list.innerHTML = '';

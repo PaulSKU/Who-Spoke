@@ -409,10 +409,14 @@ BOUNDARY_S = 0.25       # frontière de tour : ce que pardonne le collar du prot
 TOUCH_S = 0.05          # une pause « contiguë » à la zone
 _EPS = 1e-9
 
-# Catégorie principale d'une zone d'erreur (décision du cockpit du 02/11, retour de B9 et
-# E8) : une seule, exclusive, la première vraie dans cet ordre. Définition unique, reprise
-# par la carte « Expliquer cette erreur » et par l'analyse A-0003. Les catégories d'une
-# carte somment donc aux composantes du DER sans collar.
+# Catégories des erreurs (décisions du cockpit du 02/11 : ordre de priorité, puis option b).
+# Une seule définition, reprise par la carte « Expliquer cette erreur » et par l'analyse
+# A-0003. La catégorisation se fait sur le temps : chaque segment d'erreur est découpé aux
+# bords des intervalles de ±0,25 s autour des frontières de tour de la référence (ceux que
+# retire le collar du protocole). La partie dans ces intervalles est un « décalage de
+# frontière » ; le reste de la zone reçoit la première catégorie vraie dans l'ordre qui
+# suit, évaluée sur ce reste. Les catégories somment aux composantes du DER sans collar, et
+# « décalage de frontière » est exactement l'erreur que retire le collar (même appariement).
 ERROR_CATEGORIES = {
     "frontiere": "Décalage de frontière",
     "chevauchement": "Chevauchement",
@@ -424,21 +428,24 @@ ERROR_CATEGORIES = {
 }
 
 
-def main_category(zone: dict, context: dict, pairs: dict) -> str:
-    """Catégorie principale d'une zone (`ERROR_CATEGORIES`, par ordre de priorité).
+def main_category(zone: dict, context: dict | None, pairs: dict) -> str:
+    """Catégorie affichée d'une zone : « frontiere » si elle tient entièrement dans la
+    tolérance (`context` None), sinon celle de sa partie hors tolérance, par priorité :
 
-    `zone` : type et locuteurs (noms d'origine) ; `context` : `_Context.describe` ;
-    `pairs` : appariement du DER, locuteur de référence -> locuteur trouvé.
-    1. décalage de frontière : la zone tient entièrement dans ±0,25 s d'une frontière de tour
-       de la référence (ce que le collar pardonne) ;
-    2. chevauchement : la zone recoupe un chevauchement de la référence ;
+    2. chevauchement : cette partie recoupe un chevauchement de la référence ;
     3. locuteur de référence non apparié (parole manquée ou confusion) ;
     4. locuteur trouvé en trop, non apparié (fausse alarme ou confusion) ;
-    5. tour court : la zone recoupe un tour de la référence de moins de 0,5 s ;
-    6. pause courte : la zone recoupe une pause de la référence de 1 s au plus, ou la touche ;
+    5. tour court : elle recoupe un tour de la référence de moins de 0,5 s ;
+    6. pause courte : elle recoupe une pause de la référence de 1 s au plus, ou la touche ;
     7. autre.
+
+    `zone` : type et locuteurs (noms d'origine) ; `context` : faits de la référence sur la
+    partie hors tolérance (`_Context.describe_parts`) ; `pairs` : appariement du DER.
+    Un tour de moins de 0,5 s ou une pause de 0,5 s au plus tiennent dans la tolérance de
+    leurs propres frontières : hors tolérance, « tour court » ne s'applique jamais et
+    « pause courte » seulement aux pauses de plus de 0,5 s.
     """
-    if context["dans_collar"]:
+    if context is None:
         return "frontiere"
     if context["chevauchement_s"] > 0:
         return "chevauchement"
@@ -451,6 +458,20 @@ def main_category(zone: dict, context: dict, pairs: dict) -> str:
     if context["pause"] is not None:
         return "pause"
     return "autre"
+
+
+def _covered(intervals: np.ndarray, start: float, end: float) -> list[tuple[float, float]]:
+    """Morceaux de [start, end] couverts par `intervals` (n × 2, triés, disjoints)."""
+    if not len(intervals) or end <= start:
+        return []
+    lo = int(np.searchsorted(intervals[:, 1], start, side="right"))
+    hi = int(np.searchsorted(intervals[:, 0], end, side="left"))
+    pieces = []
+    for a, b in intervals[lo:hi]:
+        a, b = max(float(a), start), min(float(b), end)
+        if b > a:
+            pieces.append((a, b))
+    return pieces
 
 
 class _Context:
@@ -483,17 +504,24 @@ class _Context:
                 break
             if pause is None and (abs(a - end) <= TOUCH_S or abs(b - start) <= TOUCH_S):
                 pause = (b - a, "contigue")
-        boundary, inside = None, False
+        boundary = None
         if len(self.boundaries):
             boundary = float(min(np.abs(self.boundaries - start).min(), np.abs(self.boundaries - end).min()))
             boundary = boundary if boundary <= BOUNDARY_S + _EPS else None
-            # Zone entière dans [b − 0,25 ; b + 0,25] pour une frontière b : b dans [fin − 0,25 ; début + 0,25].
-            index = int(np.searchsorted(self.boundaries, end - BOUNDARY_S - _EPS))
-            inside = index < len(self.boundaries) and self.boundaries[index] <= start + BOUNDARY_S + _EPS
-        return {"chevauchement_s": round(overlap, 3), "dans_collar": bool(inside),
+        return {"chevauchement_s": round(overlap, 3),
                 "tour_court": None if short is None else {"locuteur": short[0], "duree_s": round(short[1], 3)},
                 "pause": None if pause is None else {"duree_s": round(pause[0], 3), "relation": pause[1]},
                 "frontiere_s": None if boundary is None else round(boundary, 3)}
+
+    def describe_parts(self, parts: list[tuple[float, float]]) -> dict:
+        """Mêmes faits sur plusieurs morceaux (partie d'une zone hors tolérance) : chevauchement
+        cumulé ; premier tour court ; pause qu'un morceau recoupe, sinon à laquelle il touche."""
+        facts = [self.describe(a, b) for a, b in parts]
+        pauses = [f["pause"] for f in facts if f["pause"]]
+        return {"chevauchement_s": round(sum(f["chevauchement_s"] for f in facts), 3),
+                "tour_court": next((f["tour_court"] for f in facts if f["tour_court"]), None),
+                "pause": next((p for p in pauses if p["relation"] == "recoupe"), pauses[0] if pauses else None),
+                "duree_s": round(sum(b - a for a, b in parts), 3)}
 
 
 def error_map(reference: Annotation, hypothesis: Annotation, duration_s: float) -> dict:
@@ -510,8 +538,11 @@ def error_map(reference: Annotation, hypothesis: Annotation, duration_s: float) 
     "categories": {type: {catégorie: s}}, "appariement": {référence: trouvé}}` ; zones
     contiguës de même type et de mêmes locuteurs fusionnées pour l'affichage ; noms
     d'origine des locuteurs ; `contexte` : faits de la référence autour de la zone
-    (`_Context.describe`) ; `categorie` : catégorie principale (`main_category`), dont les
-    durées sont cumulées segment par segment, comme les totaux.
+    (`_Context.describe`) ; `tolerance_s` : part de la zone dans ±0,25 s d'une frontière de
+    tour de la référence (pardonnée par le collar) ; `contexte_hors_tolerance` : faits sur
+    le reste (None si la zone tient entièrement dans la tolérance) ; `categorie` : catégorie
+    affichée (`main_category`). `categories` : secondes par type et par catégorie, cumulées
+    segment par segment comme les totaux, la partie dans la tolérance en « frontiere ».
     """
     from pyannote.metrics.errors.identification import IdentificationErrorAnalysis
 
@@ -532,7 +563,7 @@ def error_map(reference: Annotation, hypothesis: Annotation, duration_s: float) 
     totals = {"manquee": 0.0, "fausse_alarme": 0.0, "confusion": 0.0}
     counts: dict[Segment, dict[str, int]] = {}
     zones: list[dict] = []
-    tracks: list[tuple[float, dict]] = []   # (durée, zone) de chaque segment d'erreur
+    tracks: list[tuple[Segment, dict]] = []   # (segment, zone) de chaque segment d'erreur
     for segment, _, (status, ref, hyp) in errors.itertracks(yield_label=True):
         kind = ERROR_TYPES.get(status)
         if kind is None:
@@ -548,19 +579,33 @@ def error_map(reference: Annotation, hypothesis: Annotation, duration_s: float) 
             zone = previous
         else:
             zones.append(zone)
-        tracks.append((segment.duration, zone))
+        tracks.append((segment, zone))
     for segment, by_kind in counts.items():
         for kind, count in by_kind.items():
             totals[kind] += segment.duration * count
     totals["reference"] = metric(match.reference, match.hypothesis, uem=match.uem, detailed=True)["total"]
     context = _Context(match.reference, duration_s)
     pairs = match.pairs()
+    # Hors tolérance : l'UEM privée des collars, construite par pyannote.metrics comme pour le
+    # DER avec collar (`extrude`, collar = 2 × 0,25 s autour de chaque frontière de tour).
+    kept = metric.extrude(match.uem, match.reference, collar=2 * BOUNDARY_S)
+    kept = np.array([[s.start, s.end] for s in kept]).reshape(-1, 2)
     for zone in zones:
         zone["contexte"] = context.describe(zone["debut"], zone["fin"])
-        zone["categorie"] = main_category(zone, zone["contexte"], pairs)
+        outside = _covered(kept, zone["debut"], zone["fin"])
+        rest = sum(b - a for a, b in outside)
+        zone["tolerance_s"] = round(max(0.0, zone["fin"] - zone["debut"] - rest), 3)
+        zone["contexte_hors_tolerance"] = context.describe_parts(outside) if rest > _EPS else None
+        zone["categorie"] = main_category(zone, zone["contexte_hors_tolerance"], pairs)
     categories = {kind: dict.fromkeys(ERROR_CATEGORIES, 0.0) for kind in ERROR_TYPES.values()}
-    for seconds, zone in tracks:
-        categories[zone["type"]][zone["categorie"]] += seconds
+    for segment, zone in tracks:
+        by_category = categories[zone["type"]]
+        if zone["categorie"] == "frontiere":
+            by_category["frontiere"] += segment.duration
+            continue
+        rest = sum(b - a for a, b in _covered(kept, segment.start, segment.end))
+        by_category["frontiere"] += segment.duration - rest
+        by_category[zone["categorie"]] += rest
     for zone in zones:
         zone["debut"], zone["fin"] = round(zone["debut"], 3), round(zone["fin"], 3)
     return {"totaux": totals, "zones": sorted(zones, key=lambda z: (z["debut"], z["type"])),

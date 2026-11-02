@@ -699,25 +699,36 @@ def _errors_for(reference, result: dict) -> dict | None:
 
 
 def _explain_zone(zone: dict) -> None:
-    """« Expliquer cette erreur » : catégorie principale (`sortie.main_category`) et sa
-    phrase, puis les autres constats (R-U4) ; jamais une cause affirmée."""
+    """« Expliquer cette erreur » : catégorie de la partie hors tolérance de la zone
+    (`sortie.main_category`, option b du 02/11) et sa phrase, la part pardonnée par le
+    collar, puis les autres constats sur toute la zone (R-U4) ; jamais une cause affirmée."""
     found = _context_sentences(zone["contexte"], zone["fin"] - zone["debut"])
+    found.pop("frontiere", None)          # remplacé par la part dans la tolérance, ci-dessous
     category = zone["categorie"]
+    outside = zone["contexte_hors_tolerance"]
+    partial = outside is not None and zone["tolerance_s"] > 0
     zone["categorie_libelle"] = sortie.ERROR_CATEGORIES[category]
     if category == "frontiere":
-        text = (f"La zone tient entièrement à {_num(sortie.BOUNDARY_S, 2)} s au plus d'une frontière de tour de la "
-                f"référence : le collar de {_num(sortie.BOUNDARY_S, 2)} s la pardonne.")
-        found.pop("frontiere", None)
+        text = (f"La zone tient entièrement dans la tolérance de {_num(sortie.BOUNDARY_S, 2)} s d'une frontière de tour "
+                "de la référence : le collar la pardonne.")
     elif category == "reference_non_appariee":
         text = f"Le locuteur de référence {zone['reference']} n'est apparié à aucun locuteur trouvé."
     elif category == "trouve_en_trop":
         # Sans son nom : le locuteur trouvé peut avoir été renommé (ligne « Locuteur trouvé »).
         text = "Le locuteur trouvé n'est apparié à aucun locuteur de la référence."
     elif category == "autre":
-        text = ("Aucune des catégories précédentes (décalage de frontière, chevauchement, locuteur non apparié, "
-                "tour court, pause courte).")
+        text = ("Aucune des catégories précédentes (chevauchement, locuteur non apparié, tour court, "
+                "pause courte).")
     else:
-        text = found.pop(category)
+        # Phrase calculée sur la partie hors tolérance ; le constat sur toute la zone n'est pas répété.
+        text = _context_sentences(outside, outside["duree_s"])[category]
+        found.pop(category, None)
+    if partial:
+        text = "Hors de la tolérance d'une frontière : " + text[0].lower() + text[1:]
+        zone["categorie_tolerance"] = (f"Dont {_num(zone['tolerance_s'], 2)} s dans la tolérance d'une frontière "
+                                       "(pardonnés par le collar).")
+    else:
+        zone["categorie_tolerance"] = ""
     zone["categorie_texte"] = text
     zone["constats"] = list(found.values())
 
@@ -743,7 +754,7 @@ def _context_sentences(context: dict, duration_s: float) -> dict[str, str]:
         verb = "recoupe" if pause["relation"] == "recoupe" else "est contiguë à"
         sentences["pause"] = (f"Elle {verb} une pause de la référence de {_num(sortie.SHORT_PAUSE_S, 0)} s au plus "
                               f"({_num(pause['duree_s'], 2)} s).")
-    if context["frontiere_s"] is not None:
+    if context.get("frontiere_s") is not None:
         sentences["frontiere"] = (f"Un de ses bords est à {_num(sortie.BOUNDARY_S, 2)} s au plus d'une frontière de "
                                   f"tour de la référence (écart {_num(context['frontiere_s'], 2)} s).")
     return sentences
@@ -1241,7 +1252,8 @@ VIEWER_TEMPLATE = (
     '<div class="wsp-explain-head"><h3 class="wsp-explain-title"></h3>'
     '<button type="button" class="wsp-explain-close" aria-label="Fermer l\'explication">×</button></div>'
     '<p class="wsp-explain-cat"><span class="wsp-explain-cat-label">Catégorie principale</span> '
-    '<strong class="wsp-explain-cat-name"></strong><span class="wsp-explain-cat-text"></span></p>'
+    '<strong class="wsp-explain-cat-name"></strong><span class="wsp-explain-cat-text"></span> '
+    '<span class="wsp-explain-cat-tol"></span></p>'
     '<dl class="wsp-explain-facts"></dl><p class="wsp-explain-sub">Autres constats dans la référence</p>'
     '<ul class="wsp-explain-context"></ul>'
     '<p class="wsp-explain-note">Catégorie et constats décrivent la référence et l\'appariement autour de la zone, '

@@ -97,17 +97,17 @@ def test_contexte_des_zones():
     assert pause["contexte"]["pause"] == {"duree_s": 0.6, "relation": "recoupe"}
     # Fausse alarme de S2 (22–23), loin de tout : aucun contexte.
     far = next(z for z in by_type["fausse_alarme"] if z["debut"] == 22.0)
-    assert far["contexte"] == {"chevauchement_s": 0.0, "dans_collar": False, "tour_court": None, "pause": None,
-                               "frontiere_s": None}
+    assert far["contexte"] == {"chevauchement_s": 0.0, "tour_court": None, "pause": None, "frontiere_s": None}
+    assert far["tolerance_s"] == 0.0 and far["categorie"] == "trouve_en_trop"
 
 
 def test_constats_factuels_jamais_une_cause():
     errors = interface._errors_for(REFERENCE, {"annotation": HYPOTHESIS, "duree_s": DURATION})
     sentences = [text for zone in errors["zones"] for text in (zone["categorie_texte"], *zone["constats"])]
-    assert "La zone tombe dans un chevauchement de la référence." in sentences
+    assert "Hors de la tolérance d'une frontière : la zone tombe dans un chevauchement de la référence." in sentences
     assert any(t.startswith("Elle recoupe un tour de la référence de moins de 0,5 s (C, 0,30 s)") for t in sentences)
-    assert any(t.startswith("Elle recoupe une pause de la référence de 1 s au plus (0,60 s)") for t in sentences)
-    assert any(t.startswith("Aucune des catégories précédentes") for t in sentences)
+    assert any(t.endswith("elle recoupe une pause de la référence de 1 s au plus (0,60 s).") for t in sentences)
+    assert any("aucune des catégories précédentes" in t for t in sentences)
     for text in sentences:
         for word in ("parce", "cause", "car ", "à cause", "due", "dû"):
             assert word not in text.lower(), text
