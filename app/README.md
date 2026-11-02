@@ -262,7 +262,7 @@ Vérifié dans le navigateur en mode factice, en clair, en sombre et à 375 px (
 |---|---|---|
 | Appariement visible | Avec une référence, chaque piste de référence prend la couleur du locuteur du premier moteur qui lui est apparié et l'étiquette « 021 ↔ SPEAKER_03 » (nom choisi s'il a été renommé) ; non appariée, elle reste grise avec « (non apparié) ». C'est l'appariement optimal du DER (`optimal_mapping` de pyannote.metrics), calculé une seule fois avec la carte des erreurs (`sortie._Matching`) : les couleurs, la carte et le DER ne peuvent pas diverger. La colonne des étiquettes s'élargit (184 px, 112 px à 375 px) | `sortie.pairing`, `app._reference_group` |
 | Tableau d'appariement | Sous le DER, dans l'Évaluation : locuteur de référence, locuteur trouvé (ou « non apparié »), temps commun (cooccurrence de pyannote.core), couverture du locuteur de référence (`DiarizationCoverage` restreinte à ce locuteur) et pureté du locuteur trouvé (`DiarizationPurity` restreinte à ce locuteur), puis les locuteurs trouvés non appariés. Pondérées par la durée, ces valeurs redonnent la pureté et la couverture globales de pyannote.metrics (test) | `sortie.matching_report`, `app._matching_html` |
-| « Expliquer cette erreur » | Un clic (ou Entrée) sur une zone de la carte des erreurs la fait écouter et ouvre une carte sous la timeline : type, durée au dixième de seconde, locuteur de référence et locuteur trouvé, chacun avec son appariement, et des constats calculés sur la référence : chevauchement (part de la zone), tour de référence de moins de 0,5 s qui la recoupe, pause de la référence de moins de 1 s qui la recoupe ou lui est contiguë (à 0,05 s près), bord de la zone à moins de 0,25 s d'une frontière de tour (la valeur du collar du protocole). Formulation factuelle, jamais une cause ; la carte le rappelle (« Constats sur la référence autour de la zone, pas une cause établie »). Échap ou × la ferme ; elle suit les renommages | `sortie._Context`, `app._context_sentences`, `visualiseur.js` (`explain`) |
+| « Expliquer cette erreur » | Un clic (ou Entrée) sur une zone de la carte des erreurs la fait écouter et ouvre une carte sous la timeline : type, durée au dixième de seconde, locuteur de référence et locuteur trouvé, chacun avec son appariement, la catégorie principale de la zone (depuis le 02/11, voir « Catégorie principale des erreurs » plus bas), et des constats calculés sur la référence : chevauchement (part de la zone), tour de référence de moins de 0,5 s qui la recoupe, pause de la référence de 1 s au plus (moins de 1 s jusqu'au 02/11) qui la recoupe ou lui est contiguë (à 0,05 s près), bord de la zone à moins de 0,25 s d'une frontière de tour (la valeur du collar du protocole). Formulation factuelle, jamais une cause ; la carte le rappelle (« Constats sur la référence autour de la zone, pas une cause établie »). Échap ou × la ferme ; elle suit les renommages | `sortie._Context`, `app._context_sentences`, `visualiseur.js` (`explain`) |
 | Extrait typique | Bouton ▶ par locuteur dans le tableau des locuteurs : lit, dans la timeline, son plus long tour hors de tout chevauchement, limité à ses 10 premières secondes, et le repère sur la forme d'onde ; désactivé si toute sa parole est en chevauchement | `sortie.typical_excerpts`, `visualiseur.js` (`onExcerpt`) |
 | Renommage | Un champ par ligne dans le tableau des locuteurs (identifiant du moteur en dessous) ; validé par Entrée ou en quittant le champ, Échap rétablit le nom affiché ; la grille Gradio séparée est supprimée. Noms en double refusés (le tableau revient aux noms en vigueur), 60 caractères au plus, blancs de bord retirés. Les noms sont échappés partout (valeur du champ comprise) ; les raccourcis clavier sont inactifs pendant la saisie | `app._stats_html`, `STATS_JS`, `rename` |
 
@@ -397,9 +397,10 @@ uv run python -m app.app --factice --config-demo configs/demo.exemple.yaml
 | Point | Comportement |
 |---|---|
 | Affichage | En-tête : « Configuration : `configs/demo.yaml`, gel du 10/11/2026 » (ou « correspondance de `app/moteurs.py`, avant le gel ») et le moteur choisi avec son expérience source et son nombre de locuteurs par défaut ; suit le choix du moteur. Au lancement, la console l'écrit aussi |
+| Moteur absent du fichier (décision du 02/11) | Non proposé (listes « Moteur », « Second moteur » et page Pipeline) ; l'en-tête ajoute « Non retenu pour la démonstration : … », la console aussi. Second moteur proposé : la baseline ECAPA si elle est retenue, sinon le premier autre moteur retenu |
 | Nombre de locuteurs | Valeur par défaut de chaque moteur (`automatique`, `impose` avec `valeur`, `fourchette` avec `min` et `max`), appliquée à l'ouverture et à chaque changement de moteur |
 | Comparaison avec une fourchette | La fourchette ne vaut que pour pyannote (D17, amendement 1) : le second moteur, une baseline, estime lui-même le nombre de locuteurs ; l'annonce de durée et une notification le disent, le bandeau donne le réglage de chaque moteur. Avant, la comparaison par défaut (pyannote et baseline ECAPA) aurait été refusée dès que la fourchette était le réglage par défaut |
-| Fichier incohérent | Le lancement s'arrête sur un message qui dit quoi corriger : moteur inconnu ou absent, identifiant EXP-NNNN, fourchette sur une baseline, `min` au-dessus de `max`, entier attendu, mode inconnu, moteur par défaut absent, YAML illisible |
+| Fichier incohérent | Le lancement s'arrête sur un message qui dit quoi corriger : moteur inconnu, identifiant EXP-NNNN, fourchette sur une baseline, `min` au-dessus de `max`, entier attendu, mode inconnu, moteur par défaut absent, YAML illisible |
 | Reproductibilité | La fiche de l'export JSON consigne `configuration_demo` : fichier, date du gel, SHA-256 (`null` avant le gel) |
 | Cache | Inchangé : l'expérience source et les réglages font déjà partie de la clé |
 
@@ -454,3 +455,38 @@ Chargement du fichier du spectrogramme : 14 Mo en 0,31 s ; énergie : 0,7 Mo ; t
 Vérifié dans le navigateur intégré : clair et sombre à 1280 × 720, sombre à 375 px (largeur de page 375 px, barre d'outils sur trois lignes, sans défilement horizontal), mode présentation (hauteur 144 px, aller-retour), alignement des harmoniques sur les tours des pistes au zoom maximal, retour à la forme d'onde (80 px, couleurs d'origine), « Tout afficher », infobulle, trace prise sur le second moteur en comparaison. Défaut corrigé pendant la vérification : graduations 250 Hz et 500 Hz superposées (250 Hz retirée).
 
 Tests : `tests/test_app_spectrogramme.py` (15). Suite complète : 536 réussis, 12 ignorés, 3 lents exclus.
+
+## Catégorie principale des erreurs et moteurs non retenus (décisions du cockpit du 02/11, retours de B8, B9 et E8)
+
+### Catégorie principale d'une zone d'erreur
+
+Une seule définition, dans `app/sortie.py` (`ERROR_CATEGORIES`, `main_category`), reprise par la carte « Expliquer cette erreur » et par l'analyse A-0003. Chaque zone de la carte des erreurs (sans collar) reçoit une catégorie, exclusive, la première vraie dans cet ordre ; chaque seconde d'erreur a donc la catégorie de sa zone.
+
+| Rang | Catégorie | Règle |
+|---|---|---|
+| 1 | Décalage de frontière | La zone tient entièrement dans ±0,25 s d'une frontière de tour de la référence, c'est-à-dire dans ce que pardonne le collar du protocole (`collar=0.5` de pyannote.metrics) |
+| 2 | Chevauchement | Elle recoupe un chevauchement de la référence |
+| 3 | Locuteur de référence non apparié | Son locuteur de référence (parole manquée, confusion) n'est apparié à aucun locuteur trouvé |
+| 4 | Locuteur trouvé en trop | Son locuteur trouvé (fausse alarme, confusion) n'est apparié à aucun locuteur de la référence |
+| 5 | Tour court | Elle recoupe un tour de la référence de moins de 0,5 s |
+| 6 | Pause courte | Elle recoupe une pause de la référence de 1 s au plus, ou la touche à 0,05 s près |
+| 7 | Autre | Aucune des précédentes |
+
+Les durées par catégorie (`error_map(...)["categories"]`, par type d'erreur) sont cumulées segment par segment, comme les totaux : elles partitionnent l'erreur et redonnent les composantes du DER sans collar. Égalité stricte quand les durées sont exactes en binaire ; sinon à 10⁻¹² s près (sur 600 sommes tirées au hasard, 575 égalités strictes, pire écart 7·10⁻¹⁵ s : l'ordre des additions en virgule flottante diffère de celui du total). La carte affiche la catégorie principale et sa phrase, puis les autres constats (le constat déjà porté par la catégorie n'est pas répété). Seuil de pause aligné sur la décision : « 1 s au plus » (avant : moins de 1 s).
+
+Contrôle demandé : la part « décalage de frontière » face à l'écart entre DER sans collar et avec collar.
+
+| Cas | Décalage de frontière | Écart d'erreur entre les deux conditions |
+|---|---|---|
+| Cas construits (frontières décalées de 0,1 à 0,25 s, autres erreurs loin des frontières) | 0,6 s et 1,0 s | identique, à 10⁻⁹ s près (test) |
+| SUMM-RE 007a_ECRH, sortie d'EXP-0007, toute la durée, sans UEM (comme l'interface) | 47,5 s, soit 4,00 points de DER | 155,6 s ; DER 19,15 % sans collar, 9,23 % avec, soit 9,92 points |
+
+Sur 007a_ECRH, la catégorie n'explique donc que 31 % de ce que retire le collar. L'erreur située dans les zones du collar (387 s des 1 211 s de l'audio, autour de 608 frontières) fait exactement 155,6 s : 47,5 s en zones entières (la catégorie), 108,1 s en morceaux de 282 zones plus longues classées ailleurs (chevauchement 45,1 s, pause courte 40,3 s, autre 19,8 s, tour court 2,9 s). En points de DER, l'écart est en outre grossi par le dénominateur : le collar retire aussi 409 s de parole de référence (1 188 → 779 s). Répartition sur ce fichier, en part de l'erreur sans collar : chevauchement 30,9 %, pause courte 24,8 %, autre 21,9 %, décalage de frontière 20,9 %, tour court 1,5 %, aucun locuteur non apparié.
+
+### Moteurs absents de `configs/demo.yaml`
+
+Un moteur absent de `moteurs` n'est plus refusé : il n'est pas proposé, et l'en-tête le dit (« Non retenu pour la démonstration : Baseline WeSpeaker »). Seuls l'absence du moteur par défaut (`moteur_par_defaut`, ou `pyannote-community-1` si la clé manque) et un fichier incohérent arrêtent le lancement. Le chemin du fichier passé à `--config-demo` se coupe désormais dans l'en-tête (il élargissait la page à 409 px sur un écran de 375 px).
+
+Vérifié dans le navigateur, moteur factice, 007a_ECRH avec sa référence et une configuration sans la baseline WeSpeaker : carte en sombre à 1280 px, en clair à 375 px (largeur de page 375 px), quatre catégories rencontrées (décalage de frontière, chevauchement, pause courte, autre), en-tête et liste des moteurs (Baseline MFCC, Baseline ECAPA, pyannote).
+
+Tests : `tests/test_app_categories.py` (7), tests du gel (`test_app_presentation_gel.py`, 3 nouveaux) et de la carte mis à jour. Suite complète : 545 réussis, 12 ignorés, 3 lents exclus.
