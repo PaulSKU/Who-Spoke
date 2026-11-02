@@ -8,6 +8,7 @@ import csv
 import importlib.util
 import json
 import sys
+from pathlib import Path
 
 import numpy as np
 import pytest
@@ -178,6 +179,24 @@ def test_parts_sur_toute_l_erreur_et_hors_frontiere():
     assert line["n_zones"] == 2 * len(errors["zones"])
 
 
+def test_croisement_categorie_par_type():
+    ref, hyp, uem = annotation("u", REF), annotation("u", HYP), Timeline([Segment(0.0, 60.0)])
+    errors = a0003.file_errors(ref, hyp, uem)
+    merged = a0003.merge_tallies([a0003.tally(errors, protocol_row(ref, hyp, uem))])
+    rows = a0003.cross_rows(merged)
+    assert len(rows) == len(a0003.CATEGORIES) * len(a0003.ERROR_TYPES)
+    cell = {(r["categorie"], r["type_erreur"]): r for r in rows}
+    for kind in a0003.ERROR_TYPES:
+        for category in a0003.CATEGORIES:
+            assert cell[(category, kind)]["secondes"] == pytest.approx(errors["categories"][kind][category], abs=1e-3)
+        assert sum(cell[(c, kind)]["part_du_type_pct"] for c in a0003.CATEGORIES) == pytest.approx(100.0, abs=0.05)
+    assert sum(r["part_erreur_pct"] for r in rows) == pytest.approx(100.0, abs=0.05)
+    assert sum(r["part_hors_frontiere_pct"] for r in rows if r["categorie"] != a0003.BOUNDARY) == pytest.approx(
+        100.0, abs=0.05)
+    assert all(r["part_hors_frontiere_pct"] is None for r in rows if r["categorie"] == a0003.BOUNDARY)
+    assert cell[("trouve_en_trop", "fausse_alarme")]["secondes"] == pytest.approx(3.0)
+
+
 def test_uem_officiel_comme_le_protocole():
     ref = annotation("u", [(0.0, 5.0, "A"), (6.0, 20.0, "B")])
     hyp = annotation("u", [(0.0, 3.0, "x"), (6.0, 25.0, "y")])
@@ -273,6 +292,9 @@ def test_execution_complete(depot):
     control = details["controle_frontiere_collar_s"]["sys-b/fab"]
     assert control["ecart_frontiere_collar_s"] == pytest.approx(control["frontiere_s"] - control["pardonne_collar_s"], abs=1e-3)
     assert details["categories"] == sortie.ERROR_CATEGORIES
+    crossed = [r for r in read(out / "categories_par_type.csv") if r["systeme"] == "sys-b"]
+    assert sum(float(r["secondes"]) for r in crossed) == pytest.approx(float(row["erreur_s"]), abs=0.05)
+    assert {r["corpus"] for r in read(out / "categories_par_type.csv")} == {"fab", "maison"}
     by_file = [r for r in read(out / "categories_par_fichier.csv") if r["systeme"] == "sys-b" and r["type_erreur"] == "tous"]
     assert len(by_file) == 7 and sum(float(r["erreur_s"]) for r in by_file) == pytest.approx(float(row["erreur_s"]), abs=0.05)
     # Descripteurs : un par corpus × fichier ; type de réunion d'après la liste déclarée.
@@ -382,3 +404,35 @@ def test_grille_refusee(depot, tmp_path, defaut):
     with pytest.raises(SystemExit):
         a0003.import_grid(filled, out)
     assert not (out / a0003.GRID).exists()
+
+
+def test_ecart_de_102c_ebph_vient_de_l_appariement_avec_collar():
+    """ECAPA (EXP-0012), SUMM-RE 102c_EBPH : le DER avec collar apparie SPK_01 à 222 et non
+    à 217 ; avec l'appariement sans collar imposé, la confusion pardonnée serait celle du
+    « décalage de frontière ». L'écart de −1,213 s vient de ce changement d'appariement."""
+    from pyannote.metrics.diarization import DiarizationErrorRate
+    from pyannote.metrics.identification import IdentificationErrorRate
+
+    from whospoke.experiment import load_rttm, load_uem
+
+    uri = "summre__102c_EBPH"
+    reference_path = Path.home() / "Dev" / "Who-Spoke" / "data" / "processed" / "summre" / "rttm" / f"{uri}.rttm"
+    hypotheses = sorted((REPO_ROOT / "experiments").glob(f"EXP-0012_*/rttm/{uri}.rttm"))
+    if not reference_path.is_file() or not hypotheses:
+        pytest.skip("référence de SUMM-RE ou sortie d'EXP-0012 absente")
+    reference, hypothesis = load_rttm(reference_path, uri), load_rttm(hypotheses[0], uri)
+    uem = load_uem(REPO_ROOT / "data" / "splits" / "summre" / "uem" / f"{uri}.uem", uri)
+    mappings = {}
+    for collar in (0.0, 2 * sortie.BOUNDARY_S):
+        metric = DiarizationErrorRate(collar=collar, skip_overlap=False)
+        ref, hyp = metric.uemify(reference, hypothesis, uem=uem, collar=collar, skip_overlap=False)
+        mappings[collar] = metric.optimal_mapping(ref, hyp)
+    assert mappings[0.0]["SPK_01"] == "217" and mappings[0.5]["SPK_01"] == "222"
+    metric = DiarizationErrorRate(collar=0.5, skip_overlap=False)
+    ref, hyp = metric.uemify(reference, hypothesis, uem=uem, collar=0.5, skip_overlap=False)
+    confusion = {collar: IdentificationErrorRate(collar=0.0, skip_overlap=False)(
+        ref, hyp.rename_labels(mapping=mapping), detailed=True)["confusion"] for collar, mapping in mappings.items()}
+    assert confusion[0.0] - confusion[0.5] == pytest.approx(1.213, abs=1e-3)
+    errors = a0003.file_errors(reference, hypothesis, uem)
+    removed_c0 = errors["totaux"]["confusion"] - errors["categories"]["confusion"]["frontiere"]
+    assert removed_c0 == pytest.approx(confusion[0.0], abs=1e-3)      # avec l'appariement sans collar : écart nul

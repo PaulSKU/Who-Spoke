@@ -19,6 +19,8 @@ officiel, puis écrit :
   et corpus ; descriptif, sans p-valeur ;
 - `categories.csv` et `categories_par_fichier.csv` : secondes d'erreur par catégorie principale
   de la carte « Expliquer cette erreur » de l'application ;
+- `categories_par_type.csv` : croisement catégorie × type d'erreur, avec et hors décalage de
+  frontière (D28, amendement du 02/11) ;
 - `extraits.csv` et le dossier d'écoute (hors du dépôt) : 6 à 8 extraits des corpus publics,
   avec `index.html` et `grille_ecoute.csv`, où la candidate note la cause perçue ;
 - `execution.json` : commit, arbre propre (D18), empreintes, contrôles.
@@ -194,6 +196,26 @@ def tally_row(counts: dict, with_share: bool) -> dict:
     row["pardonne_collar_s"] = round(counts["pardonne_collar_s"], 3)
     row["ecart_frontiere_collar_s"] = round(seconds[BOUNDARY] - counts["pardonne_collar_s"], 3)
     return row
+
+
+def cross_rows(merged: dict) -> list[dict]:
+    """Croisement catégorie × type d'erreur (D28, amendement du 02/11), une ligne par cellule :
+    secondes ; part de toute l'erreur (somme à 100 % sur les cellules) ; part de l'erreur hors
+    décalage de frontière (somme à 100 % sur les autres catégories, vide pour « frontiere ») ;
+    part de l'erreur du type (somme à 100 % sur chaque type)."""
+    total = sum(sum(merged[k]["categories"].values()) for k in ERROR_TYPES)
+    kept = total - sum(merged[k]["categories"][BOUNDARY] for k in ERROR_TYPES)
+    rows = []
+    for category in CATEGORIES:
+        for kind in ERROR_TYPES:
+            seconds = merged[kind]["categories"][category]
+            of_type = sum(merged[kind]["categories"].values())
+            rows.append({"categorie": category, "type_erreur": kind, "secondes": round(seconds, 3),
+                         "part_erreur_pct": round(100.0 * seconds / total, 2) if total else None,
+                         "part_hors_frontiere_pct": (None if category == BOUNDARY or kept <= 0
+                                                     else round(100.0 * seconds / kept, 2)),
+                         "part_du_type_pct": round(100.0 * seconds / of_type, 2) if of_type else None})
+    return rows
 
 
 # --- Corrélations (D28 §1.3) -------------------------------------------------------------
@@ -453,7 +475,7 @@ def run(config: dict, out_dir: Path, data_root: Path, listen_dir: Path | None,
     n_worst = int(config["classement"]["n_pires"])
     criterion = config["classement"]["critere"]
 
-    ranking, per_file_categories, aggregated, candidates = [], [], [], []
+    ranking, per_file_categories, aggregated, crossed, candidates = [], [], [], [], []
     descriptor_rows: dict[tuple[str, str], dict] = {}
     fingerprints, controls, collar_controls = {}, {}, {}
     references_used: dict[str, list[Path]] = {}
@@ -527,6 +549,8 @@ def run(config: dict, out_dir: Path, data_root: Path, listen_dir: Path | None,
                 aggregated.append({"systeme": system["nom"], "exp_id": exp_id, "corpus": corpus,
                                    "partitions": "+".join(source["partitions"]), "n_fichiers": len(files),
                                    "type_erreur": kind, **tally_row(values, with_share=True)})
+            crossed += [{"systeme": system["nom"], "exp_id": exp_id, "corpus": corpus,
+                         "partitions": "+".join(source["partitions"]), **cell} for cell in cross_rows(merged)]
             summary = tally_row(merged["tous"], with_share=False)
             collar_controls[f"{system['nom']}/{corpus}"] = {
                 key: summary[key] for key in ("frontiere_s", "pardonne_collar_s", "ecart_frontiere_collar_s")}
@@ -556,6 +580,7 @@ def run(config: dict, out_dir: Path, data_root: Path, listen_dir: Path | None,
     write_csv(out_dir / "correlations.csv", correlations)
     write_csv(out_dir / "categories.csv", aggregated)
     write_csv(out_dir / "categories_par_fichier.csv", per_file_categories)
+    write_csv(out_dir / "categories_par_type.csv", crossed)
 
     spec = config["extraits"]
     listing = {}
