@@ -1210,3 +1210,8 @@ Problèmes :
 - L'essai au vidéoprojecteur par la candidate reste à faire.
 - Règle 11 enfreinte une fois : le premier commit a été enchaîné à la suite complète filtrée par `| tail` (le `&&` testait alors le filtre, pas pytest). Suite réussie (655 réussis, 12 ignorés, 3 désélectionnés) ; commit refait, journal compris, derrière `uv run pytest && git commit` sans filtre.
 Suite : retour du cockpit sur B13 ; essai au vidéoprojecteur ; fusion d'`ui` dans `main` selon le planning.
+
+## 2026-11-02 — Fin des chantiers B et E du 02/11 (cockpit)
+
+Constats : l'essai d'A-0003 (hors dépôt) croise catégorie et type d'erreur. Pour pyannote sur SUMM-RE, la fausse alarme vient d'abord de frontières étirées (35,6 % de l'erreur, pardonnées par le collar), puis de « autre » (8,2 %) et de pauses courtes (4,4 %). C'est la cible de V2 (Silero). Pour la baseline ECAPA sur AMI, la parole manquée hors chevauchement et hors frontières pèse 28,4 % : des tours entiers manqués par la détection d'énergie, cohérent avec C01. L'écart de −1,213 s (102c_EBPH) est expliqué : avec collar, le DER recalcule l'appariement, qui bascule pour un locuteur (pyannote.metrics). Ce n'est pas un défaut du découpage. Pas de nouveau constat avant l'exécution officielle.
+Décisions : aucune. Sessions B et E en pause ; leurs branches seront fusionnées dans main par la piste A à sa première pause.
