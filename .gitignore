@@ -34,3 +34,10 @@ experiments/*/trace/
 
 # Environnements séparés des moteurs externes (D23 §1, E4) ; recréés par scripts/envs/
 /envs/
+
+# Contrôle visuel (tests/visuel, outils Node de développement)
+tests/visuel/node_modules/
+tests/visuel/test-results/
+tests/visuel/playwright-report/
+tests/visuel/.donnees/
+tests/visuel/defauts/

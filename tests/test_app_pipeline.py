@@ -116,7 +116,7 @@ def test_ecarts_entre_configuration_et_catalogue(tmp_path):
 def test_etape_evaluation_separee_et_lue_dans_le_code(tmp_path):
     page = pipeline.load_page(SPEC, make_root(tmp_path))
     rows = {row.name: row for row in page.evaluation.rows}
-    assert rows["collar"].value == "0 (principale) et 0,5 (± 0,25 s)"
+    assert rows["collar"].value == "0 (principale) et 0,5 (± 0,25\u202fs)"
     assert rows["skip_overlap"].value == "non : chevauchements comptés"
     assert rows["references"].value == "data/processed/summre/rttm"
     assert page.evaluation not in page.stages
@@ -169,7 +169,7 @@ def test_normalisation_lue_dans_le_code_et_le_catalogue(tmp_path):
     stage = page.stages[0]
     rows = {row.name: row for row in stage.rows}
     assert [s["nom"] for s in audio.describe_normalisation()] == list(rows)
-    assert rows["audio.frequence_hz"].value == f"{audio.SAMPLE_RATE} Hz"
+    assert rows["audio.frequence_hz"].value == "16\u202f000\u202fHz"
     assert rows["audio.canaux"].value == str(audio.CHANNELS)
     assert rows["audio.codec"].value == f"WAV {audio.CODEC}"
     assert rows["audio.entree_moteurs"].value == "signal en mémoire (waveform, sample_rate)"

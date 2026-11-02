@@ -87,7 +87,7 @@ def test_tableau_cote_a_cote(compared, reference):
         assert interface._pct(report["collar_0"]["der"], 2) in html
         assert interface._pct(report["collar_0_25"]["der"], 2) in html
     assert "pyannote community-1" in html and "Baseline MFCC" in html and "Référence" in html
-    assert "2,00 s" in html and "0,50 s" in html                  # temps de calcul
+    assert "2,00\u202fs" in html and "0,50\u202fs" in html                  # temps de calcul
     without = interface._comparison_html(interface._with_reference(compared, None))
     assert "Déposez une référence" in without and "—" in without
     assert interface._comparison_html(dict(compared, comparaison=None)) == ""
@@ -113,7 +113,7 @@ def test_avancement_temps_et_der_des_deux_moteurs(compared, reference):
               "2:analyse": "Baseline MFCC : Analyse"}
     html = interface._status_html(steps, {"1:segmentation": 1.0, "2:analyse": 0.5}, "En cours", labels=labels)
     assert "pyannote community-1 : Segmentation locale" in html and "Baseline MFCC : Analyse" in html
-    assert "50 %" in html
+    assert "50\u202f%" in html
     times = interface._times_all_html(interface._times_html, compared)
     assert times.count('class="ws-subtitle"') == 2 and "Baseline MFCC" in times
     result = interface._with_reference(compared, reference)

@@ -1,57 +1,44 @@
 /* Visualiseur de l'onglet « Analyse » (D17) ; portée limitée au composant par Gradio.
-   Teintes neutres de interface.css (--ws-*) ; la couleur vient des seuls locuteurs. */
+   Jetons de jetons.css (--ws-*) seulement ; la couleur vient des seuls locuteurs. */
 .wsp-root {
   --wsp-label-w: 132px;
+  --wsp-spec-h: 112px;   /* hauteur du spectrogramme (D28 §2), lue aussi par visualiseur.js */
   color: var(--ws-ink);
   width: 0; min-width: 100%;   /* n'élargit jamais la carte (375 px) */
 }
 /* Référence appariée : étiquettes « 021 ↔ SPEAKER_01 », colonne plus large. */
 .wsp-root.wsp-wide { --wsp-label-w: 184px; }
 .wsp-empty .wsp-body { display: none; }
-.wsp-placeholder { display: none; color: var(--ws-slate); font-size: 0.9rem; margin: 0; padding: 4px 0; }
+.wsp-placeholder { display: none; color: var(--ws-slate); font-size: 0.9rem; margin: 0; padding: var(--ws-space-1) 0; }
 .wsp-empty .wsp-placeholder { display: block; }
 
-.wsp-toolbar { display: flex; align-items: center; gap: 12px; margin-bottom: 12px; flex-wrap: wrap; }
-.wsp-tools { display: flex; align-items: center; gap: 8px; margin-left: auto; flex-wrap: wrap; }
-.wsp-play, .wsp-zoom button, .wsp-follow, .wsp-help-toggle {
-  height: 32px; padding: 0 12px; border: none; border-radius: 8px; cursor: pointer;
-  font: inherit; font-size: 0.875rem; font-weight: 500;
-  background: var(--ws-surface); color: var(--ws-ink);
-  box-shadow: 0 1px 2px -1px rgba(0,0,0,0.08), 0 0 0 1px var(--ws-line);
-  transition: transform 100ms cubic-bezier(0.23, 1, 0.32, 1), background-color 150ms ease;
-}
-.wsp-play { min-width: 84px; }
-.wsp-zoom-in, .wsp-zoom-out { width: 32px; padding: 0 !important; font-size: 1rem !important; }
-.wsp-help-toggle { width: 32px; padding: 0 !important; font-weight: 600 !important; }
-.wsp-follow[aria-pressed="true"] { box-shadow: 0 0 0 1.5px var(--ws-ink); }
-.wsp-follow[aria-pressed="false"] { color: var(--ws-slate); }
-.wsp-play:active, .wsp-zoom button:active, .wsp-follow:active, .wsp-help-toggle:active { transform: scale(0.97); }
-.wsp-zoom button:disabled { opacity: 0.4; cursor: default; transform: none; }
-@media (hover: hover) and (pointer: fine) {
-  .wsp-play:hover, .wsp-zoom button:not(:disabled):hover, .wsp-follow:hover, .wsp-help-toggle:hover {
-    background: var(--ws-canvas);
-  }
-}
+.wsp-toolbar { display: flex; align-items: center; gap: var(--ws-space-3); margin-bottom: var(--ws-space-3); flex-wrap: wrap; }
+.wsp-tools { display: flex; align-items: center; gap: var(--ws-space-2); margin-left: auto; flex-wrap: wrap; }
+/* Boutons : composants communs de interface.css (.ws-btn, .ws-switch, .ws-segmented). */
+.wsp-play { min-width: 104px; }   /* même largeur pour « Lecture » et « Pause » */
+.wsp-play .ws-icon-pause, .wsp-play[data-playing] .ws-icon-lecture { display: none; }
+.wsp-play[data-playing] .ws-icon-pause { display: block; }
+.wsp-help-toggle { font-weight: 600; }
 .wsp-time { font-variant-numeric: tabular-nums; font-size: 0.875rem; }
-.wsp-zoom { display: flex; align-items: center; gap: 8px; }
+.wsp-zoom { display: flex; align-items: center; gap: var(--ws-space-2); }
 
 /* Pastille « parle : X » pendant la lecture, et locuteur isolé (R-U3). */
 .wsp-speaking, .wsp-iso {
-  display: inline-flex; align-items: center; gap: 4px; padding: 3px 10px; border-radius: 999px;
+  display: inline-flex; align-items: center; gap: var(--ws-space-1); padding: 3px 10px; border-radius: var(--ws-radius-pill);
   font-size: 0.85rem; white-space: nowrap; max-width: 100%; overflow: hidden; text-overflow: ellipsis;
 }
-.wsp-speaking { background: var(--ws-canvas); box-shadow: 0 0 0 1px var(--ws-line); }
+.wsp-speaking { background: var(--ws-canvas); box-shadow: var(--ws-ring); }
 .wsp-speaking .wsp-swatch { margin: 0 2px 0 4px; }
 .wsp-speaking strong { font-weight: 600; }
 .wsp-speaking[data-state="silence"] { color: var(--ws-slate); }
-.wsp-iso { box-shadow: 0 0 0 1.5px var(--ws-ink); font-weight: 500; }
+.wsp-iso { box-shadow: var(--ws-ring-strong); font-weight: 500; }
 .wsp-speaking[hidden], .wsp-iso[hidden], .wsp-help[hidden] { display: none; }
-.wsp-label.wsp-dim, .wsp-track.wsp-dim { opacity: 0.25; transition: opacity 150ms ease; }
+.wsp-label.wsp-dim, .wsp-track.wsp-dim { opacity: 0.25; transition: opacity var(--ws-medium) ease-out; }
 
-/* Aide des raccourcis. */
+/* Aide des raccourcis : encadré d'information. */
 .wsp-help {
-  margin: 0 0 12px; padding: 12px 14px; border-radius: 10px; background: var(--ws-canvas);
-  font-size: 0.85rem; line-height: 1.5;
+  margin: 0 0 var(--ws-space-3); padding: var(--ws-space-3) 14px; border-radius: var(--ws-radius-control);
+  background: var(--ws-canvas); font-size: 0.85rem; line-height: 1.5;
 }
 .wsp-help dl { display: grid; grid-template-columns: max-content minmax(0, 1fr); gap: 4px 14px; margin: 0; }
 .wsp-help dt { white-space: nowrap; }
@@ -60,8 +47,8 @@
 .wsp-help-speakers { margin: 0; padding: 0; list-style: none; display: flex; flex-wrap: wrap; gap: 2px 14px; }
 .wsp-help-speakers:empty { display: none; }
 .wsp-root kbd {
-  font: inherit; font-size: 0.78rem; padding: 0 6px; border-radius: 4px; background: var(--ws-surface);
-  box-shadow: 0 0 0 1px var(--ws-line), 0 1px 0 1px var(--ws-line);
+  font: inherit; font-size: 0.78rem; padding: 0 6px; border-radius: var(--ws-radius-mark); background: var(--ws-surface);
+  box-shadow: var(--ws-key);
 }
 
 /* Vue d'ensemble (R-U2) : tout le fichier, fenêtre visible déplaçable. */
@@ -69,9 +56,9 @@
   display: grid; grid-template-columns: var(--wsp-label-w) minmax(0, 1fr); align-items: center; margin-bottom: 10px;
 }
 .wsp-overview-label { font-size: 0.75rem; color: var(--ws-slate); padding-right: 12px; }
-.wsp-minimap { position: relative; border-radius: 6px; }
+.wsp-minimap { position: relative; border-radius: var(--ws-radius-control); }
 .wsp-window {
-  cursor: grab; touch-action: none; border-radius: 4px; box-shadow: inset 0 0 0 1.5px var(--ws-ink);
+  cursor: grab; touch-action: none; border-radius: var(--ws-radius-mark); box-shadow: var(--ws-ink-inset-strong);
 }
 .wsp-window.wsp-dragging { cursor: grabbing; }
 .wsp-window:focus-visible { outline: 2px solid var(--ws-ink); outline-offset: 2px; }
@@ -79,7 +66,45 @@
 .wsp-zoom-fit { white-space: nowrap; }
 .wsp-hint { color: var(--ws-slate); font-size: 0.8rem; margin: 10px 0 0; }
 
-.wsp-wave { margin-left: var(--wsp-label-w); }
+.wsp-wavebox { display: grid; grid-template-columns: var(--wsp-label-w) minmax(0, 1fr); }
+.wsp-wave, .wsp-spec-canvas { grid-column: 2; grid-row: 1; min-width: 0; }
+.wsp-wave { position: relative; z-index: 1; }
+/* Spectrogramme (D28 §2, B9) : sous la forme d'onde rendue transparente ; curseur cerné
+   du fond pour rester visible sur les zones foncées comme claires. */
+.wsp-spec-canvas { display: none; align-self: start; border-radius: var(--ws-radius-mark); }
+.wsp-spec-on .wsp-spec-canvas { display: block; }
+.wsp-spec-on .wsp-wave > div::part(cursor) { box-shadow: var(--ws-halo); }
+.wsp-spec-axis { grid-column: 1; grid-row: 1; position: relative; height: var(--wsp-spec-h); display: none; }
+.wsp-spec-on .wsp-spec-axis { display: block; }
+.wsp-spec-tick {
+  position: absolute; right: 8px; transform: translateY(-50%); font-size: 0.7rem; line-height: 1;
+  color: var(--ws-slate); font-variant-numeric: tabular-nums; white-space: nowrap;
+}
+.wsp-spec-tick::after {   /* trait vers le bord du spectrogramme */
+  content: ""; position: absolute; top: 50%; right: -8px; width: 5px; height: 1px; background: var(--ws-line);
+}
+.wsp-spec-legend, .wsp-energy-legend {
+  margin: 6px 0 0 var(--wsp-label-w); color: var(--ws-slate); font-size: 0.75rem; line-height: 1.4;
+}
+.wsp-spec-legend[hidden], .wsp-energy-legend[hidden], .wsp-energy[hidden] { display: none; }
+.wsp-spec-swatch {
+  display: inline-block; width: 48px; height: 8px; border-radius: var(--ws-radius-mark); margin-right: var(--ws-space-2);
+  vertical-align: middle; box-shadow: var(--ws-ring);
+}
+/* Bande d'énergie de la baseline (D28 §2) : même largeur et même défilement que la timeline. */
+.wsp-energy { display: grid; grid-template-columns: var(--wsp-label-w) minmax(0, 1fr); margin-top: 8px; }
+.wsp-energy-label {
+  display: flex; flex-direction: column; justify-content: center; gap: 2px; padding-right: 12px;
+  font-size: 0.8rem; min-width: 0;
+}
+.wsp-energy-sub { color: var(--ws-slate); font-size: 0.72rem; overflow-wrap: anywhere; }
+.wsp-energy-plot { position: relative; min-width: 0; border-radius: var(--ws-radius-mark); background: var(--ws-track); }
+.wsp-energy-canvas { display: block; }
+.wsp-energy-tip {
+  position: absolute; bottom: calc(100% + 4px); padding: 3px var(--ws-space-2); border-radius: var(--ws-radius-control);
+  white-space: nowrap; font-size: 0.75rem; background: var(--ws-ink); color: var(--ws-on-ink); pointer-events: none; z-index: 3;
+}
+.wsp-energy-tip[hidden] { display: none; }
 .wsp-rows { display: grid; grid-template-columns: var(--wsp-label-w) minmax(0, 1fr); margin-top: 10px; }
 .wsp-labels, .wsp-lanes { display: grid; gap: 4px; align-content: start; }
 /* Colonne des noms à la largeur de sa piste : un nom long finit par « … » au lieu d'élargir
@@ -91,26 +116,26 @@
 }
 .wsp-label-text { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 /* Nom d'un locuteur du premier moteur : un clic l'isole (au-delà de 9 locuteurs, seul moyen). */
-.wsp-label-iso { cursor: pointer; border-radius: 4px; }
+.wsp-label-iso { cursor: pointer; border-radius: var(--ws-radius-mark); }
 .wsp-label-iso:focus-visible { outline: 2px solid var(--ws-ink); outline-offset: -2px; }
 @media (hover: hover) and (pointer: fine) { .wsp-label-iso:hover .wsp-label-text { text-decoration: underline; } }
-.wsp-swatch { flex: none; display: inline-block; width: 8px; height: 8px; border-radius: 2px; margin-right: 8px; }
+.wsp-swatch { flex: none; display: inline-block; width: 8px; height: 8px; border-radius: var(--ws-radius-mark); margin-right: var(--ws-space-2); }
 .wsp-viewport { position: relative; overflow: hidden; }
 .wsp-canvas { position: relative; will-change: transform; }
-.wsp-lanes > .wsp-track { position: relative; height: 14px; margin: 5px 0; border-radius: 4px; background: var(--ws-track); }
+.wsp-lanes > .wsp-track { position: relative; height: 14px; margin: 5px 0; border-radius: var(--ws-radius-mark); background: var(--ws-track); }
 .wsp-seg {
   position: absolute; top: 0; height: 14px; min-width: 2px; padding: 0; border: none;
-  border-radius: 3px; cursor: pointer;
+  border-radius: var(--ws-radius-mark); cursor: pointer;
 }
 /* Zone de clic agrandie à 24 px de haut sans changer le dessin. */
 .wsp-seg::before { content: ""; position: absolute; left: 0; right: 0; top: -5px; bottom: -5px; }
-.wsp-seg.wsp-selected { box-shadow: 0 0 0 2px var(--ws-surface), 0 0 0 4px var(--ws-ink); z-index: 2; }
+.wsp-seg.wsp-selected { box-shadow: var(--ws-selected); z-index: 2; }
 .wsp-seg:focus-visible { outline: 2px solid var(--ws-ink); outline-offset: 2px; z-index: 1; }
 @media (hover: hover) and (pointer: fine) {
-  .wsp-seg:hover { box-shadow: 0 0 0 2px var(--ws-surface), 0 0 0 3.5px var(--ws-ink); z-index: 1; }
+  .wsp-seg:hover { box-shadow: var(--ws-hovered); z-index: 1; }
 }
 .wsp-playhead {
-  position: absolute; top: 0; bottom: 20px; width: 2px; border-radius: 1px; background: var(--ws-ink);
+  position: absolute; top: 0; bottom: 20px; width: 2px; border-radius: var(--ws-radius-mark); background: var(--ws-ink);
   left: 0; pointer-events: none;
 }
 .wsp-axis { position: relative; height: 20px; margin-top: 6px; color: var(--ws-slate); font-size: 0.75rem; }
@@ -145,33 +170,53 @@
 .wsp-seg.wsp-err-manquee, .wsp-swatch.wsp-err-manquee { background: var(--ws-ink); }
 .wsp-seg.wsp-err-fausse_alarme, .wsp-swatch.wsp-err-fausse_alarme {
   background: repeating-linear-gradient(135deg, var(--ws-ink) 0 2px, transparent 2px 5px);
-  box-shadow: inset 0 0 0 1px var(--ws-ink);
+  box-shadow: var(--ws-ink-inset);
 }
 .wsp-seg.wsp-err-confusion, .wsp-swatch.wsp-err-confusion {
-  background: var(--ws-surface); box-shadow: inset 0 0 0 1.5px var(--ws-ink);
+  background: var(--ws-surface); box-shadow: var(--ws-ink-inset-strong);
 }
 .wsp-errsum { margin: 8px 0 0; font-size: 0.85rem; color: var(--ws-ink); display: grid; gap: 2px; }
 .wsp-errsum[hidden] { display: none; }
 .wsp-seg.wsp-err-fausse_alarme.wsp-selected, .wsp-seg.wsp-err-confusion.wsp-selected {
-  box-shadow: inset 0 0 0 1.5px var(--ws-ink), 0 0 0 2px var(--ws-surface), 0 0 0 4px var(--ws-ink);
+  box-shadow: var(--ws-ink-inset-strong), var(--ws-selected);
 }
 
-/* « Expliquer cette erreur » (R-U4) : constats factuels, jamais une cause. */
+/* « Expliquer cette erreur » (R-U4) : constats factuels, jamais une cause ; encadré
+   d'information. */
 .wsp-explain {
-  margin-top: 12px; padding: 12px 14px; border-radius: 10px; background: var(--ws-canvas);
-  box-shadow: inset 3px 0 0 var(--ws-ink); font-size: 0.875rem; line-height: 1.5;
+  margin-top: var(--ws-space-3); padding: var(--ws-space-3) 14px; border-radius: var(--ws-radius-control);
+  background: var(--ws-canvas); font-size: 0.875rem; line-height: 1.5;
 }
 .wsp-explain[hidden] { display: none; }
 .wsp-explain-head { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
 .wsp-explain-title { margin: 0; font-size: 0.95rem; font-weight: 600; }
-.wsp-explain-close {
-  flex: none; width: 28px; height: 28px; border: none; border-radius: 8px; cursor: pointer; font: inherit;
-  font-size: 1.1rem; line-height: 1; background: var(--ws-surface); color: var(--ws-ink);
-  box-shadow: 0 0 0 1px var(--ws-line);
-}
 .wsp-explain dl { display: grid; grid-template-columns: max-content minmax(0, 1fr); gap: 2px 14px; margin: 8px 0 0; }
 .wsp-explain dt { color: var(--ws-slate); }
 .wsp-explain dd { margin: 0; overflow-wrap: anywhere; }
 .wsp-explain-sub { margin: 10px 0 2px; color: var(--ws-slate); }
+.wsp-explain-cat { margin: 8px 0 0; }
+.wsp-explain-cat-label {
+  display: inline-block; margin-right: 6px; padding: 0 var(--ws-space-2); border-radius: var(--ws-radius-pill);
+  font-size: 0.78rem; color: var(--ws-on-ink); background: var(--ws-ink);
+}
+.wsp-explain-cat[hidden], .wsp-explain-sub[hidden], .wsp-explain-context[hidden] { display: none; }
 .wsp-explain-context { margin: 0; padding-left: 18px; }
 .wsp-explain-note { margin: 8px 0 0; color: var(--ws-slate); font-size: 0.8rem; }
+
+/* Mode présentation (B8 ; classe de <html>, voir interface.css) : pistes, segments, boutons
+   et colonne des noms agrandis comme le texte ; l'aide en ligne sous la timeline est masquée
+   (les raccourcis restent sous « ? »). La portée de Gradio enveloppe cette feuille dans le
+   sélecteur du composant : « & » le place après html.ws-presentation. */
+html.ws-presentation & {
+  .wsp-root { --wsp-label-w: 176px; --wsp-spec-h: 144px; }
+  .wsp-root.wsp-wide { --wsp-label-w: 236px; }
+  .wsp-zoom-range { width: 180px; }
+  .wsp-label { height: 30px; }
+  .wsp-lanes > .wsp-track { height: 20px; }
+  .wsp-seg { height: 20px; }
+  .wsp-swatch { width: 10px; height: 10px; }
+  .wsp-label.wsp-caption, .wsp-spacer { height: 26px; }
+  .wsp-axis { height: 24px; }
+  .wsp-playhead { width: 3px; bottom: 24px; }
+  .wsp-hint { display: none; }
+}

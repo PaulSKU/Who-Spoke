@@ -70,7 +70,7 @@ def test_temps_restant():
 
 
 @pytest.mark.parametrize("seconds, text", [
-    (None, "—"), (4.4, "4 s"), (59.6, "1 min 00 s"), (125, "2 min 05 s"), (3720, "1 h 02 min"),
+    (None, "—"), (4.4, "4\u202fs"), (59.6, "1\u202fmin 00\u202fs"), (125, "2\u202fmin 05\u202fs"), (3720, "1\u202fh 02\u202fmin"),
 ])
 def test_format_des_durees(seconds, text):
     assert temps.format_duration(seconds) == text
@@ -109,8 +109,8 @@ def test_fourchette_annoncee():
 
 
 @pytest.mark.parametrize("span, text", [
-    ((15.2, 19.7), "entre 15 s et 20 s"), ((61.0, 79.0), "entre 1 min 01 s et 1 min 19 s"),
-    ((4.1, 4.4), "environ 4 s"), (None, "—"),
+    ((15.2, 19.7), "entre 15\u202fs et 20\u202fs"), ((61.0, 79.0), "entre 1\u202fmin 01\u202fs et 1\u202fmin 19\u202fs"),
+    ((4.1, 4.4), "environ 4\u202fs"), (None, "—"),
 ])
 def test_format_des_fourchettes(span, text):
     assert temps.format_range(span) == text

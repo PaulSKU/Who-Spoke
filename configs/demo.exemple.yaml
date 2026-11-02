@@ -1,0 +1,36 @@
+# Configuration de démonstration (D17, amendement 1 ; D26) : EXEMPLE.
+#
+# Au gel du mardi 10/11 (docs/planning.md), ce fichier est copié en configs/demo.yaml et
+# complété avec les expériences retenues à cette date, puis commité. L'application lit
+# configs/demo.yaml s'il existe ; sinon, elle garde la correspondance de app/moteurs.py
+# (SPECS, DEFAULT_ENGINE). L'en-tête de l'application affiche le fichier en vigueur et
+# l'export JSON consigne son empreinte (fiche de reproductibilité).
+#
+# Un moteur absent de « moteurs » n'est pas proposé : l'en-tête le dit « non retenu pour la
+# démonstration ». Seuls l'absence du moteur par défaut et un fichier incohérent arrêtent le
+# lancement, avec un message qui dit quoi corriger. Pour
+# essayer un fichier sans le mettre en place :
+#   uv run python -m app.app --factice --config-demo configs/demo.exemple.yaml
+
+# Date du gel (AAAA-MM-JJ), affichée dans l'en-tête.
+gel: 2026-11-10
+
+# Moteur proposé à l'ouverture de l'onglet Analyse (clé d'un moteur ci-dessous).
+moteur_par_defaut: pyannote-community-1
+
+# Moteurs proposés : expérience source (réglages, θ retenu, RTF), et, au besoin, nombre de
+# locuteurs proposé par défaut :
+#   {mode: automatique}                 nombre estimé par le moteur (défaut si la clé manque)
+#   {mode: impose, valeur: N}           N locuteurs
+#   {mode: fourchette, min: A, max: B}  entre A et B (pyannote seulement, D17, amendement 1)
+moteurs:
+  baseline-mfcc:
+    experience_source: EXP-0009
+  baseline-ecapa:
+    experience_source: EXP-0012
+  baseline-wespeaker:
+    experience_source: EXP-0015
+  pyannote-community-1:
+    experience_source: EXP-0007
+    # Garde-fou retenu par le cockpit le 02/11 (EXP-0018 et EXP-0019), sans gain revendiqué.
+    nombre_locuteurs: {mode: fourchette, min: 2, max: 6}

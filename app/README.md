@@ -7,7 +7,7 @@ uv run python -m app.app             # moteurs réels, préchauffés au démarra
 uv run python -m app.app --factice   # moteur factice : aucune inférence
 ```
 
-Puis ouvrir http://127.0.0.1:7860 (serveur local uniquement, pas de lien public). Options : `--port`, `--factice-max-s` (durée maximale simulée d'une analyse en mode factice), `--sans-prechauffage` (moteurs chargés au premier usage), `--vider-cache` (vide le cache des résultats avant le lancement), `--factice-rttm DOSSIER` (mode factice : sorties fabriquées `<nom du fichier déposé>.rttm`, cherchées avant celles de l'expérience source ; cas limites, B7), `--depot` (racine du dépôt dont sont lus, en lecture seule, les expériences, les analyses, `results/leaderboard.csv`, le catalogue et les documents de `docs/` ; par défaut ce dépôt). Pendant le développement sur la branche `interface`, qui n'a pas toutes les expériences :
+Puis ouvrir http://127.0.0.1:7860 (serveur local uniquement, pas de lien public). Options : `--port`, `--factice-max-s` (durée maximale simulée d'une analyse en mode factice), `--sans-prechauffage` (moteurs chargés au premier usage), `--vider-cache` (vide le cache des résultats avant le lancement), `--factice-rttm DOSSIER` (mode factice : sorties fabriquées `<nom du fichier déposé>.rttm`, cherchées avant celles de l'expérience source ; cas limites, B7), `--presentation` (ouvre en mode présentation, B8), `--config-demo FICHIER` (configuration de démonstration à lire à la place de `configs/demo.yaml`, B8), `--depot` (racine du dépôt dont sont lus, en lecture seule, les expériences, les analyses, `results/leaderboard.csv`, le catalogue et les documents de `docs/` ; par défaut ce dépôt). Pendant le développement sur la branche `interface`, qui n'a pas toutes les expériences :
 
 ```bash
 uv run python -m app.app --factice --depot ~/Dev/Who-Spoke
@@ -113,7 +113,8 @@ Limites. Les libellés des composants Gradio (« Moteur », « Nombre de locuteu
 | Moteurs et expérience source de chaque moteur (paramètres, θ retenu, RTF) : EXP-0009 (MFCC), EXP-0012 (ECAPA), EXP-0007 (pyannote), EXP-0015 (WeSpeaker, indisponible tant qu'elle n'existe pas ou n'a pas tourné) ; `configs/demo.yaml` au gel | `app/moteurs.py` |
 | Temps annoncé en fourchette (D17, amendement 2) : de surcoût + RTF × durée à surcoût + 1,3 × RTF × durée, avant le lancement (sous le bouton « Analyser ») et pendant l'analyse. RTF mesuré (`results/leaderboard.csv`) : colonne du périphérique choisi (`rtf_cpu` en CPU, `rtf` sur le périphérique de l'expérience), plus grande valeur entre dev et test. Surcoût fixe du premier appel après chargement, daté, par moteur et périphérique (`moteurs.FIXED_OVERHEAD`, `scripts/measure_overhead.py`), compté seulement si le moteur est froid. Pendant l'analyse, recalage sur la vitesse observée dans l'étape la plus longue (voir ci-dessous). Affichage seulement, pas une mesure au sens de D21 | `app/temps.py`, `app/moteurs.py` |
 | Statistiques par locuteur, renommage et fusion, indicateurs d'interaction, exports (RTTM, JSON avec fiche de reproductibilité, étiquettes Audacity, image de la timeline), DER face à une référence (deux conditions de collar, sur toute la durée du fichier, référence coupée à cette durée ; mention « durée entière du fichier, sans UEM : non comparable aux résultats sur corpus ») | `app/sortie.py`, `app/app.py` |
-| Forme d'onde neutre (D26) : seul le segment sélectionné, dernier cliqué, y est mis en évidence par une bande d'encre et entouré sur sa piste ; timeline par locuteur, écoute d'un segment au clic, zoom (curseur, boutons, Ctrl + molette ; jusqu'à 60 px par seconde) | `app/static/visualiseur.js` et `.css` |
+| Forme d'onde neutre (D26) : seul le segment sélectionné, dernier cliqué, y est mis en évidence par une bande d'encre et entouré sur sa piste ; timeline par locuteur, écoute d'un segment au clic, zoom (curseur, boutons, Ctrl + molette ; jusqu'à 150 px par seconde, B8) | `app/static/visualiseur.js` et `.css` |
+| Vue spectrogramme (D28 §2, B9) : « Forme d'onde / Spectrogramme » dans la barre du visualiseur ; spectrogramme mel calculé côté serveur, même zoom et même défilement que la timeline ; « Énergie et seuil » pour une baseline | `app/spectrogramme.py`, `app/static/visualiseur.js` |
 | Thème (teintes neutres, polices système) et feuille de style | `app/theme.py`, `app/static/interface.css` |
 | Onglet Pipeline | `app/pipeline.py`, `app/static/pipeline.js` |
 | Onglet Avancement | `app/avancement.py` |
@@ -261,7 +262,7 @@ Vérifié dans le navigateur en mode factice, en clair, en sombre et à 375 px (
 |---|---|---|
 | Appariement visible | Avec une référence, chaque piste de référence prend la couleur du locuteur du premier moteur qui lui est apparié et l'étiquette « 021 ↔ SPEAKER_03 » (nom choisi s'il a été renommé) ; non appariée, elle reste grise avec « (non apparié) ». C'est l'appariement optimal du DER (`optimal_mapping` de pyannote.metrics), calculé une seule fois avec la carte des erreurs (`sortie._Matching`) : les couleurs, la carte et le DER ne peuvent pas diverger. La colonne des étiquettes s'élargit (184 px, 112 px à 375 px) | `sortie.pairing`, `app._reference_group` |
 | Tableau d'appariement | Sous le DER, dans l'Évaluation : locuteur de référence, locuteur trouvé (ou « non apparié »), temps commun (cooccurrence de pyannote.core), couverture du locuteur de référence (`DiarizationCoverage` restreinte à ce locuteur) et pureté du locuteur trouvé (`DiarizationPurity` restreinte à ce locuteur), puis les locuteurs trouvés non appariés. Pondérées par la durée, ces valeurs redonnent la pureté et la couverture globales de pyannote.metrics (test) | `sortie.matching_report`, `app._matching_html` |
-| « Expliquer cette erreur » | Un clic (ou Entrée) sur une zone de la carte des erreurs la fait écouter et ouvre une carte sous la timeline : type, durée au dixième de seconde, locuteur de référence et locuteur trouvé, chacun avec son appariement, et des constats calculés sur la référence : chevauchement (part de la zone), tour de référence de moins de 0,5 s qui la recoupe, pause de la référence de moins de 1 s qui la recoupe ou lui est contiguë (à 0,05 s près), bord de la zone à moins de 0,25 s d'une frontière de tour (la valeur du collar du protocole). Formulation factuelle, jamais une cause ; la carte le rappelle (« Constats sur la référence autour de la zone, pas une cause établie »). Échap ou × la ferme ; elle suit les renommages | `sortie._Context`, `app._context_sentences`, `visualiseur.js` (`explain`) |
+| « Expliquer cette erreur » | Un clic (ou Entrée) sur une zone de la carte des erreurs la fait écouter et ouvre une carte sous la timeline : type, durée au dixième de seconde, locuteur de référence et locuteur trouvé, chacun avec son appariement, la catégorie de la zone et sa part dans la tolérance d'une frontière (depuis le 02/11, voir « Catégories des erreurs, sur le temps » plus bas), et des constats calculés sur la référence : chevauchement (part de la zone), tour de référence de moins de 0,5 s qui la recoupe, pause de la référence de 1 s au plus (moins de 1 s jusqu'au 02/11) qui la recoupe ou lui est contiguë (à 0,05 s près), bord de la zone à moins de 0,25 s d'une frontière de tour (remplacé, depuis l'option b, par la part de la zone dans la tolérance). Formulation factuelle, jamais une cause ; la carte le rappelle (« Constats sur la référence autour de la zone, pas une cause établie »). Échap ou × la ferme ; elle suit les renommages | `sortie._Context`, `app._context_sentences`, `visualiseur.js` (`explain`) |
 | Extrait typique | Bouton ▶ par locuteur dans le tableau des locuteurs : lit, dans la timeline, son plus long tour hors de tout chevauchement, limité à ses 10 premières secondes, et le repère sur la forme d'onde ; désactivé si toute sa parole est en chevauchement | `sortie.typical_excerpts`, `visualiseur.js` (`onExcerpt`) |
 | Renommage | Un champ par ligne dans le tableau des locuteurs (identifiant du moteur en dessous) ; validé par Entrée ou en quittant le champ, Échap rétablit le nom affiché ; la grille Gradio séparée est supprimée. Noms en double refusés (le tableau revient aux noms en vigueur), 60 caractères au plus, blancs de bord retirés. Les noms sont échappés partout (valeur du champ comprise) ; les raccourcis clavier sont inactifs pendant la saisie | `app._stats_html`, `STATS_JS`, `rename` |
 
@@ -357,3 +358,201 @@ puis déposer les fichiers de `/tmp/b7/audio` et de `/tmp/b7/references`. Un mes
 
 Une sortie très morcelée reste lente : `Timeline.co_iter` de pyannote.core, qu'utilisent le DER de pyannote.metrics, les statistiques et la carte des erreurs, croît à peu près comme le carré de la densité de segments. 1 200 tours de 50 ms en 60 s : DER en 0,33 s ; 3 600 en 3 min : 2,1 s ; 36 000 en 30 min : plusieurs minutes (extrapolé, non mené à terme). Une analyse réelle en produit bien moins (environ 1 000 segments pour 20 min sur 007a_ECRH). L'écran affiche désormais l'étape de mise en forme au lieu de rester figé. Le comportement des moteurs réels sur ces fichiers (3 s, silence, 90 min) reste à vérifier à la fusion, sans modèle chargé ici.
 
+## Zoom relevé, mode présentation et configuration de démonstration (chantier B8, 02/11/2026)
+
+### Zoom maximal : 150 px/s (au lieu de 60)
+
+Relevé parce que la fluidité tient sur 30 min, une fois corrigé ce qui la faisait tomber. Mesure dans le navigateur intégré, moteur factice, 1280 × 720 : réunion fabriquée de 30 min (4 locuteurs, 1 422 tours de 0,3 à 3 s avec chevauchements brefs), comparée à un second moteur et à une référence décalée, soit 10 581 segments et zones d'erreur dans la timeline, le pire cas d'affichage. Intervalle entre images (`requestAnimationFrame`), médiane, 95e centile, maximum ; « lecture suivie » : lecture avec « Suivre la lecture », au zoom maximal ; « glissement » : 40 px de défilement par image, « rapide » : 400 px.
+
+| Zoom maximal | Lecture suivie | Glissement | Glissement rapide | Pas de zoom |
+|---|---|---|---|---|
+| 60 px/s, avant B8 | 22 à 44 images/s selon le passage ; au pire 41 ms, 65 ms, 73 ms | 47 images/s ; 24 ms, 33 ms | 36 images/s ; 25 ms, 41 ms | 150 à 170 ms |
+| 150 px/s, avant B8 | 20 images/s ; 48 ms, 70 ms, 82 ms (15 images au-delà de 50 ms en 3,5 s) | 44 images/s ; 24 ms, 32 ms | 35 images/s ; 25 ms, 41 ms | 145 à 187 ms |
+| 150 px/s, segments hors vue masqués | 118 à 119 images/s ; 8,3 ms, 10,1 ms, 23 ms | 120 images/s ; 8,3 ms, 10,1 ms | 116 images/s ; 8,3 ms, 10,3 ms | 35 à 45 ms aux forts zooms, 140 à 240 ms aux premiers pas, 280 ms pour « Tout afficher » |
+
+Le coût venait des pistes, pas de la forme d'onde : pistes masquées, la lecture suivie montait à 122 images/s ; segments hors de la vue masqués à la main, aussi. Correctif (`cullBars` dans `visualiseur.js`) : segments et zones d'erreur triés par début ; à chaque défilement ou zoom, seuls ceux d'une largeur de vue de part et d'autre de la partie visible restent affichés (115 éléments sur 10 581 au zoom maximal), et seuls ceux qui entrent ou sortent de cette plage changent. À zoom nul, tout reste affiché. Canevas de 270 000 px au zoom maximal sur 30 min ; un tour de 50 ms y fait 7,5 px (3 px à 60 px/s). Les segments masqués ne sont plus atteignables à la tabulation : au zoom maximal, la tabulation parcourt ceux de l'écran et de ses abords. Mesures faites dans le panneau du navigateur de l'application de bureau, masqué : le navigateur y calcule les images comme dans une fenêtre visible tant qu'il ne les ralentit pas (vérifié : 122 images/s au repos), mais l'affichage réel à l'écran n'est pas mesuré. Non mesuré à 90 min (canevas de 810 000 px au zoom maximal).
+
+### Mode présentation (`--presentation` ou bouton « Mode présentation » de l'en-tête)
+
+Pour un vidéoprojecteur ou un écran partagé, lu de loin à 1280 × 720. Classe `ws-presentation` sur `<html>`, posée au chargement par l'option et basculée par le bouton (`app/static/presentation.js`, `aria-pressed` tenu à jour même quand Gradio redessine l'en-tête) ; le visualiseur recalcule son zoom au basculement.
+
+| Effet | Détail |
+|---|---|
+| Texte et commandes agrandis d'un quart | Racine à 20 px (nos tailles sont en rem) ; tailles de texte de Gradio relevées (`--text-md` 14 → 18 px), aussi sur `body.dark`, où Gradio les redéclare ; boutons du visualiseur de 32 à 40 px ; pistes de 14 à 20 px, rangées de 24 à 30 px ; colonne des noms de 132 à 176 px (184 à 236 avec une référence appariée) ; tête de lecture de 3 px |
+| Contrastes renforcés | Texte secondaire #5f616a → #44464d en clair, #a3a49e → #c8c9c3 en sombre ; filets #e2e2df → #b6b7b1 et #2d2e33 → #4f5158 ; fond des pistes plus marqué ; cartes cernées d'un filet (un projecteur délave les gris clairs) |
+| Masqué | Périphérique et « Cache des résultats » (classe `ws-secondary`), aide en ligne sous la timeline (les raccourcis restent sous « ? »), liste des étapes une fois toutes terminées (à 720 px de haut, elle repoussait la timeline sous le bord de l'écran) |
+
+Vérifié dans le navigateur à 1280 × 720, clair et sombre, analyse comparée de 30 min avec référence : en-tête, bandeau, état, timeline et tableau des locuteurs lisibles ; bascule aller-retour (réglages secondaires masqués puis rendus, zoom recalculé). À 375 px (sombre), avec et sans mode présentation, après une analyse comparée : pas de défilement horizontal.
+
+Corrigés en passant : en sombre, la coche des cases et le point des boutons radio cochés étaient blancs sur le fond clair d'un choix coché, donc invisibles (règle de Gradio en dur, remplacée) ; le chemin du RTTM affiché en mode factice dans « Temps de traitement » élargissait la page à 523 px sur un écran de 375 px (coupé n'importe où désormais).
+
+### Configuration de démonstration (D17, amendement 1 : gel du 10/11)
+
+L'application lit `configs/demo.yaml` s'il existe : moteur proposé par défaut, expérience source de chaque moteur, nombre de locuteurs par défaut de chaque moteur. Sinon, elle garde la correspondance de `app/moteurs.py` (`SPECS`, `DEFAULT_ENGINE`, nombre automatique). Seul `configs/demo.exemple.yaml` est versionné aujourd'hui (fourchette de 2 à 6 pour pyannote, garde-fou retenu le 02/11) ; `configs/demo.yaml` sera écrit au gel. Essai d'un fichier sans le mettre en place :
+
+```bash
+uv run python -m app.app --factice --config-demo configs/demo.exemple.yaml
+```
+
+| Point | Comportement |
+|---|---|
+| Affichage | En-tête : « Configuration : `configs/demo.yaml`, gel du 10/11/2026 » (ou « correspondance de `app/moteurs.py`, avant le gel ») et le moteur choisi avec son expérience source et son nombre de locuteurs par défaut ; suit le choix du moteur. Au lancement, la console l'écrit aussi |
+| Moteur absent du fichier (décision du 02/11) | Non proposé (listes « Moteur », « Second moteur » et page Pipeline) ; l'en-tête ajoute « Non retenu pour la démonstration : … », la console aussi. Second moteur proposé : la baseline ECAPA si elle est retenue, sinon le premier autre moteur retenu |
+| Nombre de locuteurs | Valeur par défaut de chaque moteur (`automatique`, `impose` avec `valeur`, `fourchette` avec `min` et `max`), appliquée à l'ouverture et à chaque changement de moteur |
+| Comparaison avec une fourchette | La fourchette ne vaut que pour pyannote (D17, amendement 1) : le second moteur, une baseline, estime lui-même le nombre de locuteurs ; l'annonce de durée et une notification le disent, le bandeau donne le réglage de chaque moteur. Avant, la comparaison par défaut (pyannote et baseline ECAPA) aurait été refusée dès que la fourchette était le réglage par défaut |
+| Fichier incohérent | Le lancement s'arrête sur un message qui dit quoi corriger : moteur inconnu, identifiant EXP-NNNN, fourchette sur une baseline, `min` au-dessus de `max`, entier attendu, mode inconnu, moteur par défaut absent, YAML illisible |
+| Reproductibilité | La fiche de l'export JSON consigne `configuration_demo` : fichier, date du gel, SHA-256 (`null` avant le gel) |
+| Cache | Inchangé : l'expérience source et les réglages font déjà partie de la clé |
+
+Tests : `tests/test_app_presentation_gel.py` (26). Suite complète : 509 réussis, 12 ignorés, 3 lents exclus.
+
+## Vue spectrogramme et énergie de la baseline (chantier B9, D28 §2, 02/11/2026)
+
+### Greffon Spectrogram : mesuré, écarté
+
+Archive npm `wavesurfer.js-7.12.12.tgz` téléchargée de nouveau le 02/11 : intégrité sha512 conforme au registre (`fyKNuREQ…uutWw==`), mêmes SHA-256 pour les quatre fichiers déjà embarqués, licence BSD-3-Clause identique, aucune URL dans `dist/plugins/spectrogram.min.js` (SHA-256 6f3e233b0044a85cdea275494dce469bfcf5a6f7f0cb33e5a8350a347b957ae9) ni dans sa variante `spectrogram-windowed.min.js` ; leur travailleur est inclus en base64 et lancé depuis un `blob:`. Les deux greffons lisent l'audio décodé par wavesurfer (`getDecodedData()`) : avec les pics précalculés de l'application, il faut décoder tout le fichier dans le navigateur (0,5 s et environ 115 Mo pour 30 min à 16 kHz), ce que l'application évitait.
+
+Banc d'essai hors de l'application (wavesurfer seul, audio de 30 min décodé à 16 kHz, 1100 px de large, `fftSamples` 512, échelle mel, navigateur intégré de l'application de bureau, panneau affiché, 120 images/s au repos ; la piste A calculait en même temps) :
+
+| Greffon | Pas de zoom vers 150 px/s | Lecture suivie | Glissement 40 px/image | Glissement 400 px/image |
+|---|---|---|---|---|
+| Spectrogram, FFT dans la page | 3,7 s de calcul, dont un gel de 0,87 s | 118 images/s, une image de 92 ms | gel de 0,78 s (nouveau canevas de 30 000 px) | gel de 0,58 s |
+| Spectrogram, FFT dans un travailleur | gel de 0,88 s | 118 images/s, une image de 74 ms | gel de 0,60 s | gel de 0,59 s |
+| Spectrogram-windowed (variante du même paquet) | aucun gel | 118 images/s, une tâche de 127 ms | 120 images/s, mais vue dessinée sur 0 % des images | 121 images/s, vue dessinée sur 5 % des images |
+
+Le greffon Spectrogram ne tient pas (gels de plus d'une demi-seconde au défilement et à chaque pas de zoom). La variante windowed reste fluide parce qu'elle ne dessine qu'à l'arrêt : 80 à 200 ms après un saut, une vue vide pendant tout glissement. D'où la solution de repli de D28 : une image calculée côté serveur. Aucun des deux greffons n'est embarqué.
+
+### Image calculée côté serveur, à résolution adaptée au zoom
+
+| Point | Comportement | Où |
+|---|---|---|
+| Contenu | Spectrogramme mel dont la baseline tire ses MFCC (D19) : trames de 25 ms, pas de 10 ms, 40 bandes, même appel à librosa que `Baseline.analyse` (le test le vérifie : les MFCC recalculés à partir de ce spectrogramme sont ceux de la baseline). En dB, sur 60 dB sous le maximum du fichier, quantifié sur 8 bits | `spectrogramme.mel_power`, `mel_db`, `quantize` |
+| Résolution | Pyramide : niveau 0 à 100 trames par seconde, puis moyenne de 2, 4, 8… trames, jusqu'à 256 trames au plus. Le navigateur prend le niveau le plus grossier qui garde au moins une trame par pixel. Fichier binaire à côté de l'audio normalisé (`<fichier>.spectrogramme.bin`, 14 Mo pour 30 min), lu une fois | `spectrogramme.pyramid`, `compute` |
+| Calcul | Lancé en tâche de fond dès la normalisation du fichier déposé, un seul à la fois ; la mise en forme des résultats l'attend s'il n'a pas fini. 3,0 s pour 30 min (pendant un calcul de la piste A). Un échec rend la vue indisponible (bouton grisé), sans bloquer l'analyse | `spectrogramme.start`, `result` ; `prepare` |
+| Dessin | Un canevas de la largeur de la vue, sous la forme d'onde rendue transparente : curseur, sélection et clic pour se déplacer restent ceux de wavesurfer. À chaque défilement, zoom ou redimensionnement, seules les colonnes visibles sont mises en couleurs et dessinées (au plus une image par rafraîchissement) : coût constant quelle que soit la durée | `drawSpectrogram`, `scheduleLayers` |
+| Axe | Graduations 500 Hz, 1, 2, 4 et 8 kHz dans la colonne des noms, placées sur l'échelle mel des bandes | `spectrogramme.band_ticks` |
+| Hauteur | 112 px (144 px en mode présentation), variable `--wsp-spec-h` | `visualiseur.css` |
+
+### Palette
+
+Rampe à une seule teinte neutre, interpolée en OKLab du fond des pistes à l'encre : clarté régulière d'un pas à l'autre (perceptuellement uniforme), sans chroma, ce qui garde la couleur aux locuteurs (D26) et ne dépend d'aucune vision des couleurs. En clair, `#f0f0ed` → `#18191d` (plus foncé = plus d'énergie) ; en sombre, `#232428` → `#ecece9` (plus clair = plus d'énergie), comme une rampe séquentielle de la skill dataviz, dont l'ancrage s'inverse en sombre. Une légende sous l'image donne la rampe et son sens. Le thème basculé redessine l'image. Le test vérifie la monotonie et l'écart à la droite idéale en OKLab (moins de 0,004, arrondi à 8 bits compris).
+
+### Énergie et seuil de la baseline (« Énergie et seuil »)
+
+Bouton visible quand le premier moteur, ou à défaut le second, est une baseline. Bande de 56 px sous la vue, avec sa propre échelle (pas de second axe sur le spectrogramme) : énergie par trame (enveloppe minimum et maximum par pixel), seuil de détection en tirets, régions de parole retenues en bande pleine en bas ; infobulle au survol (instant, énergie, position par rapport au seuil, parole détectée ou non). Données lues dans la trace du moteur (`Resultat.trace` : `energie_db`, `seuil_db`, `pas_trame_s`, `regions_parole`), demandée à la baseline (`engine.trace`) et à elle seule, écrites dans `<fichier>.<moteur>.energie.bin`. Le cache des résultats garde l'énergie au dixième de dB (champ `detection` de l'entrée, format inchangé) : un résultat réaffiché la montre aussi ; une entrée antérieure à B9 n'en a pas. Le moteur factice fabrique une trace quand il imite une baseline (énergie par tranche de 10 ms sans recouvrement, seuil à la médiane, sans lissage), marquée « Trace factice » dans la légende.
+
+### Fluidité dans l'application (30 min, 150 px/s)
+
+Même réunion de 30 min qu'au banc (SUMM-RE 007a_ECRH bouclée, copie locale supprimée après la séance), moteur factice : baseline MFCC puis baseline ECAPA, avec une référence (5 833 segments et zones), 1280 × 720, panneau affiché ; mêmes mesures qu'en B8 (intervalle entre images, médiane, 95e centile, maximum).
+
+| Vue | Lecture suivie | Glissement 40 px/image | Glissement 400 px/image | Pas de zoom |
+|---|---|---|---|---|
+| Forme d'onde (témoin) | 113 images/s ; 8,3 ms, 15,7 ms, 32 ms | 119 images/s ; 8,3, 10,2, 17,6 ms | 106 images/s ; 8,5, 16,7, 20,8 ms | 29 à 46 ms |
+| Spectrogramme et énergie | 108 à 114 images/s ; 8,3 ms, 15 à 17 ms, 26 à 67 ms (une image au-delà de 50 ms au départ de la lecture) | 120 images/s ; 8,3, 10,2, 17,4 ms | 100 images/s ; 8,6, 17,4, 24,8 ms | 24 à 86 ms |
+
+Chargement du fichier du spectrogramme : 14 Mo en 0,31 s ; énergie : 0,7 Mo ; tas JavaScript 104 Mo. Non mesuré à 90 min (fichier d'environ 43 Mo, même coût de dessin).
+
+Vérifié dans le navigateur intégré : clair et sombre à 1280 × 720, sombre à 375 px (largeur de page 375 px, barre d'outils sur trois lignes, sans défilement horizontal), mode présentation (hauteur 144 px, aller-retour), alignement des harmoniques sur les tours des pistes au zoom maximal, retour à la forme d'onde (80 px, couleurs d'origine), « Tout afficher », infobulle, trace prise sur le second moteur en comparaison. Défaut corrigé pendant la vérification : graduations 250 Hz et 500 Hz superposées (250 Hz retirée).
+
+Tests : `tests/test_app_spectrogramme.py` (15). Suite complète : 536 réussis, 12 ignorés, 3 lents exclus.
+
+## Catégorie principale des erreurs et moteurs non retenus (décisions du cockpit du 02/11, retours de B8, B9 et E8)
+
+### Catégories des erreurs, sur le temps (option b, décision du cockpit du 02/11)
+
+Une seule définition, dans `app/sortie.py` (`ERROR_CATEGORIES`, `main_category`, `error_map`), reprise par la carte « Expliquer cette erreur » et par l'analyse A-0003. La catégorisation se fait sur le temps. Chaque segment d'erreur de la carte (sans collar) est découpé aux bords des intervalles de ±0,25 s autour des frontières de tour de la référence. Ces intervalles sont construits par pyannote.metrics lui-même (`extrude`, `collar=0.5`, comme pour le DER avec collar). La partie dans ces intervalles est un « décalage de frontière ». Le reste reçoit la première catégorie vraie dans l'ordre ci-dessous, évaluée sur ce reste :
+
+| Rang | Catégorie | Règle, sur la partie hors tolérance |
+|---|---|---|
+| 1 | Décalage de frontière | La partie dans ±0,25 s d'une frontière de tour de la référence, ce que pardonne le collar |
+| 2 | Chevauchement | Elle recoupe un chevauchement de la référence |
+| 3 | Locuteur de référence non apparié | Le locuteur de référence de la zone (parole manquée, confusion) n'est apparié à aucun locuteur trouvé |
+| 4 | Locuteur trouvé en trop | Le locuteur trouvé de la zone (fausse alarme, confusion) n'est apparié à aucun locuteur de la référence |
+| 5 | Tour court | Elle recoupe un tour de la référence de moins de 0,5 s |
+| 6 | Pause courte | Elle recoupe une pause de la référence de 1 s au plus, ou la touche à 0,05 s près |
+| 7 | Autre | Aucune des précédentes |
+
+Conséquence de la règle : un tour de moins de 0,5 s, ou une pause de 0,5 s au plus, tient entièrement dans la tolérance de ses propres frontières. « Tour court » est donc toujours vide, et « pause courte » ne compte que les pauses de plus de 0,5 s à 1 s. Ces contextes restent écrits dans les constats de la carte.
+
+La zone garde une seule catégorie affichée, celle de sa partie hors tolérance. Une zone entièrement dans la tolérance est un « décalage de frontière ». La carte affiche la catégorie et sa phrase (« Hors de la tolérance d'une frontière : … » quand une partie y est), puis « Dont x s dans la tolérance d'une frontière (pardonnés par le collar) », puis les autres constats sur toute la zone. Le constat « un de ses bords est à 0,25 s au plus d'une frontière » est remplacé par cette part. Données par zone : `tolerance_s`, `contexte_hors_tolerance` (None si la zone tient dans la tolérance), `categorie`.
+
+Sommes : `error_map(...)["categories"]` donne, par type d'erreur, les secondes de chaque catégorie, cumulées segment par segment comme les totaux. Elles partitionnent l'erreur et redonnent les composantes du DER sans collar, à 10⁻¹² s près (ordre des additions en virgule flottante ; égalité stricte sur des durées exactes en binaire).
+
+Contrôle : « décalage de frontière » égale, en secondes et type par type, l'erreur retirée par le collar (composantes sans collar moins composantes avec collar).
+
+| Cas | Décalage de frontière | Erreur retirée par le collar | Écart résiduel |
+|---|---|---|---|
+| 3 cas construits (frontières décalées, zones longues qui débordent des tolérances, chevauchement, locuteur en trop) | égal | | moins de 10⁻⁹ s (test) |
+| SUMM-RE 007a_ECRH, sortie d'EXP-0007, toute la durée, sans UEM (comme l'interface) | 45,959 s manquée, 76,289 s fausse alarme, 33,377 s confusion ; 155,625 s en tout | idem | nul, type par type (test) |
+| 200 paires d'annotations aléatoires | | | nul dans 189 cas ; jusqu'à 2,09 s dans les 11 autres, tous ceux où le DER avec collar choisit un autre appariement des locuteurs (test : égalité exigée dès que l'appariement est le même) |
+
+L'égalité ne tient que si le collar ne change pas l'appariement optimal. Sinon, l'erreur hors tolérance change aussi et aucune catégorisation de l'erreur sans collar ne peut la retrouver. Sur 007a_ECRH, l'appariement est le même.
+
+Répartition sur 007a_ECRH, en part de l'erreur sans collar (227,5 s) : décalage de frontière 68,4 % (155,6 s), autre 15,6 % (35,6 s), chevauchement 10,9 % (24,8 s), pause courte 5,1 % (11,6 s), tour court et locuteurs non appariés 0. Zones affichées : 870 en décalage de frontière, 131 autre, 105 chevauchement, 64 pause courte. On compare en secondes et non en points de DER : le collar retire aussi 409 s de parole de référence du dénominateur (DER 19,15 % sans collar, 9,23 % avec).
+
+Règle remplacée (02/11, avant l'option b) : catégorie par zone entière, « décalage de frontière » seulement si toute la zone tenait dans la tolérance. Sur 007a_ECRH, elle classait 47,5 s en décalage de frontière, contre 155,6 s retirées par le collar.
+
+### Moteurs absents de `configs/demo.yaml`
+
+Un moteur absent de `moteurs` n'est plus refusé : il n'est pas proposé, et l'en-tête le dit (« Non retenu pour la démonstration : Baseline WeSpeaker »). Seuls l'absence du moteur par défaut (`moteur_par_defaut`, ou `pyannote-community-1` si la clé manque) et un fichier incohérent arrêtent le lancement. Le chemin du fichier passé à `--config-demo` se coupe désormais dans l'en-tête (il élargissait la page à 409 px sur un écran de 375 px).
+
+Vérifié dans le navigateur, moteur factice, 007a_ECRH avec sa référence et une configuration sans la baseline WeSpeaker : carte en sombre à 1280 px, en clair à 375 px (largeur de page 375 px), quatre catégories rencontrées (décalage de frontière, chevauchement, pause courte, autre), en-tête et liste des moteurs (Baseline MFCC, Baseline ECAPA, pyannote).
+
+Tests : `tests/test_app_categories.py` (10 depuis l'option b), tests du gel (`test_app_presentation_gel.py`, 3 nouveaux) et de la carte mis à jour. Suite complète après l'option b : 548 réussis, 12 ignorés, 3 lents exclus.
+
+## Système visuel et contrôle automatique (chantier B10, audit visuel du 02/11, §3, §4 et §7)
+
+### Jetons, thème et feuilles de style
+
+| Élément | Règle | Où |
+|---|---|---|
+| Jetons | Seul endroit où figurent des valeurs de couleur, d'ombre, d'arrondi et d'espacement : teintes neutres, bord des contrôles (`--ws-control-line`, au moins 3:1 sur les trois fonds, WCAG 1.4.11), arrondis (carte 12 px, contrôle 8 px, marque, pilule, rond), ombre des cartes (filet en sombre), anneaux et filets nommés, espacement de 4 et 8 px, hauteur des contrôles (32 px ; 40 px en présentation ; 44 px sur écran tactile), mouvement. Redéfinis sous `.dark` et en mode présentation ; les jetons composés (anneaux, filets) sont déclarés sur `:root, .dark` pour être recalculés dans chaque mode | `app/static/jetons.css` |
+| Injection | Les jetons, les règles globales (mouvement réduit, écran tactile) et les correctifs des radios et des cases sont placés dans `<head>` par `launch(head=…)`, l'équivalent en chaîne de `head_paths` : Gradio ne les réécrit pas. Le reste passe par `css` | `theme.head`, `app.page_head` |
+| Thème | Chacune des 104 variables du thème qui ont une variante `_dark` dans Gradio 6.31 est définie dans les deux modes, avec le même jeton (`var(--ws-…)`), qui change de valeur sous `.dark`. Aucune ombre sur les contrôles. Grille d'espacement `gr.themes.Size(2, 4, 4, 8, 8, 12, 16 px)`, arrondis par jetons | `theme.WITH_DARK`, `theme.WITHOUT_DARK` |
+| Radios et cases (V1) | Ronds et cases non cochés bordés de `--ws-control-line` (3,1:1 au moins en clair, 3,4:1 en sombre) ; ni ombre ni liseré ; point du radio coché de la couleur du fond (`radio_circle` en `radial-gradient` sur `var(--background-fill-primary)`). La variable n'étant lue que sous `.gradio-style`, une règle de `jetons.css` l'applique aux radios de l'application (sinon, la feuille de réinitialisation de Gradio impose un SVG blanc, invisible en sombre). Coche des cases de la couleur du fond en sombre | `theme.py`, `jetons.css` |
+| Focus | Anneau de 2 px à l'encre, décalé de 2 px, sur tous les contrôles ; rendu aux radios et cases sur leur étiquette (`label:has(input:focus-visible)`), Gradio le retirant de l'entrée | `interface.css` |
+| Feuilles | `interface.css` et `visualiseur.css` n'emploient que des jetons : aucune couleur, ombre ni arrondi en dur, aucun sélecteur `svelte-*`, pas de `:root` ni de `body`, aucune règle `@` autre que `@media`, `@keyframes` et `@font-face`, mode sombre par `.dark` seulement | stylelint et `tests/test_app_systeme_visuel.py` |
+| Canevas et wavesurfer | Couleurs lues dans les jetons au rendu (`token('--ws-wave')` …), plus de valeurs en dur dans `visualiseur.js` | `visualiseur.js` |
+
+Corrigés en passant : la coche des étapes terminées n'apparaissait pas, car la réécriture du CSS par Gradio perd le raccourci `border: solid var(…)` (propriétés détaillées désormais) ; les jetons composés gardaient les teintes claires en sombre.
+
+### Composants communs
+
+| Composant | Classe | Emploi |
+|---|---|---|
+| Bouton secondaire | `ws-btn` | « Tout afficher », « Annuler la dernière fusion », « Image PNG de la timeline », notes et sources de l'Avancement ; contour fin, pas d'ombre |
+| Bouton principal | `ws-btn ws-btn-primary` (et le bouton « Analyser » de Gradio, même thème) | Un seul par écran |
+| Bouton-icône | `ws-btn ws-btn-icon` | 32 px de côté (44 px sur écran tactile), icône SVG de 16 px en `currentColor`, nom accessible par `aria-label` : extraits ▶ du tableau des locuteurs et du plus long monologue, zoom − et +, aide « ? », fermeture de l'explication. Triangle ▶ centré sur son centre de gravité, soit 1,2 px à droite de sa boîte (V4) | 
+| Interrupteur | `ws-btn ws-switch` + `aria-pressed` | « Suivre la lecture », « Énergie et seuil », « Mode présentation » : curseur à gauche ou à droite et contour renforcé, l'état ne repose pas sur la seule couleur |
+| Contrôle segmenté | `ws-segmented` | Forme d'onde / Spectrogramme |
+| Encadrés | `ws-callout` (information : fond discret) ; `ws-attention` (attention : filet gauche et icône « ! ») | Les encadrés existants sont ramenés à ces deux styles (annonce de durée, avertissements, erreur d'analyse, écarts du Pipeline, portée du DER, fusions, constats, aide des raccourcis, « Expliquer cette erreur ») |
+| Bouton lecture | `ws-btn wsp-play` | Icône et libellé (« Lecture » ou « Pause ») ; largeur fixe |
+
+Icônes : `app/icones.py`. Tableau des locuteurs (V2) : séparateur porté par la ligne (`border-collapse`), toutes les cellules centrées verticalement ; le filet est continu d'un bord à l'autre.
+
+### Nombres en français
+
+`app/formatage.py`, seule fonction de formatage des nombres affichés : virgule décimale, espace fine insécable (U+202F) entre les milliers et devant les unités et `%`, signe moins typographique, unités françaises (`duree` : « 2 min 05 s » ; `taille` : « 7,2 Ko », « 3,4 Mo »). Employée par les tableaux, les textes, le graphique de l'Avancement, la page Pipeline et les messages ; `visualiseur.js` suit la même règle. Jamais pour les fichiers lus par une machine (RTTM, JSON, étiquettes Audacity). Reste à faire (B11, V11) : les tailles des exports, affichées par le composant de fichiers de Gradio (« 7.2 KB »).
+
+### Contrôle automatique
+
+Outils Node de développement, en `devDependencies` de `tests/visuel/package.json` (`@playwright/test` 1.56.1, `@axe-core/playwright` 4.11.0, `stylelint` 16.25.0, versions exactes, `package-lock.json` versionné) ; rien dans `pyproject.toml` ni `uv.lock`. Navigateur : le Chrome installé (`channel: 'chrome'`) ; à défaut, `npx playwright install chromium` puis `PW_CHROMIUM=1`. Playwright lance lui-même l'application en mode factice (port 7872) sur une réunion de synthèse sans donnée de corpus (`tests/visuel/preparer.py` : audio de 90 s, 4 locuteurs, référence à 5 locuteurs).
+
+```bash
+cd tests/visuel && npm ci
+```
+
+```bash
+cd tests/visuel && npm run controle
+```
+
+| Commande (dans `tests/visuel`) | Contrôle |
+|---|---|
+| `npm run styles` | stylelint (`.stylelintrc.json`) : couleurs (`color-no-hex`, `color-named`, fonctions `rgb()`…), ombres et arrondis seulement par jetons, règles `@` permises, pas de `prefers-color-scheme`, pas de `:root`, `body` ni `svelte-*` ; `jetons.css` est la seule exception pour les valeurs |
+| `npm run captures` | 20 captures de référence (`tests/visuel/references/`) : clair et sombre × 1440 et 375 px, plus le mode présentation (sombre, 1280 × 720), sur les quatre onglets ; Analyse et Pipeline en pleine page, Avancement et Glossaire sur la hauteur de l'écran. Écart toléré : 20 pixels (les captures sont identiques d'un lancement à l'autre ; à 0,2 %, l'absence de la coche des étapes passait inaperçue). Masqués : forme d'onde et vue d'ensemble, durées mesurées, bandeau (périphérique), temps et exports, indicateur des moteurs. Vérifie aussi qu'aucune page ne déborde en largeur |
+| `npm run captures:maj` | Régénère toutes les références (`--update-snapshots=all` : sans `=all`, Playwright ne réécrit que les captures hors tolérance) après un changement voulu, à relire avant de les commiter |
+| `npm run accessibilite` | axe-core, règles WCAG 2.0, 2.1 et 2.2 A et AA, en clair et en sombre, sur les quatre onglets après une analyse. Une seule exclusion : la taille des cibles (2.5.8) sur les segments de la timeline, dont la largeur est la durée représentée (exception « présentation essentielle » ; le zoom les agrandit et ← → parcourent les tours au clavier) |
+| `npm run controle` | Les trois à la suite |
+| `npm run defauts:avant`, `npm run defauts:apres` | Captures des défauts V1, V2 et V4, hors références (`tests/visuel/defauts/`, non versionné) |
+
+Résultat au 02/11 : stylelint sans écart ; axe-core sans violation dans les deux modes ; 20 captures de référence (4,9 Mo). Les captures avant et après des défauts V1, V2 et V4 sont dans `docs/audit/b10-avant-apres/`. Tests Python : `tests/test_app_systeme_visuel.py` (couverture des variantes sombres, jetons employés tous définis, jetons composés, règles des feuilles, contrastes WCAG AA, composants, icône, formatage).

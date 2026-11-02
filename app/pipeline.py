@@ -38,6 +38,7 @@ from pathlib import Path
 
 import yaml
 
+from app import formatage
 from app import constats as constats_file
 from app import moteurs
 from whospoke import audio
@@ -136,10 +137,11 @@ def format_value(name: str, value) -> str:
     if isinstance(value, bool):
         return "oui" if value else "non"
     if isinstance(value, float):
-        text = f"{value:.6g}".replace(".", ",")
-        return text + (" s" if name.endswith("_s") else "")
+        text = formatage.general(value)
+        return text + (f"{formatage.NNBSP}s" if name.endswith("_s") else "")
     if isinstance(value, int):
-        return str(value) + (" s" if name.endswith("_s") else " Hz" if name.endswith("_hz") else "")
+        unit = "s" if name.endswith("_s") else "Hz" if name.endswith("_hz") else None
+        return formatage.unite(value, unit) if unit else str(value)
     return str(value)
 
 
@@ -209,7 +211,7 @@ def _evaluation(config: dict) -> Stage:
     metrics = evaluator._der
     collars = " et ".join(
         f"{format_value('', metrics[name].collar)}"
-        + (" (principale)" if i == 0 else f" (± {format_value('', metrics[name].collar / 2)} s)")
+        + (" (principale)" if i == 0 else f" (± {format_value('', metrics[name].collar / 2)}{formatage.NNBSP}s)")
         for i, name in enumerate(CONDITIONS)
     )
     skip = all(metric.skip_overlap for metric in metrics.values())

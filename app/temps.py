@@ -21,6 +21,8 @@ un temps non conforme peut l'alimenter.
 
 from __future__ import annotations
 
+from app import formatage
+
 import csv
 import json
 import math
@@ -190,19 +192,8 @@ def cumulative_remaining_s(runs: list[tuple[float | None, float, float | None, b
 
 
 def format_duration(seconds: float | None) -> str:
-    """« 0,05 s », « 4 s », « 2 min 05 s », « 1 h 02 min » ; « — » pour une valeur inconnue."""
-    if seconds is None or math.isnan(seconds):
-        return "—"
-    if 0 < seconds < 0.995:   # sous la seconde : au centième (tour de 50 ms, analyse factice)
-        return f"{seconds:.2f}".replace(".", ",") + " s"
-    seconds = max(0, int(round(seconds)))
-    if seconds < 60:
-        return f"{seconds} s"
-    minutes, seconds = divmod(seconds, 60)
-    if minutes < 60:
-        return f"{minutes} min {seconds:02d} s"
-    hours, minutes = divmod(minutes, 60)
-    return f"{hours} h {minutes:02d} min"
+    """« 0,05 s », « 4 s », « 2 min 05 s », « 1 h 02 min » (`formatage.duree`)."""
+    return formatage.duree(seconds)
 
 
 def format_range(span: Range | None) -> str:

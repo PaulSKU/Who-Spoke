@@ -30,6 +30,7 @@ from pathlib import Path
 
 import yaml
 
+from app import formatage
 from app import constats as constats_file
 from app import graphique
 
@@ -387,7 +388,7 @@ def _inline(text: str) -> str:
 
 
 def _pct(value: float | None) -> str:
-    return "—" if value is None else f"{value:.2f}".replace(".", ",") + " %"
+    return formatage.pourcentage(value, 2)
 
 
 def _der_cell(result: Result | None) -> str:
@@ -395,7 +396,7 @@ def _der_cell(result: Result | None) -> str:
         return "—"
     flag = ' <span class="av-flag">invalidée</span>' if result.invalidated else ""
     return (f'<span class="strong">{_pct(result.der_c0)}</span>'
-            f'<span class="sub">collar 0,25 s : {_pct(result.der_c025)}</span>{flag}')
+            f'<span class="sub">collar 0,25\u202fs : {_pct(result.der_c025)}</span>{flag}')
 
 
 def _header_cells(item: Item) -> tuple[str, str, str]:
@@ -424,7 +425,7 @@ def _timeline_html(items: list[Item], root: Path) -> str:
             # Une ligne par corpus quand une expérience en compte plusieurs.
             der_test = "<br>".join(_der_cell(item.result("test", c)) for c in item.corpora) or "—"
             der_dev = "<br>".join(_der_cell(item.result("dev", c)) for c in item.corpora) or "—"
-        notes = (f'<button type="button" class="av-notes" data-id="{item.id}">notes.md</button>'
+        notes = (f'<button type="button" class="ws-btn av-notes" data-id="{item.id}">notes.md</button>'
                  if item.notes.is_file() else '<span class="sub">pas de notes</span>')
         rows.append(
             f'<tr><td><span class="strong">{item.id}</span><span class="sub">{escape(item.slug)}</span>'
@@ -456,7 +457,8 @@ def _oracles_html(items: list[Item]) -> str:
             delta = "—"
             if result and ref_result and result.der_c0 is not None and ref_result.der_c0 is not None:
                 diff = result.der_c0 - ref_result.der_c0
-                delta = f"{diff:+.2f}".replace(".", ",") + f" pt <span class=\"sub\">face à {escape(item.reference)}</span>"
+                delta = (formatage.unite(diff, "pt", 2, sign=True)
+                         + f' <span class="sub">face à {escape(item.reference)}</span>')
             c = result.components if result else {}
             variable = escape(item.variable or "— (référence)")
             rows.append(
@@ -513,7 +515,7 @@ SYNTHESIS_ID = "synthese"
 def _source_html(source: str, items: dict[str, Item]) -> str:
     item = items.get(source)
     if item is not None and item.notes.is_file():
-        return f'<button type="button" class="av-notes av-source" data-id="{escape(source)}">{escape(source)}</button>'
+        return f'<button type="button" class="ws-btn av-notes av-source" data-id="{escape(source)}">{escape(source)}</button>'
     return f'<span class="av-source av-source-missing" title="Absente de ce dépôt">{escape(source)}</span>'
 
 
@@ -522,7 +524,7 @@ def _learned_html(root: Path, items: list[Item]) -> str:
     by_id = {item.id: item for item in items}
     synthesis = ""
     if (root / SYNTHESIS).is_file():
-        synthesis = (f'<button type="button" class="av-notes av-synthesis" data-id="{SYNTHESIS_ID}">'
+        synthesis = (f'<button type="button" class="ws-btn av-notes av-synthesis" data-id="{SYNTHESIS_ID}">'
                      'Lire la synthèse (docs/synthese.md)</button>')
     if not data.present:
         return (f'<p class="ws-empty-note">docs/constats.yaml absent de ce dépôt.</p>{synthesis}')

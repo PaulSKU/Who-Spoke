@@ -128,7 +128,7 @@ def test_graphique_accessible_et_proportionnel(depot):
     svg = graphique.svg(groups, narrow=False, uid="t")
     assert 'role="img"' in svg and 'aria-labelledby="t-t t-d"' in svg
     assert "<title id=\"t-t\">DER test sans collar des systèmes de référence, par corpus</title>" in svg
-    assert "Baseline MFCC 64,38 % (parole manquée 32,28 %, fausse alarme 4,99 %, confusion 27,11 %)" in svg
+    assert "Baseline MFCC 64,38\u202f% (parole manquée 32,28\u202f%, fausse alarme 4,99\u202f%, confusion 27,11\u202f%)" in svg
     # Motifs de la carte des erreurs en plus des couleurs : parole manquée pleine, fausse
     # alarme hachurée, confusion en contour (fond de surface, trait de la couleur).
     assert 'style="fill:var(--av-err-manquee)"' in svg
@@ -153,7 +153,7 @@ def test_graphique_accessible_et_proportionnel(depot):
     assert 'viewBox="0 0 340 ' in narrow and 'viewBox="0 0 760 ' in svg
     figure = graphique.figure(groups)
     assert "av-chart-wide" in figure and "av-chart-narrow" in figure and "Valeurs du graphique" in figure
-    assert "<td class=\"num strong\">64,38 %</td>" in figure
+    assert "<td class=\"num strong\">64,38\u202f%</td>" in figure
     assert "Aucun résultat" in graphique.figure([])
 
 
@@ -165,7 +165,7 @@ def test_encadre_ce_que_nous_avons_appris(depot):
     assert "Fausse alarme dans les pauses" not in html                  # cle: false
     assert "av-conf-certain" in html and "av-conf-probable" in html and "av-conf-incertain" in html
     # Source présente : bouton qui affiche ses notes ; absente : signalée, sans bouton.
-    assert 'class="av-notes av-source" data-id="EXP-0012"' in html
+    assert 'class="ws-btn av-notes av-source" data-id="EXP-0012"' in html
     assert 'data-id="EXP-0099"' not in html and "Absente de ce dépôt" in html
     assert "docs/constats.yaml : à corriger" in html and "C06" in html
     assert 'data-id="synthese"' in html
