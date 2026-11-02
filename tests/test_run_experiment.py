@@ -30,3 +30,23 @@ def test_oracles_lus_dans_la_reference():
     # Les régions sont disjointes (support) et dans l'UEM.
     _, uem = run_experiment.reference_in_uem("ami", "ami__ES2004a")
     assert speech.crop(uem.extent()).duration() == pytest.approx(speech.duration())
+
+
+def test_moteurs_externes_enregistres():
+    """D23 (rangs A4 et A5) : Nemotron 3 et DiariZen accessibles par leur nom de configuration."""
+    from whospoke.pipelines.diarizen import DiariZen
+    from whospoke.pipelines.nemotron3 import Nemotron3Diarization
+
+    assert run_experiment.PIPELINES["nemotron3-diarization"] is Nemotron3Diarization
+    assert run_experiment.PIPELINES["diarizen"] is DiariZen
+    assert set(run_experiment.PIPELINES) == {
+        "pyannote-community-1", "baseline", "nemotron3-diarization", "diarizen"}
+
+
+def test_type_de_peripherique():
+    import types
+
+    import torch
+
+    assert run_experiment.device_type(types.SimpleNamespace(device=torch.device("mps"))) == "mps"
+    assert run_experiment.device_type(types.SimpleNamespace(device="cpu")) == "cpu"

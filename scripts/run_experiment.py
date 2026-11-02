@@ -97,10 +97,24 @@ from whospoke.experiment import (
     uem_path,
 )
 from whospoke.pipelines.baseline import Baseline, save_trace
+from whospoke.pipelines.diarizen import DiariZen
+from whospoke.pipelines.nemotron3 import Nemotron3Diarization
 from whospoke.pipelines.pyannote_community1 import PyannoteCommunity1
 from whospoke import charge, power
 
-PIPELINES = {PyannoteCommunity1.name: PyannoteCommunity1, Baseline.name: Baseline}
+# Moteurs externes (D23, rangs A4 et A5 ; docs/recherche/e4-moteurs-externes.md) : exécutés
+# en sous-processus dans leur environnement séparé (envs/), périphérique `cpu` ou `mps`.
+PIPELINES = {
+    PyannoteCommunity1.name: PyannoteCommunity1,
+    Baseline.name: Baseline,
+    Nemotron3Diarization.name: Nemotron3Diarization,
+    DiariZen.name: DiariZen,
+}
+
+
+def device_type(pipeline) -> str:
+    """Type de périphérique : torch.device pour les moteurs locaux, chaîne pour les externes."""
+    return getattr(pipeline.device, "type", str(pipeline.device))
 
 SWEEP_COLUMNS = [
     "valeur", "retenue", "der_c0", "manquee_c0", "fausse_alarme_c0", "confusion_c0", "jer_c0",
@@ -398,7 +412,7 @@ def main() -> None:
         "arbre_propre": state["clean"],
         "fichiers_non_commites": state["dirty"],
         "config_sha256": hashlib.sha256(config_path.read_bytes()).hexdigest(),
-        "device": pipeline.device.type,
+        "device": device_type(pipeline),
         "torch_threads": torch.get_num_threads(),
         "versions": {"python": platform.python_version(), "torch": torch.__version__,
                      "pyannote.audio": __import__("pyannote.audio").audio.__version__,
