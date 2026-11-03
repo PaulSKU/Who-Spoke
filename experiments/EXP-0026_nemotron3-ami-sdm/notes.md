@@ -2,7 +2,7 @@
 id: EXP-0026
 question: "Nemotron 3 Diarization fait-il mieux que pyannote sur AMI SDM ?"
 verdict: en_cours
-decisions: [D23]
+decisions: [D23, D29]
 ---
 
 # EXP-0026 — nemotron3-ami-sdm
@@ -29,6 +29,6 @@ Moteur : Nemotron 3 Diarization (`nvidia/Nemotron-3-Diarization@f667ed73`), envi
 
 Temps : RTF 0,0122 en CPU (commit `0358ccf`, arbre propre), alimentation conforme, `charge_concurrente` true (charge sur 1 min jusqu'à 8,00). Contamination (corpus.md §9) : AMI train et dev, VoxConverse vus à l'entraînement ; SUMM-RE absent de la liste.
 
-## Interprétation
+## Interprétation (cockpit)
 
-À rédiger par le cockpit.
+Résultat inattendu : Nemotron 3 fait nettement moins bien que pyannote sur AMI (+7,6 points sur test, +3,7 sur dev), alors qu'il a vu AMI train et dev à l'entraînement. Son défaut est la parole manquée (24,9 contre 11,2 points), y compris hors chevauchement (DER hors chevauchement de 23,4 % contre 13,8 %). Sa fausse alarme et sa confusion sont en revanche bien plus faibles. Le défaut ne dépend pas de la durée des réunions (corrélation de rang de 0,05 entre durée et parole manquée), donc l'inférence sur le fichier entier n'est pas en cause **[certain sur ces données]**. Une hypothèse plausible est le bas niveau d'enregistrement du micro distant d'AMI, puisque les conditions de D24, produites à un niveau normalisé, ne montrent pas ce défaut **[probable, à vérifier]**. Diagnostic prévu par D29 §1. Verdict en attente.

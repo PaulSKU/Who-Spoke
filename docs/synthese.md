@@ -24,6 +24,8 @@ Qu'est-ce qui fait la qualité d'une diarisation de réunions en français, enre
 
 **Le chevauchement est le premier facteur d'échec identifiable** (C17) **[probable]**, et une grande part du DER sans collar n'est qu'un décalage de frontière.
 
+**Un modèle de bout en bout récent change la donne en français.** Nemotron 3 Diarization fait presque deux fois mieux que pyannote sur SUMM-RE et ne se dégrade presque pas en salle réverbérante simulée (C18) **[certain]**. Il fait pourtant moins bien sur AMI, en manquant de la parole (C19). Le choix du moteur de démonstration suit une règle fixée avant le corpus maison (D29).
+
 **La mesure elle-même doit être lue avec prudence.** Le DER sans collar dépend de la convention de découpage de la référence ; avec collar, presque pas (C09) **[certain]**.
 
 ## 3. Ce qui est en cours (file D23, planning v2.0)
@@ -33,7 +35,7 @@ Qu'est-ce qui fait la qualité d'une diarisation de réunions en français, enre
 | La sortie exclusive réduit-elle la fausse alarme sans trop perdre de chevauchement réel ? | A1 : EXP-0016, EXP-0017 (D25, V1) | Non : écartée (C11) |
 | Borner le nombre de locuteurs entre 2 et 6 aide-t-il, et que fait le passage au KMeans ? | A2 : EXP-0018, EXP-0019 | Effet non significatif ; gardé comme garde-fou (C12) |
 | Quel système résiste le mieux à la réverbération, au bruit et au codec de visio ? | A3 (D24) : EXP-0020, EXP-0021, A-0002 | Fait : réverbération forte = faiblesse de pyannote (C13) |
-| Nemotron 3 Diarization et DiariZen font-ils mieux que pyannote en français ? | A4, A5 | Installation en préparation |
+| Nemotron 3 Diarization et DiariZen font-ils mieux que pyannote en français ? | A4 : EXP-0026 à 0028 ; A5 | Nemotron 3 : oui en français et sous dégradation, non sur AMI (diagnostic en cours, D29) ; DiariZen écarté (trop lent en CPU, plante en MPS) |
 | Une détection fine en post-traitement réduit-elle la fausse alarme de pyannote ? | A6 (D25, V2 et V3) : EXP-0022 à 0025 | Non : gain en français, forte perte sur AMI, écartée (C16) |
 | Que donnent les systèmes sur de vraies réunions en français, en salle et en visio ? | A9, corpus maison | Enregistrements en cours |
 

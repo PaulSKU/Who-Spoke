@@ -145,3 +145,19 @@ constats:
     confiance: probable
     cle: true
 
+  - id: C18
+    etape: segmentation
+    moteurs: [nemotron-3]
+    texte: "En français, Nemotron 3 Diarization (bout en bout, 100 M de paramètres) divise presque par deux le DER de pyannote sur SUMM-RE test (14,6 contre 26,3 %) et résiste à toutes les dégradations de D24 (14,8 à 18,5 %), y compris la réverbération forte où pyannote atteint 41,2 % ; son gain vient de la fausse alarme et de la confusion, presque nulles."
+    sources: [EXP-0027, EXP-0028]
+    confiance: certain
+    cle: true
+
+  - id: C19
+    etape: segmentation
+    moteurs: [nemotron-3]
+    texte: "Sur AMI (anglais, micro distant), Nemotron 3 fait moins bien que pyannote (27,5 contre 19,9 %) : il manque beaucoup plus de parole, même hors chevauchement, indépendamment de la durée des réunions ; la cause est en cours de diagnostic (D29)."
+    sources: [EXP-0026]
+    confiance: certain
+    cle: true
+

@@ -2,7 +2,7 @@
 id: EXP-0028
 question: "Nemotron 3 Diarization se dégrade-t-il moins que pyannote sur SUMM-RE test dégradé (D24) ?"
 verdict: en_cours
-decisions: [D23]
+decisions: [D23, D29]
 ---
 
 # EXP-0028 — nemotron3-summre-degrade
@@ -54,6 +54,6 @@ Moteur : Nemotron 3 Diarization (`nvidia/Nemotron-3-Diarization@f667ed73`), envi
 
 Temps : RTF 0,0122 en CPU (commit `0358ccf`, arbre propre), alimentation conforme, `charge_concurrente` true (charge sur 1 min jusqu'à 12,57). Contamination (corpus.md §9) : AMI train et dev, VoxConverse vus à l'entraînement ; SUMM-RE absent de la liste.
 
-## Interprétation
+## Interprétation (cockpit)
 
-À rédiger par le cockpit.
+Nemotron 3 reste entre 14,8 et 18,5 % de DER dans toutes les conditions dégradées : il se dégrade très peu, de 0,2 à 3,8 points par rapport à son propre résultat propre. Là où pyannote s'effondre (rev08 et salle, +15 points), Nemotron 3 ne perd que 1,4 à 3,1 points. L'écart y atteint −25,2 et −23,6 points. Le codec bas débit, qui faisait confondre les voix aux deux autres systèmes, ne lui fait presque rien (confusion de 2,2 points). C'est le résultat le plus important pour la cible, une salle réverbérante avec un seul micro. Il contraste avec AMI (EXP-0026), qu'il faut donc expliquer avant de conclure (D29). Verdict en attente de D29.
