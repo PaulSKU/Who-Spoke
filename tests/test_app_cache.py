@@ -88,7 +88,8 @@ def test_empreinte_du_code_des_moteurs(tmp_path):
 
 
 def test_empreinte_du_code_du_depot():
-    assert cache.ENGINE_CODE == ("src/whospoke", "app/moteurs.py")
+    # scripts/envs : versions figées des environnements des moteurs externes (Nemotron 3).
+    assert cache.ENGINE_CODE == ("src/whospoke", "app/moteurs.py", "scripts/envs")
     assert len(cache.engine_code_fingerprint(REPO_ROOT)) == 64
 
 

@@ -13,6 +13,14 @@ from whospoke.experiment import REPO_ROOT
 EXAMPLE = REPO_ROOT / "configs" / "demo.exemple.yaml"
 
 
+def example(default: str = "pyannote-community-1") -> str:
+    """Exemple de configs/demo.yaml, variante `default` du moteur par défaut décommentée (D29 :
+    l'exemple garde les deux variantes en commentaire, sans en choisir une)."""
+    text = EXAMPLE.read_text()
+    assert f"# moteur_par_defaut: {default}\n" in text
+    return text.replace(f"# moteur_par_defaut: {default}\n", f"moteur_par_defaut: {default}\n")
+
+
 def _repo_with(tmp_path, text: str | None):
     """Dépôt minimal : les expériences du vrai dépôt, et configs/demo.yaml si `text`."""
     (tmp_path / "experiments").symlink_to(REPO_ROOT / "experiments")
@@ -53,12 +61,13 @@ def test_sans_configs_demo_yaml_la_correspondance_du_code_s_applique(tmp_path):
 
 
 def test_exemple_lu_comme_le_sera_configs_demo_yaml(tmp_path):
-    demo = moteurs.demo_config(_repo_with(tmp_path, EXAMPLE.read_text()))
+    demo = moteurs.demo_config(_repo_with(tmp_path, example()))
     assert demo.source == "configs/demo.yaml" and demo.frozen and demo.frozen_on == "2026-11-10"
     assert demo.default_engine == "pyannote-community-1" and len(demo.sha256) == 64
     assert {key: spec.source_exp for key, spec in demo.specs.items()} == {
         "baseline-mfcc": "EXP-0009", "baseline-ecapa": "EXP-0012", "baseline-wespeaker": "EXP-0015",
-        "pyannote-community-1": "EXP-0007"}
+        "pyannote-community-1": "EXP-0007", "nemotron-3": "EXP-0027"}
+    assert demo.speakers["nemotron-3"] == {"mode": "automatique"}
     assert demo.speakers["pyannote-community-1"] == {"mode": "fourchette", "min": 2, "max": 6}
     assert demo.speakers["baseline-mfcc"] == {"mode": "automatique"}
     # Au gel, seul demo.yaml sera écrit : l'exemple ne doit pas être pris pour lui.
@@ -66,7 +75,7 @@ def test_exemple_lu_comme_le_sera_configs_demo_yaml(tmp_path):
 
 
 def test_l_experience_source_de_la_configuration_remplace_celle_du_code(tmp_path):
-    text = EXAMPLE.read_text().replace("experience_source: EXP-0012", "experience_source: EXP-0004")
+    text = example().replace("experience_source: EXP-0012", "experience_source: EXP-0004")
     text = text.replace("moteur_par_defaut: pyannote-community-1", "moteur_par_defaut: baseline-ecapa")
     demo = moteurs.demo_config(_repo_with(tmp_path, text))
     assert demo.specs["baseline-ecapa"].source_exp == "EXP-0004" and demo.default_engine == "baseline-ecapa"
@@ -90,14 +99,14 @@ def test_l_experience_source_de_la_configuration_remplace_celle_du_code(tmp_path
     ("gel: 2026-11-10", "gel: [2026-11-10", "n'est pas un YAML lisible"),
 ])
 def test_configuration_incoherente_refusee_avec_ce_qu_il_faut_corriger(tmp_path, old, new, message):
-    text = EXAMPLE.read_text()
+    text = example()
     assert old in text
     with pytest.raises(moteurs.DemoConfigError, match=message.replace("(", r"\(").replace(")", r"\)")):
         moteurs.demo_config(_repo_with(tmp_path, text.replace(old, new, 1)))
 
 
 def test_moteur_par_defaut_absent_arrete_le_lancement(tmp_path):
-    text = EXAMPLE.read_text()
+    text = example()
     with pytest.raises(moteurs.DemoConfigError,
                        match="« moteur_par_defaut », pyannote-community-1, est absent de « moteurs »"):
         moteurs.demo_config(_repo_with(tmp_path, text[:text.index("  pyannote-community-1:")]))
@@ -106,19 +115,25 @@ def test_moteur_par_defaut_absent_arrete_le_lancement(tmp_path):
 def test_moteur_absent_non_propose_et_mentionne(tmp_path):
     """Décision du cockpit du 02/11 (retour de B8) : un moteur absent de configs/demo.yaml
     n'est plus proposé, l'en-tête le dit ; le lancement continue."""
-    text = EXAMPLE.read_text()
+    text = example()
     for name in ("baseline-wespeaker", "baseline-ecapa"):
         block = f"  {name}:\n    experience_source: {moteurs.SPECS[name].source_exp}\n"
         assert block in text
         text = text.replace(block, "")
     demo = moteurs.demo_config(_repo_with(tmp_path, text))
-    assert list(demo.specs) == ["baseline-mfcc", "pyannote-community-1"]
+    assert list(demo.specs) == ["baseline-mfcc", "pyannote-community-1", "nemotron-3"]
     assert demo.excluded == ("baseline-ecapa", "baseline-wespeaker") and set(demo.speakers) == set(demo.specs)
     header = interface._details_html(demo, "pyannote-community-1")
     assert "Non retenu pour la démonstration : Baseline ECAPA, Baseline WeSpeaker" in header
-    # Second moteur proposé : la baseline ECAPA n'étant pas retenue, le premier autre moteur.
-    assert interface._second_engine(demo.specs, demo.default_engine) == "baseline-mfcc"
-    assert interface._second_engine(moteurs.SPECS, "pyannote-community-1") == "baseline-ecapa"
+    # Second moteur proposé : Nemotron 3 contre pyannote ; sans la paire, la baseline ECAPA,
+    # sinon le premier autre moteur retenu.
+    assert interface._second_engine(demo.specs, demo.default_engine) == "nemotron-3"
+    assert interface._second_engine(moteurs.SPECS, "pyannote-community-1") == "nemotron-3"
+    assert interface._second_engine(moteurs.SPECS, "nemotron-3") == "pyannote-community-1"
+    without = {key: spec for key, spec in moteurs.SPECS.items() if key != "nemotron-3"}
+    assert interface._second_engine(without, "pyannote-community-1") == "baseline-ecapa"
+    assert interface._second_engine({k: v for k, v in demo.specs.items() if k != "nemotron-3"},
+                                    demo.default_engine) == "baseline-mfcc"
     assert interface._second_engine({"pyannote-community-1": None}, "pyannote-community-1") == "pyannote-community-1"
     for name in "bcd":
         (tmp_path / name).mkdir()
@@ -129,11 +144,11 @@ def test_moteur_absent_non_propose_et_mentionne(tmp_path):
     with pytest.raises(moteurs.DemoConfigError, match="le moteur par défaut .sans « moteur_par_defaut ».."):
         moteurs.demo_config(_repo_with(tmp_path / "c", gone))
     # Sans exclusion, rien n'est mentionné.
-    assert "Non retenu" not in interface._details_html(moteurs.demo_config(_repo_with(tmp_path / "d", EXAMPLE.read_text())))
+    assert "Non retenu" not in interface._details_html(moteurs.demo_config(_repo_with(tmp_path / "d", example())))
 
 
 def test_application_sans_les_moteurs_non_retenus(tmp_path):
-    text = EXAMPLE.read_text().replace("  baseline-ecapa:\n    experience_source: EXP-0012\n", "")
+    text = example().replace("  baseline-ecapa:\n    experience_source: EXP-0012\n", "")
     repo = _repo_with(tmp_path, text)
     for name in ("results", "docs", "catalogue"):
         if (REPO_ROOT / name).exists():
@@ -144,11 +159,11 @@ def test_application_sans_les_moteurs_non_retenus(tmp_path):
     keys = [value for _, value in engine.choices]
     assert "baseline-ecapa" not in keys and keys == list(demo.specs)
     second = _component(blocks, "Second moteur")
-    assert second.value == "baseline-mfcc" and [value for _, value in second.choices] == keys
+    assert second.value == "nemotron-3" and [value for _, value in second.choices] == keys   # paire de D29
 
 
 def test_nombre_impose_par_defaut(tmp_path):
-    text = EXAMPLE.read_text().replace("{mode: fourchette, min: 2, max: 6}", "{mode: impose, valeur: 4}")
+    text = example().replace("{mode: fourchette, min: 2, max: 6}", "{mode: impose, valeur: 4}")
     assert moteurs.demo_config(_repo_with(tmp_path, text)).speakers["pyannote-community-1"] == {
         "mode": "impose", "valeur": 4}
 
@@ -159,7 +174,7 @@ def test_fichier_passe_en_option_introuvable(tmp_path):
 
 
 def test_en_tete_affiche_configuration_et_moteur_en_vigueur(tmp_path):
-    frozen = moteurs.demo_config(_repo_with(tmp_path, EXAMPLE.read_text()))
+    frozen = moteurs.demo_config(_repo_with(tmp_path, example()))
     header = interface._details_html(frozen, "pyannote-community-1")
     assert "Configuration : <code>configs/demo.yaml</code>, gel du 10/11/2026" in header
     assert "pyannote community-1</span> (EXP-0007), entre 2 et 6 locuteurs par défaut" in header
@@ -170,7 +185,7 @@ def test_en_tete_affiche_configuration_et_moteur_en_vigueur(tmp_path):
 
 
 def test_application_ouverte_selon_la_configuration(tmp_path):
-    repo = _repo_with(tmp_path, EXAMPLE.read_text())
+    repo = _repo_with(tmp_path, example())
     for name in ("results", "docs", "catalogue"):
         if (REPO_ROOT / name).exists():
             (repo / name).symlink_to(REPO_ROOT / name)
@@ -282,3 +297,25 @@ def test_bandeau_donne_le_reglage_de_chaque_moteur_quand_ils_different():
             "automatique") in band
     results[1]["configuration"]["nombre_locuteurs"] = {"mode": "fourchette", "min": 2, "max": 6}
     assert "<span>entre 2 et 6 locuteurs</span>" in interface._band_html(prepared, results)
+
+
+def test_exemple_avec_les_deux_variantes_du_moteur_par_defaut(tmp_path):
+    """D29 : pyannote ou Nemotron 3 par défaut, choisi le 9/11 ; l'exemple n'en retient aucune."""
+    raw = EXAMPLE.read_text()
+    assert "\nmoteur_par_defaut:" not in raw
+    assert "# moteur_par_defaut: pyannote-community-1\n" in raw and "# moteur_par_defaut: nemotron-3\n" in raw
+    for name in "ab":
+        (tmp_path / name).mkdir()
+    nemotron = moteurs.demo_config(_repo_with(tmp_path / "a", example("nemotron-3")))
+    assert nemotron.default_engine == "nemotron-3"
+    assert interface._second_engine(nemotron.specs, nemotron.default_engine) == "pyannote-community-1"
+    # Sans variante décommentée : le défaut du code.
+    assert moteurs.demo_config(_repo_with(tmp_path / "b", raw)).default_engine == moteurs.DEFAULT_ENGINE
+
+
+def test_nemotron_3_n_accepte_que_le_mode_automatique(tmp_path):
+    text = example().replace("    experience_source: EXP-0027\n",
+                             "    experience_source: EXP-0027\n    nombre_locuteurs: {mode: impose, valeur: 3}\n")
+    with pytest.raises(moteurs.DemoConfigError, match="estime seul le nombre de locuteurs .8 au plus."):
+        moteurs.demo_config(_repo_with(tmp_path, text))
+

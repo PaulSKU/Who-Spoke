@@ -393,10 +393,11 @@ def _pct(value: float | None) -> str:
     return formatage.pourcentage(value, 2)
 
 
-def _row(cells: list[tuple[str, str, str]]) -> str:
+def _row(cells: list[tuple[str, str, str]], row_class: str = "") -> str:
     """Ligne de tableau ; chaque cellule porte son en-tête (`data-label`), affiché devant la
     valeur quand le tableau s'empile en fiches sur petit écran (B13)."""
-    return "<tr>" + "".join(f'<td data-label="{escape(label, quote=True)}"{f" class={chr(34)}{cls}{chr(34)}" if cls else ""}>'
+    opening = f'<tr class="{row_class}">' if row_class else "<tr>"
+    return opening + "".join(f'<td data-label="{escape(label, quote=True)}"{f" class={chr(34)}{cls}{chr(34)}" if cls else ""}>'
                             f"{html}</td>" for label, html, cls in cells) + "</tr>"
 
 
@@ -426,9 +427,15 @@ def _header_cells(item: Item) -> tuple[str, str, str]:
     return question, verdict_html, escape(", ".join(header.decisions) or "—")
 
 
+# Frise sous 840 px : les dernières seulement, les autres derrière un bouton (retour du
+# cockpit sur B13) ; au-delà, tout est affiché.
+TIMELINE_RECENT = 5
+
+
 def _timeline_html(items: list[Item], root: Path) -> str:
     rows = []
-    for item in items:
+    older = max(0, len(items) - TIMELINE_RECENT)
+    for index, item in enumerate(items):
         question, verdict, decisions = _header_cells(item)
         if item.kind == "analyse":
             der_test = der_dev = '<span class="sub">analyse a posteriori</span>'
@@ -445,13 +452,16 @@ def _timeline_html(items: list[Item], root: Path) -> str:
                             f'<span class="sub">{escape(formatage.date(item.date))}</span>', ""),
             ("Question", question, ""), ("Corpus", corpus, ""), ("DER test", der_test, "num"),
             ("DER dev", der_dev, "num"), ("Verdict", verdict, ""), ("Décisions", decisions, ""), ("Notes", notes, ""),
-        ]))
+        ], "av-older" if index < older else ""))
     return (
-        '<div class="ws-table-wrap"><table class="ws-table av-table av-stack"><thead><tr>'
+        '<div class="ws-table-wrap"><table class="ws-table av-table av-stack av-frise" id="av-frise"><thead><tr>'
         '<th scope="col">Identifiant</th><th scope="col">Question</th><th scope="col">Corpus</th>'
         '<th scope="col" class="num">DER test</th><th scope="col" class="num">DER dev</th>'
         '<th scope="col">Verdict</th><th scope="col">Décisions</th><th scope="col">Notes</th>'
         f'</tr></thead><tbody>{"".join(rows)}</tbody></table></div>'
+        + (f'<button type="button" class="ws-btn ws-btn-sm av-more" aria-expanded="false" aria-controls="av-frise" '
+           f'data-more="Afficher les {older} autres" data-less="Masquer les {older} autres">'
+           f'Afficher les {older} autres</button>' if older else "")
     )
 
 

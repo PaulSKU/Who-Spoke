@@ -30,7 +30,7 @@ export async function analyse(page: Page, reference: string = REFERENCE): Promis
   await page.waitForTimeout(500);
 }
 
-// Ouvre un onglet ; à 375 px, Gradio range les derniers dans son menu « More tabs ».
+// Ouvre un onglet ; si la barre déborde, Gradio range les derniers dans son menu « More tabs ».
 export async function gotoTab(page: Page, name: string): Promise<void> {
   const tab = page.getByRole('tab', { name, exact: true });
   if (!(await tab.isVisible())) {

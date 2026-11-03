@@ -1211,6 +1211,20 @@ Problèmes :
 - Règle 11 enfreinte une fois : le premier commit a été enchaîné à la suite complète filtrée par `| tail` (le `&&` testait alors le filtre, pas pytest). Suite réussie (655 réussis, 12 ignorés, 3 désélectionnés) ; commit refait, journal compris, derrière `uv run pytest && git commit` sans filtre.
 Suite : retour du cockpit sur B13 ; essai au vidéoprojecteur ; fusion d'`ui` dans `main` selon le planning.
 
+## 2026-11-02 — Interface : frise d'Avancement sous 840 px, règle 11 précisée (Claude Code)
+
+Objectif : appliquer le retour du cockpit sur B13 dans le worktree `ui`, moteur factice, sans modèle chargé, fusion vers `main` ni dépendance ajoutée.
+Réalisé :
+- Avancement : sous 840 px, la frise montre les cinq dernières lignes, suivies d'un bouton « Afficher les N autres » (`aria-expanded`, `aria-controls`, libellé « Masquer les N autres » une fois déplié) ; au-delà de 840 px, tout est affiché et le bouton masqué (`avancement.TIMELINE_RECENT`, classes `av-older` et `av-all`, `NOTES_JS`).
+- Fiches empilées à 375 px : colonne des étiquettes portée à 6,5 rem ; « Variable modifiée » passait sur deux lignes et chevauchait la valeur suivante (défaut de B13 relevé pendant la vérification).
+- CLAUDE.md, règle 11 : la commande de tests qui précède `&&` n'est jamais filtrée par un tube (`| tail`, `| grep`) ; sinon `set -o pipefail`.
+- Vérifié dans le navigateur : 375 et 839 px, 5 lignes puis 21 après le clic ; 841 et 1440 px, 21 lignes, bouton masqué ; aucune étiquette plus haute que sa valeur à 375 px.
+- Contrôle visuel (stylelint, captures de référence, axe-core en clair et en sombre) au vert ; aucune capture de référence modifiée (celles d'Avancement couvrent le haut de la page, au-dessus de la frise). Tests : `tests/test_app_b13.py` (14).
+Résultats : aucune expérience.
+Décisions : aucune.
+Problèmes : aucun.
+Suite : piste B en pause ; fusion d'`ui` dans `main` par la piste A ; essai au vidéoprojecteur par la candidate.
+
 ## 2026-11-02 — Fin des chantiers B et E du 02/11 (cockpit)
 
 Constats : l'essai d'A-0003 (hors dépôt) croise catégorie et type d'erreur. Pour pyannote sur SUMM-RE, la fausse alarme vient d'abord de frontières étirées (35,6 % de l'erreur, pardonnées par le collar), puis de « autre » (8,2 %) et de pauses courtes (4,4 %). C'est la cible de V2 (Silero). Pour la baseline ECAPA sur AMI, la parole manquée hors chevauchement et hors frontières pèse 28,4 % : des tours entiers manqués par la détection d'énergie, cohérent avec C01. L'écart de −1,213 s (102c_EBPH) est expliqué : avec collar, le DER recalcule l'appariement, qui bascule pour un locuteur (pyannote.metrics). Ce n'est pas un défaut du découpage. Pas de nouveau constat avant l'exécution officielle.
@@ -1249,6 +1263,26 @@ Objectif : interpréter la robustesse (D24), les variantes V2 et V3 de D25, et l
 Réalisé : interprétations et verdicts d'EXP-0020 à 0025 ; `notes.md` d'A-0002 et d'A-0003 ; constats C13 à C17 ; synthèse ; amendement du 03/11 de D25 (bilan).
 Résultats : la réverbération forte est la faiblesse de pyannote (+14,9 points en rev08, surtout de la parole manquée ; avance sur la baseline perdue en rev08) ; le bruit est celle de la baseline ; un codec à bas débit dégrade l'attribution des deux. V2 gagne 2,6 points en français mais en perd 22 sur AMI (Silero coupe la parole lointaine). Le chevauchement est le premier facteur d'échec identifiable.
 Décisions : V2 et V3 écartées, aucune variante de D25 retenue ; point de réglage au bord de la grille laissé tel quel (un seuil plus haut ne pourrait qu'aggraver AMI) ; A4 (Nemotron 3) lancé maintenant. L'option `--racine` de `scripts/reglage_silero.py` devient une option documentée et consignée dans la sortie, au lieu d'être cachée (traçabilité, D18).
+
+## 2026-11-03 — Interface : B14 (écran Retina, focus, cases, zones de dépôt, schéma, sélecteur de thème) (Claude Code)
+
+Objectif : défauts relevés par la candidate (`Prblms UI .pdf`, 03/11) et cible d'affichage décidée le 03/11, dans le worktree `ui`, moteur factice, sans modèle chargé, fusion vers `main` ni dépendance ajoutée ; sous `nice` (piste A en calcul).
+Réalisé :
+- Resynchronisation : `main` fusionnée dans `ui` (`87a9774`) ; conflits résolus en gardant CLAUDE.md de `main` (règles 11 et 12) et les entrées du journal des deux côtés.
+- Cible d'affichage : captures de référence à 375 px retirées du contrôle (8 fichiers), test unique d'absence de débordement horizontal à 1024 px ; règles existantes pour petit écran laissées en place.
+- Coins rognés : reproduits dans Chrome réel à devicePixelRatio 2 et dans Safari réel sur l'écran Retina. Cause commune trouvée par élimination (débordement des blocs, ombres, pseudo-éléments, arrondi des conteneurs) : le conteneur des champs de Gradio (`.form`) prend l'arrondi des cartes (12 px) et masque son débordement vertical, ce qui rogne les coins inférieurs des champs placés à ses bords. Corrigé une fois (`.form` sans arrondi, débordement visible) ; vérifié dans les deux navigateurs.
+- Focus : un seul anneau (`--ws-ring-focus`) sur le cadre visible des listes et des champs ; la règle de l'étiquette réservée aux radios et cases (elle doublait l'anneau du champ numérique). Le contour interne des listes persistait parce que le réécrivain CSS de Gradio coupe aux virgules dans `:is()` et rend inopérant un sélecteur qui commence par `.gradio-container` : règles réécrites, test ajouté.
+- Cases et radios de 18 px, étiquettes cliquables d'au moins 24 px ; zones de dépôt « Fichier audio » et « Référence RTTM » : contenu sous l'étiquette (le `min-height` de 240 px de Gradio le faisait déborder du bloc de 150 px).
+- Pipeline : nom du modèle sur une ligne, coupé en fin avec « … », complet en infobulle ; formes des données coupées aux seules espaces ordinaires (plus « 1,5 / s »), deux lignes au plus, centrées sous leur flèche, sur deux rangées alternées quand l'une d'elles n'y tiendrait pas ; vérifié pour la baseline (9 étapes) et pyannote à 1280 et 1440 px.
+- Sélecteur de thème Clair, Sombre, Système dans l'en-tête, visible en présentation (`app/static/theme.js`) : bascule sans rechargement, mémorisé dans localStorage (protégé, repli sur Système), cohérent avec `?__theme=` ; timeline recolorée sans recharger l'audio (pistes, forme d'onde, vue d'ensemble, spectrogramme). Vérifié : stockage bloqué, URL prioritaire, changement de thème du système.
+- Captures de référence à devicePixelRatio 2 (14 nouvelles) : réglages, focus, schéma, en-tête et timeline après bascule de thème ; tolérance nulle pour les champs, après avoir vérifié qu'avec l'ancien style de `.form` la capture échoue (à 20 pixels de tolérance, elle passait). Captures existantes mises à jour pour ces changements (en-tête, champs, zones de dépôt, schéma) ; Pipeline change aussi par le contenu fusionné de `main` (constats C13 à C17). stylelint, captures et axe-core (clair, sombre) au vert. Captures avant et après dans `docs/audit/b14-avant-apres/` (Chrome à dPR 2, Safari Retina).
+- Tests : `tests/test_app_b14.py` (13) ; test de l'anneau des radios et cases mis à jour.
+Résultats : aucune expérience.
+Décisions : aucune. Choix de la session, à valider : formes des données sur deux rangées alternées plutôt que coupées ; nom du modèle coupé en fin (« WeSpeakerR… ») ; case de 18 px avec marges des options réduites à 10 px ; tolérance nulle pour les captures des champs à dPR 2 ; « Système » par défaut.
+Problèmes :
+- Safari n'a pas pu être piloté (`safaridriver` exige « Allow Remote Automation », réglage non modifié) : vérifié par capture d'écran de la page ouverte dans Safari, sur l'état par défaut (Automatique sélectionné, listes), pas sur Fourchette ni le focus.
+- Les listes déroulantes gardent une bordure plus pâle (`--ws-line`) que les champs numériques (`--ws-control-line`, 3:1) : hors du périmètre de B14, à trancher.
+Suite : retour du cockpit sur B14 ; essai au vidéoprojecteur par la candidate ; fusion d'`ui` dans `main` par la piste A.
 
 ## 2026-11-03 — Cible d'affichage et défauts d'interface relevés par la candidate (cockpit)
 
@@ -1303,3 +1337,21 @@ Décisions :
 - le test `test_constats_du_depot_principal_bien_formes`, qui échoue sur main, se règle par la fusion d'ui (47e1788) dans main, qui apporte le moteur ; on ne retire pas les constats ;
 - validés pour l'intégration de Nemotron 3 : les trois choix du nombre de locuteurs gardés avec un message (analyse faite en automatique), la mise en regard avec pyannote et la baseline ECAPA, et aucune variante active dans `configs/demo.exemple.yaml` jusqu'à la décision du 9/11 (D29) ;
 - piste B en pause : avis du tuteur du 03/11, plus de polissage de l'interface ; seul reste l'essai au vidéoprojecteur.
+
+## 2026-11-03 — Interface : Nemotron 3 Diarization dans l'application, Pipeline de bout en bout (Claude Code)
+
+Objectif : D29 (Nemotron 3 intégré à l'application quel que soit le moteur retenu), dans le worktree `ui` resynchronisé avec `main` (`e618a47`), moteur factice, sans fusion vers `main` ni dépendance dans l'environnement principal ; sous `nice`.
+Réalisé :
+- Moteur `nemotron-3` (Nemotron 3 Diarization, EXP-0027) : enveloppe existante (`envs/nemotron`, sous-processus, CPU imposé), préchauffage et cache comme les autres moteurs (l'empreinte du code couvre `scripts/envs`), étape d'avancement « Réseau de bout en bout », durée annoncée au RTF d'EXP-0027 (0,0104), nombre de locuteurs estimé seulement (Imposé ou Fourchette : message sous le choix et au lancement, analyse en automatique ; refusé dans `configs/demo.yaml`), comparaison proposée par défaut Nemotron 3 contre pyannote, RTTM d'EXP-0027 en mode factice.
+- Onglet Pipeline : système de bout en bout en une seule étape, sans empreintes ni regroupement, réglages réunis ; barre de la naissance des erreurs renvoyée à ce réseau, avec sa légende propre ; formes des données lues dans la configuration ; mise en regard des cascades de pyannote et de la baseline ECAPA ; C18 et C19 sous le réseau. Catalogue : regroupement `bout_en_bout` avec les étapes de cascade qu'il remplace, formes de `nemotron3-diarization`.
+- `configs/demo.exemple.yaml` : les deux variantes du moteur par défaut, en commentaire, aucune retenue (D29, choix du 9/11).
+- Retouche de B14 : bordure des listes déroulantes alignée sur les champs numériques ; classe `ws-cache-info` posée sur la ligne du cache (le masque des captures ne trouvait rien).
+- Commande `whospoke diarize` (E1) : `nemotron-3` ajouté à ses moteurs, qui doivent rester ceux de l'application (test) ; `--locuteurs` autre que `auto` refusé pour lui.
+- Contrôles : stylelint, captures de référence (4 ajoutées : schéma et mise en regard de Nemotron 3 à dPR 2 ; 10 mises à jour pour la bordure des listes et le décompte d'Avancement issu de `main`), axe-core en clair et en sombre, et sur les vues de Nemotron 3 ; vérification dans Chrome à dPR 2. Tests : `tests/test_app_nemotron.py` (15) ; tests des moteurs, du cache et de la configuration de démonstration mis à jour.
+Résultats : aucune expérience.
+Décisions : aucune. Choix de la session, à valider : clé `nemotron-3` dans l'application (celle des constats) ; constats généraux d'une étape de cascade non repris sous le réseau de bout en bout ; trois choix du nombre de locuteurs gardés avec message, plutôt qu'Automatique seul ; mise en regard face à la baseline ECAPA (baseline retenue) ; aucune variante active dans l'exemple (sans clé, le défaut du code, pyannote).
+Problèmes :
+- Écarts de `docs/constats.yaml` (C18, C19) : moteur `nemotron-3`, alors que le moteur s'appelle `nemotron3-diarization` dans le code, EXP-0026 à 0028, le catalogue et le classement ; l'application a pris `nemotron-3` comme clé, rien n'est à corriger si ce choix est validé. Étape `segmentation` : Nemotron 3 n'en a pas (bout en bout) ; les deux constats sont affichés sous le réseau, qui la réalise.
+- Surcoût fixe de Nemotron 3 non mesuré (vrai moteur exclu de cette session) : l'annonce le dit ; à mesurer à la fusion avec `scripts/measure_overhead.py mesure`.
+- Vrai moteur non lancé dans l'application : à vérifier à la fusion (chargement, avancement, fichier de 30 min, D29 condition 4).
+Suite : retour du cockpit ; à la fusion, essai du vrai moteur et mesure du surcoût.

@@ -67,6 +67,14 @@
   box-sizing: border-box; background: transparent; border: 1.5px solid var(--ws-slate);
 }
 
+/* Conteneur des champs de Gradio (`.form`, div.svelte-d5xbca) : il reprend l'arrondi des
+   blocs (--block-radius, celui des cartes, 12 px) et masque son débordement vertical. Ses
+   coins arrondis rognaient donc les coins inférieurs des champs placés à ses bords (option
+   de radio, listes déroulantes, Minimum et Maximum, case du cache), surtout visibles en
+   sombre et sur écran Retina, et coupaient l'anneau de focus (B14). Sans arrondi ni
+   débordement masqué : chaque champ dessine lui-même son cadre. */
+.form { border-radius: 0 !important; overflow: visible !important; }
+
 /* Onglets : soulignement fin, sans couleur. */
 .tab-wrapper, .tab-container { border-bottom: 1px solid var(--ws-line) !important; }
 button[role="tab"] { font-weight: 500 !important; color: var(--ws-slate) !important; }
@@ -168,10 +176,48 @@ button[role="tab"][aria-selected="true"]::after,
 
 /* Focus visible partout, contraste ≥ 3:1, jamais rogné. Gradio retire l'anneau des radios et
    des cases (outline: none) : il est rendu à leur étiquette. */
-:is(button, a, input, textarea, select, [tabindex]):focus-visible {
+button:focus-visible, a:focus-visible, input:focus-visible, textarea:focus-visible, select:focus-visible,
+[tabindex]:focus-visible {
   outline: 2px solid var(--ws-ink) !important; outline-offset: 2px !important;
 }
-label:has(input:focus-visible) { outline: 2px solid var(--ws-ink); outline-offset: 2px; }
+/* Le réécrivain CSS de Gradio préfixe chaque sélecteur par « .gradio-container.gradio-container-N
+   .contain » et coupe aux virgules, même entre parenthèses : ni virgule dans :is() ou :has(),
+   ni sélecteur qui commence lui-même par .gradio-container (sa version préfixée ne correspond
+   plus à rien et perd face aux règles préfixées) (B14). */
+label:has(> input[type="radio"]:focus-visible),
+label:has(> input[type="checkbox"]:focus-visible) { outline: 2px solid var(--ws-ink); outline-offset: 2px; }
+/* Champs encadrés (texte, nombre, liste déroulante) : un seul anneau, celui du système visuel
+   (--ws-ring-focus, 2 px autour du cadre), au lieu du contour du champ plus le cadre de Gradio
+   ou de son étiquette (double cadre, B14). Le champ d'une liste déroulante est sans bordure :
+   l'anneau va à son cadre (.wrap). */
+input[type="number"]:focus-visible,
+input[type="text"]:focus-visible,
+input[role="combobox"]:focus-visible,
+textarea:focus-visible { outline: none !important; }
+input[type="number"]:focus,
+input[type="text"]:not([role="combobox"]):focus,
+textarea:focus { box-shadow: var(--ws-ring-focus) !important; }
+/* Un seul style de champ (retour du cockpit sur B14) : la liste déroulante prend la bordure
+   des champs numériques, --ws-control-line, au contraste d'au moins 3:1 (WCAG 1.4.11) ;
+   Gradio lui donnait la teinte des filets. */
+.wrap:has(input[role="combobox"]) { border-color: var(--ws-control-line) !important; }
+.wrap:has(input[role="combobox"]:focus) { box-shadow: var(--ws-ring-focus) !important; }
+
+/* Cases et radios (B14) : case visible de 18 px, zone cliquable d'au moins 24 px de haut,
+   étiquette comprise (Gradio enveloppe la case dans son étiquette : un clic sur le texte
+   coche). */
+input[type="checkbox"],
+input[type="radio"] { width: 18px !important; height: 18px !important; flex: none; }
+label:has(> input[type="checkbox"]),
+label:has(> input[type="radio"]) { min-height: 24px; cursor: pointer; }
+/* Trois options du nombre de locuteurs sur une ligne malgré la case agrandie. */
+fieldset label:has(> input[type="radio"]) { padding-left: 10px !important; padding-right: 10px !important; }
+
+/* Zones de dépôt (« Fichier audio », « Référence RTTM ») : l'étiquette flotte en haut à gauche
+   du bloc, et le contenu de Gradio (min-height de 240 px) débordait du bloc de 150 px, centré :
+   l'icône passait sous l'étiquette (B14). Contenu à sa hauteur, centré sous l'étiquette. */
+.block:has(> label.float) > .upload-container { padding-top: 30px; }
+.upload-container .wrap { min-height: 0 !important; padding-top: 0; font-size: 0.875rem; line-height: 1.3; }
 
 /* --- Cartes -------------------------------------------------------------------- */
 .ws-card {
@@ -470,6 +516,16 @@ button.primary:active, button.secondary:active { transform: scale(0.97); }
 .pl-n-rev { fill: var(--ws-slate); font-size: 10px; font-family: var(--font-mono); }
 .pl-n-badge { fill: var(--ws-ink); font-size: 10px; }
 .pl-n-shape { fill: var(--ws-slate); font-size: 10.5px; }
+/* Système de bout en bout mis en regard des systèmes en cascade (Nemotron 3). */
+.pl-cascades { margin: var(--ws-space-4) 0 0; }
+.pl-cascades-head { margin: 0 0 var(--ws-space-2); font-size: 0.9rem; }
+.pl-cascades-svg { display: block; width: 100%; height: auto; }
+.pl-cas-chip { fill: var(--ws-surface); stroke: var(--ws-control-line); stroke-width: 1; }
+.pl-cas-e2e { stroke: var(--ws-ink); stroke-width: 2; }
+.pl-cas-text { fill: var(--ws-ink); font-size: 11.5px; }
+.pl-cas-strong { font-weight: 600; }
+.pl-cas-label { fill: var(--ws-ink); font-size: 12px; font-weight: 600; }
+.pl-cas-kind { fill: var(--ws-slate); font-size: 11px; }
 .pl-n-meta { fill: var(--ws-slate); font-size: 10px; }
 .pl-arrow { stroke: var(--ws-slate); stroke-width: 1.5; }
 .pl-arrow-dash { stroke-dasharray: 4 3; }
@@ -589,6 +645,11 @@ button.primary:active, button.secondary:active { transform: scale(0.97); }
 .av-framing { margin-top: var(--ws-space-3); }
 .av-learned-meta .ws-btn-sm { font-variant-numeric: tabular-nums; }
 .av-table code { font-size: 0.8rem; }
+/* Frise : sous 840 px, les cinq dernières expériences ; les autres derrière « Afficher les N
+   autres » (retour du cockpit sur B13). Au-delà, tout est affiché et le bouton masqué. */
+.av-more { margin-top: var(--ws-space-3); }
+@media (min-width: 841px) { .av-more { display: none; } }
+@media (max-width: 840px) { .av-frise:not(.av-all) tr.av-older { display: none; } }
 /* Petit écran : les tableaux de l'onglet s'empilent en fiches, chaque valeur précédée de son
    en-tête (data-label) ; plus de défilement horizontal pour lire une ligne (B13). */
 @media (max-width: 640px) {
@@ -597,11 +658,11 @@ button.primary:active, button.secondary:active { transform: scale(0.97); }
   .av-stack, .av-stack tbody, .av-stack tr, .av-stack td { display: block; width: auto; }
   .av-stack tr { padding: var(--ws-space-2) 0; }
   .av-stack td, .av-stack td:first-child {
-    position: relative; padding: 2px 0 2px 6.5rem; min-width: 0 !important; white-space: normal; text-align: left;
+    position: relative; padding: 2px 0 2px 7rem; min-width: 0 !important; white-space: normal; text-align: left;
   }
   .av-stack td.num { text-align: left; }
   .av-stack td[data-label]::before {
-    content: attr(data-label); position: absolute; left: 0; top: 4px; width: 6rem; color: var(--ws-slate);
+    content: attr(data-label); position: absolute; left: 0; top: 4px; width: 6.5rem; color: var(--ws-slate);
     font-size: 0.75rem; line-height: 1.3;
   }
   .av-stack td:first-child { padding-left: 0; padding-bottom: var(--ws-space-1); }

@@ -1080,6 +1080,8 @@ function render() {
     // Clic sur la vue d'ensemble hors de la fenêtre : le greffon y amène la lecture ; la vue suit.
     minimap.on('click', (relativeX) => reveal(relativeX * v.duree_s, true));
     element._ws = ws;
+    element._minimap = minimap;
+    element._dark = dark;
     element._ready = false;
     element._regions = regions;
     element._url = v.audio_url;
@@ -1243,10 +1245,23 @@ if (element._onPresentation) document.removeEventListener('ws-presentation', ele
 element._onPresentation = onPresentation;
 document.addEventListener('ws-presentation', onPresentation);
 
-// Thème clair ou sombre basculé : spectrogramme, légende et bande d'énergie redessinés.
+// Thème clair ou sombre basculé (sélecteur de l'en-tête, B14) : couleurs des pistes, de la
+// forme d'onde et de la vue d'ensemble recalculées, spectrogramme, légende et bande
+// d'énergie redessinés, sans recharger l'audio ni perdre zoom et position.
 if (element._themeObserver) element._themeObserver.disconnect();
 element._themeObserver = new MutationObserver(() => {
   if (!props.value || !props.value.audio_url) return;
+  const dark = isDark();
+  if (element._dark === dark) return;
+  element._dark = dark;
+  const colors = { waveColor: token('--ws-wave'), progressColor: token('--ws-wave-progress') };
+  element._waveOptions = { ...element._waveOptions, ...colors };
+  if (element._ws) element._ws.setOptions({ cursorColor: token('--ws-ink') });
+  // Vue d'ensemble : le greffon n'a pas de setOptions ; sa forme d'onde et son calque, si.
+  const mini = element._minimap;
+  if (mini && mini.miniWavesurfer) mini.miniWavesurfer.setOptions({ ...colors, cursorColor: token('--ws-ink') });
+  if (mini && mini.overlay) mini.overlay.style.backgroundColor = token('--ws-wave-overlay');
+  render();          // couleurs des locuteurs, pistes, sélection ; vue en cours (setView)
   fillSpecLegend();
   scheduleLayers();
 });

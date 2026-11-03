@@ -15,14 +15,26 @@
 # Date du gel (AAAA-MM-JJ), affichée dans l'en-tête.
 gel: 2026-11-10
 
-# Moteur proposé à l'ouverture de l'onglet Analyse (clé d'un moteur ci-dessous).
-moteur_par_defaut: pyannote-community-1
+# Moteur proposé à l'ouverture de l'onglet Analyse (clé d'un moteur ci-dessous). Choisi le
+# 9/11 par la règle de D29 ; d'ici là, aucune des deux variantes n'est retenue : décommentez
+# celle que la règle désigne en copiant ce fichier en configs/demo.yaml. Sans cette clé,
+# l'application garde le défaut du code (app/moteurs.py, DEFAULT_ENGINE).
+# Dans les deux cas, l'autre moteur reste proposé, et la comparaison proposée par défaut
+# oppose Nemotron 3 et pyannote.
+#
+# Variante A, pyannote (configuration d'EXP-0007, bornes de 2 à 6 locuteurs) :
+# moteur_par_defaut: pyannote-community-1
+#
+# Variante B, Nemotron 3 Diarization (les quatre conditions de D29 réunies) :
+# moteur_par_defaut: nemotron-3
 
 # Moteurs proposés : expérience source (réglages, θ retenu, RTF), et, au besoin, nombre de
 # locuteurs proposé par défaut :
 #   {mode: automatique}                 nombre estimé par le moteur (défaut si la clé manque)
 #   {mode: impose, valeur: N}           N locuteurs
 #   {mode: fourchette, min: A, max: B}  entre A et B (pyannote seulement, D17, amendement 1)
+# Nemotron 3 Diarization estime seul le nombre de locuteurs (8 au plus) : seul « automatique »
+# est accepté pour lui.
 moteurs:
   baseline-mfcc:
     experience_source: EXP-0009
@@ -34,3 +46,7 @@ moteurs:
     experience_source: EXP-0007
     # Garde-fou retenu par le cockpit le 02/11 (EXP-0018 et EXP-0019), sans gain revendiqué.
     nombre_locuteurs: {mode: fourchette, min: 2, max: 6}
+  nemotron-3:
+    # Nemotron 3 Diarization (D23, A4 ; D29), système de bout en bout en CPU, dans son
+    # environnement séparé (scripts/envs/nemotron.sh). Clé « nemotron-3 », celle des constats.
+    experience_source: EXP-0027

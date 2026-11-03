@@ -59,7 +59,9 @@ def code_version(repo_root: Path) -> str:
     return commit + ("" if tree_is_clean(dirty) else "+modifie")
 
 
-ENGINE_CODE = ("src/whospoke", "app/moteurs.py")   # relatifs à la racine du dépôt
+# Relatifs à la racine du dépôt ; scripts/envs : versions figées des environnements séparés
+# des moteurs externes (Nemotron 3), qui changent le résultat sans changer src/whospoke.
+ENGINE_CODE = ("src/whospoke", "app/moteurs.py", "scripts/envs")
 _IGNORED_PARTS = {"__pycache__", ".DS_Store"}
 
 

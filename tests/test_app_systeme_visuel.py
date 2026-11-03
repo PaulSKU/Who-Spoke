@@ -96,7 +96,10 @@ def test_feuilles_sans_valeur_en_dur_ni_regle_reecrite(name):
 
 
 def test_anneau_de_focus_sur_les_radios_et_cases():
-    assert "label:has(input:focus-visible) { outline: 2px solid var(--ws-ink); outline-offset: 2px; }" in SHEETS["interface.css"]
+    # Réservé aux radios et aux cases (B14) : l'étiquette conteneur d'un champ numérique
+    # recevait sinon un second anneau.
+    assert ('label:has(> input[type="radio"]:focus-visible),\nlabel:has(> input[type="checkbox"]:focus-visible) '
+            '{ outline: 2px solid var(--ws-ink); outline-offset: 2px; }') in SHEETS["interface.css"]
 
 
 def _luminance(color: str) -> float:

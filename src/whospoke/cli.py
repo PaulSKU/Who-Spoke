@@ -33,7 +33,7 @@ from pathlib import Path
 
 from whospoke.telemetry import disable_telemetry
 
-ENGINES = ("pyannote-community-1", "baseline-mfcc", "baseline-ecapa", "baseline-wespeaker")
+ENGINES = ("pyannote-community-1", "baseline-mfcc", "baseline-ecapa", "baseline-wespeaker", "nemotron-3")
 DEFAULT_ENGINE = "pyannote-community-1"   # moteur proposé par défaut dans l'interface
 DEVICES = ("auto", "cpu", "mps", "cuda")
 FORMATS = ("rttm", "json")
@@ -123,6 +123,9 @@ def diarize(args: argparse.Namespace) -> str:
     from whospoke.device import select_device
 
     spec = moteurs.SPECS[args.moteur]
+    if spec.auto_only and speaker_conf["mode"] != "automatique":
+        raise CliError(f"{spec.label} estime seul le nombre de locuteurs ({spec.max_speakers} au plus) : "
+                       "--locuteurs auto.")
     if speaker_conf["mode"] == "fourchette" and not spec.supports_range:
         raise CliError(f"{spec.label} ne prend pas en charge une fourchette : imposez un nombre.")
     try:

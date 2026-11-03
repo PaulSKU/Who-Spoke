@@ -40,9 +40,11 @@ RTTM = (
 )
 
 
-def test_quatre_moteurs_proposes():
-    assert set(moteurs.SPECS) == {"baseline-mfcc", "baseline-ecapa", "baseline-wespeaker", "pyannote-community-1"}
-    assert [s.supports_range for s in moteurs.SPECS.values()] == [False, False, False, True]
+def test_cinq_moteurs_proposes():
+    assert set(moteurs.SPECS) == {"baseline-mfcc", "baseline-ecapa", "baseline-wespeaker", "pyannote-community-1",
+                                  "nemotron-3"}
+    assert [s.supports_range for s in moteurs.SPECS.values()] == [False, False, False, True, False]
+    assert [key for key, s in moteurs.SPECS.items() if s.auto_only] == ["nemotron-3"]
 
 
 def test_etapes_annoncees_par_la_baseline():
@@ -139,6 +141,9 @@ def test_surcout_fixe_mesure_pour_chaque_moteur_et_peripherique():
     for key, spec in moteurs.SPECS.items():
         for device in ("cpu",) if spec.cpu_only else ("cpu", "mps"):
             overhead = moteurs.fixed_overhead(key, device)
+            if (key, device) in moteurs.OVERHEAD_TO_MEASURE:
+                assert overhead is None, (key, device)          # mesuré à la fusion, puis retiré
+                continue
             assert overhead is not None and overhead.seconds >= 0.0, (key, device)
             date.fromisoformat(overhead.measured_on)
     assert moteurs.fixed_overhead("pyannote-community-1", "cuda") is None
