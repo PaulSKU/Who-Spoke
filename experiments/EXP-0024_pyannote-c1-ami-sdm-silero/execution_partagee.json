@@ -1,0 +1,14 @@
+{
+  "porteuse": "EXP-0025",
+  "dossier": "experiments/EXP-0025_pyannote-c1-ami-sdm-exclusive-silero",
+  "sortie": "habituelle",
+  "rttm_source": "rttm_habituelle",
+  "executions": {
+    "execution_cpu.json": "a710017587ffefaaa9a5bccd3104b377469fd0c78f3b324e74fefe87c49a1b83",
+    "execution_mps.json": "ca97b1d413e8a7460d7ba2704ccb56e8a6e828f8a424e512a650fddb64ad2ba6"
+  },
+  "config_sha256_porteuse": "1c5aa21c70142c48f5b0bcc5c6f0d9ffb99053fce8a0692097ed291faa90e89e",
+  "config_sha256": "bad0910acea42b39daa8815b1854a655f4ba8574662fbdfbe6bc82f5f74081eb",
+  "date": "2026-11-03T05:48:01+01:00",
+  "temps": "rapporté par la porteuse seulement"
+}

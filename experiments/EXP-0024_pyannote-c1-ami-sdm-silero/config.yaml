@@ -1,0 +1,51 @@
+# EXP-0024 — V2 de D25 sur AMI SDM, dev et test : sortie habituelle de pyannote intersectée avec
+# le masque de parole de Silero VAD (réglé sur SUMM-RE dev). Configuration de EXP-0001, une seule
+# variable : le post-traitement. Exécution partagée avec EXP-0025 (V3), qui la porte.
+exp_id: EXP-0024
+slug: pyannote-c1-ami-sdm-silero
+reference: EXP-0001
+variable_modifiee: post_traitement   # masque de parole de Silero VAD (D25, V2/V3)
+graine: 0                     # pipeline déterministe ; graine consignée par convention
+
+pipeline:
+  nom: pyannote-community-1-silero   # pyannote community-1, sortie intersectée avec le masque de Silero (E5)
+  vad: integree               # segmentation de la pipeline, pas de VAD séparée
+  parametres:                 # nombre de locuteurs estimé : aucune contrainte
+    num_speakers: null
+    min_speakers: null
+    max_speakers: null
+    sortie: habituelle              # sortie évaluée ; l'autre sortie de la même exécution est l'autre expérience
+    silero: {seuil: 0.8, silence_min_s: 0.0, marge_s: 0.03}   # point retenu sur SUMM-RE dev (results/reglage_silero/2026-11-03_02h17)
+
+device: mps
+prechauffage_s: 60            # extrait du premier fichier, non compté (protocole §3.5)
+
+jeux:
+  - corpus: ami
+    partition: dev
+    liste: data/splits/ami/dev.txt
+  - corpus: ami
+    partition: test
+    liste: data/splits/ami/test.txt
+
+# Mesure en CPU seul sur le sous-ensemble de mesure du temps (protocole §3.5).
+mesure_cpu:
+  corpus: ami
+  liste: data/splits/ami/temps.txt
+
+evaluation:
+  references: data/processed/ami/rttm   # RTTM only_words, uri réécrit en ami__<réunion>
+  uem: data/splits/ami/uem              # UEM du dépôt pyannote/AMI-diarization-setup
+  conditions: {collar_0: 0.0, collar_0_25: 0.5}
+  skip_overlap: false
+
+materiel:
+  machine: MacBook Pro M2 Pro
+  ram_go: 16
+
+# Exécution partagée (décision du cockpit du 02/11 ; whospoke.partage) : une seule exécution,
+# portée par EXP-0025 (sortie exclusive), donne EXP-0024 (V2, sortie habituelle) et EXP-0025 (V3).
+# Le temps de calcul n'est rapporté que par la porteuse.
+execution_partagee:
+  porteuse: EXP-0025
+  experiences: {EXP-0024: habituelle, EXP-0025: exclusive}

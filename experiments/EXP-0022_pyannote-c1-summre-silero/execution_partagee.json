@@ -1,0 +1,14 @@
+{
+  "porteuse": "EXP-0023",
+  "dossier": "experiments/EXP-0023_pyannote-c1-summre-exclusive-silero",
+  "sortie": "habituelle",
+  "rttm_source": "rttm_habituelle",
+  "executions": {
+    "execution_cpu.json": "267aae64cc01eb01ae6c5b02ca0d2677754ce5e6d3a6c83d765c43e9ed65a8fe",
+    "execution_mps.json": "1ece830ea00931626cb757f9aba454dbf9d6d0aa35818efef02b57da3334f410"
+  },
+  "config_sha256_porteuse": "245e842d98a9246ba23dbc015b4c1486f3d716f995c3e02afe8fd84cdaea8e03",
+  "config_sha256": "58f8b8455ffb387a66de9f548ac6bfbad9b53fa9aa58c8d77bbb9450173a9036",
+  "date": "2026-11-03T04:12:59+01:00",
+  "temps": "rapporté par la porteuse seulement"
+}

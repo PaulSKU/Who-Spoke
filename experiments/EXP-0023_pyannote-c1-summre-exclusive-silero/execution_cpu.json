@@ -1,0 +1,805 @@
+{
+  "exp_id": "EXP-0023",
+  "mode": "mesure_cpu",
+  "sous_ensemble": "data/splits/summre/temps.txt",
+  "date_fin": "2026-11-03T04:12:59+01:00",
+  "git_commit": "2d81861933c338f31137796f15253b37e5e85dcc",
+  "arbre_propre": true,
+  "fichiers_non_commites": [
+    "analyses/A-0003_cas-echec/config.yaml",
+    "experiments/EXP-0022_pyannote-c1-summre-silero/config.yaml",
+    "experiments/EXP-0022_pyannote-c1-summre-silero/execution_partagee.json",
+    "experiments/EXP-0022_pyannote-c1-summre-silero/rttm/summre__004c_PAPH.rttm",
+    "experiments/EXP-0022_pyannote-c1-summre-silero/rttm/summre__006b_EADH.rttm",
+    "experiments/EXP-0022_pyannote-c1-summre-silero/rttm/summre__007a_ECRH.rttm",
+    "experiments/EXP-0022_pyannote-c1-summre-silero/rttm/summre__008a_EARH.rttm",
+    "experiments/EXP-0022_pyannote-c1-summre-silero/rttm/summre__011c_ECPL.rttm",
+    "experiments/EXP-0022_pyannote-c1-summre-silero/rttm/summre__012c_EBPZ.rttm",
+    "experiments/EXP-0022_pyannote-c1-summre-silero/rttm/summre__013c_EAPD.rttm",
+    "experiments/EXP-0022_pyannote-c1-summre-silero/rttm/summre__014c_EAPD.rttm",
+    "experiments/EXP-0022_pyannote-c1-summre-silero/rttm/summre__015b_EBDD.rttm",
+    "experiments/EXP-0022_pyannote-c1-summre-silero/rttm/summre__016c_EBPZ.rttm",
+    "experiments/EXP-0022_pyannote-c1-summre-silero/rttm/summre__017a_EBRZ.rttm",
+    "experiments/EXP-0022_pyannote-c1-summre-silero/rttm/summre__018a_EARZ.rttm",
+    "experiments/EXP-0022_pyannote-c1-summre-silero/rttm/summre__018b_EADZ.rttm",
+    "experiments/EXP-0022_pyannote-c1-summre-silero/rttm/summre__019a_EARD.rttm",
+    "experiments/EXP-0022_pyannote-c1-summre-silero/rttm/summre__019c_EAPD.rttm",
+    "experiments/EXP-0022_pyannote-c1-summre-silero/rttm/summre__020b_EBDZ.rttm",
+    "experiments/EXP-0022_pyannote-c1-summre-silero/rttm/summre__020c_EBPZ.rttm",
+    "experiments/EXP-0022_pyannote-c1-summre-silero/rttm/summre__021a_EARD.rttm",
+    "experiments/EXP-0022_pyannote-c1-summre-silero/rttm/summre__021b_EADD.rttm",
+    "experiments/EXP-0022_pyannote-c1-summre-silero/rttm/summre__024c_EBPH.rttm",
+    "experiments/EXP-0022_pyannote-c1-summre-silero/rttm/summre__025b_EBDH.rttm",
+    "experiments/EXP-0022_pyannote-c1-summre-silero/rttm/summre__027a_EBRH.rttm",
+    "experiments/EXP-0022_pyannote-c1-summre-silero/rttm/summre__032a_EARH.rttm",
+    "experiments/EXP-0022_pyannote-c1-summre-silero/rttm/summre__032b_EADH.rttm",
+    "experiments/EXP-0022_pyannote-c1-summre-silero/rttm/summre__033a_EBRH.rttm",
+    "experiments/EXP-0022_pyannote-c1-summre-silero/rttm/summre__033c_EBPH.rttm",
+    "experiments/EXP-0022_pyannote-c1-summre-silero/rttm/summre__034a_EBRH.rttm",
+    "experiments/EXP-0022_pyannote-c1-summre-silero/rttm/summre__035b_EADH.rttm",
+    "experiments/EXP-0022_pyannote-c1-summre-silero/rttm/summre__036b_EADH.rttm",
+    "experiments/EXP-0022_pyannote-c1-summre-silero/rttm/summre__036c_EAPH.rttm",
+    "experiments/EXP-0022_pyannote-c1-summre-silero/rttm/summre__037a_EARH.rttm",
+    "experiments/EXP-0022_pyannote-c1-summre-silero/rttm/summre__039b_EDDH.rttm",
+    "experiments/EXP-0022_pyannote-c1-summre-silero/rttm/summre__040a_EERH.rttm",
+    "experiments/EXP-0022_pyannote-c1-summre-silero/rttm/summre__043a_EDRH.rttm",
+    "experiments/EXP-0022_pyannote-c1-summre-silero/rttm/summre__044c_EBPH.rttm",
+    "experiments/EXP-0022_pyannote-c1-summre-silero/rttm/summre__045a_EARH.rttm",
+    "experiments/EXP-0022_pyannote-c1-summre-silero/rttm/summre__045b_EADH.rttm",
+    "experiments/EXP-0022_pyannote-c1-summre-silero/rttm/summre__046c_EBPH.rttm",
+    "experiments/EXP-0022_pyannote-c1-summre-silero/rttm/summre__047a_EDRH.rttm",
+    "experiments/EXP-0022_pyannote-c1-summre-silero/rttm/summre__047c_EDPH.rttm",
+    "experiments/EXP-0022_pyannote-c1-summre-silero/rttm/summre__049b_EBDH.rttm",
+    "experiments/EXP-0022_pyannote-c1-summre-silero/rttm/summre__050c_EEPH.rttm",
+    "experiments/EXP-0022_pyannote-c1-summre-silero/rttm/summre__051a_EARH.rttm",
+    "experiments/EXP-0022_pyannote-c1-summre-silero/rttm/summre__053b_EDDH.rttm",
+    "experiments/EXP-0022_pyannote-c1-summre-silero/rttm/summre__054a_EARH.rttm",
+    "experiments/EXP-0022_pyannote-c1-summre-silero/rttm/summre__054c_EAPH.rttm",
+    "experiments/EXP-0022_pyannote-c1-summre-silero/rttm/summre__059b_EBDH.rttm",
+    "experiments/EXP-0022_pyannote-c1-summre-silero/rttm/summre__060a_EDRH.rttm",
+    "experiments/EXP-0022_pyannote-c1-summre-silero/rttm/summre__066a_EARH.rttm",
+    "experiments/EXP-0022_pyannote-c1-summre-silero/rttm/summre__069b_EEDL.rttm",
+    "experiments/EXP-0022_pyannote-c1-summre-silero/rttm/summre__069c_EEPL.rttm",
+    "experiments/EXP-0022_pyannote-c1-summre-silero/rttm/summre__070a_EBRL.rttm",
+    "experiments/EXP-0022_pyannote-c1-summre-silero/rttm/summre__070b_EBDL.rttm",
+    "experiments/EXP-0022_pyannote-c1-summre-silero/rttm/summre__072b_EEDH.rttm",
+    "experiments/EXP-0022_pyannote-c1-summre-silero/rttm/summre__072c_EEPH.rttm",
+    "experiments/EXP-0022_pyannote-c1-summre-silero/rttm/summre__074c_EAPH.rttm",
+    "experiments/EXP-0022_pyannote-c1-summre-silero/rttm/summre__075b_EBDH.rttm",
+    "experiments/EXP-0022_pyannote-c1-summre-silero/rttm/summre__076b_EEDH.rttm",
+    "experiments/EXP-0022_pyannote-c1-summre-silero/rttm/summre__077c_EBPH.rttm",
+    "experiments/EXP-0022_pyannote-c1-summre-silero/rttm/summre__080b_EBDH.rttm",
+    "experiments/EXP-0022_pyannote-c1-summre-silero/rttm/summre__081a_EBRH.rttm",
+    "experiments/EXP-0022_pyannote-c1-summre-silero/rttm/summre__081c_EBPH.rttm",
+    "experiments/EXP-0022_pyannote-c1-summre-silero/rttm/summre__084c_EBPH.rttm",
+    "experiments/EXP-0022_pyannote-c1-summre-silero/rttm/summre__088b_EADH.rttm",
+    "experiments/EXP-0022_pyannote-c1-summre-silero/rttm/summre__091b_EBDH.rttm",
+    "experiments/EXP-0022_pyannote-c1-summre-silero/rttm/summre__093c_EBPZ.rttm",
+    "experiments/EXP-0022_pyannote-c1-summre-silero/rttm/summre__097b_EBDH.rttm",
+    "experiments/EXP-0022_pyannote-c1-summre-silero/rttm/summre__097c_EBPH.rttm",
+    "experiments/EXP-0022_pyannote-c1-summre-silero/rttm/summre__100b_EADH.rttm",
+    "experiments/EXP-0022_pyannote-c1-summre-silero/rttm/summre__101c_EDPH.rttm",
+    "experiments/EXP-0022_pyannote-c1-summre-silero/rttm/summre__102a_EBRH.rttm",
+    "experiments/EXP-0022_pyannote-c1-summre-silero/rttm/summre__102c_EBPH.rttm",
+    "experiments/EXP-0022_pyannote-c1-summre-silero/rttm/summre__104b_EADH.rttm",
+    "experiments/EXP-0023_pyannote-c1-summre-exclusive-silero/config.yaml",
+    "experiments/EXP-0023_pyannote-c1-summre-exclusive-silero/execution_mps.json",
+    "experiments/EXP-0023_pyannote-c1-summre-exclusive-silero/rttm/summre__004c_PAPH.rttm",
+    "experiments/EXP-0023_pyannote-c1-summre-exclusive-silero/rttm/summre__006b_EADH.rttm",
+    "experiments/EXP-0023_pyannote-c1-summre-exclusive-silero/rttm/summre__007a_ECRH.rttm",
+    "experiments/EXP-0023_pyannote-c1-summre-exclusive-silero/rttm/summre__008a_EARH.rttm",
+    "experiments/EXP-0023_pyannote-c1-summre-exclusive-silero/rttm/summre__011c_ECPL.rttm",
+    "experiments/EXP-0023_pyannote-c1-summre-exclusive-silero/rttm/summre__012c_EBPZ.rttm",
+    "experiments/EXP-0023_pyannote-c1-summre-exclusive-silero/rttm/summre__013c_EAPD.rttm",
+    "experiments/EXP-0023_pyannote-c1-summre-exclusive-silero/rttm/summre__014c_EAPD.rttm",
+    "experiments/EXP-0023_pyannote-c1-summre-exclusive-silero/rttm/summre__015b_EBDD.rttm",
+    "experiments/EXP-0023_pyannote-c1-summre-exclusive-silero/rttm/summre__016c_EBPZ.rttm",
+    "experiments/EXP-0023_pyannote-c1-summre-exclusive-silero/rttm/summre__017a_EBRZ.rttm",
+    "experiments/EXP-0023_pyannote-c1-summre-exclusive-silero/rttm/summre__018a_EARZ.rttm",
+    "experiments/EXP-0023_pyannote-c1-summre-exclusive-silero/rttm/summre__018b_EADZ.rttm",
+    "experiments/EXP-0023_pyannote-c1-summre-exclusive-silero/rttm/summre__019a_EARD.rttm",
+    "experiments/EXP-0023_pyannote-c1-summre-exclusive-silero/rttm/summre__019c_EAPD.rttm",
+    "experiments/EXP-0023_pyannote-c1-summre-exclusive-silero/rttm/summre__020b_EBDZ.rttm",
+    "experiments/EXP-0023_pyannote-c1-summre-exclusive-silero/rttm/summre__020c_EBPZ.rttm",
+    "experiments/EXP-0023_pyannote-c1-summre-exclusive-silero/rttm/summre__021a_EARD.rttm",
+    "experiments/EXP-0023_pyannote-c1-summre-exclusive-silero/rttm/summre__021b_EADD.rttm",
+    "experiments/EXP-0023_pyannote-c1-summre-exclusive-silero/rttm/summre__024c_EBPH.rttm",
+    "experiments/EXP-0023_pyannote-c1-summre-exclusive-silero/rttm/summre__025b_EBDH.rttm",
+    "experiments/EXP-0023_pyannote-c1-summre-exclusive-silero/rttm/summre__027a_EBRH.rttm",
+    "experiments/EXP-0023_pyannote-c1-summre-exclusive-silero/rttm/summre__032a_EARH.rttm",
+    "experiments/EXP-0023_pyannote-c1-summre-exclusive-silero/rttm/summre__032b_EADH.rttm",
+    "experiments/EXP-0023_pyannote-c1-summre-exclusive-silero/rttm/summre__033a_EBRH.rttm",
+    "experiments/EXP-0023_pyannote-c1-summre-exclusive-silero/rttm/summre__033c_EBPH.rttm",
+    "experiments/EXP-0023_pyannote-c1-summre-exclusive-silero/rttm/summre__034a_EBRH.rttm",
+    "experiments/EXP-0023_pyannote-c1-summre-exclusive-silero/rttm/summre__035b_EADH.rttm",
+    "experiments/EXP-0023_pyannote-c1-summre-exclusive-silero/rttm/summre__036b_EADH.rttm",
+    "experiments/EXP-0023_pyannote-c1-summre-exclusive-silero/rttm/summre__036c_EAPH.rttm",
+    "experiments/EXP-0023_pyannote-c1-summre-exclusive-silero/rttm/summre__037a_EARH.rttm",
+    "experiments/EXP-0023_pyannote-c1-summre-exclusive-silero/rttm/summre__039b_EDDH.rttm",
+    "experiments/EXP-0023_pyannote-c1-summre-exclusive-silero/rttm/summre__040a_EERH.rttm",
+    "experiments/EXP-0023_pyannote-c1-summre-exclusive-silero/rttm/summre__043a_EDRH.rttm",
+    "experiments/EXP-0023_pyannote-c1-summre-exclusive-silero/rttm/summre__044c_EBPH.rttm",
+    "experiments/EXP-0023_pyannote-c1-summre-exclusive-silero/rttm/summre__045a_EARH.rttm",
+    "experiments/EXP-0023_pyannote-c1-summre-exclusive-silero/rttm/summre__045b_EADH.rttm",
+    "experiments/EXP-0023_pyannote-c1-summre-exclusive-silero/rttm/summre__046c_EBPH.rttm",
+    "experiments/EXP-0023_pyannote-c1-summre-exclusive-silero/rttm/summre__047a_EDRH.rttm",
+    "experiments/EXP-0023_pyannote-c1-summre-exclusive-silero/rttm/summre__047c_EDPH.rttm",
+    "experiments/EXP-0023_pyannote-c1-summre-exclusive-silero/rttm/summre__049b_EBDH.rttm",
+    "experiments/EXP-0023_pyannote-c1-summre-exclusive-silero/rttm/summre__050c_EEPH.rttm",
+    "experiments/EXP-0023_pyannote-c1-summre-exclusive-silero/rttm/summre__051a_EARH.rttm",
+    "experiments/EXP-0023_pyannote-c1-summre-exclusive-silero/rttm/summre__053b_EDDH.rttm",
+    "experiments/EXP-0023_pyannote-c1-summre-exclusive-silero/rttm/summre__054a_EARH.rttm",
+    "experiments/EXP-0023_pyannote-c1-summre-exclusive-silero/rttm/summre__054c_EAPH.rttm",
+    "experiments/EXP-0023_pyannote-c1-summre-exclusive-silero/rttm/summre__059b_EBDH.rttm",
+    "experiments/EXP-0023_pyannote-c1-summre-exclusive-silero/rttm/summre__060a_EDRH.rttm",
+    "experiments/EXP-0023_pyannote-c1-summre-exclusive-silero/rttm/summre__066a_EARH.rttm",
+    "experiments/EXP-0023_pyannote-c1-summre-exclusive-silero/rttm/summre__069b_EEDL.rttm",
+    "experiments/EXP-0023_pyannote-c1-summre-exclusive-silero/rttm/summre__069c_EEPL.rttm",
+    "experiments/EXP-0023_pyannote-c1-summre-exclusive-silero/rttm/summre__070a_EBRL.rttm",
+    "experiments/EXP-0023_pyannote-c1-summre-exclusive-silero/rttm/summre__070b_EBDL.rttm",
+    "experiments/EXP-0023_pyannote-c1-summre-exclusive-silero/rttm/summre__072b_EEDH.rttm",
+    "experiments/EXP-0023_pyannote-c1-summre-exclusive-silero/rttm/summre__072c_EEPH.rttm",
+    "experiments/EXP-0023_pyannote-c1-summre-exclusive-silero/rttm/summre__074c_EAPH.rttm",
+    "experiments/EXP-0023_pyannote-c1-summre-exclusive-silero/rttm/summre__075b_EBDH.rttm",
+    "experiments/EXP-0023_pyannote-c1-summre-exclusive-silero/rttm/summre__076b_EEDH.rttm",
+    "experiments/EXP-0023_pyannote-c1-summre-exclusive-silero/rttm/summre__077c_EBPH.rttm",
+    "experiments/EXP-0023_pyannote-c1-summre-exclusive-silero/rttm/summre__080b_EBDH.rttm",
+    "experiments/EXP-0023_pyannote-c1-summre-exclusive-silero/rttm/summre__081a_EBRH.rttm",
+    "experiments/EXP-0023_pyannote-c1-summre-exclusive-silero/rttm/summre__081c_EBPH.rttm",
+    "experiments/EXP-0023_pyannote-c1-summre-exclusive-silero/rttm/summre__084c_EBPH.rttm",
+    "experiments/EXP-0023_pyannote-c1-summre-exclusive-silero/rttm/summre__088b_EADH.rttm",
+    "experiments/EXP-0023_pyannote-c1-summre-exclusive-silero/rttm/summre__091b_EBDH.rttm",
+    "experiments/EXP-0023_pyannote-c1-summre-exclusive-silero/rttm/summre__093c_EBPZ.rttm",
+    "experiments/EXP-0023_pyannote-c1-summre-exclusive-silero/rttm/summre__097b_EBDH.rttm",
+    "experiments/EXP-0023_pyannote-c1-summre-exclusive-silero/rttm/summre__097c_EBPH.rttm",
+    "experiments/EXP-0023_pyannote-c1-summre-exclusive-silero/rttm/summre__100b_EADH.rttm",
+    "experiments/EXP-0023_pyannote-c1-summre-exclusive-silero/rttm/summre__101c_EDPH.rttm",
+    "experiments/EXP-0023_pyannote-c1-summre-exclusive-silero/rttm/summre__102a_EBRH.rttm",
+    "experiments/EXP-0023_pyannote-c1-summre-exclusive-silero/rttm/summre__102c_EBPH.rttm",
+    "experiments/EXP-0023_pyannote-c1-summre-exclusive-silero/rttm/summre__104b_EADH.rttm",
+    "experiments/EXP-0023_pyannote-c1-summre-exclusive-silero/rttm_habituelle/summre__004c_PAPH.rttm",
+    "experiments/EXP-0023_pyannote-c1-summre-exclusive-silero/rttm_habituelle/summre__006b_EADH.rttm",
+    "experiments/EXP-0023_pyannote-c1-summre-exclusive-silero/rttm_habituelle/summre__007a_ECRH.rttm",
+    "experiments/EXP-0023_pyannote-c1-summre-exclusive-silero/rttm_habituelle/summre__008a_EARH.rttm",
+    "experiments/EXP-0023_pyannote-c1-summre-exclusive-silero/rttm_habituelle/summre__011c_ECPL.rttm",
+    "experiments/EXP-0023_pyannote-c1-summre-exclusive-silero/rttm_habituelle/summre__012c_EBPZ.rttm",
+    "experiments/EXP-0023_pyannote-c1-summre-exclusive-silero/rttm_habituelle/summre__013c_EAPD.rttm",
+    "experiments/EXP-0023_pyannote-c1-summre-exclusive-silero/rttm_habituelle/summre__014c_EAPD.rttm",
+    "experiments/EXP-0023_pyannote-c1-summre-exclusive-silero/rttm_habituelle/summre__015b_EBDD.rttm",
+    "experiments/EXP-0023_pyannote-c1-summre-exclusive-silero/rttm_habituelle/summre__016c_EBPZ.rttm",
+    "experiments/EXP-0023_pyannote-c1-summre-exclusive-silero/rttm_habituelle/summre__017a_EBRZ.rttm",
+    "experiments/EXP-0023_pyannote-c1-summre-exclusive-silero/rttm_habituelle/summre__018a_EARZ.rttm",
+    "experiments/EXP-0023_pyannote-c1-summre-exclusive-silero/rttm_habituelle/summre__018b_EADZ.rttm",
+    "experiments/EXP-0023_pyannote-c1-summre-exclusive-silero/rttm_habituelle/summre__019a_EARD.rttm",
+    "experiments/EXP-0023_pyannote-c1-summre-exclusive-silero/rttm_habituelle/summre__019c_EAPD.rttm",
+    "experiments/EXP-0023_pyannote-c1-summre-exclusive-silero/rttm_habituelle/summre__020b_EBDZ.rttm",
+    "experiments/EXP-0023_pyannote-c1-summre-exclusive-silero/rttm_habituelle/summre__020c_EBPZ.rttm",
+    "experiments/EXP-0023_pyannote-c1-summre-exclusive-silero/rttm_habituelle/summre__021a_EARD.rttm",
+    "experiments/EXP-0023_pyannote-c1-summre-exclusive-silero/rttm_habituelle/summre__021b_EADD.rttm",
+    "experiments/EXP-0023_pyannote-c1-summre-exclusive-silero/rttm_habituelle/summre__024c_EBPH.rttm",
+    "experiments/EXP-0023_pyannote-c1-summre-exclusive-silero/rttm_habituelle/summre__025b_EBDH.rttm",
+    "experiments/EXP-0023_pyannote-c1-summre-exclusive-silero/rttm_habituelle/summre__027a_EBRH.rttm",
+    "experiments/EXP-0023_pyannote-c1-summre-exclusive-silero/rttm_habituelle/summre__032a_EARH.rttm",
+    "experiments/EXP-0023_pyannote-c1-summre-exclusive-silero/rttm_habituelle/summre__032b_EADH.rttm",
+    "experiments/EXP-0023_pyannote-c1-summre-exclusive-silero/rttm_habituelle/summre__033a_EBRH.rttm",
+    "experiments/EXP-0023_pyannote-c1-summre-exclusive-silero/rttm_habituelle/summre__033c_EBPH.rttm",
+    "experiments/EXP-0023_pyannote-c1-summre-exclusive-silero/rttm_habituelle/summre__034a_EBRH.rttm",
+    "experiments/EXP-0023_pyannote-c1-summre-exclusive-silero/rttm_habituelle/summre__035b_EADH.rttm",
+    "experiments/EXP-0023_pyannote-c1-summre-exclusive-silero/rttm_habituelle/summre__036b_EADH.rttm",
+    "experiments/EXP-0023_pyannote-c1-summre-exclusive-silero/rttm_habituelle/summre__036c_EAPH.rttm",
+    "experiments/EXP-0023_pyannote-c1-summre-exclusive-silero/rttm_habituelle/summre__037a_EARH.rttm",
+    "experiments/EXP-0023_pyannote-c1-summre-exclusive-silero/rttm_habituelle/summre__039b_EDDH.rttm",
+    "experiments/EXP-0023_pyannote-c1-summre-exclusive-silero/rttm_habituelle/summre__040a_EERH.rttm",
+    "experiments/EXP-0023_pyannote-c1-summre-exclusive-silero/rttm_habituelle/summre__043a_EDRH.rttm",
+    "experiments/EXP-0023_pyannote-c1-summre-exclusive-silero/rttm_habituelle/summre__044c_EBPH.rttm",
+    "experiments/EXP-0023_pyannote-c1-summre-exclusive-silero/rttm_habituelle/summre__045a_EARH.rttm",
+    "experiments/EXP-0023_pyannote-c1-summre-exclusive-silero/rttm_habituelle/summre__045b_EADH.rttm",
+    "experiments/EXP-0023_pyannote-c1-summre-exclusive-silero/rttm_habituelle/summre__046c_EBPH.rttm",
+    "experiments/EXP-0023_pyannote-c1-summre-exclusive-silero/rttm_habituelle/summre__047a_EDRH.rttm",
+    "experiments/EXP-0023_pyannote-c1-summre-exclusive-silero/rttm_habituelle/summre__047c_EDPH.rttm",
+    "experiments/EXP-0023_pyannote-c1-summre-exclusive-silero/rttm_habituelle/summre__049b_EBDH.rttm",
+    "experiments/EXP-0023_pyannote-c1-summre-exclusive-silero/rttm_habituelle/summre__050c_EEPH.rttm",
+    "experiments/EXP-0023_pyannote-c1-summre-exclusive-silero/rttm_habituelle/summre__051a_EARH.rttm",
+    "experiments/EXP-0023_pyannote-c1-summre-exclusive-silero/rttm_habituelle/summre__053b_EDDH.rttm",
+    "experiments/EXP-0023_pyannote-c1-summre-exclusive-silero/rttm_habituelle/summre__054a_EARH.rttm",
+    "experiments/EXP-0023_pyannote-c1-summre-exclusive-silero/rttm_habituelle/summre__054c_EAPH.rttm",
+    "experiments/EXP-0023_pyannote-c1-summre-exclusive-silero/rttm_habituelle/summre__059b_EBDH.rttm",
+    "experiments/EXP-0023_pyannote-c1-summre-exclusive-silero/rttm_habituelle/summre__060a_EDRH.rttm",
+    "experiments/EXP-0023_pyannote-c1-summre-exclusive-silero/rttm_habituelle/summre__066a_EARH.rttm",
+    "experiments/EXP-0023_pyannote-c1-summre-exclusive-silero/rttm_habituelle/summre__069b_EEDL.rttm",
+    "experiments/EXP-0023_pyannote-c1-summre-exclusive-silero/rttm_habituelle/summre__069c_EEPL.rttm",
+    "experiments/EXP-0023_pyannote-c1-summre-exclusive-silero/rttm_habituelle/summre__070a_EBRL.rttm",
+    "experiments/EXP-0023_pyannote-c1-summre-exclusive-silero/rttm_habituelle/summre__070b_EBDL.rttm",
+    "experiments/EXP-0023_pyannote-c1-summre-exclusive-silero/rttm_habituelle/summre__072b_EEDH.rttm",
+    "experiments/EXP-0023_pyannote-c1-summre-exclusive-silero/rttm_habituelle/summre__072c_EEPH.rttm",
+    "experiments/EXP-0023_pyannote-c1-summre-exclusive-silero/rttm_habituelle/summre__074c_EAPH.rttm",
+    "experiments/EXP-0023_pyannote-c1-summre-exclusive-silero/rttm_habituelle/summre__075b_EBDH.rttm",
+    "experiments/EXP-0023_pyannote-c1-summre-exclusive-silero/rttm_habituelle/summre__076b_EEDH.rttm",
+    "experiments/EXP-0023_pyannote-c1-summre-exclusive-silero/rttm_habituelle/summre__077c_EBPH.rttm",
+    "experiments/EXP-0023_pyannote-c1-summre-exclusive-silero/rttm_habituelle/summre__080b_EBDH.rttm",
+    "experiments/EXP-0023_pyannote-c1-summre-exclusive-silero/rttm_habituelle/summre__081a_EBRH.rttm",
+    "experiments/EXP-0023_pyannote-c1-summre-exclusive-silero/rttm_habituelle/summre__081c_EBPH.rttm",
+    "experiments/EXP-0023_pyannote-c1-summre-exclusive-silero/rttm_habituelle/summre__084c_EBPH.rttm",
+    "experiments/EXP-0023_pyannote-c1-summre-exclusive-silero/rttm_habituelle/summre__088b_EADH.rttm",
+    "experiments/EXP-0023_pyannote-c1-summre-exclusive-silero/rttm_habituelle/summre__091b_EBDH.rttm",
+    "experiments/EXP-0023_pyannote-c1-summre-exclusive-silero/rttm_habituelle/summre__093c_EBPZ.rttm",
+    "experiments/EXP-0023_pyannote-c1-summre-exclusive-silero/rttm_habituelle/summre__097b_EBDH.rttm",
+    "experiments/EXP-0023_pyannote-c1-summre-exclusive-silero/rttm_habituelle/summre__097c_EBPH.rttm",
+    "experiments/EXP-0023_pyannote-c1-summre-exclusive-silero/rttm_habituelle/summre__100b_EADH.rttm",
+    "experiments/EXP-0023_pyannote-c1-summre-exclusive-silero/rttm_habituelle/summre__101c_EDPH.rttm",
+    "experiments/EXP-0023_pyannote-c1-summre-exclusive-silero/rttm_habituelle/summre__102a_EBRH.rttm",
+    "experiments/EXP-0023_pyannote-c1-summre-exclusive-silero/rttm_habituelle/summre__102c_EBPH.rttm",
+    "experiments/EXP-0023_pyannote-c1-summre-exclusive-silero/rttm_habituelle/summre__104b_EADH.rttm",
+    "experiments/EXP-0023_pyannote-c1-summre-exclusive-silero/run.log",
+    "experiments/EXP-0024_pyannote-c1-ami-sdm-silero/config.yaml",
+    "experiments/EXP-0025_pyannote-c1-ami-sdm-exclusive-silero/config.yaml"
+  ],
+  "config_sha256": "245e842d98a9246ba23dbc015b4c1486f3d716f995c3e02afe8fd84cdaea8e03",
+  "device": "cpu",
+  "torch_threads": 6,
+  "versions": {
+    "python": "3.11.15",
+    "torch": "2.14.1",
+    "pyannote.audio": "4.0.7",
+    "librosa": "0.11.0",
+    "speechbrain": "1.1.2"
+  },
+  "mode_n_locuteurs": "estime",
+  "detection_oracle": false,
+  "trace": false,
+  "balayage": null,
+  "configuration_effective": {
+    "detection": [
+      {
+        "nom": "segmentation.modele",
+        "valeur": "pyannote/speaker-diarization-community-1/segmentation@3533c8cf8e369892e6b79ff1bf80f7b0286a54ee (PyanNet)",
+        "origine": "modele"
+      },
+      {
+        "nom": "segmentation.powerset",
+        "valeur": true,
+        "origine": "modele"
+      },
+      {
+        "nom": "segmentation.min_duration_off",
+        "valeur": 0.0,
+        "origine": "defaut"
+      },
+      {
+        "nom": "silero.modele",
+        "valeur": "silero-vad==6.2.3@e1122837f415 (silero_vad.jit)",
+        "origine": "code"
+      },
+      {
+        "nom": "silero.seuil",
+        "valeur": 0.8,
+        "origine": "experience"
+      },
+      {
+        "nom": "silero.silence_min_s",
+        "valeur": 0.0,
+        "origine": "experience"
+      },
+      {
+        "nom": "silero.marge_s",
+        "valeur": 0.03,
+        "origine": "experience"
+      },
+      {
+        "nom": "silero.parole_min_s",
+        "valeur": 0.25,
+        "origine": "defaut"
+      },
+      {
+        "nom": "silero.peripherique",
+        "valeur": "cpu, un fil",
+        "origine": "code"
+      }
+    ],
+    "segmentation": [
+      {
+        "nom": "segmentation.duree_fenetre_s",
+        "valeur": 10.0,
+        "origine": "modele"
+      },
+      {
+        "nom": "segmentation_step",
+        "valeur": 0.1,
+        "origine": "defaut"
+      },
+      {
+        "nom": "segmentation.locuteurs_par_fenetre",
+        "valeur": 3,
+        "origine": "modele"
+      },
+      {
+        "nom": "segmentation.locuteurs_simultanes",
+        "valeur": 2,
+        "origine": "modele"
+      },
+      {
+        "nom": "segmentation_batch_size",
+        "valeur": 32,
+        "origine": "defaut"
+      }
+    ],
+    "empreintes": [
+      {
+        "nom": "embedding.modele",
+        "valeur": "pyannote/speaker-diarization-community-1/embedding@3533c8cf8e369892e6b79ff1bf80f7b0286a54ee (WeSpeakerResNet34)",
+        "origine": "modele"
+      },
+      {
+        "nom": "embedding.dimension",
+        "valeur": 256,
+        "origine": "modele"
+      },
+      {
+        "nom": "embedding_exclude_overlap",
+        "valeur": true,
+        "origine": "defaut"
+      },
+      {
+        "nom": "embedding_batch_size",
+        "valeur": 32,
+        "origine": "defaut"
+      }
+    ],
+    "regroupement": [
+      {
+        "nom": "clustering.methode",
+        "valeur": "VBxClustering",
+        "origine": "defaut"
+      },
+      {
+        "nom": "clustering.metric",
+        "valeur": "cosine",
+        "origine": "defaut"
+      },
+      {
+        "nom": "clustering.threshold",
+        "valeur": 0.6,
+        "origine": "defaut"
+      },
+      {
+        "nom": "clustering.Fa",
+        "valeur": 0.07,
+        "origine": "defaut"
+      },
+      {
+        "nom": "clustering.Fb",
+        "valeur": 0.8,
+        "origine": "defaut"
+      },
+      {
+        "nom": "clustering.constrained_assignment",
+        "valeur": true,
+        "origine": "defaut"
+      },
+      {
+        "nom": "plda.modele",
+        "valeur": "pyannote/speaker-diarization-community-1/plda@3533c8cf8e369892e6b79ff1bf80f7b0286a54ee",
+        "origine": "modele"
+      },
+      {
+        "nom": "plda.lda_dimension",
+        "valeur": 128,
+        "origine": "modele"
+      },
+      {
+        "nom": "n_locuteurs",
+        "valeur": "estimé",
+        "origine": "experience"
+      }
+    ],
+    "sortie": [
+      {
+        "nom": "sortie.exclusive",
+        "valeur": true,
+        "origine": "experience"
+      }
+    ]
+  },
+  "chargement_modeles_s": 4.474,
+  "prechauffage": {
+    "uri": "summre__007a_ECRH",
+    "duree_s": 60.0
+  },
+  "duree_audio_s": 2370.026,
+  "calcul_s": 1862.489,
+  "rtf": 0.7859,
+  "alimentation": {
+    "commande": "pmset -g batt",
+    "commande_charge": "os.getloadavg() (sysctl vm.loadavg)",
+    "intervalle_s": 60.0,
+    "coeurs_performance": 6,
+    "releves": [
+      {
+        "date": "2026-11-03T03:41:10+01:00",
+        "moment": "debut",
+        "source": "secteur",
+        "brut": "Now drawing from 'AC Power'",
+        "horodatage": 1793673670.1223428,
+        "charge_1min": 3.55,
+        "charge_5min": 3.38,
+        "charge_15min": 3.21
+      },
+      {
+        "date": "2026-11-03T03:42:10+01:00",
+        "moment": "periodique",
+        "source": "secteur",
+        "brut": "Now drawing from 'AC Power'",
+        "horodatage": 1793673730.1515362,
+        "charge_1min": 6.18,
+        "charge_5min": 4.08,
+        "charge_15min": 3.48
+      },
+      {
+        "date": "2026-11-03T03:43:10+01:00",
+        "moment": "periodique",
+        "source": "secteur",
+        "brut": "Now drawing from 'AC Power'",
+        "horodatage": 1793673790.1922922,
+        "charge_1min": 7.82,
+        "charge_5min": 4.9,
+        "charge_15min": 3.82
+      },
+      {
+        "date": "2026-11-03T03:44:10+01:00",
+        "moment": "periodique",
+        "source": "secteur",
+        "brut": "Now drawing from 'AC Power'",
+        "horodatage": 1793673850.273,
+        "charge_1min": 7.47,
+        "charge_5min": 5.29,
+        "charge_15min": 4.04
+      },
+      {
+        "date": "2026-11-03T03:45:10+01:00",
+        "moment": "periodique",
+        "source": "secteur",
+        "brut": "Now drawing from 'AC Power'",
+        "horodatage": 1793673910.30177,
+        "charge_1min": 6.22,
+        "charge_5min": 5.33,
+        "charge_15min": 4.13
+      },
+      {
+        "date": "2026-11-03T03:46:10+01:00",
+        "moment": "periodique",
+        "source": "secteur",
+        "brut": "Now drawing from 'AC Power'",
+        "horodatage": 1793673970.333611,
+        "charge_1min": 6.56,
+        "charge_5min": 5.58,
+        "charge_15min": 4.31
+      },
+      {
+        "date": "2026-11-03T03:47:10+01:00",
+        "moment": "periodique",
+        "source": "secteur",
+        "brut": "Now drawing from 'AC Power'",
+        "horodatage": 1793674030.36525,
+        "charge_1min": 6.12,
+        "charge_5min": 5.63,
+        "charge_15min": 4.41
+      },
+      {
+        "date": "2026-11-03T03:48:10+01:00",
+        "moment": "periodique",
+        "source": "secteur",
+        "brut": "Now drawing from 'AC Power'",
+        "horodatage": 1793674090.39961,
+        "charge_1min": 6.95,
+        "charge_5min": 5.91,
+        "charge_15min": 4.6
+      },
+      {
+        "date": "2026-11-03T03:49:10+01:00",
+        "moment": "periodique",
+        "source": "secteur",
+        "brut": "Now drawing from 'AC Power'",
+        "horodatage": 1793674150.4674392,
+        "charge_1min": 7.44,
+        "charge_5min": 6.28,
+        "charge_15min": 4.82
+      },
+      {
+        "date": "2026-11-03T03:50:10+01:00",
+        "moment": "periodique",
+        "source": "secteur",
+        "brut": "Now drawing from 'AC Power'",
+        "horodatage": 1793674210.499864,
+        "charge_1min": 6.94,
+        "charge_5min": 6.36,
+        "charge_15min": 4.95
+      },
+      {
+        "date": "2026-11-03T03:51:10+01:00",
+        "moment": "periodique",
+        "source": "secteur",
+        "brut": "Now drawing from 'AC Power'",
+        "horodatage": 1793674270.535637,
+        "charge_1min": 6.34,
+        "charge_5min": 6.31,
+        "charge_15min": 5.03
+      },
+      {
+        "date": "2026-11-03T03:52:10+01:00",
+        "moment": "periodique",
+        "source": "secteur",
+        "brut": "Now drawing from 'AC Power'",
+        "horodatage": 1793674330.569056,
+        "charge_1min": 6.6,
+        "charge_5min": 6.48,
+        "charge_15min": 5.18
+      },
+      {
+        "date": "2026-11-03T03:53:10+01:00",
+        "moment": "periodique",
+        "source": "secteur",
+        "brut": "Now drawing from 'AC Power'",
+        "horodatage": 1793674390.6221418,
+        "charge_1min": 6.92,
+        "charge_5min": 6.7,
+        "charge_15min": 5.36
+      },
+      {
+        "date": "2026-11-03T03:54:10+01:00",
+        "moment": "periodique",
+        "source": "secteur",
+        "brut": "Now drawing from 'AC Power'",
+        "horodatage": 1793674450.654999,
+        "charge_1min": 6.91,
+        "charge_5min": 6.76,
+        "charge_15min": 5.47
+      },
+      {
+        "date": "2026-11-03T03:55:10+01:00",
+        "moment": "periodique",
+        "source": "secteur",
+        "brut": "Now drawing from 'AC Power'",
+        "horodatage": 1793674510.688728,
+        "charge_1min": 8.75,
+        "charge_5min": 7.41,
+        "charge_15min": 5.81
+      },
+      {
+        "date": "2026-11-03T03:56:10+01:00",
+        "moment": "periodique",
+        "source": "secteur",
+        "brut": "Now drawing from 'AC Power'",
+        "horodatage": 1793674570.7281961,
+        "charge_1min": 7.87,
+        "charge_5min": 7.45,
+        "charge_15min": 5.94
+      },
+      {
+        "date": "2026-11-03T03:57:10+01:00",
+        "moment": "periodique",
+        "source": "secteur",
+        "brut": "Now drawing from 'AC Power'",
+        "horodatage": 1793674630.76032,
+        "charge_1min": 8.44,
+        "charge_5min": 7.66,
+        "charge_15min": 6.11
+      },
+      {
+        "date": "2026-11-03T03:58:10+01:00",
+        "moment": "periodique",
+        "source": "secteur",
+        "brut": "Now drawing from 'AC Power'",
+        "horodatage": 1793674690.787374,
+        "charge_1min": 6.9,
+        "charge_5min": 7.36,
+        "charge_15min": 6.1
+      },
+      {
+        "date": "2026-11-03T03:59:10+01:00",
+        "moment": "periodique",
+        "source": "secteur",
+        "brut": "Now drawing from 'AC Power'",
+        "horodatage": 1793674750.8198662,
+        "charge_1min": 6.61,
+        "charge_5min": 7.2,
+        "charge_15min": 6.13
+      },
+      {
+        "date": "2026-11-03T04:00:10+01:00",
+        "moment": "periodique",
+        "source": "secteur",
+        "brut": "Now drawing from 'AC Power'",
+        "horodatage": 1793674810.905689,
+        "charge_1min": 5.91,
+        "charge_5min": 6.9,
+        "charge_15min": 6.09
+      },
+      {
+        "date": "2026-11-03T04:01:10+01:00",
+        "moment": "periodique",
+        "source": "secteur",
+        "brut": "Now drawing from 'AC Power'",
+        "horodatage": 1793674870.938494,
+        "charge_1min": 6.46,
+        "charge_5min": 6.92,
+        "charge_15min": 6.15
+      },
+      {
+        "date": "2026-11-03T04:02:10+01:00",
+        "moment": "periodique",
+        "source": "secteur",
+        "brut": "Now drawing from 'AC Power'",
+        "horodatage": 1793674930.976943,
+        "charge_1min": 7.14,
+        "charge_5min": 7.06,
+        "charge_15min": 6.25
+      },
+      {
+        "date": "2026-11-03T04:03:11+01:00",
+        "moment": "periodique",
+        "source": "secteur",
+        "brut": "Now drawing from 'AC Power'",
+        "horodatage": 1793674991.010798,
+        "charge_1min": 7.93,
+        "charge_5min": 7.28,
+        "charge_15min": 6.39
+      },
+      {
+        "date": "2026-11-03T04:04:11+01:00",
+        "moment": "periodique",
+        "source": "secteur",
+        "brut": "Now drawing from 'AC Power'",
+        "horodatage": 1793675051.046686,
+        "charge_1min": 6.68,
+        "charge_5min": 7.02,
+        "charge_15min": 6.35
+      },
+      {
+        "date": "2026-11-03T04:05:11+01:00",
+        "moment": "periodique",
+        "source": "secteur",
+        "brut": "Now drawing from 'AC Power'",
+        "horodatage": 1793675111.0806358,
+        "charge_1min": 8.89,
+        "charge_5min": 7.54,
+        "charge_15min": 6.58
+      },
+      {
+        "date": "2026-11-03T04:06:11+01:00",
+        "moment": "periodique",
+        "source": "secteur",
+        "brut": "Now drawing from 'AC Power'",
+        "horodatage": 1793675171.125271,
+        "charge_1min": 8.48,
+        "charge_5min": 7.74,
+        "charge_15min": 6.73
+      },
+      {
+        "date": "2026-11-03T04:07:11+01:00",
+        "moment": "periodique",
+        "source": "secteur",
+        "brut": "Now drawing from 'AC Power'",
+        "horodatage": 1793675231.178185,
+        "charge_1min": 9.06,
+        "charge_5min": 8.15,
+        "charge_15min": 6.95
+      },
+      {
+        "date": "2026-11-03T04:08:11+01:00",
+        "moment": "periodique",
+        "source": "secteur",
+        "brut": "Now drawing from 'AC Power'",
+        "horodatage": 1793675291.212223,
+        "charge_1min": 7.32,
+        "charge_5min": 7.79,
+        "charge_15min": 6.9
+      },
+      {
+        "date": "2026-11-03T04:09:11+01:00",
+        "moment": "periodique",
+        "source": "secteur",
+        "brut": "Now drawing from 'AC Power'",
+        "horodatage": 1793675351.2493792,
+        "charge_1min": 6.97,
+        "charge_5min": 7.59,
+        "charge_15min": 6.88
+      },
+      {
+        "date": "2026-11-03T04:10:11+01:00",
+        "moment": "periodique",
+        "source": "secteur",
+        "brut": "Now drawing from 'AC Power'",
+        "horodatage": 1793675411.2818902,
+        "charge_1min": 7.38,
+        "charge_5min": 7.69,
+        "charge_15min": 6.98
+      },
+      {
+        "date": "2026-11-03T04:11:11+01:00",
+        "moment": "periodique",
+        "source": "secteur",
+        "brut": "Now drawing from 'AC Power'",
+        "horodatage": 1793675471.3175402,
+        "charge_1min": 6.74,
+        "charge_5min": 7.48,
+        "charge_15min": 6.95
+      },
+      {
+        "date": "2026-11-03T04:12:11+01:00",
+        "moment": "periodique",
+        "source": "secteur",
+        "brut": "Now drawing from 'AC Power'",
+        "horodatage": 1793675531.3471591,
+        "charge_1min": 6.88,
+        "charge_5min": 7.45,
+        "charge_15min": 6.97
+      },
+      {
+        "date": "2026-11-03T04:12:59+01:00",
+        "moment": "fin",
+        "source": "secteur",
+        "brut": "Now drawing from 'AC Power'",
+        "horodatage": 1793675579.2017338,
+        "charge_1min": 7.04,
+        "charge_5min": 7.39,
+        "charge_15min": 6.97
+      }
+    ],
+    "conforme": true,
+    "charge_concurrente": true
+  },
+  "fichiers": [
+    {
+      "uri": "summre__007a_ECRH",
+      "corpus": "summre",
+      "partition": "temps",
+      "duree_audio_s": 1210.595,
+      "calcul_s": 950.286,
+      "rtf": 0.785,
+      "n_locuteurs_hypothese": 4,
+      "n_locuteurs_impose": null,
+      "etapes_s": {
+        "segmentation": 58.67,
+        "detection": 0.023,
+        "empreintes": 886.931,
+        "regroupement": 0.276,
+        "sortie": 0.191,
+        "detection_fine": 4.139
+      },
+      "n_locuteurs_vbx": 4,
+      "kmeans": false,
+      "n_locuteurs_kmeans": null,
+      "silero": {
+        "parole_avant_s": 1073.166,
+        "parole_retiree_s": 69.187,
+        "masque_parole_s": 1020.304
+      }
+    },
+    {
+      "uri": "summre__012c_EBPZ",
+      "corpus": "summre",
+      "partition": "temps",
+      "duree_audio_s": 1159.431,
+      "calcul_s": 912.203,
+      "rtf": 0.7868,
+      "n_locuteurs_hypothese": 3,
+      "n_locuteurs_impose": null,
+      "etapes_s": {
+        "segmentation": 55.608,
+        "detection": 0.021,
+        "empreintes": 852.332,
+        "regroupement": 0.235,
+        "sortie": 0.161,
+        "detection_fine": 3.783
+      },
+      "n_locuteurs_vbx": 3,
+      "kmeans": false,
+      "n_locuteurs_kmeans": null,
+      "silero": {
+        "parole_avant_s": 778.461,
+        "parole_retiree_s": 44.208,
+        "masque_parole_s": 757.852
+      }
+    }
+  ]
+}

@@ -51,3 +51,11 @@ EXP-0021,2026-11-03T01:58:57+01:00,baseline-ecapa-summre-degrade,EXP-0012,signal
 EXP-0021,2026-11-03T01:58:57+01:00,baseline-ecapa-summre-degrade,EXP-0012,signal,summre-cod16,test,baseline,estime,32.71,20.56,3.22,8.93,23.54,38.09,0.27,0.0167,0.0158,fbbff49
 EXP-0021,2026-11-03T01:58:57+01:00,baseline-ecapa-summre-degrade,EXP-0012,signal,summre-cod08,test,baseline,estime,38.43,20.62,3.23,14.58,29.54,48.03,0.59,0.0164,0.0158,fbbff49
 EXP-0021,2026-11-03T01:58:57+01:00,baseline-ecapa-summre-degrade,EXP-0012,signal,summre-salle,test,baseline,estime,49.21,31.86,4.02,13.33,41.47,55.21,0.54,0.0138,0.0158,fbbff49
+EXP-0023,2026-11-03T03:41:05+01:00,pyannote-c1-summre-exclusive-silero,EXP-0016,post_traitement,summre,dev,pyannote-community-1-silero,estime,24.66,15.53,4.19,4.94,11.85,29.47,0.08,0.055,0.7859,2d81861
+EXP-0023,2026-11-03T03:41:05+01:00,pyannote-c1-summre-exclusive-silero,EXP-0016,post_traitement,summre,test,pyannote-community-1-silero,estime,27.9,19.21,2.66,6.04,18.09,31.28,0.19,0.0531,0.7859,2d81861
+EXP-0022,2026-11-03T03:41:05+01:00,pyannote-c1-summre-silero,EXP-0007,post_traitement,summre,dev,pyannote-community-1-silero,estime,21.35,7.52,7.58,6.25,9.6,26.72,0.08,,,2d81861
+EXP-0022,2026-11-03T03:41:05+01:00,pyannote-c1-summre-silero,EXP-0007,post_traitement,summre,test,pyannote-community-1-silero,estime,23.7,10.83,5.49,7.38,15.1,27.53,0.16,,,2d81861
+EXP-0025,2026-11-03T05:14:44+01:00,pyannote-c1-ami-sdm-exclusive-silero,EXP-0017,post_traitement,ami,dev,pyannote-community-1-silero,estime,38.6,35.32,0.68,2.6,32.69,41.14,0.11,0.0533,0.7629,2d81861
+EXP-0025,2026-11-03T05:14:44+01:00,pyannote-c1-ami-sdm-exclusive-silero,EXP-0017,post_traitement,ami,test,pyannote-community-1-silero,estime,46.0,43.92,0.37,1.7,40.63,49.47,0.38,0.0533,0.7629,2d81861
+EXP-0024,2026-11-03T05:14:44+01:00,pyannote-c1-ami-sdm-silero,EXP-0001,post_traitement,ami,dev,pyannote-community-1-silero,estime,34.31,27.86,2.16,4.3,29.5,38.02,0.11,,,2d81861
+EXP-0024,2026-11-03T05:14:44+01:00,pyannote-c1-ami-sdm-silero,EXP-0001,post_traitement,ami,test,pyannote-community-1-silero,estime,42.05,37.76,1.32,2.97,37.55,46.24,0.38,,,2d81861
