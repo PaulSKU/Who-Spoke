@@ -33,16 +33,16 @@ uv run python -m app.app             # moteurs réels
 uv run python -m app.app --factice   # moteur factice, sans calcul (démonstration de l'interface seule)
 ```
 
-Puis ouvrir http://127.0.0.1:7860 dans un navigateur. Le serveur est local : aucun lien public, aucune connexion vers l'extérieur. Les modèles sont lus dans le cache local, et la télémétrie des bibliothèques est coupée (D27). Il faut avoir lancé `scripts/prefetch_models.py` une fois auparavant. Au démarrage, les moteurs sont préchauffés (« Moteurs prêts » dans l'en-tête). Options : `--port` pour changer de port ; `--depot` pour lire les expériences d'un autre dossier du dépôt ; `--sans-prechauffage` ; `--vider-cache` pour effacer les résultats gardés dans `~/.cache/whospoke/`.
+Puis ouvrir http://127.0.0.1:7860 dans un navigateur. Le serveur est local : aucun lien public, aucune connexion vers l'extérieur. Les modèles sont lus dans le cache local, et la télémétrie des bibliothèques est coupée (D27). Il faut avoir lancé `scripts/prefetch_models.py` une fois auparavant. Au démarrage, les moteurs sont préchauffés (« Moteurs prêts » dans l'en-tête). Options : `--presentation` pour un vidéoprojecteur ou un écran partagé (texte agrandi, réglages secondaires masqués ; aussi par un interrupteur dans l'en-tête) ; `--port` ; `--depot` pour lire les expériences d'un autre dossier du dépôt ; `--config-demo` pour essayer une configuration de démonstration (par défaut `configs/demo.yaml`, écrit au gel du 10/11 ; modèle : `configs/demo.exemple.yaml`) ; `--sans-prechauffage` ; `--vider-cache` pour effacer les résultats gardés dans `~/.cache/whospoke/`. Fonctionne en clair et en sombre, de 375 px à 1920 px de large.
 
 | Onglet | Rôle |
 |---|---|
-| Analyse | Dépôt d'un fichier audio ou vidéo de tout format ; choix du moteur (pyannote community-1, baseline MFCC, ECAPA ou WeSpeaker), du nombre de locuteurs (automatique, imposé ou fourchette) et du périphérique ; durée annoncée en fourchette, avancement par étape ; forme d'onde, vue d'ensemble et timeline des locuteurs en pleine largeur, lecture suivie, zoom, raccourcis clavier (« ? » pour l'aide), extrait typique de chaque locuteur ; statistiques, indicateurs d'interaction (monologues, latence de réponse, « qui suit qui »), renommage et fusion de locuteurs ; exports RTTM, JSON (avec fiche de reproductibilité), étiquettes Audacity et image de la timeline. Avec une référence RTTM : DER décomposé dans les deux conditions de collar, appariement des locuteurs, carte des erreurs et « Expliquer cette erreur ». Option de comparaison de deux moteurs sur le même fichier ; réaffichage facultatif d'un résultat déjà calculé |
-| Pipeline | Étapes et réglages effectifs de chaque moteur, en lecture seule, générés depuis les expériences et le catalogue, avec sous chaque étape les constats mesurés qui la concernent |
+| Analyse | Dépôt d'un fichier audio ou vidéo de tout format ; choix du moteur (pyannote community-1, baseline MFCC, ECAPA ou WeSpeaker), du nombre de locuteurs (automatique, imposé ou fourchette) et du périphérique ; durée annoncée en fourchette, avancement par étape ; forme d'onde ou spectrogramme mel (celui dont la baseline tire ses MFCC), vue d'ensemble et timeline des locuteurs en pleine largeur ; pour la baseline, courbe d'énergie et seuil de sa détection de parole ; lecture suivie, zoom, raccourcis clavier (« ? » pour l'aide), extrait typique de chaque locuteur ; statistiques, indicateurs d'interaction (monologues, latence de réponse, « qui suit qui »), renommage et fusion de locuteurs ; exports RTTM, JSON (avec fiche de reproductibilité), étiquettes Audacity et image de la timeline. Avec une référence RTTM : DER décomposé dans les deux conditions de collar, appariement des locuteurs, carte des erreurs et « Expliquer cette erreur » (catégorie de chaque erreur : décalage de frontière pardonné par le collar, chevauchement, locuteur non apparié ou en trop, tour court, pause courte). Option de comparaison de deux moteurs sur le même fichier ; réaffichage facultatif d'un résultat déjà calculé |
+| Pipeline | Schéma du pipeline de chaque moteur, de gauche à droite (liste numérotée sur mobile) : forme des données entre les étapes, « un seul réseau » pour la segmentation de pyannote, étape où naît chaque type d'erreur ; pour chaque étape, réglages effectifs, en lecture seule, et constats mesurés ; tout est généré depuis les expériences et le catalogue |
 | Avancement | Ce que nous avons appris, graphique des erreurs par système et par corpus, expériences et verdicts, décomposition de l'erreur par les oracles, décisions et file d'attente, synthèse ; tout est généré depuis le dépôt |
 | Glossaire | Vocabulaire du projet, lié depuis les autres onglets |
 
-Pour une réunion de 30 min, l'analyse prend environ 1 min 30 s avec pyannote en MPS, et moins d'une minute avec les baselines en CPU. Détails techniques, vérifications hors ligne et limites connues : `app/README.md`.
+Pour une réunion de 30 min, l'analyse prend environ 1 min 30 s avec pyannote en MPS, et moins d'une minute avec les baselines en CPU. Détails techniques, vérifications hors ligne et limites connues : `app/README.md`. Des contrôles automatiques protègent l'affichage : captures de référence (Playwright), accessibilité (axe-core, WCAG AA) et règles CSS (stylelint), dans `tests/visuel/`.
 
 ## Commande en ligne
 
@@ -69,7 +69,8 @@ Options : `--moteur` (`pyannote-community-1`, `baseline-mfcc`, `baseline-ecapa`,
 | `docs/corpus-maison/` | Consentement, protocole d'enregistrement et conventions d'annotation du corpus maison |
 | `docs/glossaire.md` | Concepts et vocabulaire, dans l'ordre de lecture |
 | `docs/synthese.md`, `docs/constats.yaml` | Synthèse vivante du projet et constats chiffrés rattachés aux étapes du pipeline |
-| `docs/audit/` | Audit du projet du 1er novembre et recommandations |
+| `docs/audit/` | Audit du projet (01/11) et audit visuel (02/11), avec captures avant et après |
+| `docs/rendu/` | Tableaux comparatifs, ablations, robustesse, temps et figures, générés par `scripts/rendu.py` depuis les résultats |
 | `docs/recherche/` | Recherche documentaire (corpus, veille sur les modèles) |
 | `docs/maquettes/` | Maquettes de l'interface |
 | `app/README.md` | Application de démonstration : fonctionnement, vérifications, limites |
@@ -87,22 +88,22 @@ Au 2 novembre 2026.
 
 | Chantier | État |
 |---|---|
-| Cadrage, méthode, protocole d'évaluation | Fait (D1 à D27) ; audit du projet le 01/11 |
+| Cadrage, méthode, protocole d'évaluation | Fait (D1 à D28) ; audit du projet le 01/11, audit visuel le 02/11 |
 | Chaîne d'évaluation (DER, JER, chevauchement, nombre de locuteurs, bootstrap) | Faite, testée |
 | Corpus AMI, micro de salle (dev et test) | Préparé |
 | pyannote community-1 | Intégré ; résultat publié reproduit sur AMI (EXP-0001) ; modèle figé à une révision (D18) |
 | Baseline classique (énergie, MFCC, regroupement) | Faite (EXP-0002, EXP-0009) |
 | Diagnostics oracles (détection, nombre de locuteurs) | Faits (EXP-0003 à EXP-0006) |
 | Empreintes neuronales (D8, D22) | Faites (EXP-0010 à EXP-0015) : ECAPA retenue pour la baseline ; la parole manquée par la détection d'énergie devient l'erreur principale |
-| Analyses a posteriori | A-0001 : sensibilité de la référence de SUMM-RE à la convention de découpage |
+| Analyses a posteriori | A-0001 : sensibilité de la référence de SUMM-RE à la convention de découpage ; A-0002 (robustesse par condition et sous-groupe) et A-0003 (cas d'échec : pires fichiers, descripteurs, catégories d'erreur, extraits d'écoute) prêtes, exécutées après les expériences de robustesse |
 | Moteurs supplémentaires (D23) | Nemotron 3 Diarization et DiariZen installés dans des environnements séparés, à évaluer ; NeMo Sortformer v2 et Voxtral en option ; Nemotron 3.5 retiré (GPU NVIDIA seulement) |
 | Amélioration n° 2 : fausse alarme de pyannote (D25) | Sortie exclusive écartée (+4,1 points sur SUMM-RE, +4,6 sur AMI, EXP-0016 et EXP-0017) ; post-traitement par Silero VAD prêt, à évaluer |
 | Nombre de locuteurs borné entre 2 et 6 | Effet non significatif (EXP-0018, EXP-0019) ; gardé comme garde-fou pour la démonstration |
-| Robustesse (D24) | SUMM-RE test dégradé généré (réverbération, bruit, codec de visio, 7 conditions) ; expériences en cours |
+| Robustesse (D24) | SUMM-RE test dégradé généré et contrôlé à l'écoute (réverbération, bruit, codec de visio, 7 conditions) ; pyannote (EXP-0020) puis baseline ECAPA (EXP-0021) en cours |
 | SUMM-RE (validation en français) | Préparé (dev 36, test 37 réunions) ; pyannote, oracle et baselines MFCC, ECAPA et WeSpeaker évalués (EXP-0007 à EXP-0009, EXP-0012, EXP-0015) |
 | Corpus maison (réunions en français) | Documents et chaîne d'annotation prêts (synchronisation, pré-annotation, Audacity, RTTM) ; enregistrements en cours, évalués au fil de l'eau |
-| Interface de démonstration (D17, D26) | Faite et fusionnée (chantiers B1 à B7 de l'audit compris) ; essai avec les vrais moteurs et fonctionnement hors ligne vérifiés (D27) ; mode présentation et lecture de la configuration gelée en cours |
-| Outillage | Commande en ligne, intégration continue, licence, vérification d'installation sur machine vierge |
+| Interface de démonstration (D17, D26, D28) | Faite : chantiers B1 à B13 des deux audits (système visuel unique, spectrogramme, nouveau schéma du pipeline, cas limites, mode présentation, configuration gelée) ; fonctionnement hors ligne vérifié (D27) ; essai au vidéoprojecteur à faire |
+| Outillage | Commande en ligne, intégration continue, licence, vérification d'installation sur machine vierge, chaîne d'annotation du corpus maison, campagne de temps, génération des tableaux et figures du rendu (`docs/rendu/`) |
 
 Résultats sur les partitions de test, chevauchements comptés :
 
