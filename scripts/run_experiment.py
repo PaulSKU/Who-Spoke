@@ -60,6 +60,12 @@ instants, la charge moyenne de la machine (`sysctl vm.loadavg`, par `whospoke.ch
 relevée ; le bloc consigne aussi le nombre de cœurs de performance et
 `charge_concurrente`, repris par scripts/evaluate.py dans `temps` (D21, amendement du 01/11).
 
+Normalisation du niveau en entrée (D29 §1 ; `whospoke.niveau`) : si `config.yaml` porte un bloc
+`normalisation_niveau` (`methode: bs1770`, `cible_lufs`), chaque signal normalisé (D16) est
+ramené à la sonie cible (ITU-R BS.1770-4) par un gain linéaire, avec garde de crête, avant le
+moteur (préchauffage compris) ; le temps de calcul l'inclut. Sonie mesurée, gain appliqué et
+réduction par la garde sont consignés par fichier (`niveau_*` dans `execution_*.json`).
+
 Exécution partagée (D25, V2 et V3 ; `whospoke.partage`) : si `config.yaml` porte un bloc
 `execution_partagee`, seule l'expérience porteuse s'exécute ; à la fin de chaque exécution
 (complète, puis mesure CPU), la sortie de chaque autre expérience (`rttm_<sortie>/`) est
@@ -111,6 +117,7 @@ from whospoke.pipelines.nemotron3 import Nemotron3Diarization
 from whospoke.pipelines.pyannote_community1 import PyannoteCommunity1
 from whospoke.pipelines.silero import pyannote_silero
 from whospoke import charge, partage, power
+from whospoke.niveau import normalize_level
 
 # Moteurs externes (D23, rangs A4 et A5 ; docs/recherche/e4-moteurs-externes.md) : exécutés
 # en sous-processus dans leur environnement séparé (envs/), périphérique `cpu` ou `mps`.
@@ -148,6 +155,21 @@ def machine_block(readings: list[dict], cores: int, interval_s: float) -> dict:
         "conforme": power.is_compliant(readings),
         "charge_concurrente": charge.concurrent_load(readings, cores),
     }
+
+
+def level_step(config: dict):
+    """Normalisation du niveau de la configuration, ou None (D29 §1)."""
+    spec = config.get("normalisation_niveau")
+    if not spec:
+        return None
+    if spec.get("methode") != "bs1770":
+        sys.exit(f"normalisation_niveau : méthode {spec.get('methode')!r} inconnue (bs1770 attendu)")
+    target = float(spec["cible_lufs"])
+
+    def apply(waveform, sample_rate):
+        scaled, info = normalize_level(waveform, sample_rate, target)
+        return scaled, {f"niveau_{key}": value for key, value in info.items()}
+    return apply
 
 
 def setup_logging(exp_dir: Path) -> logging.Logger:
@@ -356,9 +378,12 @@ def main() -> None:
             sweep = run_sweep(config, pipeline, exp_dir, logger)
 
     # Préchauffage non compté, sur un extrait du premier fichier.
+    level = level_step(config)
     warmup_s = float(config.get("prechauffage_s", 60.0))
     corpus0, _, uri0 = jobs[0]
     waveform, sample_rate = load_waveform(processed_wav(corpus0, uri0))
+    if level is not None:
+        waveform, _ = level(waveform, sample_rate)
     t0 = time.perf_counter()
     num_speakers0, speech0 = oracle_inputs(config, corpus0, uri0)
     if speech0 is not None:
@@ -375,6 +400,9 @@ def main() -> None:
         num_speakers, speech = oracle_inputs(config, corpus, uri)
         t0 = time.perf_counter()
         waveform, sample_rate = load_waveform(processed_wav(corpus, uri))
+        level_info = {}
+        if level is not None:
+            waveform, level_info = level(waveform, sample_rate)
         result = pipeline.run(waveform, sample_rate, uri=uri, num_speakers=num_speakers, speech=speech)
         compute_s = time.perf_counter() - t0
         annotation = result.annotation
@@ -399,6 +427,7 @@ def main() -> None:
             "n_locuteurs_impose": num_speakers,
             "etapes_s": {step: round(d, 3) for step, d in result.durees_etapes.items()},
             **result.infos,
+            **level_info,
         })
         if result.infos.get("fenetres_trop_courtes"):
             logger.warning("%s : %d fenêtres sur %d trop courtes pour le modèle d'empreintes, "
@@ -409,6 +438,9 @@ def main() -> None:
             clustering = f", VBx : {result.infos['n_locuteurs_vbx']}"
             if result.infos.get("kmeans"):
                 clustering += f", KMeans : {result.infos['n_locuteurs_kmeans']}"
+        if level_info:
+            clustering += (f", sonie {level_info['niveau_sonie_lufs']} LUFS, gain {level_info['niveau_gain_db']} dB"
+                           + (f" (réduit de {level_info['niveau_gain_reduit_db']} dB)" if level_info["niveau_gain_reduit_db"] else ""))
         logger.info("[%d/%d] %s %s : %.1f s d'audio, %.2f s de calcul, RTF %.4f, %d locuteurs%s%s",
                     index, len(jobs), partition, uri, audio_s, compute_s, compute_s / audio_s, n_hyp,
                     "" if num_speakers is None else f" (imposé : {num_speakers})", clustering)
@@ -443,6 +475,7 @@ def main() -> None:
         "detection_oracle": bool(config.get("detection_oracle", False)),
         "trace": args.trace,
         "balayage": sweep,
+        "normalisation_niveau": config.get("normalisation_niveau"),
         "configuration_effective": pipeline.describe_dict(),
         "chargement_modeles_s": round(loading_s, 3),
         "prechauffage": {"uri": uri0, "duree_s": warmup_s},
