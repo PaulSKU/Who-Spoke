@@ -1,0 +1,9 @@
+extrait,systeme,exp_id,corpus,partition,uri,der_c0,motif,categorie,debut,fin,fenetre_tous_s,fenetre_frontiere_s,fenetre_chevauchement_s,fenetre_reference_non_appariee_s,fenetre_trouve_en_trop_s,fenetre_tour_court_s,fenetre_pause_s,fenetre_autre_s,fichier_audio
+x1,baseline-ecapa,EXP-0010,ami,test,ami__EN2002d,54.6816,categorie,chevauchement,438.5,453.5,42.35,2.62,39.73,0.0,0.0,0.0,0.0,0.0,x1_ami__EN2002d_438s.wav
+x2,baseline-ecapa,EXP-0010,ami,test,ami__EN2002b,52.1007,categorie,reference_non_appariee,683.0,698.0,15.0,0.0,0.0,15.0,0.0,0.0,0.0,0.0,x2_ami__EN2002b_683s.wav
+x3,baseline-ecapa,EXP-0010,ami,dev,ami__ES2011b,42.5609,categorie,trouve_en_trop,361.0,376.0,15.0,0.0,0.0,0.0,15.0,0.0,0.0,0.0,x3_ami__ES2011b_361s.wav
+x4,pyannote,EXP-0007,summre,test,summre__025b_EBDH,35.6275,categorie,tour_court,696.9,711.9,11.8,7.05,0.4,0.0,0.0,2.17,0.65,1.52,x4_summre__025b_EBDH_696s.wav
+x5,pyannote,EXP-0007,summre,dev,summre__033c_EBPH,36.4953,categorie,pause,977.02,992.02,15.7,9.94,0.49,0.0,0.0,0.26,3.58,1.43,x5_summre__033c_EBPH_977s.wav
+x6,pyannote,EXP-0001,ami,test,ami__EN2002c,20.6299,categorie,autre,2935.0,2950.0,16.45,0.0,0.0,0.0,0.0,0.0,0.0,16.45,x6_ami__EN2002c_2935s.wav
+x7,pyannote-silero-v2,EXP-0024,ami,test,ami__TS3003a,70.8577,pire_fichier,,700.5,715.5,15.9,4.06,0.0,0.0,0.0,0.0,0.0,11.84,x7_ami__TS3003a_700s.wav
+x8,pyannote,EXP-0007,summre,test,summre__080b_EBDH,66.0107,pire_fichier,,806.53,821.53,17.2,8.13,5.47,2.48,0.0,0.0,0.0,1.12,x8_summre__080b_EBDH_806s.wav

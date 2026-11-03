@@ -1,0 +1,213 @@
+{
+  "analyse_id": "A-0003",
+  "essai": false,
+  "date": "2026-11-03T06:57:04+01:00",
+  "git_commit": "da05fc8f242decb2059781731f7fdbb61606a51d",
+  "arbre_propre": true,
+  "fichiers_non_commites": [],
+  "config_sha256": "089e19fbc63b3968ce8d77207cca19775d241da8ced8a34cf8778c446db6c876",
+  "donnees": "~/Dev/Who-Spoke/data",
+  "experiences": "~/Dev/Who-Spoke/experiments",
+  "dossier_ecoute": "~/Dev/Who-Spoke/data/processed/a0003/ecoute",
+  "sources_sha256": {
+    "experiments/EXP-0001_pyannote-c1-ami-sdm/per_file_ami_dev.csv": "0b924b801a41df5ac3621185d667858d240fe76cdff714ad8a0611ec13dce4e9",
+    "experiments/EXP-0001_pyannote-c1-ami-sdm/rttm (dev)": "20f26599d7027752b5e44dee797e220ca7d1bae59cab5f7e4e53504de3160d85",
+    "experiments/EXP-0001_pyannote-c1-ami-sdm/per_file_ami_test.csv": "0d46a2bad716a15b4774c33eea456a16f6d60ac59c8ec900dbf0381d5768234b",
+    "experiments/EXP-0001_pyannote-c1-ami-sdm/rttm (test)": "1f36ab880234a6b9917b56e6aa41c7b7374dddbf9c97a977b10da691fb47d8df",
+    "experiments/EXP-0007_pyannote-c1-summre/per_file_summre_dev.csv": "47d824bcbc72c9610c3e3cac22c56705c4319f78604c72b2ea25c8ad35319dc0",
+    "experiments/EXP-0007_pyannote-c1-summre/rttm (dev)": "68dc42aeded5da0a799a299e64e82806e3004eaa163c5f2faa25f0cdd7e7a30c",
+    "experiments/EXP-0007_pyannote-c1-summre/per_file_summre_test.csv": "679da4e11bc46abf69514563424485b9fa36a2dd7198c4d2aef7859a3c0d2915",
+    "experiments/EXP-0007_pyannote-c1-summre/rttm (test)": "55856a493af954fd9f073bf9fb0f28b29030dd0c776e16fec03ad587137979d6",
+    "experiments/EXP-0020_pyannote-c1-summre-degrade/per_file_summre-rev04_test.csv": "af91ea763ff02253e34734e1899117a9aa97e32057821575dcb871b8e35ac2d4",
+    "experiments/EXP-0020_pyannote-c1-summre-degrade/rttm/summre-rev04 (test)": "ef402732a70e55455494c73a5629aef5a585c0636eb8cfb0823175dffc909d03",
+    "experiments/EXP-0020_pyannote-c1-summre-degrade/per_file_summre-rev08_test.csv": "44803108ff9f07fb7577dbffe00455187a533d7de9915e55886b20661ec915bd",
+    "experiments/EXP-0020_pyannote-c1-summre-degrade/rttm/summre-rev08 (test)": "36968cf2a70e76bb3cf776ea4a0428f6d14197e525e5bde38f27d74bb00a8fb8",
+    "experiments/EXP-0020_pyannote-c1-summre-degrade/per_file_summre-bru15_test.csv": "1afce64cd39b7c2f3e54413d091d8d573e8ed5405bf465a6e0868c507fc4f218",
+    "experiments/EXP-0020_pyannote-c1-summre-degrade/rttm/summre-bru15 (test)": "507031a9c17c2159052e271848dad70be1a0be440c979d71cf2ad3458dfe38b8",
+    "experiments/EXP-0020_pyannote-c1-summre-degrade/per_file_summre-bru05_test.csv": "322b5a9a3e487b8ab61c7089ec3b9e5842e0768c11516bfb89ee560e9c0ba228",
+    "experiments/EXP-0020_pyannote-c1-summre-degrade/rttm/summre-bru05 (test)": "6a079e2073c84b14aa899a81b919697b85916d4b111bfeef66417111c294bc4c",
+    "experiments/EXP-0020_pyannote-c1-summre-degrade/per_file_summre-cod16_test.csv": "a391036e96607e49ecb69f31e8f153fa22d481599fa7d49c67c3beafa6974698",
+    "experiments/EXP-0020_pyannote-c1-summre-degrade/rttm/summre-cod16 (test)": "639a317c45122d6526184f1ff62425c3352a204a312b1c16d73e600578e7f52c",
+    "experiments/EXP-0020_pyannote-c1-summre-degrade/per_file_summre-cod08_test.csv": "cca9e06875286ddde676a3b2c012090112168177da497b239d46c5acf9a54b08",
+    "experiments/EXP-0020_pyannote-c1-summre-degrade/rttm/summre-cod08 (test)": "f346f94b385fe378058233476de81136d88764f0122ec20a4d37854da43f4398",
+    "experiments/EXP-0020_pyannote-c1-summre-degrade/per_file_summre-salle_test.csv": "0a98e0cca415fd4ade9abc9f9ae36e9db5ad3e0dbdb79438aa71ade30883447c",
+    "experiments/EXP-0020_pyannote-c1-summre-degrade/rttm/summre-salle (test)": "d416843d09000b253bc2bb7128afc7b19377510c5b358dc5069da0d4d0772655",
+    "experiments/EXP-0010_baseline-ecapa-ami-sdm/per_file_ami_dev.csv": "b1920e986e18cce8df8e38695efd8945e213b469de7bb17700b9ea35422e4296",
+    "experiments/EXP-0010_baseline-ecapa-ami-sdm/rttm (dev)": "07e9bcf6c6768ee13d6f03b601fb977dca5789f0e2b0f791902eedffca29c6fe",
+    "experiments/EXP-0010_baseline-ecapa-ami-sdm/per_file_ami_test.csv": "535c3aa03282887b0bbc7090c9b5c9b69c2d68fe3e7aefc8256d4325a7eb92e4",
+    "experiments/EXP-0010_baseline-ecapa-ami-sdm/rttm (test)": "300b1c40ac22b115adfa4ea86253426c12546a9648250a4262c478c627251359",
+    "experiments/EXP-0012_baseline-ecapa-summre/per_file_summre_dev.csv": "0e21a6925e9f0c2a24c5857896c37dfb68be0d418aed273ed5e702953e3d7a74",
+    "experiments/EXP-0012_baseline-ecapa-summre/rttm (dev)": "ae6de93ed17c31c772102107750cb25310bb1c1ba8f6ea1ebbbca0b13ce0ed48",
+    "experiments/EXP-0012_baseline-ecapa-summre/per_file_summre_test.csv": "832b702764ee474fb7ff440203eba75d088e0cd24f06a3373e663d6201550789",
+    "experiments/EXP-0012_baseline-ecapa-summre/rttm (test)": "8d7a626d823707f6d94fd746038a474ab0d724abbc5dba241100eb25f6816cee",
+    "experiments/EXP-0021_baseline-ecapa-summre-degrade/per_file_summre-rev04_test.csv": "8006c9154872a88882e723e97f98b9d78179708baa88807a68a8671fdb9e0c8d",
+    "experiments/EXP-0021_baseline-ecapa-summre-degrade/rttm/summre-rev04 (test)": "498381bf11b0d5ea3a78461673bb331f4188c00b8af6cf40168ec0695155c324",
+    "experiments/EXP-0021_baseline-ecapa-summre-degrade/per_file_summre-rev08_test.csv": "5978757214f9f3c0eaec3c5a303ba3a0c824ebc1b439b917575b5e24646ee3dd",
+    "experiments/EXP-0021_baseline-ecapa-summre-degrade/rttm/summre-rev08 (test)": "abbd4760c689a9d6047f1b532f2d073f8996a83ceb624590445ca11702b18e12",
+    "experiments/EXP-0021_baseline-ecapa-summre-degrade/per_file_summre-bru15_test.csv": "a5109a6a9cbb8a583a21eeb5841c8c58f7fe1fe663dc54b3abc89e651eb0700e",
+    "experiments/EXP-0021_baseline-ecapa-summre-degrade/rttm/summre-bru15 (test)": "8cd3537f9a6db2bf71394df537bb8f417897f40eedde92e32e1581002d53952a",
+    "experiments/EXP-0021_baseline-ecapa-summre-degrade/per_file_summre-bru05_test.csv": "66dc7880975d7005915116da69f9855e362ec8193ad2336ae0112e056e745f70",
+    "experiments/EXP-0021_baseline-ecapa-summre-degrade/rttm/summre-bru05 (test)": "f6fdf309518909adbbb05794bcfc24f1b53778c05ae8f642dee4813cc141cc09",
+    "experiments/EXP-0021_baseline-ecapa-summre-degrade/per_file_summre-cod16_test.csv": "aa280872766fbee02548e3a69206c1bf94d4a7784a9bcfc001e76e2c642564ba",
+    "experiments/EXP-0021_baseline-ecapa-summre-degrade/rttm/summre-cod16 (test)": "c588e5c760847e8c2a15daa3e5f1ad4627bbe8c862dad1d2af368c0c8e9b1eac",
+    "experiments/EXP-0021_baseline-ecapa-summre-degrade/per_file_summre-cod08_test.csv": "c8ec5d5c50bf56719309a7e7e3c06c33cae8262b418920f116f69597ac0bad6b",
+    "experiments/EXP-0021_baseline-ecapa-summre-degrade/rttm/summre-cod08 (test)": "263492da114de3713eff09cb3697d30714b0c834479ffead3f724a3b8bd20c0d",
+    "experiments/EXP-0021_baseline-ecapa-summre-degrade/per_file_summre-salle_test.csv": "80b62afccfdeccb4cb64734f84d69b5f0ac66e8e06082a472f32dfff2e698afd",
+    "experiments/EXP-0021_baseline-ecapa-summre-degrade/rttm/summre-salle (test)": "f234840dc78625c8e72589f94e86ddb03c8b9bcdae935a68193e6a8264143b69",
+    "experiments/EXP-0024_pyannote-c1-ami-sdm-silero/per_file_ami_dev.csv": "a829296767344e1ed2915ca37d0b76268e8e0319ea7dc0759d53f39d744b6f3a",
+    "experiments/EXP-0024_pyannote-c1-ami-sdm-silero/rttm (dev)": "935ed46f0cec947753a2b808f9b37207e5046dcd4413fb3b7ce1b2f965ecdff0",
+    "experiments/EXP-0024_pyannote-c1-ami-sdm-silero/per_file_ami_test.csv": "a24ca896553d8dee6d60b597b14558731ae3b4080122bd185aceefe21fba3167",
+    "experiments/EXP-0024_pyannote-c1-ami-sdm-silero/rttm (test)": "323f7053443371cdc26e830f032adfd80e6afd28bcbe8988530ff826708d9501",
+    "experiments/EXP-0022_pyannote-c1-summre-silero/per_file_summre_dev.csv": "181e78a261bdd3dc34c8d11d5d0578eccb763f7434f02c9b24cd6e7f369fa4c6",
+    "experiments/EXP-0022_pyannote-c1-summre-silero/rttm (dev)": "b633142c9179b948f7d950b0d259b5895fb354874d4d0d69aa1588d3b224027f",
+    "experiments/EXP-0022_pyannote-c1-summre-silero/per_file_summre_test.csv": "e416c6a4e01f54ed71ba4361cbc0fd3fcf946f42deddf290c711121471aff6ce",
+    "experiments/EXP-0022_pyannote-c1-summre-silero/rttm (test)": "735ed894e3a9685078844465cf97763409956f7bf2cd8821bfb4e4bad864dcf8"
+  },
+  "references_rttm_sha256": {
+    "ami": "889b37961ee6d96ab33831ff82c30536b2fd351b9bfaef81cd06854e87ccbca2",
+    "summre": "addaa196a67734c78ba23e369023f780ee508cf9f686667337d4e6338ec720c2"
+  },
+  "app_sortie_sha256": "94d455a979ab634ccc7daaa48f450573d90bca227bd85faf1b20d5e9f0c71119",
+  "seuils_carte": {
+    "tour_court_s": 1.0,
+    "pause_courte_s": 1.0,
+    "frontiere_s": 0.25,
+    "contigu_s": 0.05
+  },
+  "categories": {
+    "frontiere": "Décalage de frontière",
+    "chevauchement": "Chevauchement",
+    "reference_non_appariee": "Locuteur de référence non apparié",
+    "trouve_en_trop": "Locuteur trouvé en trop",
+    "tour_court": "Tour court",
+    "pause": "Pause courte",
+    "autre": "Autre"
+  },
+  "controle_totaux_ecart_max_s": {
+    "pyannote/ami": 0.0,
+    "pyannote/summre": 0.0,
+    "pyannote/summre-rev04": 0.0,
+    "pyannote/summre-rev08": 0.0,
+    "pyannote/summre-bru15": 0.0,
+    "pyannote/summre-bru05": 0.0,
+    "pyannote/summre-cod16": 0.0,
+    "pyannote/summre-cod08": 0.0,
+    "pyannote/summre-salle": 0.0,
+    "baseline-ecapa/ami": 0.0,
+    "baseline-ecapa/summre": 0.0,
+    "baseline-ecapa/summre-rev04": 0.0,
+    "baseline-ecapa/summre-rev08": 0.0,
+    "baseline-ecapa/summre-bru15": 0.0,
+    "baseline-ecapa/summre-bru05": 0.0,
+    "baseline-ecapa/summre-cod16": 0.0,
+    "baseline-ecapa/summre-cod08": 0.0,
+    "baseline-ecapa/summre-salle": 0.0,
+    "pyannote-silero-v2/ami": 0.0,
+    "pyannote-silero-v2/summre": 0.0
+  },
+  "controle_frontiere_collar_s": {
+    "pyannote/ami": {
+      "frontiere_s": 6229.169,
+      "pardonne_collar_s": 6229.169,
+      "ecart_frontiere_collar_s": -0.0
+    },
+    "pyannote/summre": {
+      "frontiere_s": 14121.362,
+      "pardonne_collar_s": 14121.362,
+      "ecart_frontiere_collar_s": -0.0
+    },
+    "pyannote/summre-rev04": {
+      "frontiere_s": 7103.982,
+      "pardonne_collar_s": 7103.982,
+      "ecart_frontiere_collar_s": -0.0
+    },
+    "pyannote/summre-rev08": {
+      "frontiere_s": 9212.799,
+      "pardonne_collar_s": 9212.799,
+      "ecart_frontiere_collar_s": -0.0
+    },
+    "pyannote/summre-bru15": {
+      "frontiere_s": 6926.775,
+      "pardonne_collar_s": 6926.775,
+      "ecart_frontiere_collar_s": -0.0
+    },
+    "pyannote/summre-bru05": {
+      "frontiere_s": 7386.622,
+      "pardonne_collar_s": 7386.622,
+      "ecart_frontiere_collar_s": -0.0
+    },
+    "pyannote/summre-cod16": {
+      "frontiere_s": 6509.578,
+      "pardonne_collar_s": 6509.578,
+      "ecart_frontiere_collar_s": -0.0
+    },
+    "pyannote/summre-cod08": {
+      "frontiere_s": 6426.951,
+      "pardonne_collar_s": 6428.669,
+      "ecart_frontiere_collar_s": -1.718
+    },
+    "pyannote/summre-salle": {
+      "frontiere_s": 8988.324,
+      "pardonne_collar_s": 8988.324,
+      "ecart_frontiere_collar_s": -0.0
+    },
+    "baseline-ecapa/ami": {
+      "frontiere_s": 9063.62,
+      "pardonne_collar_s": 9063.62,
+      "ecart_frontiere_collar_s": -0.0
+    },
+    "baseline-ecapa/summre": {
+      "frontiere_s": 14157.549,
+      "pardonne_collar_s": 14158.762,
+      "ecart_frontiere_collar_s": -1.213
+    },
+    "baseline-ecapa/summre-rev04": {
+      "frontiere_s": 7625.631,
+      "pardonne_collar_s": 7625.631,
+      "ecart_frontiere_collar_s": -0.0
+    },
+    "baseline-ecapa/summre-rev08": {
+      "frontiere_s": 8532.554,
+      "pardonne_collar_s": 8546.618,
+      "ecart_frontiere_collar_s": -14.064
+    },
+    "baseline-ecapa/summre-bru15": {
+      "frontiere_s": 7658.832,
+      "pardonne_collar_s": 7658.832,
+      "ecart_frontiere_collar_s": -0.0
+    },
+    "baseline-ecapa/summre-bru05": {
+      "frontiere_s": 8963.921,
+      "pardonne_collar_s": 8963.921,
+      "ecart_frontiere_collar_s": -0.0
+    },
+    "baseline-ecapa/summre-cod16": {
+      "frontiere_s": 7017.913,
+      "pardonne_collar_s": 7022.538,
+      "ecart_frontiere_collar_s": -4.625
+    },
+    "baseline-ecapa/summre-cod08": {
+      "frontiere_s": 7716.554,
+      "pardonne_collar_s": 7720.036,
+      "ecart_frontiere_collar_s": -3.482
+    },
+    "baseline-ecapa/summre-salle": {
+      "frontiere_s": 8855.306,
+      "pardonne_collar_s": 8856.203,
+      "ecart_frontiere_collar_s": -0.897
+    },
+    "pyannote-silero-v2/ami": {
+      "frontiere_s": 7858.169,
+      "pardonne_collar_s": 7858.169,
+      "ecart_frontiere_collar_s": -0.0
+    },
+    "pyannote-silero-v2/summre": {
+      "frontiere_s": 11457.531,
+      "pardonne_collar_s": 11457.531,
+      "ecart_frontiere_collar_s": -0.0
+    }
+  },
+  "extraits": {
+    "public": 8
+  }
+}
