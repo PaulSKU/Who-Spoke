@@ -59,3 +59,14 @@ EXP-0025,2026-11-03T05:14:44+01:00,pyannote-c1-ami-sdm-exclusive-silero,EXP-0017
 EXP-0025,2026-11-03T05:14:44+01:00,pyannote-c1-ami-sdm-exclusive-silero,EXP-0017,post_traitement,ami,test,pyannote-community-1-silero,estime,46.0,43.92,0.37,1.7,40.63,49.47,0.38,0.0533,0.7629,2d81861
 EXP-0024,2026-11-03T05:14:44+01:00,pyannote-c1-ami-sdm-silero,EXP-0001,post_traitement,ami,dev,pyannote-community-1-silero,estime,34.31,27.86,2.16,4.3,29.5,38.02,0.11,,,2d81861
 EXP-0024,2026-11-03T05:14:44+01:00,pyannote-c1-ami-sdm-silero,EXP-0001,post_traitement,ami,test,pyannote-community-1-silero,estime,42.05,37.76,1.32,2.97,37.55,46.24,0.38,,,2d81861
+EXP-0026,2026-11-03T11:38:51+01:00,nemotron3-ami-sdm,EXP-0001,moteur,ami,dev,nemotron3-diarization,estime,22.37,19.82,1.74,0.81,19.93,23.5,0.0,0.0122,0.0117,0358ccf
+EXP-0026,2026-11-03T11:38:51+01:00,nemotron3-ami-sdm,EXP-0001,moteur,ami,test,nemotron3-diarization,estime,27.47,24.93,1.47,1.08,25.15,29.56,0.12,0.0122,0.0117,0358ccf
+EXP-0027,2026-11-03T11:56:35+01:00,nemotron3-summre,EXP-0007,moteur,summre,dev,nemotron3-diarization,estime,10.5,7.28,2.71,0.5,4.41,11.44,0.11,0.0117,0.0104,0358ccf
+EXP-0027,2026-11-03T11:56:35+01:00,nemotron3-summre,EXP-0007,moteur,summre,test,nemotron3-diarization,estime,14.62,11.61,1.91,1.1,11.22,14.37,0.14,0.0115,0.0104,0358ccf
+EXP-0028,2026-11-03T13:00:01+01:00,nemotron3-summre-degrade,EXP-0020,moteur,summre-rev04,test,nemotron3-diarization,estime,14.84,11.78,2.11,0.94,11.09,14.58,0.03,0.0107,0.0122,0358ccf
+EXP-0028,2026-11-03T13:00:01+01:00,nemotron3-summre-degrade,EXP-0020,moteur,summre-rev08,test,nemotron3-diarization,estime,16.04,12.38,2.38,1.28,11.71,16.01,0.03,0.011,0.0122,0358ccf
+EXP-0028,2026-11-03T13:00:01+01:00,nemotron3-summre-degrade,EXP-0020,moteur,summre-bru15,test,nemotron3-diarization,estime,16.08,12.7,1.58,1.81,12.45,16.11,0.11,0.0111,0.0122,0358ccf
+EXP-0028,2026-11-03T13:00:01+01:00,nemotron3-summre-degrade,EXP-0020,moteur,summre-bru05,test,nemotron3-diarization,estime,18.46,15.0,1.57,1.9,13.4,19.74,0.08,0.0122,0.0122,0358ccf
+EXP-0028,2026-11-03T13:00:01+01:00,nemotron3-summre-degrade,EXP-0020,moteur,summre-cod16,test,nemotron3-diarization,estime,14.99,11.95,1.81,1.22,11.39,14.95,0.11,0.0123,0.0122,0358ccf
+EXP-0028,2026-11-03T13:00:01+01:00,nemotron3-summre-degrade,EXP-0020,moteur,summre-cod08,test,nemotron3-diarization,estime,16.44,12.14,2.09,2.21,12.6,17.52,0.0,0.0141,0.0122,0358ccf
+EXP-0028,2026-11-03T13:00:01+01:00,nemotron3-summre-degrade,EXP-0020,moteur,summre-salle,test,nemotron3-diarization,estime,17.67,14.44,1.82,1.41,12.74,18.0,0.03,0.0141,0.0122,0358ccf
