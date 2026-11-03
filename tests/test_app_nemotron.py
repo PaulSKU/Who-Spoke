@@ -29,8 +29,8 @@ def page_of(key):
 # --- Moteur ------------------------------------------------------------------------------
 
 
-def test_moteur_repris_d_exp_0027_en_cpu_nombre_estime_seulement():
-    assert (SPEC.label, SPEC.pipeline, SPEC.source_exp) == ("Nemotron 3 Diarization", "nemotron3-diarization", "EXP-0027")
+def test_moteur_repris_d_exp_0033_en_cpu_nombre_estime_seulement():
+    assert (SPEC.label, SPEC.pipeline, SPEC.source_exp) == ("Nemotron 3 Diarization", "nemotron3-diarization", "EXP-0033")
     assert SPEC.cpu_only and SPEC.auto_only and SPEC.max_speakers == 8 and not SPEC.supports_range
     assert SPEC.steps == ("detection",) and SPEC.step_label("detection", "x") == "Réseau de bout en bout"
     assert moteurs.model_revisions(SPEC) == {"nvidia/Nemotron-3-Diarization": "f667ed73aee57d40cc39428eb768b4fd87a0a29e"}
@@ -47,26 +47,27 @@ def test_construit_par_l_enveloppe_existante_en_cpu(monkeypatch):
 
     monkeypatch.setattr(nemotron3, "Nemotron3Diarization", Stub)
     assert isinstance(moteurs.build_engine(SPEC, "mps"), Stub)
-    assert built == {"device": "cpu", "speaker_mode": "estime"}       # MPS ignoré : exception Metal
+    # MPS ignoré (exception Metal) ; seuil retenu par le balayage d'EXP-0033 (D29, amendement du 04/11).
+    assert built == {"device": "cpu", "speaker_mode": "estime", "threshold": 0.35}
 
 
 def test_rtf_mesure_et_surcout_mesure_a_la_fusion():
     from app import temps
 
-    measured = temps.measured_rtf("EXP-0027", "cpu", "cpu")
-    assert measured is not None and measured.exp_id == "EXP-0027" and 0.005 < measured.rtf < 0.03
+    measured = temps.measured_rtf("EXP-0033", "cpu", "cpu")
+    assert measured is not None and measured.exp_id == "EXP-0033" and 0.005 < measured.rtf < 0.03
     overhead = moteurs.fixed_overhead(KEY, "cpu")                      # mesuré le 03/11 (D29, condition 4)
     assert overhead is not None and overhead.measured_on == "2026-11-03" and (KEY, "cpu") not in moteurs.OVERHEAD_TO_MEASURE
     script = (REPO_ROOT / "scripts" / "measure_overhead.py").read_text()
     assert '("nemotron-3", "cpu"),' in script
 
 
-def test_moteur_factice_relit_les_rttm_d_exp_0027():
+def test_moteur_factice_relit_les_rttm_d_exp_0033():
     engine = moteurs.FakeEngine(SPEC, simulated_s=0.0, ticks_per_step=1)
     steps = []
     result = engine.run(torch.zeros(1, 30 * SAMPLE_RATE, dtype=torch.float32), SAMPLE_RATE, uri="007a_ECRH",
                         progress=lambda step, fraction: steps.append(step))
-    assert "EXP-0027_nemotron3-summre/rttm/summre__007a_ECRH.rttm" in result.infos["rttm_source"]
+    assert "EXP-0033_nemotron3-summre-seuil/rttm/summre__007a_ECRH.rttm" in result.infos["rttm_source"]
     assert steps == ["detection"] and len(result.annotation.labels()) >= 1
 
 

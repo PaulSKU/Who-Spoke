@@ -6,8 +6,8 @@ paramètres (`pipeline.parametres` de config.yaml), le θ retenu par son balayag
 `app/temps.py`). Les sources sont les expériences sur SUMM-RE, jeu de validation
 prioritaire (D3 ; D17, amendement 1) : EXP-0009 (MFCC), EXP-0012 (ECAPA), EXP-0007
 (pyannote) et EXP-0015 (WeSpeaker), ce dernier moteur restant indisponible tant
-qu'EXP-0015 n'existe pas ou n'a pas été exécutée ; EXP-0027 pour Nemotron 3 Diarization
-(D23, A4 ; D29 : intégré à l'application quel que soit le moteur de démonstration retenu). Au gel du 10/11, elle passe dans
+qu'EXP-0015 n'existe pas ou n'a pas été exécutée ; EXP-0033 pour Nemotron 3 Diarization, seuil de
+décision de 0,35 retenu par son balayage (D23, A4 ; D29 et son amendement du 04/11 : intégré à l'application quel que soit le moteur de démonstration retenu). Au gel du 10/11, elle passe dans
 `configs/demo.yaml` (`DemoConfig`), qui fixe aussi le moteur proposé par défaut et le nombre
 de locuteurs par défaut de chaque moteur ; tant que ce fichier n'existe pas, l'application
 garde la correspondance ci-dessous (`SPECS`, `DEFAULT_ENGINE`).
@@ -86,7 +86,7 @@ SPECS: dict[str, EngineSpec] = {
         EngineSpec("baseline-wespeaker", "Baseline WeSpeaker", "baseline", "EXP-0015", BASELINE_STEPS, True, False),
         EngineSpec("pyannote-community-1", "pyannote community-1", "pyannote-community-1", "EXP-0007",
                    PYANNOTE_STEPS, False, True),
-        EngineSpec("nemotron-3", "Nemotron 3 Diarization", "nemotron3-diarization", "EXP-0027",
+        EngineSpec("nemotron-3", "Nemotron 3 Diarization", "nemotron3-diarization", "EXP-0033",
                    NEMOTRON_STEPS, True, False, auto_only=True, max_speakers=8,
                    step_labels=(("detection", "Réseau de bout en bout"),
                                 ("analyse", "Caractéristiques du réseau"),
@@ -307,7 +307,8 @@ def model_revisions(spec: EngineSpec, root: Path = EXPERIMENTS_DIR) -> dict[str,
 
 
 def engine_params(spec: EngineSpec, root: Path = EXPERIMENTS_DIR) -> dict:
-    """Paramètres de construction repris de l'expérience source (θ retenu compris)."""
+    """Paramètres de construction repris de l'expérience source, dont la valeur retenue par
+    son balayage (θ de la baseline, seuil de décision de Nemotron 3)."""
     config = source_config(spec, root)
     params = dict(config["pipeline"].get("parametres") or {})
     if spec.pipeline == "baseline":
@@ -319,6 +320,14 @@ def engine_params(spec: EngineSpec, root: Path = EXPERIMENTS_DIR) -> dict:
             raise EngineUnavailable(f"{spec.source_exp} : aucun θ retenu par balayage")
         params["theta"] = sweep["valeur_retenue"]
     else:
+        if config.get("balayage"):
+            execution = experiment_dir(spec.source_exp, root) / f"execution_{config['device']}.json"
+            if not execution.is_file():
+                raise EngineUnavailable(f"{spec.source_exp} n'a pas encore été exécutée : valeur du balayage inconnue")
+            sweep = json.loads(execution.read_text()).get("balayage") or {}
+            if sweep.get("parametre") != config["balayage"]["parametre"] or sweep.get("valeur_retenue") is None:
+                raise EngineUnavailable(f"{spec.source_exp} : aucune valeur retenue par balayage")
+            params[sweep["parametre"]] = sweep["valeur_retenue"]
         # Contraintes sur le nombre de locuteurs : fixées à chaque analyse, pas ici.
         for key in ("num_speakers", "min_speakers", "max_speakers"):
             params.pop(key, None)
@@ -333,7 +342,7 @@ def build_engine(spec: EngineSpec, device: str, root: Path = EXPERIMENTS_DIR) ->
 
         return Baseline(device="cpu", **params)
     if spec.pipeline == "nemotron3-diarization":
-        # Enveloppe existante : environnement séparé, sous-processus, CPU (EXP-0027).
+        # Enveloppe existante : environnement séparé, sous-processus, CPU (EXP-0027), seuil d'EXP-0033.
         from whospoke.pipelines.nemotron3 import Nemotron3Diarization
 
         return Nemotron3Diarization(device="cpu", speaker_mode="estime", **params)

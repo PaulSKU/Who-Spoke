@@ -104,6 +104,18 @@ def test_theta_retenu_par_le_balayage(tmp_path):
     assert moteurs.engine_params(SPEC, tmp_path) == {"representation": "ecapa", "theta": 0.7}
 
 
+def test_seuil_de_nemotron_retenu_par_le_balayage(tmp_path):
+    spec = moteurs.EngineSpec("essai-n3", "Essai", "nemotron3-diarization", "EXP-0099", moteurs.NEMOTRON_STEPS, True, False)
+    directory = fake_experiment(tmp_path, execution={"balayage": {"parametre": "threshold", "valeur_retenue": 0.35}})
+    config = yaml.safe_load((directory / "config.yaml").read_text())
+    config["balayage"] = {"parametre": "threshold", "debut": 0.2, "fin": 0.8, "pas": 0.05, "partition": "dev"}
+    (directory / "config.yaml").write_text(yaml.safe_dump(config))
+    assert moteurs.engine_params(spec, tmp_path) == {"threshold": 0.35}
+    (directory / "execution_cpu.json").write_text(json.dumps({"balayage": {"parametre": "theta", "valeur_retenue": 1.0}}))
+    with pytest.raises(moteurs.EngineUnavailable, match="aucune valeur retenue"):
+        moteurs.engine_params(spec, tmp_path)
+
+
 def test_recherche_du_rttm(tmp_path):
     directory = fake_experiment(tmp_path, rttm={"ami__ES2004a": RTTM, "ami__ES2004b": RTTM}) / "rttm"
     assert moteurs.find_rttm(directory, "ami__ES2004a").name == "ami__ES2004a.rttm"

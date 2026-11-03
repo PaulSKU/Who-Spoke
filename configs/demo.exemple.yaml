@@ -49,4 +49,5 @@ moteurs:
   nemotron-3:
     # Nemotron 3 Diarization (D23, A4 ; D29), système de bout en bout en CPU, dans son
     # environnement séparé (scripts/envs/nemotron.sh). Clé « nemotron-3 », celle des constats.
-    experience_source: EXP-0027
+    # Seuil de décision de 0,35 retenu par le balayage d'EXP-0033 (D29, amendement du 04/11).
+    experience_source: EXP-0033

@@ -66,7 +66,7 @@ def test_exemple_lu_comme_le_sera_configs_demo_yaml(tmp_path):
     assert demo.default_engine == "pyannote-community-1" and len(demo.sha256) == 64
     assert {key: spec.source_exp for key, spec in demo.specs.items()} == {
         "baseline-mfcc": "EXP-0009", "baseline-ecapa": "EXP-0012", "baseline-wespeaker": "EXP-0015",
-        "pyannote-community-1": "EXP-0007", "nemotron-3": "EXP-0027"}
+        "pyannote-community-1": "EXP-0007", "nemotron-3": "EXP-0033"}
     assert demo.speakers["nemotron-3"] == {"mode": "automatique"}
     assert demo.speakers["pyannote-community-1"] == {"mode": "fourchette", "min": 2, "max": 6}
     assert demo.speakers["baseline-mfcc"] == {"mode": "automatique"}
@@ -314,8 +314,8 @@ def test_exemple_avec_les_deux_variantes_du_moteur_par_defaut(tmp_path):
 
 
 def test_nemotron_3_n_accepte_que_le_mode_automatique(tmp_path):
-    text = example().replace("    experience_source: EXP-0027\n",
-                             "    experience_source: EXP-0027\n    nombre_locuteurs: {mode: impose, valeur: 3}\n")
+    text = example().replace("    experience_source: EXP-0033\n",
+                             "    experience_source: EXP-0033\n    nombre_locuteurs: {mode: impose, valeur: 3}\n")
     with pytest.raises(moteurs.DemoConfigError, match="estime seul le nombre de locuteurs .8 au plus."):
         moteurs.demo_config(_repo_with(tmp_path, text))
 
