@@ -1,0 +1,37 @@
+{
+  "analyse_id": "A-0004",
+  "date": "2026-11-03T17:04:04+01:00",
+  "git_commit": "02cb102b78dc33321b5e5ffc347d5b529be1d2c6",
+  "arbre_propre": true,
+  "fichiers_non_commites": [
+    "docs/journal.md",
+    "docs/planning.md",
+    "analyses/A-0004_niveau-entree/config.yaml"
+  ],
+  "config_sha256": "7d53ca8cc072c95a107e2e29b8e99d30fef9e9645722243e3dd51d2b7d294172",
+  "sources_sha256": {
+    "experiments/EXP-0026_nemotron3-ami-sdm/per_file_ami_dev.csv": "c3bde573f5b2154d9054aa3d34b32935dfff07caeb1cd5f151c1cfedd063fa3b",
+    "experiments/EXP-0026_nemotron3-ami-sdm/per_file_ami_test.csv": "e878dbc0e6ef3a33e0f785ff9264d46f51f914d3ffb8d572acccbc7bdad02c1d",
+    "experiments/EXP-0027_nemotron3-summre/per_file_summre_dev.csv": "88dd5ce8871d048cf8ed943aff477af4fbc6b53d7dca785550282b67ff8c726f",
+    "experiments/EXP-0027_nemotron3-summre/per_file_summre_test.csv": "eba504c124b1567ce20800c308d9c045dd325c165897a6caa1aa58e2b1584e80",
+    "experiments/EXP-0028_nemotron3-summre-degrade/per_file_summre-rev04_test.csv": "5257b75d7c420185876add4998b9603db908537df914ccb28dd5f152b11b57ac",
+    "experiments/EXP-0028_nemotron3-summre-degrade/per_file_summre-rev08_test.csv": "a55d7bf541dc9e5f7df69d00e6fc10f8586f4db78c04fe8eb9f5c6109f79b822",
+    "experiments/EXP-0028_nemotron3-summre-degrade/per_file_summre-bru15_test.csv": "7292a033c0c7fef601765c78e265f8a1bb1bc0c3d91874e727bc51981b47db75",
+    "experiments/EXP-0028_nemotron3-summre-degrade/per_file_summre-bru05_test.csv": "904e3f82e2e0aa93aeebdb3051e0ef3a31eecd8d94ecf5c9de68b487809d372f",
+    "experiments/EXP-0028_nemotron3-summre-degrade/per_file_summre-cod16_test.csv": "d88ddac244aa6b2efbd41a5210d201ad2564e574e3f92fbef26bca0049b2f5ad",
+    "experiments/EXP-0028_nemotron3-summre-degrade/per_file_summre-cod08_test.csv": "abe6e4762739cd40afa74f82bcf9e35073c6388ee1304964bf837f7e9e9f3ca3",
+    "experiments/EXP-0028_nemotron3-summre-degrade/per_file_summre-salle_test.csv": "59df230dcc9487d85e3cc256ca59c9e38eb3c96e01abb5aeb272cc711432504a",
+    "experiments/EXP-0001_pyannote-c1-ami-sdm/per_file_ami_dev.csv": "0b924b801a41df5ac3621185d667858d240fe76cdff714ad8a0611ec13dce4e9",
+    "experiments/EXP-0001_pyannote-c1-ami-sdm/per_file_ami_test.csv": "0d46a2bad716a15b4774c33eea456a16f6d60ac59c8ec900dbf0381d5768234b",
+    "experiments/EXP-0007_pyannote-c1-summre/per_file_summre_dev.csv": "47d824bcbc72c9610c3e3cac22c56705c4319f78604c72b2ea25c8ad35319dc0",
+    "experiments/EXP-0007_pyannote-c1-summre/per_file_summre_test.csv": "679da4e11bc46abf69514563424485b9fa36a2dd7198c4d2aef7859a3c0d2915",
+    "experiments/EXP-0020_pyannote-c1-summre-degrade/per_file_summre-rev04_test.csv": "af91ea763ff02253e34734e1899117a9aa97e32057821575dcb871b8e35ac2d4",
+    "experiments/EXP-0020_pyannote-c1-summre-degrade/per_file_summre-rev08_test.csv": "44803108ff9f07fb7577dbffe00455187a533d7de9915e55886b20661ec915bd",
+    "experiments/EXP-0020_pyannote-c1-summre-degrade/per_file_summre-bru15_test.csv": "1afce64cd39b7c2f3e54413d091d8d573e8ed5405bf465a6e0868c507fc4f218",
+    "experiments/EXP-0020_pyannote-c1-summre-degrade/per_file_summre-bru05_test.csv": "322b5a9a3e487b8ab61c7089ec3b9e5842e0768c11516bfb89ee560e9c0ba228",
+    "experiments/EXP-0020_pyannote-c1-summre-degrade/per_file_summre-cod16_test.csv": "a391036e96607e49ecb69f31e8f153fa22d481599fa7d49c67c3beafa6974698",
+    "experiments/EXP-0020_pyannote-c1-summre-degrade/per_file_summre-cod08_test.csv": "cca9e06875286ddde676a3b2c012090112168177da497b239d46c5acf9a54b08",
+    "experiments/EXP-0020_pyannote-c1-summre-degrade/per_file_summre-salle_test.csv": "0a98e0cca415fd4ade9abc9f9ae36e9db5ad3e0dbdb79438aa71ade30883447c"
+  },
+  "n_fichiers_mesures": 366
+}

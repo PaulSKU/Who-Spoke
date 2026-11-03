@@ -1,0 +1,50 @@
+# A-0004 — niveau d'entrée et parole manquée (D29 §1, hypothèse 1).
+# Analyse a posteriori (D21 §1, methode.md §4.7) : aucun moteur n'est exécuté ; niveaux mesurés
+# sur l'audio normalisé (D16) et per_file des expériences existantes.
+#
+#   uv run python scripts/analyses/a0004_niveau_entree.py --config analyses/A-0004_niveau-entree/config.yaml
+analyse_id: A-0004
+slug: niveau-entree
+question: >-
+  La parole manquée de Nemotron 3 (et de pyannote) dépend-elle du niveau de la parole en
+  entrée, mesuré par fichier sur les zones de parole de la référence ?
+
+# Niveau : RMS en dBFS (pleine échelle = 1,0) sur les zones de parole de la référence dans l'UEM.
+jeux:
+  - {corpus: ami, partition: dev, liste: data/splits/ami/dev.txt}
+  - {corpus: ami, partition: test, liste: data/splits/ami/test.txt}
+  - {corpus: summre, partition: dev, liste: data/splits/summre/dev.txt}
+  - {corpus: summre, partition: test, liste: data/splits/summre/test.txt}
+  - {corpus: summre-rev04, partition: test, liste: data/splits/summre/test.txt}
+  - {corpus: summre-rev08, partition: test, liste: data/splits/summre/test.txt}
+  - {corpus: summre-bru15, partition: test, liste: data/splits/summre/test.txt}
+  - {corpus: summre-bru05, partition: test, liste: data/splits/summre/test.txt}
+  - {corpus: summre-cod16, partition: test, liste: data/splits/summre/test.txt}
+  - {corpus: summre-cod08, partition: test, liste: data/splits/summre/test.txt}
+  - {corpus: summre-salle, partition: test, liste: data/splits/summre/test.txt}
+
+# Corrélation de rang de Spearman entre le niveau et manquee_c0 du per_file, par groupe
+# (un corpus, partitions réunies ; AMI et SUMM-RE réunis ; chaque condition de D24 ; D24 réunies).
+systemes:
+  - nom: nemotron3                 # Nemotron 3 Diarization, CPU
+    sources:
+      - {exp_id: EXP-0026, corpus: ami, partitions: [dev, test], groupes: [ami, ami+summre]}
+      - {exp_id: EXP-0027, corpus: summre, partitions: [dev, test], groupes: [summre, ami+summre]}
+      - {exp_id: EXP-0028, corpus: summre-rev04, partitions: [test], groupes: [summre-rev04, d24]}
+      - {exp_id: EXP-0028, corpus: summre-rev08, partitions: [test], groupes: [summre-rev08, d24]}
+      - {exp_id: EXP-0028, corpus: summre-bru15, partitions: [test], groupes: [summre-bru15, d24]}
+      - {exp_id: EXP-0028, corpus: summre-bru05, partitions: [test], groupes: [summre-bru05, d24]}
+      - {exp_id: EXP-0028, corpus: summre-cod16, partitions: [test], groupes: [summre-cod16, d24]}
+      - {exp_id: EXP-0028, corpus: summre-cod08, partitions: [test], groupes: [summre-cod08, d24]}
+      - {exp_id: EXP-0028, corpus: summre-salle, partitions: [test], groupes: [summre-salle, d24]}
+  - nom: pyannote                 # pyannote community-1, configuration d'EXP-0001/0007
+    sources:
+      - {exp_id: EXP-0001, corpus: ami, partitions: [dev, test], groupes: [ami, ami+summre]}
+      - {exp_id: EXP-0007, corpus: summre, partitions: [dev, test], groupes: [summre, ami+summre]}
+      - {exp_id: EXP-0020, corpus: summre-rev04, partitions: [test], groupes: [summre-rev04, d24]}
+      - {exp_id: EXP-0020, corpus: summre-rev08, partitions: [test], groupes: [summre-rev08, d24]}
+      - {exp_id: EXP-0020, corpus: summre-bru15, partitions: [test], groupes: [summre-bru15, d24]}
+      - {exp_id: EXP-0020, corpus: summre-bru05, partitions: [test], groupes: [summre-bru05, d24]}
+      - {exp_id: EXP-0020, corpus: summre-cod16, partitions: [test], groupes: [summre-cod16, d24]}
+      - {exp_id: EXP-0020, corpus: summre-cod08, partitions: [test], groupes: [summre-cod08, d24]}
+      - {exp_id: EXP-0020, corpus: summre-salle, partitions: [test], groupes: [summre-salle, d24]}
