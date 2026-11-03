@@ -1283,3 +1283,49 @@ Problèmes :
 - Safari n'a pas pu être piloté (`safaridriver` exige « Allow Remote Automation », réglage non modifié) : vérifié par capture d'écran de la page ouverte dans Safari, sur l'état par défaut (Automatique sélectionné, listes), pas sur Fourchette ni le focus.
 - Les listes déroulantes gardent une bordure plus pâle (`--ws-line`) que les champs numériques (`--ws-control-line`, 3:1) : hors du périmètre de B14, à trancher.
 Suite : retour du cockpit sur B14 ; essai au vidéoprojecteur par la candidate ; fusion d'`ui` dans `main` par la piste A.
+
+## 2026-11-03 — Cible d'affichage et défauts d'interface relevés par la candidate (cockpit)
+
+Décision (candidate et cockpit) : l'interface vise l'ordinateur portable et le vidéoprojecteur (1280 × 720, 1440 × 900, 1920 × 1080), en clair et en sombre. Plus aucun travail n'est fait pour le téléphone. Les captures de référence à 375 px sont retirées du contrôle, et un seul test vérifie l'absence de débordement horizontal à 1024 px.
+Défauts relevés par la candidate (`Prblms_UI_.pdf`, 03/11) :
+- coins inférieurs des champs encadrés rognés ou entaillés en sombre (option de radio sélectionnée, listes déroulantes, champs Minimum et Maximum, case à cocher du cache) ;
+- double cadre de focus sur les listes déroulantes et les champs numériques ;
+- cases et radios trop petites ;
+- étiquette « Référence RTTM » qui recouvre l'icône de dépôt ;
+- dans l'onglet Pipeline, sous-titre du modèle qui déborde de sa boîte (« WeSpeakerResNet34 3533c8c »), étiquettes des formes de données mal alignées sur les flèches et coupées sur plusieurs lignes.
+Ces défauts n'apparaissaient pas sur les captures du cockpit, faites à une autre résolution : ils doivent être reproduits dans le navigateur réel de la démonstration, sur écran Retina.
+Suite : chantier B14.
+Précision de la candidate : « Bouton paramètre plus accessible » désigne le bouton « Settings » du pied de page de Gradio. Il a disparu quand le pied de page a été masqué (B1), alors qu'il permettait de passer du mode clair au mode sombre. Décision : un sélecteur de thème (Clair, Sombre, Système) dans l'en-tête, visible aussi en mode présentation, mémorisé localement ; ajouté au chantier B14.
+
+## 2026-11-03 — Piste A : A4 (Nemotron 3) et premier fichier d'A5 (DiariZen) (Claude Code)
+
+Objectif : A4 et A5 selon `docs/recherche/e4-moteurs-externes.md`, essais bornés selon D23 ; avant de lancer : commit `docs:`, option `--racine` de `scripts/reglage_silero.py` documentée, état du worktree `ui`.
+Réalisé :
+- Commit `docs:` des interprétations d'A3, A6 et A-0003 (`ce343f1`). Worktree `~/Dev/Who-Spoke-ui`, lu sans rien modifier : branche `ui` à jour avec `origin/ui`, arbre propre, aucune remise de côté (les modifications non commitées vues le 02/11 n'y sont plus).
+- `scripts/reglage_silero.py` (`8f2566e`) : `--racine` documentée (aide, en-tête du script, README) et consignée dans `reglage.json` (`racine` : « dépôt » ou le chemin) et en tête de `reglage.md` ; 1 test complété.
+- A4, Nemotron 3 Diarization : installation (`scripts/envs/nemotron.sh --modeles`) en 3 min 52 s (borne : 2 h), environnement de 728 Mo, poids de 397 Mo à la révision `f667ed73`. Premier fichier (5 min d'ES2004a) sous relevé `lsof` de tous les processus Python du dépôt et des environnements : d'abord un échec, `librosa` manquant dans `envs/nemotron` (exigé par le processeur de transformers au chargement) ; ajouté à `scripts/envs/nemotron.txt` (`0358ccf` : librosa 0.11.0 et 22 dépendances, aucune version existante modifiée). Ensuite : CPU, 5,5 s pour 5 min (RTF 0,018), 4 locuteurs ; MPS, arrêt de l'exécutant sur une exception Metal (NSException, code −6, raison tronquée dans la sortie d'erreur). Aucune connexion hors local. Expériences en CPU : EXP-0026 (AMI), EXP-0027 (SUMM-RE), EXP-0028 (7 conditions de D24), évaluées (`e338ebd`).
+- A5, DiariZen : installation (`scripts/envs/diarizen.sh --modeles`) en 8 min 19 s (borne : 4 h), environnement de 1,0 Go. Premier fichier (5 min d'ES2004a), aucune connexion hors local : CPU, 629 s (RTF 2,10), 3 locuteurs ; MPS, échec sur un opérateur absent du backend (`aten::_weight_norm_interface`, torch 2.1.1) ; avec `PYTORCH_ENABLE_MPS_FALLBACK=1`, l'opérateur passe en CPU puis l'exécutant s'arrête (code −5, SIGTRAP). Aucune expérience de DiariZen lancée.
+Résultats :
+- Nemotron 3, DER sans collar sur test (écart à pyannote, bootstrap apparié, 1 000 tirages, graine 0) : AMI 27,47 % (+7,55 [+5,47 ; +9,45], 15 fichiers dégradés sur 16 ; parole manquée 24,93 contre 11,16, confusion 1,08 contre 4,94) ; SUMM-RE 14,62 % (−11,68 [−15,26 ; −8,33], 36 améliorés sur 37 ; FA 1,91 contre 11,28, confusion 1,10 contre 7,87) ; dev SUMM-RE 10,50 % (−15,51). D24 : rev04 14,84 (−13,94), rev08 16,04 (−25,21), bru15 16,08 (−10,75), bru05 18,46 (−11,68), cod16 14,99 (−10,52), cod08 16,44 (−13,79), salle 17,67 (−23,56) ; tous les intervalles excluent 0. Nombre de locuteurs exact : 14/16 (AMI test), 32/37 (SUMM-RE test). RTF 0,012 en CPU.
+- DiariZen : en CPU, AMI et SUMM-RE (dev et test, 43 h d'audio) demanderaient environ 90 h de calcul au RTF mesuré, et D24 environ 180 h de plus.
+Décisions : aucune.
+Problèmes :
+- A5 bloqué : l'installation passe, mais le calcul n'est faisable ni en MPS (backend de torch 2.1.1, version imposée par DiariZen) ni en CPU dans le calendrier. Options pour le cockpit : (a) DiariZen écarté, échec documenté (calcul) ; (b) sous-ensemble fixe en CPU (par exemple les fichiers de `temps.txt` ou quelques réunions de test d'AMI et de SUMM-RE), comparé à pyannote sur les mêmes fichiers, sans valeur sur le corpus entier ; (c) nouvel essai MPS avec une version plus récente de torch dans `envs/diarizen`, hors des contraintes du dépôt DiariZen, dans le reste de la borne de 4 h (environ 3 h 35).
+- Nemotron 3 dépasse pyannote sur le français : D23 prévoit de rediscuter le moteur de démonstration avant le gel du 10/11. Il ne tourne qu'en CPU (exception Metal en MPS).
+- Charge concurrente vraie pour toutes les exécutions (jusqu'à 12,6 pour 6 cœurs de performance), pendant le travail des autres sessions.
+- Commit `0358ccf` (gel de l'environnement de Nemotron) fait après les seuls tests des moteurs externes ; suite complète lancée juste après, avant les expériences : 668 réussis.
+Suite : décision sur A5 ; interprétation d'A4 et choix du moteur de démonstration (cockpit).
+
+## 2026-11-03 — Retour de B14 (cockpit)
+
+Décisions : choix validés (formes de données sur deux rangées alternées plutôt que coupées, nom de modèle coupé en fin avec infobulle, tolérance nulle pour les captures des champs, thème « Système » par défaut). Bordure des listes déroulantes alignée sur celle des champs numériques, au même contraste d'au moins 3:1, pour qu'il n'y ait qu'un seul style de champ ; petite retouche à faire à la prochaine session B. Safari n'a pu être vérifié que dans son état par défaut : si la démonstration se fait dans Safari, la candidate contrôle à la main l'option Fourchette, le focus au clavier et le sélecteur de thème.
+
+## 2026-11-03 — Interprétation d'A4 et d'A5 ; D29 (cockpit)
+
+Objectif : interpréter Nemotron 3 Diarization et l'échec de calcul de DiariZen.
+Réalisé : interprétations d'EXP-0026 à 0028 (verdicts en attente de D29) ; constats C18 et C19 ; synthèse ; fiche D29. Vérification du cockpit sur les per_file : la parole manquée de Nemotron 3 sur AMI ne dépend pas de la durée des réunions (corrélation de rang de 0,05) et touche aussi les zones sans chevauchement.
+Décisions : D29. Règle de choix du moteur de démonstration fixée avant le corpus maison ; diagnostic de la parole manquée sur AMI (niveau d'entrée, puis seuil) ; DiariZen écarté (RTF de 2,1 en CPU, échec en MPS). Nemotron 3 est intégré à l'application (piste B), quel que soit le choix final.
+
+## 2026-11-03 — A5 : DiariZen écarté (Claude Code)
+
+Décision de la candidate, sur les options du rapport de la piste A : DiariZen est écarté. C'est un échec documenté, dû au calcul et non à l'installation, faite en 8 min 19 s pour une borne de 4 h. En CPU, le RTF est de 2,10 au premier fichier, soit environ 90 h pour AMI et SUMM-RE. En MPS, l'exécution est impossible avec torch 2.1.1, version imposée par DiariZen. Aucune expérience DiariZen n'est lancée. L'environnement `envs/diarizen/` (1,0 Go, non versionné) et les poids restent en place, sans usage. Le planning et D23 sont à mettre à jour par le cockpit.
