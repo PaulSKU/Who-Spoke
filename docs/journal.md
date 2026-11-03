@@ -1415,3 +1415,16 @@ Décisions : EXP-0033 à 0035 retenues ; seuil de 0,35 adopté pour Nemotron 3 (
 ## 2026-11-04 — Premier enregistrement du corpus maison (cockpit)
 
 M01 : environ 9 min, 3 locuteurs (deux à 50–70 cm du téléphone, un à environ 1,20 m), habitacle de voiture, bruits ponctuels (manteaux, boutons, sièges). Écarts au protocole : pas de clap, pas de piste d'aide, condition non prévue. Fiche de session écrite par le cockpit dans `data/raw/maison/M01/fiche.md` (non versionné). Zone évaluée à fixer à l'écoute ; la chaîne d'E2 devra accepter un début et une fin donnés à la main et sauter la synchronisation. README mis à jour (état au 04/11, Nemotron 3 dans le tableau des résultats).
+
+## 2026-11-04 — Nemotron 3 au seuil de 0,35 dans l'application, rendu régénéré (Claude Code)
+
+Objectif : appliquer l'amendement du 04/11 de D29 dans l'application (moteur `nemotron-3` au seuil de 0,35, expérience source EXP-0033), vérifier le vrai moteur (D29, condition 4), régénérer `docs/rendu/`.
+Réalisé :
+- Application (`549ab80`) : `nemotron-3` reprend EXP-0033 (configuration, RTF de 0,0103, RTTM du mode factice) ; `engine_params` lit la valeur retenue par le balayage de l'expérience source pour tout moteur qui en a un (seuil de Nemotron 3, θ de la baseline comme avant) ; surcoût fixe inchangé (2,1 s) ; `configs/demo.exemple.yaml`, `app/README.md` et tests mis à jour (dont un test du seuil lu dans le balayage). Suite complète : 710 tests.
+- Vrai moteur dans l'application, sous relevé réseau (hook d'audit du serveur et `lsof` du serveur et de l'exécutant) : l'exécutant reçoit `seuil` 0,35 ; extrait de 3 min de 007a_ECRH (mp3) : DER 7,57 % sans collar (7,95 % au seuil de 0,5 le 03/11), calcul 2,6 s ; EN2002b (29 min 47 s) : DER 29,71 %, identique à EXP-0034 (29,71 %), calcul 21,9 s, 4 locuteurs ; aucune connexion hors 127.0.0.1.
+- `docs/rendu/` régénéré (`c5f5b31`, `scripts/rendu.py --verifier` à jour) : EXP-0022 à 0035 et constats du 04/11.
+- Onglets vérifiés dans l'application : Avancement (constats clés, C19 dans sa nouvelle rédaction ; 0 en-tête de notes.md manquant sur 39) ; Pipeline de `nemotron-3` (EXP-0033, `nemotron.seuil` 0,35 « Expérience », constats C18 à C21 sous le réseau). Aucun écart de constat pour les cinq moteurs ; seuls écarts restants, connus et testés : réglages des empreintes absents de la baseline MFCC.
+Résultats : aucune expérience.
+Décisions : aucune.
+Problèmes : les notes d'EXP-0026 à 0028 sont encore en `verdict: en_cours` (affichées « en cours » dans le rendu).
+Suite : plus aucune expérience sur corpus publics ; la piste A attend les références du corpus maison (A9).
