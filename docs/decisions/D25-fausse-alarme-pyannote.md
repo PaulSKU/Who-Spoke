@@ -41,6 +41,18 @@ Si le gain n'apparaît que sans collar, il est présenté comme un meilleur acco
 
 La fausse alarme est la composante d'erreur la plus forte de pyannote en français. V1 et V2 s'attaquent séparément à ses deux causes mesurées, et V3 à leur somme. La règle de choix protège contre un gain propre à SUMM-RE, un corpus en micros-casques, qui serait payé ailleurs.
 
+## Amendement du 03/11/2026 — bilan
+
+Statut : actée
+
+Aucune variante n'est retenue.
+
+- **V1 (sortie exclusive)** : écartée par la règle 1. Elle dégrade SUMM-RE de 4,1 points et AMI de 4,6 (EXP-0016, EXP-0017).
+- **V2 (masque de Silero VAD)** : elle passe les règles 1 et 2 sur SUMM-RE (−2,6 points sans collar, différence avec collar non significative), mais échoue nettement à la règle 3 (+22,1 points sur AMI, EXP-0022, EXP-0024). Elle n'est donc pas évaluée sur D24.
+- **V3** : écartée (EXP-0023, EXP-0025).
+
+Le point de réglage de Silero est resté au bord de la grille. La grille n'est pas élargie davantage : un seuil plus haut couperait encore plus de parole lointaine. L'amélioration n° 2 se conclut par deux résultats négatifs documentés, et la configuration de démonstration reste celle d'EXP-0007, avec les bornes de 2 à 6 locuteurs (EXP-0018).
+
 ## Liens
 
 D9, D21, D23, D24 ; A-0001 ; EXP-0007 ; audit du 01/11 (R-Q1, R-Q4).

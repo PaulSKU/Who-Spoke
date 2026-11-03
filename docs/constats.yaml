@@ -6,7 +6,7 @@
 # sources (expériences ou analyses) ; confiance (certain | probable | incertain) ; cle (vrai = repris dans l'encadré).
 
 version: 1
-date: 2026-11-02
+date: 2026-11-03
 
 constats:
   - id: C01
@@ -104,4 +104,44 @@ constats:
     sources: [EXP-0018, EXP-0019]
     confiance: certain
     cle: false
+
+  - id: C13
+    etape: segmentation
+    moteurs: [pyannote-community-1]
+    texte: "La réverbération forte est la faiblesse de pyannote : en salle simulée à RT60 ≈ 0,9 s, son DER passe de 26,3 à 41,2 % sur SUMM-RE test, presque entièrement en parole manquée (7,2 → 23,2 points), et il perd son avance sur la baseline (+0,4 point, non significatif). Il résiste en revanche au bruit et au codec à 16 kbit/s (moins d'un point)."
+    sources: [EXP-0020, EXP-0021, A-0002]
+    confiance: certain
+    cle: true
+
+  - id: C14
+    etape: detection
+    moteurs: [baseline-ecapa]
+    texte: "Le bruit est la faiblesse de la baseline : sa détection par énergie perd de la parole (+14,0 points de DER à 5 dB de RSB), alors que la réverbération la gêne moins (+7,4 points)."
+    sources: [EXP-0021, A-0002]
+    confiance: certain
+    cle: false
+
+  - id: C15
+    etape: representation
+    moteurs: []
+    texte: "Un codec de visio à bas débit (Opus 8 kbit/s) dégrade surtout l'attribution : la confusion de pyannote passe de 7,9 à 14,4 points, et des locuteurs sont fusionnés (13 % de l'erreur vient d'un locuteur de référence non apparié)."
+    sources: [EXP-0020, A-0003]
+    confiance: certain
+    cle: false
+
+  - id: C16
+    etape: detection
+    moteurs: [pyannote-community-1]
+    texte: "Un post-traitement par Silero VAD réglé sur SUMM-RE (micros-casques) réduit le DER de pyannote de 2,6 points en français, mais l'augmente de 22 points sur AMI (micro distant) en coupant la parole lointaine : un réglage fait en champ proche ne se transporte pas en champ lointain."
+    sources: [EXP-0022, EXP-0024]
+    confiance: certain
+    cle: true
+
+  - id: C17
+    etape: evaluation
+    moteurs: []
+    texte: "Le chevauchement est le premier facteur d'échec identifiable : c'est le descripteur le plus lié au DER (corrélation de rang 0,59 à 0,65 pour pyannote), et la moitié à deux tiers de l'erreur sans collar de pyannote n'est qu'un décalage de frontière, que le collar pardonne."
+    sources: [A-0003]
+    confiance: probable
+    cle: true
 

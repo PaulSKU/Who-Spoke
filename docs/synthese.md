@@ -1,6 +1,6 @@
 # Synthèse vivante
 
-Version de travail du 02/11, tenue par le cockpit à chaque interprétation (audit du 01/11, R-M3). Elle prépare le document de synthèse du 13/11. Les constats chiffrés, avec leurs sources, sont dans `docs/constats.yaml` ; ce document les relie et dit ce qui reste ouvert.
+Version de travail du 03/11, tenue par le cockpit à chaque interprétation (audit du 01/11, R-M3). Elle prépare le document de synthèse du 13/11. Les constats chiffrés, avec leurs sources, sont dans `docs/constats.yaml` ; ce document les relie et dit ce qui reste ouvert.
 
 **Légende de confiance.** **[certain]** : mesuré dans nos expériences. **[probable]** : déduit de plusieurs mesures. **[incertain]** : hypothèse non testée.
 
@@ -18,6 +18,12 @@ Qu'est-ce qui fait la qualité d'une diarisation de réunions en français, enre
 
 **Le chevauchement réel compte plus que le faux.** Supprimer tout chevauchement de la sortie de pyannote (sortie exclusive) dégrade le DER de 4 points sur les deux corpus : la fausse alarme baisse, mais la parole manquée augmente deux fois plus (C11) **[certain]**. Borner le nombre de locuteurs entre 2 et 6 ne change presque rien, mais évite qu'une réunion soit réduite à un seul locuteur ; ces bornes sont gardées comme garde-fou (C12).
 
+**La réverbération est la faiblesse de pyannote, le bruit celle de la baseline.** En salle très réverbérante simulée, pyannote manque une grande partie de la parole et perd son avance (C13) ; la baseline souffre surtout du bruit (C14) ; un codec de visio à bas débit fait confondre les voix aux deux (C15) **[certain]**. La salle avec un seul micro de la cible est donc la condition à surveiller pour la démonstration.
+
+**Un réglage fait en champ proche est dangereux en champ lointain.** Le post-traitement par Silero VAD gagne 2,6 points en français (micros-casques) mais en perd 22 sur AMI (micro distant) ; la règle de D25 l'a écarté (C16) **[certain]**. Aucune variante de l'amélioration n° 2 n'est retenue.
+
+**Le chevauchement est le premier facteur d'échec identifiable** (C17) **[probable]**, et une grande part du DER sans collar n'est qu'un décalage de frontière.
+
 **La mesure elle-même doit être lue avec prudence.** Le DER sans collar dépend de la convention de découpage de la référence ; avec collar, presque pas (C09) **[certain]**.
 
 ## 3. Ce qui est en cours (file D23, planning v2.0)
@@ -26,9 +32,9 @@ Qu'est-ce qui fait la qualité d'une diarisation de réunions en français, enre
 |---|---|---|
 | La sortie exclusive réduit-elle la fausse alarme sans trop perdre de chevauchement réel ? | A1 : EXP-0016, EXP-0017 (D25, V1) | Non : écartée (C11) |
 | Borner le nombre de locuteurs entre 2 et 6 aide-t-il, et que fait le passage au KMeans ? | A2 : EXP-0018, EXP-0019 | Effet non significatif ; gardé comme garde-fou (C12) |
-| Quel système résiste le mieux à la réverbération, au bruit et au codec de visio ? | A3 (D24) | Conditions générées, écoute de contrôle en cours |
+| Quel système résiste le mieux à la réverbération, au bruit et au codec de visio ? | A3 (D24) : EXP-0020, EXP-0021, A-0002 | Fait : réverbération forte = faiblesse de pyannote (C13) |
 | Nemotron 3 Diarization et DiariZen font-ils mieux que pyannote en français ? | A4, A5 | Installation en préparation |
-| Une détection fine en post-traitement réduit-elle la fausse alarme de pyannote ? | A6 (D25, V2 et V3) | En attente |
+| Une détection fine en post-traitement réduit-elle la fausse alarme de pyannote ? | A6 (D25, V2 et V3) : EXP-0022 à 0025 | Non : gain en français, forte perte sur AMI, écartée (C16) |
 | Que donnent les systèmes sur de vraies réunions en français, en salle et en visio ? | A9, corpus maison | Enregistrements en cours |
 
 ## 4. Limites connues

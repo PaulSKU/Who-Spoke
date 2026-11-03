@@ -21,6 +21,10 @@ par fichier (`per_file_<corpus>_test.csv`) des expériences sources sont regroup
 
 Les fichiers de chaque sous-groupe sont ceux de la liste du sous-groupe ; `autres` est le
 complément dans la liste de la partition.
+
+Intervalles de confiance (décision du cockpit du 02/11) : aucun IC sous `ic_min_fichiers`
+réunions (5) ; pour un tel groupe (Zoom : 3 réunions), seul l'écart est donné, et les bornes
+sont vides.
 """
 
 from __future__ import annotations
@@ -62,16 +66,18 @@ def pooled(rows: dict, uris: list[str], collar: str) -> dict:
     return {"der": sum(values.values()), **values}
 
 
-def compare(a: dict, b: dict, uris: list[str], spec: dict) -> dict:
-    """Écart a − b (points de DER) par bootstrap apparié, et décompte des fichiers (a contre b)."""
+def compare(a: dict, b: dict, uris: list[str], spec: dict, min_files: int = 0) -> dict:
+    """Écart a − b (points de DER) par bootstrap apparié, et décompte des fichiers (a contre b) ;
+    bornes vides sous `min_files` fichiers."""
     out = {}
     for collar in COLLARS:
         ea, ta = errors(a, uris, collar)
         eb, tb = errors(b, uris, collar)
         ci = bootstrap_der_ci(ea, ta, eb, tb, n_resamples=spec["tirages"], seed=spec["graine"])
         out[f"ecart_{collar}"] = round(ci["estimation"], 2)
-        out[f"ic_inf_{collar}"] = round(ci["borne_inf"], 2)
-        out[f"ic_sup_{collar}"] = round(ci["borne_sup"], 2)
+        enough = len(uris) >= min_files
+        out[f"ic_inf_{collar}"] = round(ci["borne_inf"], 2) if enough else ""
+        out[f"ic_sup_{collar}"] = round(ci["borne_sup"], 2) if enough else ""
     wins = count_wins([float(a[u]["der_c0"]) for u in uris], [float(b[u]["der_c0"]) for u in uris])
     out.update({"a_meilleur_c0": wins["a_meilleur"], "b_meilleur_c0": wins["b_meilleur"], "egalite_c0": wins["egalite"]})
     return out
@@ -138,6 +144,7 @@ def main() -> None:
         sources[engine["nom"]] = tables
 
     spec = config["bootstrap"]
+    min_files = int(config.get("ic_min_fichiers", 0))
     rows = []
     for engine, tables in sources.items():
         for condition in ["propre", *config["conditions"]]:
@@ -150,7 +157,7 @@ def main() -> None:
                 if condition == "propre":
                     row.update({k: "" for k in compare(tables["propre"], tables["propre"], uris, spec)})
                 else:
-                    row.update(compare(tables[condition], tables["propre"], uris, spec))
+                    row.update(compare(tables[condition], tables["propre"], uris, spec, min_files))
                 rows.append(row)
     write_csv(out_dir / "resultats.csv", rows)
 
@@ -163,7 +170,7 @@ def main() -> None:
                     comparisons.append({
                         "moteur_a": first, "moteur_b": second, "condition": condition, "sous_groupe": group,
                         "n_fichiers": len(uris),
-                        **compare(sources[first][condition], sources[second][condition], uris, spec),
+                        **compare(sources[first][condition], sources[second][condition], uris, spec, min_files),
                     })
     write_csv(out_dir / "comparaison_moteurs.csv", comparisons)
 

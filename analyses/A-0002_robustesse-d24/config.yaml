@@ -1,0 +1,27 @@
+# A-0002 — robustesse sur SUMM-RE test dégradé (D24 §3), par condition et par sous-groupe.
+# Analyse a posteriori (D21 §1, methode.md §4.7) : aucun système n'est exécuté ; les per_file
+# des expériences de D24 et de leurs références propres sont regroupés.
+analyse_id: A-0002
+slug: robustesse-d24
+question: >-
+  Comment pyannote et la baseline ECAPA se dégradent-ils sur SUMM-RE test dégradé, par
+  condition, sur toutes les réunions, sur les réunions Zoom et sur les autres ?
+
+moteurs:
+  - nom: pyannote                        # pyannote community-1, configuration d'EXP-0007
+    propre: {exp_id: EXP-0007, corpus: summre}
+    degrade: EXP-0020
+  - nom: ecapa                           # baseline ECAPA, configuration d'EXP-0012 (θ = 1,00)
+    propre: {exp_id: EXP-0012, corpus: summre}
+    degrade: EXP-0021
+
+conditions: [rev04, rev08, bru15, bru05, cod16, cod08, salle]
+partition: test
+liste: data/splits/summre/test.txt
+sous_groupes:                            # « autres » : complément dans la liste de test
+  zoom: data/splits/summre/zoom_test.txt
+
+manifeste: data/manifests/summre_degrade.csv
+configuration_degradation: configs/summre_degrade.yaml
+bootstrap: {tirages: 1000, graine: 0}    # protocole §4
+ic_min_fichiers: 5                       # aucun IC sous 5 réunions (cockpit, 02/11) : groupe Zoom (3) sans intervalle, écart seul

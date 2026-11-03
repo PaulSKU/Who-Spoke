@@ -1,0 +1,34 @@
+{
+  "analyse_id": "A-0002",
+  "date": "2026-11-03T02:02:02+01:00",
+  "git_commit": "2ceddf52c4d1ed23cba469208f9290b8ea4421ed",
+  "arbre_propre": true,
+  "fichiers_non_commites": [
+    "analyses/A-0002_robustesse-d24/config.yaml"
+  ],
+  "config_sha256": "ef0c76b1bfc75aa76b486c3bd86c5f86a5818b02138535cecb5c4989b64ac09b",
+  "sources_sha256": {
+    "experiments/EXP-0007_pyannote-c1-summre/per_file_summre_test.csv": "679da4e11bc46abf69514563424485b9fa36a2dd7198c4d2aef7859a3c0d2915",
+    "experiments/EXP-0020_pyannote-c1-summre-degrade/per_file_summre-rev04_test.csv": "af91ea763ff02253e34734e1899117a9aa97e32057821575dcb871b8e35ac2d4",
+    "experiments/EXP-0020_pyannote-c1-summre-degrade/per_file_summre-rev08_test.csv": "44803108ff9f07fb7577dbffe00455187a533d7de9915e55886b20661ec915bd",
+    "experiments/EXP-0020_pyannote-c1-summre-degrade/per_file_summre-bru15_test.csv": "1afce64cd39b7c2f3e54413d091d8d573e8ed5405bf465a6e0868c507fc4f218",
+    "experiments/EXP-0020_pyannote-c1-summre-degrade/per_file_summre-bru05_test.csv": "322b5a9a3e487b8ab61c7089ec3b9e5842e0768c11516bfb89ee560e9c0ba228",
+    "experiments/EXP-0020_pyannote-c1-summre-degrade/per_file_summre-cod16_test.csv": "a391036e96607e49ecb69f31e8f153fa22d481599fa7d49c67c3beafa6974698",
+    "experiments/EXP-0020_pyannote-c1-summre-degrade/per_file_summre-cod08_test.csv": "cca9e06875286ddde676a3b2c012090112168177da497b239d46c5acf9a54b08",
+    "experiments/EXP-0020_pyannote-c1-summre-degrade/per_file_summre-salle_test.csv": "0a98e0cca415fd4ade9abc9f9ae36e9db5ad3e0dbdb79438aa71ade30883447c",
+    "experiments/EXP-0012_baseline-ecapa-summre/per_file_summre_test.csv": "832b702764ee474fb7ff440203eba75d088e0cd24f06a3373e663d6201550789",
+    "experiments/EXP-0021_baseline-ecapa-summre-degrade/per_file_summre-rev04_test.csv": "8006c9154872a88882e723e97f98b9d78179708baa88807a68a8671fdb9e0c8d",
+    "experiments/EXP-0021_baseline-ecapa-summre-degrade/per_file_summre-rev08_test.csv": "5978757214f9f3c0eaec3c5a303ba3a0c824ebc1b439b917575b5e24646ee3dd",
+    "experiments/EXP-0021_baseline-ecapa-summre-degrade/per_file_summre-bru15_test.csv": "a5109a6a9cbb8a583a21eeb5841c8c58f7fe1fe663dc54b3abc89e651eb0700e",
+    "experiments/EXP-0021_baseline-ecapa-summre-degrade/per_file_summre-bru05_test.csv": "66dc7880975d7005915116da69f9855e362ec8193ad2336ae0112e056e745f70",
+    "experiments/EXP-0021_baseline-ecapa-summre-degrade/per_file_summre-cod16_test.csv": "aa280872766fbee02548e3a69206c1bf94d4a7784a9bcfc001e76e2c642564ba",
+    "experiments/EXP-0021_baseline-ecapa-summre-degrade/per_file_summre-cod08_test.csv": "c8ec5d5c50bf56719309a7e7e3c06c33cae8262b418920f116f69597ac0bad6b",
+    "experiments/EXP-0021_baseline-ecapa-summre-degrade/per_file_summre-salle_test.csv": "80b62afccfdeccb4cb64734f84d69b5f0ac66e8e06082a472f32dfff2e698afd"
+  },
+  "manifeste_sha256": "143cd1f09c6ca9e7621368bfd02867d9c20eba70ebdaf52a4ad1fb2a57dbadee",
+  "sous_groupes": {
+    "tous": 37,
+    "zoom": 3,
+    "autres": 34
+  }
+}

@@ -1,0 +1,1938 @@
+{
+  "exp_id": "EXP-0025",
+  "mode": "complet",
+  "sous_ensemble": null,
+  "date_fin": "2026-11-03T05:14:44+01:00",
+  "git_commit": "2d81861933c338f31137796f15253b37e5e85dcc",
+  "arbre_propre": true,
+  "fichiers_non_commites": [
+    "analyses/A-0003_cas-echec/config.yaml",
+    "results/leaderboard.csv",
+    "experiments/EXP-0022_pyannote-c1-summre-silero/config.yaml",
+    "experiments/EXP-0022_pyannote-c1-summre-silero/execution_partagee.json",
+    "experiments/EXP-0022_pyannote-c1-summre-silero/per_file_summre_dev.csv",
+    "experiments/EXP-0022_pyannote-c1-summre-silero/per_file_summre_test.csv",
+    "experiments/EXP-0022_pyannote-c1-summre-silero/results_summre_dev.json",
+    "experiments/EXP-0022_pyannote-c1-summre-silero/results_summre_test.json",
+    "experiments/EXP-0022_pyannote-c1-summre-silero/rttm/summre__004c_PAPH.rttm",
+    "experiments/EXP-0022_pyannote-c1-summre-silero/rttm/summre__006b_EADH.rttm",
+    "experiments/EXP-0022_pyannote-c1-summre-silero/rttm/summre__007a_ECRH.rttm",
+    "experiments/EXP-0022_pyannote-c1-summre-silero/rttm/summre__008a_EARH.rttm",
+    "experiments/EXP-0022_pyannote-c1-summre-silero/rttm/summre__011c_ECPL.rttm",
+    "experiments/EXP-0022_pyannote-c1-summre-silero/rttm/summre__012c_EBPZ.rttm",
+    "experiments/EXP-0022_pyannote-c1-summre-silero/rttm/summre__013c_EAPD.rttm",
+    "experiments/EXP-0022_pyannote-c1-summre-silero/rttm/summre__014c_EAPD.rttm",
+    "experiments/EXP-0022_pyannote-c1-summre-silero/rttm/summre__015b_EBDD.rttm",
+    "experiments/EXP-0022_pyannote-c1-summre-silero/rttm/summre__016c_EBPZ.rttm",
+    "experiments/EXP-0022_pyannote-c1-summre-silero/rttm/summre__017a_EBRZ.rttm",
+    "experiments/EXP-0022_pyannote-c1-summre-silero/rttm/summre__018a_EARZ.rttm",
+    "experiments/EXP-0022_pyannote-c1-summre-silero/rttm/summre__018b_EADZ.rttm",
+    "experiments/EXP-0022_pyannote-c1-summre-silero/rttm/summre__019a_EARD.rttm",
+    "experiments/EXP-0022_pyannote-c1-summre-silero/rttm/summre__019c_EAPD.rttm",
+    "experiments/EXP-0022_pyannote-c1-summre-silero/rttm/summre__020b_EBDZ.rttm",
+    "experiments/EXP-0022_pyannote-c1-summre-silero/rttm/summre__020c_EBPZ.rttm",
+    "experiments/EXP-0022_pyannote-c1-summre-silero/rttm/summre__021a_EARD.rttm",
+    "experiments/EXP-0022_pyannote-c1-summre-silero/rttm/summre__021b_EADD.rttm",
+    "experiments/EXP-0022_pyannote-c1-summre-silero/rttm/summre__024c_EBPH.rttm",
+    "experiments/EXP-0022_pyannote-c1-summre-silero/rttm/summre__025b_EBDH.rttm",
+    "experiments/EXP-0022_pyannote-c1-summre-silero/rttm/summre__027a_EBRH.rttm",
+    "experiments/EXP-0022_pyannote-c1-summre-silero/rttm/summre__032a_EARH.rttm",
+    "experiments/EXP-0022_pyannote-c1-summre-silero/rttm/summre__032b_EADH.rttm",
+    "experiments/EXP-0022_pyannote-c1-summre-silero/rttm/summre__033a_EBRH.rttm",
+    "experiments/EXP-0022_pyannote-c1-summre-silero/rttm/summre__033c_EBPH.rttm",
+    "experiments/EXP-0022_pyannote-c1-summre-silero/rttm/summre__034a_EBRH.rttm",
+    "experiments/EXP-0022_pyannote-c1-summre-silero/rttm/summre__035b_EADH.rttm",
+    "experiments/EXP-0022_pyannote-c1-summre-silero/rttm/summre__036b_EADH.rttm",
+    "experiments/EXP-0022_pyannote-c1-summre-silero/rttm/summre__036c_EAPH.rttm",
+    "experiments/EXP-0022_pyannote-c1-summre-silero/rttm/summre__037a_EARH.rttm",
+    "experiments/EXP-0022_pyannote-c1-summre-silero/rttm/summre__039b_EDDH.rttm",
+    "experiments/EXP-0022_pyannote-c1-summre-silero/rttm/summre__040a_EERH.rttm",
+    "experiments/EXP-0022_pyannote-c1-summre-silero/rttm/summre__043a_EDRH.rttm",
+    "experiments/EXP-0022_pyannote-c1-summre-silero/rttm/summre__044c_EBPH.rttm",
+    "experiments/EXP-0022_pyannote-c1-summre-silero/rttm/summre__045a_EARH.rttm",
+    "experiments/EXP-0022_pyannote-c1-summre-silero/rttm/summre__045b_EADH.rttm",
+    "experiments/EXP-0022_pyannote-c1-summre-silero/rttm/summre__046c_EBPH.rttm",
+    "experiments/EXP-0022_pyannote-c1-summre-silero/rttm/summre__047a_EDRH.rttm",
+    "experiments/EXP-0022_pyannote-c1-summre-silero/rttm/summre__047c_EDPH.rttm",
+    "experiments/EXP-0022_pyannote-c1-summre-silero/rttm/summre__049b_EBDH.rttm",
+    "experiments/EXP-0022_pyannote-c1-summre-silero/rttm/summre__050c_EEPH.rttm",
+    "experiments/EXP-0022_pyannote-c1-summre-silero/rttm/summre__051a_EARH.rttm",
+    "experiments/EXP-0022_pyannote-c1-summre-silero/rttm/summre__053b_EDDH.rttm",
+    "experiments/EXP-0022_pyannote-c1-summre-silero/rttm/summre__054a_EARH.rttm",
+    "experiments/EXP-0022_pyannote-c1-summre-silero/rttm/summre__054c_EAPH.rttm",
+    "experiments/EXP-0022_pyannote-c1-summre-silero/rttm/summre__059b_EBDH.rttm",
+    "experiments/EXP-0022_pyannote-c1-summre-silero/rttm/summre__060a_EDRH.rttm",
+    "experiments/EXP-0022_pyannote-c1-summre-silero/rttm/summre__066a_EARH.rttm",
+    "experiments/EXP-0022_pyannote-c1-summre-silero/rttm/summre__069b_EEDL.rttm",
+    "experiments/EXP-0022_pyannote-c1-summre-silero/rttm/summre__069c_EEPL.rttm",
+    "experiments/EXP-0022_pyannote-c1-summre-silero/rttm/summre__070a_EBRL.rttm",
+    "experiments/EXP-0022_pyannote-c1-summre-silero/rttm/summre__070b_EBDL.rttm",
+    "experiments/EXP-0022_pyannote-c1-summre-silero/rttm/summre__072b_EEDH.rttm",
+    "experiments/EXP-0022_pyannote-c1-summre-silero/rttm/summre__072c_EEPH.rttm",
+    "experiments/EXP-0022_pyannote-c1-summre-silero/rttm/summre__074c_EAPH.rttm",
+    "experiments/EXP-0022_pyannote-c1-summre-silero/rttm/summre__075b_EBDH.rttm",
+    "experiments/EXP-0022_pyannote-c1-summre-silero/rttm/summre__076b_EEDH.rttm",
+    "experiments/EXP-0022_pyannote-c1-summre-silero/rttm/summre__077c_EBPH.rttm",
+    "experiments/EXP-0022_pyannote-c1-summre-silero/rttm/summre__080b_EBDH.rttm",
+    "experiments/EXP-0022_pyannote-c1-summre-silero/rttm/summre__081a_EBRH.rttm",
+    "experiments/EXP-0022_pyannote-c1-summre-silero/rttm/summre__081c_EBPH.rttm",
+    "experiments/EXP-0022_pyannote-c1-summre-silero/rttm/summre__084c_EBPH.rttm",
+    "experiments/EXP-0022_pyannote-c1-summre-silero/rttm/summre__088b_EADH.rttm",
+    "experiments/EXP-0022_pyannote-c1-summre-silero/rttm/summre__091b_EBDH.rttm",
+    "experiments/EXP-0022_pyannote-c1-summre-silero/rttm/summre__093c_EBPZ.rttm",
+    "experiments/EXP-0022_pyannote-c1-summre-silero/rttm/summre__097b_EBDH.rttm",
+    "experiments/EXP-0022_pyannote-c1-summre-silero/rttm/summre__097c_EBPH.rttm",
+    "experiments/EXP-0022_pyannote-c1-summre-silero/rttm/summre__100b_EADH.rttm",
+    "experiments/EXP-0022_pyannote-c1-summre-silero/rttm/summre__101c_EDPH.rttm",
+    "experiments/EXP-0022_pyannote-c1-summre-silero/rttm/summre__102a_EBRH.rttm",
+    "experiments/EXP-0022_pyannote-c1-summre-silero/rttm/summre__102c_EBPH.rttm",
+    "experiments/EXP-0022_pyannote-c1-summre-silero/rttm/summre__104b_EADH.rttm",
+    "experiments/EXP-0023_pyannote-c1-summre-exclusive-silero/config.yaml",
+    "experiments/EXP-0023_pyannote-c1-summre-exclusive-silero/execution_cpu.json",
+    "experiments/EXP-0023_pyannote-c1-summre-exclusive-silero/execution_mps.json",
+    "experiments/EXP-0023_pyannote-c1-summre-exclusive-silero/per_file_summre_dev.csv",
+    "experiments/EXP-0023_pyannote-c1-summre-exclusive-silero/per_file_summre_test.csv",
+    "experiments/EXP-0023_pyannote-c1-summre-exclusive-silero/results_summre_dev.json",
+    "experiments/EXP-0023_pyannote-c1-summre-exclusive-silero/results_summre_test.json",
+    "experiments/EXP-0023_pyannote-c1-summre-exclusive-silero/rttm/summre__004c_PAPH.rttm",
+    "experiments/EXP-0023_pyannote-c1-summre-exclusive-silero/rttm/summre__006b_EADH.rttm",
+    "experiments/EXP-0023_pyannote-c1-summre-exclusive-silero/rttm/summre__007a_ECRH.rttm",
+    "experiments/EXP-0023_pyannote-c1-summre-exclusive-silero/rttm/summre__008a_EARH.rttm",
+    "experiments/EXP-0023_pyannote-c1-summre-exclusive-silero/rttm/summre__011c_ECPL.rttm",
+    "experiments/EXP-0023_pyannote-c1-summre-exclusive-silero/rttm/summre__012c_EBPZ.rttm",
+    "experiments/EXP-0023_pyannote-c1-summre-exclusive-silero/rttm/summre__013c_EAPD.rttm",
+    "experiments/EXP-0023_pyannote-c1-summre-exclusive-silero/rttm/summre__014c_EAPD.rttm",
+    "experiments/EXP-0023_pyannote-c1-summre-exclusive-silero/rttm/summre__015b_EBDD.rttm",
+    "experiments/EXP-0023_pyannote-c1-summre-exclusive-silero/rttm/summre__016c_EBPZ.rttm",
+    "experiments/EXP-0023_pyannote-c1-summre-exclusive-silero/rttm/summre__017a_EBRZ.rttm",
+    "experiments/EXP-0023_pyannote-c1-summre-exclusive-silero/rttm/summre__018a_EARZ.rttm",
+    "experiments/EXP-0023_pyannote-c1-summre-exclusive-silero/rttm/summre__018b_EADZ.rttm",
+    "experiments/EXP-0023_pyannote-c1-summre-exclusive-silero/rttm/summre__019a_EARD.rttm",
+    "experiments/EXP-0023_pyannote-c1-summre-exclusive-silero/rttm/summre__019c_EAPD.rttm",
+    "experiments/EXP-0023_pyannote-c1-summre-exclusive-silero/rttm/summre__020b_EBDZ.rttm",
+    "experiments/EXP-0023_pyannote-c1-summre-exclusive-silero/rttm/summre__020c_EBPZ.rttm",
+    "experiments/EXP-0023_pyannote-c1-summre-exclusive-silero/rttm/summre__021a_EARD.rttm",
+    "experiments/EXP-0023_pyannote-c1-summre-exclusive-silero/rttm/summre__021b_EADD.rttm",
+    "experiments/EXP-0023_pyannote-c1-summre-exclusive-silero/rttm/summre__024c_EBPH.rttm",
+    "experiments/EXP-0023_pyannote-c1-summre-exclusive-silero/rttm/summre__025b_EBDH.rttm",
+    "experiments/EXP-0023_pyannote-c1-summre-exclusive-silero/rttm/summre__027a_EBRH.rttm",
+    "experiments/EXP-0023_pyannote-c1-summre-exclusive-silero/rttm/summre__032a_EARH.rttm",
+    "experiments/EXP-0023_pyannote-c1-summre-exclusive-silero/rttm/summre__032b_EADH.rttm",
+    "experiments/EXP-0023_pyannote-c1-summre-exclusive-silero/rttm/summre__033a_EBRH.rttm",
+    "experiments/EXP-0023_pyannote-c1-summre-exclusive-silero/rttm/summre__033c_EBPH.rttm",
+    "experiments/EXP-0023_pyannote-c1-summre-exclusive-silero/rttm/summre__034a_EBRH.rttm",
+    "experiments/EXP-0023_pyannote-c1-summre-exclusive-silero/rttm/summre__035b_EADH.rttm",
+    "experiments/EXP-0023_pyannote-c1-summre-exclusive-silero/rttm/summre__036b_EADH.rttm",
+    "experiments/EXP-0023_pyannote-c1-summre-exclusive-silero/rttm/summre__036c_EAPH.rttm",
+    "experiments/EXP-0023_pyannote-c1-summre-exclusive-silero/rttm/summre__037a_EARH.rttm",
+    "experiments/EXP-0023_pyannote-c1-summre-exclusive-silero/rttm/summre__039b_EDDH.rttm",
+    "experiments/EXP-0023_pyannote-c1-summre-exclusive-silero/rttm/summre__040a_EERH.rttm",
+    "experiments/EXP-0023_pyannote-c1-summre-exclusive-silero/rttm/summre__043a_EDRH.rttm",
+    "experiments/EXP-0023_pyannote-c1-summre-exclusive-silero/rttm/summre__044c_EBPH.rttm",
+    "experiments/EXP-0023_pyannote-c1-summre-exclusive-silero/rttm/summre__045a_EARH.rttm",
+    "experiments/EXP-0023_pyannote-c1-summre-exclusive-silero/rttm/summre__045b_EADH.rttm",
+    "experiments/EXP-0023_pyannote-c1-summre-exclusive-silero/rttm/summre__046c_EBPH.rttm",
+    "experiments/EXP-0023_pyannote-c1-summre-exclusive-silero/rttm/summre__047a_EDRH.rttm",
+    "experiments/EXP-0023_pyannote-c1-summre-exclusive-silero/rttm/summre__047c_EDPH.rttm",
+    "experiments/EXP-0023_pyannote-c1-summre-exclusive-silero/rttm/summre__049b_EBDH.rttm",
+    "experiments/EXP-0023_pyannote-c1-summre-exclusive-silero/rttm/summre__050c_EEPH.rttm",
+    "experiments/EXP-0023_pyannote-c1-summre-exclusive-silero/rttm/summre__051a_EARH.rttm",
+    "experiments/EXP-0023_pyannote-c1-summre-exclusive-silero/rttm/summre__053b_EDDH.rttm",
+    "experiments/EXP-0023_pyannote-c1-summre-exclusive-silero/rttm/summre__054a_EARH.rttm",
+    "experiments/EXP-0023_pyannote-c1-summre-exclusive-silero/rttm/summre__054c_EAPH.rttm",
+    "experiments/EXP-0023_pyannote-c1-summre-exclusive-silero/rttm/summre__059b_EBDH.rttm",
+    "experiments/EXP-0023_pyannote-c1-summre-exclusive-silero/rttm/summre__060a_EDRH.rttm",
+    "experiments/EXP-0023_pyannote-c1-summre-exclusive-silero/rttm/summre__066a_EARH.rttm",
+    "experiments/EXP-0023_pyannote-c1-summre-exclusive-silero/rttm/summre__069b_EEDL.rttm",
+    "experiments/EXP-0023_pyannote-c1-summre-exclusive-silero/rttm/summre__069c_EEPL.rttm",
+    "experiments/EXP-0023_pyannote-c1-summre-exclusive-silero/rttm/summre__070a_EBRL.rttm",
+    "experiments/EXP-0023_pyannote-c1-summre-exclusive-silero/rttm/summre__070b_EBDL.rttm",
+    "experiments/EXP-0023_pyannote-c1-summre-exclusive-silero/rttm/summre__072b_EEDH.rttm",
+    "experiments/EXP-0023_pyannote-c1-summre-exclusive-silero/rttm/summre__072c_EEPH.rttm",
+    "experiments/EXP-0023_pyannote-c1-summre-exclusive-silero/rttm/summre__074c_EAPH.rttm",
+    "experiments/EXP-0023_pyannote-c1-summre-exclusive-silero/rttm/summre__075b_EBDH.rttm",
+    "experiments/EXP-0023_pyannote-c1-summre-exclusive-silero/rttm/summre__076b_EEDH.rttm",
+    "experiments/EXP-0023_pyannote-c1-summre-exclusive-silero/rttm/summre__077c_EBPH.rttm",
+    "experiments/EXP-0023_pyannote-c1-summre-exclusive-silero/rttm/summre__080b_EBDH.rttm",
+    "experiments/EXP-0023_pyannote-c1-summre-exclusive-silero/rttm/summre__081a_EBRH.rttm",
+    "experiments/EXP-0023_pyannote-c1-summre-exclusive-silero/rttm/summre__081c_EBPH.rttm",
+    "experiments/EXP-0023_pyannote-c1-summre-exclusive-silero/rttm/summre__084c_EBPH.rttm",
+    "experiments/EXP-0023_pyannote-c1-summre-exclusive-silero/rttm/summre__088b_EADH.rttm",
+    "experiments/EXP-0023_pyannote-c1-summre-exclusive-silero/rttm/summre__091b_EBDH.rttm",
+    "experiments/EXP-0023_pyannote-c1-summre-exclusive-silero/rttm/summre__093c_EBPZ.rttm",
+    "experiments/EXP-0023_pyannote-c1-summre-exclusive-silero/rttm/summre__097b_EBDH.rttm",
+    "experiments/EXP-0023_pyannote-c1-summre-exclusive-silero/rttm/summre__097c_EBPH.rttm",
+    "experiments/EXP-0023_pyannote-c1-summre-exclusive-silero/rttm/summre__100b_EADH.rttm",
+    "experiments/EXP-0023_pyannote-c1-summre-exclusive-silero/rttm/summre__101c_EDPH.rttm",
+    "experiments/EXP-0023_pyannote-c1-summre-exclusive-silero/rttm/summre__102a_EBRH.rttm",
+    "experiments/EXP-0023_pyannote-c1-summre-exclusive-silero/rttm/summre__102c_EBPH.rttm",
+    "experiments/EXP-0023_pyannote-c1-summre-exclusive-silero/rttm/summre__104b_EADH.rttm",
+    "experiments/EXP-0023_pyannote-c1-summre-exclusive-silero/rttm_habituelle/summre__004c_PAPH.rttm",
+    "experiments/EXP-0023_pyannote-c1-summre-exclusive-silero/rttm_habituelle/summre__006b_EADH.rttm",
+    "experiments/EXP-0023_pyannote-c1-summre-exclusive-silero/rttm_habituelle/summre__007a_ECRH.rttm",
+    "experiments/EXP-0023_pyannote-c1-summre-exclusive-silero/rttm_habituelle/summre__008a_EARH.rttm",
+    "experiments/EXP-0023_pyannote-c1-summre-exclusive-silero/rttm_habituelle/summre__011c_ECPL.rttm",
+    "experiments/EXP-0023_pyannote-c1-summre-exclusive-silero/rttm_habituelle/summre__012c_EBPZ.rttm",
+    "experiments/EXP-0023_pyannote-c1-summre-exclusive-silero/rttm_habituelle/summre__013c_EAPD.rttm",
+    "experiments/EXP-0023_pyannote-c1-summre-exclusive-silero/rttm_habituelle/summre__014c_EAPD.rttm",
+    "experiments/EXP-0023_pyannote-c1-summre-exclusive-silero/rttm_habituelle/summre__015b_EBDD.rttm",
+    "experiments/EXP-0023_pyannote-c1-summre-exclusive-silero/rttm_habituelle/summre__016c_EBPZ.rttm",
+    "experiments/EXP-0023_pyannote-c1-summre-exclusive-silero/rttm_habituelle/summre__017a_EBRZ.rttm",
+    "experiments/EXP-0023_pyannote-c1-summre-exclusive-silero/rttm_habituelle/summre__018a_EARZ.rttm",
+    "experiments/EXP-0023_pyannote-c1-summre-exclusive-silero/rttm_habituelle/summre__018b_EADZ.rttm",
+    "experiments/EXP-0023_pyannote-c1-summre-exclusive-silero/rttm_habituelle/summre__019a_EARD.rttm",
+    "experiments/EXP-0023_pyannote-c1-summre-exclusive-silero/rttm_habituelle/summre__019c_EAPD.rttm",
+    "experiments/EXP-0023_pyannote-c1-summre-exclusive-silero/rttm_habituelle/summre__020b_EBDZ.rttm",
+    "experiments/EXP-0023_pyannote-c1-summre-exclusive-silero/rttm_habituelle/summre__020c_EBPZ.rttm",
+    "experiments/EXP-0023_pyannote-c1-summre-exclusive-silero/rttm_habituelle/summre__021a_EARD.rttm",
+    "experiments/EXP-0023_pyannote-c1-summre-exclusive-silero/rttm_habituelle/summre__021b_EADD.rttm",
+    "experiments/EXP-0023_pyannote-c1-summre-exclusive-silero/rttm_habituelle/summre__024c_EBPH.rttm",
+    "experiments/EXP-0023_pyannote-c1-summre-exclusive-silero/rttm_habituelle/summre__025b_EBDH.rttm",
+    "experiments/EXP-0023_pyannote-c1-summre-exclusive-silero/rttm_habituelle/summre__027a_EBRH.rttm",
+    "experiments/EXP-0023_pyannote-c1-summre-exclusive-silero/rttm_habituelle/summre__032a_EARH.rttm",
+    "experiments/EXP-0023_pyannote-c1-summre-exclusive-silero/rttm_habituelle/summre__032b_EADH.rttm",
+    "experiments/EXP-0023_pyannote-c1-summre-exclusive-silero/rttm_habituelle/summre__033a_EBRH.rttm",
+    "experiments/EXP-0023_pyannote-c1-summre-exclusive-silero/rttm_habituelle/summre__033c_EBPH.rttm",
+    "experiments/EXP-0023_pyannote-c1-summre-exclusive-silero/rttm_habituelle/summre__034a_EBRH.rttm",
+    "experiments/EXP-0023_pyannote-c1-summre-exclusive-silero/rttm_habituelle/summre__035b_EADH.rttm",
+    "experiments/EXP-0023_pyannote-c1-summre-exclusive-silero/rttm_habituelle/summre__036b_EADH.rttm",
+    "experiments/EXP-0023_pyannote-c1-summre-exclusive-silero/rttm_habituelle/summre__036c_EAPH.rttm",
+    "experiments/EXP-0023_pyannote-c1-summre-exclusive-silero/rttm_habituelle/summre__037a_EARH.rttm",
+    "experiments/EXP-0023_pyannote-c1-summre-exclusive-silero/rttm_habituelle/summre__039b_EDDH.rttm",
+    "experiments/EXP-0023_pyannote-c1-summre-exclusive-silero/rttm_habituelle/summre__040a_EERH.rttm",
+    "experiments/EXP-0023_pyannote-c1-summre-exclusive-silero/rttm_habituelle/summre__043a_EDRH.rttm",
+    "experiments/EXP-0023_pyannote-c1-summre-exclusive-silero/rttm_habituelle/summre__044c_EBPH.rttm",
+    "experiments/EXP-0023_pyannote-c1-summre-exclusive-silero/rttm_habituelle/summre__045a_EARH.rttm",
+    "experiments/EXP-0023_pyannote-c1-summre-exclusive-silero/rttm_habituelle/summre__045b_EADH.rttm",
+    "experiments/EXP-0023_pyannote-c1-summre-exclusive-silero/rttm_habituelle/summre__046c_EBPH.rttm",
+    "experiments/EXP-0023_pyannote-c1-summre-exclusive-silero/rttm_habituelle/summre__047a_EDRH.rttm",
+    "experiments/EXP-0023_pyannote-c1-summre-exclusive-silero/rttm_habituelle/summre__047c_EDPH.rttm",
+    "experiments/EXP-0023_pyannote-c1-summre-exclusive-silero/rttm_habituelle/summre__049b_EBDH.rttm",
+    "experiments/EXP-0023_pyannote-c1-summre-exclusive-silero/rttm_habituelle/summre__050c_EEPH.rttm",
+    "experiments/EXP-0023_pyannote-c1-summre-exclusive-silero/rttm_habituelle/summre__051a_EARH.rttm",
+    "experiments/EXP-0023_pyannote-c1-summre-exclusive-silero/rttm_habituelle/summre__053b_EDDH.rttm",
+    "experiments/EXP-0023_pyannote-c1-summre-exclusive-silero/rttm_habituelle/summre__054a_EARH.rttm",
+    "experiments/EXP-0023_pyannote-c1-summre-exclusive-silero/rttm_habituelle/summre__054c_EAPH.rttm",
+    "experiments/EXP-0023_pyannote-c1-summre-exclusive-silero/rttm_habituelle/summre__059b_EBDH.rttm",
+    "experiments/EXP-0023_pyannote-c1-summre-exclusive-silero/rttm_habituelle/summre__060a_EDRH.rttm",
+    "experiments/EXP-0023_pyannote-c1-summre-exclusive-silero/rttm_habituelle/summre__066a_EARH.rttm",
+    "experiments/EXP-0023_pyannote-c1-summre-exclusive-silero/rttm_habituelle/summre__069b_EEDL.rttm",
+    "experiments/EXP-0023_pyannote-c1-summre-exclusive-silero/rttm_habituelle/summre__069c_EEPL.rttm",
+    "experiments/EXP-0023_pyannote-c1-summre-exclusive-silero/rttm_habituelle/summre__070a_EBRL.rttm",
+    "experiments/EXP-0023_pyannote-c1-summre-exclusive-silero/rttm_habituelle/summre__070b_EBDL.rttm",
+    "experiments/EXP-0023_pyannote-c1-summre-exclusive-silero/rttm_habituelle/summre__072b_EEDH.rttm",
+    "experiments/EXP-0023_pyannote-c1-summre-exclusive-silero/rttm_habituelle/summre__072c_EEPH.rttm",
+    "experiments/EXP-0023_pyannote-c1-summre-exclusive-silero/rttm_habituelle/summre__074c_EAPH.rttm",
+    "experiments/EXP-0023_pyannote-c1-summre-exclusive-silero/rttm_habituelle/summre__075b_EBDH.rttm",
+    "experiments/EXP-0023_pyannote-c1-summre-exclusive-silero/rttm_habituelle/summre__076b_EEDH.rttm",
+    "experiments/EXP-0023_pyannote-c1-summre-exclusive-silero/rttm_habituelle/summre__077c_EBPH.rttm",
+    "experiments/EXP-0023_pyannote-c1-summre-exclusive-silero/rttm_habituelle/summre__080b_EBDH.rttm",
+    "experiments/EXP-0023_pyannote-c1-summre-exclusive-silero/rttm_habituelle/summre__081a_EBRH.rttm",
+    "experiments/EXP-0023_pyannote-c1-summre-exclusive-silero/rttm_habituelle/summre__081c_EBPH.rttm",
+    "experiments/EXP-0023_pyannote-c1-summre-exclusive-silero/rttm_habituelle/summre__084c_EBPH.rttm",
+    "experiments/EXP-0023_pyannote-c1-summre-exclusive-silero/rttm_habituelle/summre__088b_EADH.rttm",
+    "experiments/EXP-0023_pyannote-c1-summre-exclusive-silero/rttm_habituelle/summre__091b_EBDH.rttm",
+    "experiments/EXP-0023_pyannote-c1-summre-exclusive-silero/rttm_habituelle/summre__093c_EBPZ.rttm",
+    "experiments/EXP-0023_pyannote-c1-summre-exclusive-silero/rttm_habituelle/summre__097b_EBDH.rttm",
+    "experiments/EXP-0023_pyannote-c1-summre-exclusive-silero/rttm_habituelle/summre__097c_EBPH.rttm",
+    "experiments/EXP-0023_pyannote-c1-summre-exclusive-silero/rttm_habituelle/summre__100b_EADH.rttm",
+    "experiments/EXP-0023_pyannote-c1-summre-exclusive-silero/rttm_habituelle/summre__101c_EDPH.rttm",
+    "experiments/EXP-0023_pyannote-c1-summre-exclusive-silero/rttm_habituelle/summre__102a_EBRH.rttm",
+    "experiments/EXP-0023_pyannote-c1-summre-exclusive-silero/rttm_habituelle/summre__102c_EBPH.rttm",
+    "experiments/EXP-0023_pyannote-c1-summre-exclusive-silero/rttm_habituelle/summre__104b_EADH.rttm",
+    "experiments/EXP-0023_pyannote-c1-summre-exclusive-silero/run.log",
+    "experiments/EXP-0024_pyannote-c1-ami-sdm-silero/config.yaml",
+    "experiments/EXP-0025_pyannote-c1-ami-sdm-exclusive-silero/config.yaml",
+    "experiments/EXP-0025_pyannote-c1-ami-sdm-exclusive-silero/run.log"
+  ],
+  "config_sha256": "1c5aa21c70142c48f5b0bcc5c6f0d9ffb99053fce8a0692097ed291faa90e89e",
+  "device": "mps",
+  "torch_threads": 6,
+  "versions": {
+    "python": "3.11.15",
+    "torch": "2.14.1",
+    "pyannote.audio": "4.0.7",
+    "librosa": "0.11.0",
+    "speechbrain": "1.1.2"
+  },
+  "mode_n_locuteurs": "estime",
+  "detection_oracle": false,
+  "trace": false,
+  "balayage": null,
+  "configuration_effective": {
+    "detection": [
+      {
+        "nom": "segmentation.modele",
+        "valeur": "pyannote/speaker-diarization-community-1/segmentation@3533c8cf8e369892e6b79ff1bf80f7b0286a54ee (PyanNet)",
+        "origine": "modele"
+      },
+      {
+        "nom": "segmentation.powerset",
+        "valeur": true,
+        "origine": "modele"
+      },
+      {
+        "nom": "segmentation.min_duration_off",
+        "valeur": 0.0,
+        "origine": "defaut"
+      },
+      {
+        "nom": "silero.modele",
+        "valeur": "silero-vad==6.2.3@e1122837f415 (silero_vad.jit)",
+        "origine": "code"
+      },
+      {
+        "nom": "silero.seuil",
+        "valeur": 0.8,
+        "origine": "experience"
+      },
+      {
+        "nom": "silero.silence_min_s",
+        "valeur": 0.0,
+        "origine": "experience"
+      },
+      {
+        "nom": "silero.marge_s",
+        "valeur": 0.03,
+        "origine": "experience"
+      },
+      {
+        "nom": "silero.parole_min_s",
+        "valeur": 0.25,
+        "origine": "defaut"
+      },
+      {
+        "nom": "silero.peripherique",
+        "valeur": "cpu, un fil",
+        "origine": "code"
+      }
+    ],
+    "segmentation": [
+      {
+        "nom": "segmentation.duree_fenetre_s",
+        "valeur": 10.0,
+        "origine": "modele"
+      },
+      {
+        "nom": "segmentation_step",
+        "valeur": 0.1,
+        "origine": "defaut"
+      },
+      {
+        "nom": "segmentation.locuteurs_par_fenetre",
+        "valeur": 3,
+        "origine": "modele"
+      },
+      {
+        "nom": "segmentation.locuteurs_simultanes",
+        "valeur": 2,
+        "origine": "modele"
+      },
+      {
+        "nom": "segmentation_batch_size",
+        "valeur": 32,
+        "origine": "defaut"
+      }
+    ],
+    "empreintes": [
+      {
+        "nom": "embedding.modele",
+        "valeur": "pyannote/speaker-diarization-community-1/embedding@3533c8cf8e369892e6b79ff1bf80f7b0286a54ee (WeSpeakerResNet34)",
+        "origine": "modele"
+      },
+      {
+        "nom": "embedding.dimension",
+        "valeur": 256,
+        "origine": "modele"
+      },
+      {
+        "nom": "embedding_exclude_overlap",
+        "valeur": true,
+        "origine": "defaut"
+      },
+      {
+        "nom": "embedding_batch_size",
+        "valeur": 32,
+        "origine": "defaut"
+      }
+    ],
+    "regroupement": [
+      {
+        "nom": "clustering.methode",
+        "valeur": "VBxClustering",
+        "origine": "defaut"
+      },
+      {
+        "nom": "clustering.metric",
+        "valeur": "cosine",
+        "origine": "defaut"
+      },
+      {
+        "nom": "clustering.threshold",
+        "valeur": 0.6,
+        "origine": "defaut"
+      },
+      {
+        "nom": "clustering.Fa",
+        "valeur": 0.07,
+        "origine": "defaut"
+      },
+      {
+        "nom": "clustering.Fb",
+        "valeur": 0.8,
+        "origine": "defaut"
+      },
+      {
+        "nom": "clustering.constrained_assignment",
+        "valeur": true,
+        "origine": "defaut"
+      },
+      {
+        "nom": "plda.modele",
+        "valeur": "pyannote/speaker-diarization-community-1/plda@3533c8cf8e369892e6b79ff1bf80f7b0286a54ee",
+        "origine": "modele"
+      },
+      {
+        "nom": "plda.lda_dimension",
+        "valeur": 128,
+        "origine": "modele"
+      },
+      {
+        "nom": "n_locuteurs",
+        "valeur": "estimé",
+        "origine": "experience"
+      }
+    ],
+    "sortie": [
+      {
+        "nom": "sortie.exclusive",
+        "valeur": true,
+        "origine": "experience"
+      }
+    ]
+  },
+  "chargement_modeles_s": 4.165,
+  "prechauffage": {
+    "uri": "ami__IS1008a",
+    "duree_s": 60.0
+  },
+  "duree_audio_s": 67427.088,
+  "calcul_s": 3595.209,
+  "rtf": 0.0533,
+  "alimentation": {
+    "commande": "pmset -g batt",
+    "commande_charge": "os.getloadavg() (sysctl vm.loadavg)",
+    "intervalle_s": 60.0,
+    "coeurs_performance": 6,
+    "releves": [
+      {
+        "date": "2026-11-03T04:14:40+01:00",
+        "moment": "debut",
+        "source": "secteur",
+        "brut": "Now drawing from 'AC Power'",
+        "horodatage": 1793675680.8307781,
+        "charge_1min": 5.07,
+        "charge_5min": 6.52,
+        "charge_15min": 6.68
+      },
+      {
+        "date": "2026-11-03T04:15:40+01:00",
+        "moment": "periodique",
+        "source": "secteur",
+        "brut": "Now drawing from 'AC Power'",
+        "horodatage": 1793675740.8677602,
+        "charge_1min": 3.8,
+        "charge_5min": 5.98,
+        "charge_15min": 6.46
+      },
+      {
+        "date": "2026-11-03T04:16:40+01:00",
+        "moment": "periodique",
+        "source": "secteur",
+        "brut": "Now drawing from 'AC Power'",
+        "horodatage": 1793675800.906219,
+        "charge_1min": 3.09,
+        "charge_5min": 5.36,
+        "charge_15min": 6.2
+      },
+      {
+        "date": "2026-11-03T04:17:40+01:00",
+        "moment": "periodique",
+        "source": "secteur",
+        "brut": "Now drawing from 'AC Power'",
+        "horodatage": 1793675860.948948,
+        "charge_1min": 2.77,
+        "charge_5min": 4.9,
+        "charge_15min": 5.97
+      },
+      {
+        "date": "2026-11-03T04:18:40+01:00",
+        "moment": "periodique",
+        "source": "secteur",
+        "brut": "Now drawing from 'AC Power'",
+        "horodatage": 1793675920.979894,
+        "charge_1min": 2.69,
+        "charge_5min": 4.6,
+        "charge_15min": 5.79
+      },
+      {
+        "date": "2026-11-03T04:19:41+01:00",
+        "moment": "periodique",
+        "source": "secteur",
+        "brut": "Now drawing from 'AC Power'",
+        "horodatage": 1793675981.0137112,
+        "charge_1min": 2.46,
+        "charge_5min": 4.15,
+        "charge_15min": 5.54
+      },
+      {
+        "date": "2026-11-03T04:20:41+01:00",
+        "moment": "periodique",
+        "source": "secteur",
+        "brut": "Now drawing from 'AC Power'",
+        "horodatage": 1793676041.055271,
+        "charge_1min": 3.06,
+        "charge_5min": 3.97,
+        "charge_15min": 5.37
+      },
+      {
+        "date": "2026-11-03T04:21:41+01:00",
+        "moment": "periodique",
+        "source": "secteur",
+        "brut": "Now drawing from 'AC Power'",
+        "horodatage": 1793676101.10173,
+        "charge_1min": 3.18,
+        "charge_5min": 3.85,
+        "charge_15min": 5.23
+      },
+      {
+        "date": "2026-11-03T04:22:41+01:00",
+        "moment": "periodique",
+        "source": "secteur",
+        "brut": "Now drawing from 'AC Power'",
+        "horodatage": 1793676161.145439,
+        "charge_1min": 2.27,
+        "charge_5min": 3.44,
+        "charge_15min": 4.98
+      },
+      {
+        "date": "2026-11-03T04:23:41+01:00",
+        "moment": "periodique",
+        "source": "secteur",
+        "brut": "Now drawing from 'AC Power'",
+        "horodatage": 1793676221.178816,
+        "charge_1min": 2.21,
+        "charge_5min": 3.19,
+        "charge_15min": 4.78
+      },
+      {
+        "date": "2026-11-03T04:24:41+01:00",
+        "moment": "periodique",
+        "source": "secteur",
+        "brut": "Now drawing from 'AC Power'",
+        "horodatage": 1793676281.2170901,
+        "charge_1min": 3.43,
+        "charge_5min": 3.37,
+        "charge_15min": 4.74
+      },
+      {
+        "date": "2026-11-03T04:25:41+01:00",
+        "moment": "periodique",
+        "source": "secteur",
+        "brut": "Now drawing from 'AC Power'",
+        "horodatage": 1793676341.259719,
+        "charge_1min": 2.81,
+        "charge_5min": 3.16,
+        "charge_15min": 4.56
+      },
+      {
+        "date": "2026-11-03T04:26:41+01:00",
+        "moment": "periodique",
+        "source": "secteur",
+        "brut": "Now drawing from 'AC Power'",
+        "horodatage": 1793676401.297216,
+        "charge_1min": 2.56,
+        "charge_5min": 3.02,
+        "charge_15min": 4.41
+      },
+      {
+        "date": "2026-11-03T04:27:41+01:00",
+        "moment": "periodique",
+        "source": "secteur",
+        "brut": "Now drawing from 'AC Power'",
+        "horodatage": 1793676461.338327,
+        "charge_1min": 2.58,
+        "charge_5min": 2.93,
+        "charge_15min": 4.28
+      },
+      {
+        "date": "2026-11-03T04:28:41+01:00",
+        "moment": "periodique",
+        "source": "secteur",
+        "brut": "Now drawing from 'AC Power'",
+        "horodatage": 1793676521.398134,
+        "charge_1min": 3.74,
+        "charge_5min": 3.18,
+        "charge_15min": 4.28
+      },
+      {
+        "date": "2026-11-03T04:29:41+01:00",
+        "moment": "periodique",
+        "source": "secteur",
+        "brut": "Now drawing from 'AC Power'",
+        "horodatage": 1793676581.439104,
+        "charge_1min": 3.12,
+        "charge_5min": 3.09,
+        "charge_15min": 4.17
+      },
+      {
+        "date": "2026-11-03T04:30:41+01:00",
+        "moment": "periodique",
+        "source": "secteur",
+        "brut": "Now drawing from 'AC Power'",
+        "horodatage": 1793676641.483556,
+        "charge_1min": 2.65,
+        "charge_5min": 2.98,
+        "charge_15min": 4.06
+      },
+      {
+        "date": "2026-11-03T04:31:41+01:00",
+        "moment": "periodique",
+        "source": "secteur",
+        "brut": "Now drawing from 'AC Power'",
+        "horodatage": 1793676701.529674,
+        "charge_1min": 2.52,
+        "charge_5min": 2.87,
+        "charge_15min": 3.94
+      },
+      {
+        "date": "2026-11-03T04:32:41+01:00",
+        "moment": "periodique",
+        "source": "secteur",
+        "brut": "Now drawing from 'AC Power'",
+        "horodatage": 1793676761.570925,
+        "charge_1min": 2.63,
+        "charge_5min": 2.86,
+        "charge_15min": 3.86
+      },
+      {
+        "date": "2026-11-03T04:33:41+01:00",
+        "moment": "periodique",
+        "source": "secteur",
+        "brut": "Now drawing from 'AC Power'",
+        "horodatage": 1793676821.615707,
+        "charge_1min": 2.27,
+        "charge_5min": 2.71,
+        "charge_15min": 3.74
+      },
+      {
+        "date": "2026-11-03T04:34:41+01:00",
+        "moment": "periodique",
+        "source": "secteur",
+        "brut": "Now drawing from 'AC Power'",
+        "horodatage": 1793676881.6608288,
+        "charge_1min": 2.75,
+        "charge_5min": 2.75,
+        "charge_15min": 3.68
+      },
+      {
+        "date": "2026-11-03T04:35:41+01:00",
+        "moment": "periodique",
+        "source": "secteur",
+        "brut": "Now drawing from 'AC Power'",
+        "horodatage": 1793676941.702415,
+        "charge_1min": 2.88,
+        "charge_5min": 2.78,
+        "charge_15min": 3.63
+      },
+      {
+        "date": "2026-11-03T04:36:41+01:00",
+        "moment": "periodique",
+        "source": "secteur",
+        "brut": "Now drawing from 'AC Power'",
+        "horodatage": 1793677001.745718,
+        "charge_1min": 2.02,
+        "charge_5min": 2.58,
+        "charge_15min": 3.49
+      },
+      {
+        "date": "2026-11-03T04:37:41+01:00",
+        "moment": "periodique",
+        "source": "secteur",
+        "brut": "Now drawing from 'AC Power'",
+        "horodatage": 1793677061.787264,
+        "charge_1min": 2.65,
+        "charge_5min": 2.69,
+        "charge_15min": 3.47
+      },
+      {
+        "date": "2026-11-03T04:38:41+01:00",
+        "moment": "periodique",
+        "source": "secteur",
+        "brut": "Now drawing from 'AC Power'",
+        "horodatage": 1793677121.82177,
+        "charge_1min": 3.24,
+        "charge_5min": 2.88,
+        "charge_15min": 3.49
+      },
+      {
+        "date": "2026-11-03T04:39:41+01:00",
+        "moment": "periodique",
+        "source": "secteur",
+        "brut": "Now drawing from 'AC Power'",
+        "horodatage": 1793677181.863966,
+        "charge_1min": 4.91,
+        "charge_5min": 3.39,
+        "charge_15min": 3.64
+      },
+      {
+        "date": "2026-11-03T04:40:41+01:00",
+        "moment": "periodique",
+        "source": "secteur",
+        "brut": "Now drawing from 'AC Power'",
+        "horodatage": 1793677241.9047291,
+        "charge_1min": 4.74,
+        "charge_5min": 3.61,
+        "charge_15min": 3.7
+      },
+      {
+        "date": "2026-11-03T04:41:41+01:00",
+        "moment": "periodique",
+        "source": "secteur",
+        "brut": "Now drawing from 'AC Power'",
+        "horodatage": 1793677301.9682822,
+        "charge_1min": 3.16,
+        "charge_5min": 3.4,
+        "charge_15min": 3.61
+      },
+      {
+        "date": "2026-11-03T04:42:42+01:00",
+        "moment": "periodique",
+        "source": "secteur",
+        "brut": "Now drawing from 'AC Power'",
+        "horodatage": 1793677362.012053,
+        "charge_1min": 2.66,
+        "charge_5min": 3.2,
+        "charge_15min": 3.52
+      },
+      {
+        "date": "2026-11-03T04:43:42+01:00",
+        "moment": "periodique",
+        "source": "secteur",
+        "brut": "Now drawing from 'AC Power'",
+        "horodatage": 1793677422.04687,
+        "charge_1min": 2.82,
+        "charge_5min": 3.16,
+        "charge_15min": 3.48
+      },
+      {
+        "date": "2026-11-03T04:44:42+01:00",
+        "moment": "periodique",
+        "source": "secteur",
+        "brut": "Now drawing from 'AC Power'",
+        "horodatage": 1793677482.08849,
+        "charge_1min": 2.42,
+        "charge_5min": 3.0,
+        "charge_15min": 3.4
+      },
+      {
+        "date": "2026-11-03T04:45:42+01:00",
+        "moment": "periodique",
+        "source": "secteur",
+        "brut": "Now drawing from 'AC Power'",
+        "horodatage": 1793677542.1352,
+        "charge_1min": 2.84,
+        "charge_5min": 3.04,
+        "charge_15min": 3.39
+      },
+      {
+        "date": "2026-11-03T04:46:42+01:00",
+        "moment": "periodique",
+        "source": "secteur",
+        "brut": "Now drawing from 'AC Power'",
+        "horodatage": 1793677602.173255,
+        "charge_1min": 3.41,
+        "charge_5min": 3.15,
+        "charge_15min": 3.4
+      },
+      {
+        "date": "2026-11-03T04:47:42+01:00",
+        "moment": "periodique",
+        "source": "secteur",
+        "brut": "Now drawing from 'AC Power'",
+        "horodatage": 1793677662.214101,
+        "charge_1min": 2.65,
+        "charge_5min": 2.98,
+        "charge_15min": 3.32
+      },
+      {
+        "date": "2026-11-03T04:48:42+01:00",
+        "moment": "periodique",
+        "source": "secteur",
+        "brut": "Now drawing from 'AC Power'",
+        "horodatage": 1793677722.2536519,
+        "charge_1min": 2.33,
+        "charge_5min": 2.89,
+        "charge_15min": 3.27
+      },
+      {
+        "date": "2026-11-03T04:49:42+01:00",
+        "moment": "periodique",
+        "source": "secteur",
+        "brut": "Now drawing from 'AC Power'",
+        "horodatage": 1793677782.293938,
+        "charge_1min": 3.24,
+        "charge_5min": 3.07,
+        "charge_15min": 3.31
+      },
+      {
+        "date": "2026-11-03T04:50:42+01:00",
+        "moment": "periodique",
+        "source": "secteur",
+        "brut": "Now drawing from 'AC Power'",
+        "horodatage": 1793677842.3305678,
+        "charge_1min": 2.74,
+        "charge_5min": 2.95,
+        "charge_15min": 3.25
+      },
+      {
+        "date": "2026-11-03T04:51:42+01:00",
+        "moment": "periodique",
+        "source": "secteur",
+        "brut": "Now drawing from 'AC Power'",
+        "horodatage": 1793677902.369098,
+        "charge_1min": 3.46,
+        "charge_5min": 3.08,
+        "charge_15min": 3.27
+      },
+      {
+        "date": "2026-11-03T04:52:42+01:00",
+        "moment": "periodique",
+        "source": "secteur",
+        "brut": "Now drawing from 'AC Power'",
+        "horodatage": 1793677962.3997838,
+        "charge_1min": 2.34,
+        "charge_5min": 2.81,
+        "charge_15min": 3.15
+      },
+      {
+        "date": "2026-11-03T04:53:42+01:00",
+        "moment": "periodique",
+        "source": "secteur",
+        "brut": "Now drawing from 'AC Power'",
+        "horodatage": 1793678022.439859,
+        "charge_1min": 2.39,
+        "charge_5min": 2.77,
+        "charge_15min": 3.12
+      },
+      {
+        "date": "2026-11-03T04:54:42+01:00",
+        "moment": "periodique",
+        "source": "secteur",
+        "brut": "Now drawing from 'AC Power'",
+        "horodatage": 1793678082.479918,
+        "charge_1min": 2.9,
+        "charge_5min": 2.88,
+        "charge_15min": 3.13
+      },
+      {
+        "date": "2026-11-03T04:55:42+01:00",
+        "moment": "periodique",
+        "source": "secteur",
+        "brut": "Now drawing from 'AC Power'",
+        "horodatage": 1793678142.5216541,
+        "charge_1min": 2.42,
+        "charge_5min": 2.75,
+        "charge_15min": 3.07
+      },
+      {
+        "date": "2026-11-03T04:56:42+01:00",
+        "moment": "periodique",
+        "source": "secteur",
+        "brut": "Now drawing from 'AC Power'",
+        "horodatage": 1793678202.555697,
+        "charge_1min": 2.89,
+        "charge_5min": 2.76,
+        "charge_15min": 3.04
+      },
+      {
+        "date": "2026-11-03T04:57:42+01:00",
+        "moment": "periodique",
+        "source": "secteur",
+        "brut": "Now drawing from 'AC Power'",
+        "horodatage": 1793678262.596826,
+        "charge_1min": 3.08,
+        "charge_5min": 2.84,
+        "charge_15min": 3.05
+      },
+      {
+        "date": "2026-11-03T04:58:42+01:00",
+        "moment": "periodique",
+        "source": "secteur",
+        "brut": "Now drawing from 'AC Power'",
+        "horodatage": 1793678322.635726,
+        "charge_1min": 3.52,
+        "charge_5min": 3.07,
+        "charge_15min": 3.13
+      },
+      {
+        "date": "2026-11-03T04:59:42+01:00",
+        "moment": "periodique",
+        "source": "secteur",
+        "brut": "Now drawing from 'AC Power'",
+        "horodatage": 1793678382.676584,
+        "charge_1min": 2.56,
+        "charge_5min": 2.86,
+        "charge_15min": 3.04
+      },
+      {
+        "date": "2026-11-03T05:00:42+01:00",
+        "moment": "periodique",
+        "source": "secteur",
+        "brut": "Now drawing from 'AC Power'",
+        "horodatage": 1793678442.718026,
+        "charge_1min": 2.75,
+        "charge_5min": 2.85,
+        "charge_15min": 3.02
+      },
+      {
+        "date": "2026-11-03T05:01:42+01:00",
+        "moment": "periodique",
+        "source": "secteur",
+        "brut": "Now drawing from 'AC Power'",
+        "horodatage": 1793678502.7563279,
+        "charge_1min": 2.55,
+        "charge_5min": 2.8,
+        "charge_15min": 2.99
+      },
+      {
+        "date": "2026-11-03T05:02:42+01:00",
+        "moment": "periodique",
+        "source": "secteur",
+        "brut": "Now drawing from 'AC Power'",
+        "horodatage": 1793678562.797666,
+        "charge_1min": 2.58,
+        "charge_5min": 2.79,
+        "charge_15min": 2.98
+      },
+      {
+        "date": "2026-11-03T05:03:42+01:00",
+        "moment": "periodique",
+        "source": "secteur",
+        "brut": "Now drawing from 'AC Power'",
+        "horodatage": 1793678622.8598468,
+        "charge_1min": 1.92,
+        "charge_5min": 2.58,
+        "charge_15min": 2.88
+      },
+      {
+        "date": "2026-11-03T05:04:42+01:00",
+        "moment": "periodique",
+        "source": "secteur",
+        "brut": "Now drawing from 'AC Power'",
+        "horodatage": 1793678682.9128408,
+        "charge_1min": 2.39,
+        "charge_5min": 2.58,
+        "charge_15min": 2.86
+      },
+      {
+        "date": "2026-11-03T05:05:42+01:00",
+        "moment": "periodique",
+        "source": "secteur",
+        "brut": "Now drawing from 'AC Power'",
+        "horodatage": 1793678742.9590452,
+        "charge_1min": 2.61,
+        "charge_5min": 2.63,
+        "charge_15min": 2.86
+      },
+      {
+        "date": "2026-11-03T05:06:42+01:00",
+        "moment": "periodique",
+        "source": "secteur",
+        "brut": "Now drawing from 'AC Power'",
+        "horodatage": 1793678802.9980428,
+        "charge_1min": 1.94,
+        "charge_5min": 2.44,
+        "charge_15min": 2.77
+      },
+      {
+        "date": "2026-11-03T05:07:43+01:00",
+        "moment": "periodique",
+        "source": "secteur",
+        "brut": "Now drawing from 'AC Power'",
+        "horodatage": 1793678863.042746,
+        "charge_1min": 2.67,
+        "charge_5min": 2.54,
+        "charge_15min": 2.78
+      },
+      {
+        "date": "2026-11-03T05:08:43+01:00",
+        "moment": "periodique",
+        "source": "secteur",
+        "brut": "Now drawing from 'AC Power'",
+        "horodatage": 1793678923.073571,
+        "charge_1min": 2.94,
+        "charge_5min": 2.62,
+        "charge_15min": 2.79
+      },
+      {
+        "date": "2026-11-03T05:09:43+01:00",
+        "moment": "periodique",
+        "source": "secteur",
+        "brut": "Now drawing from 'AC Power'",
+        "horodatage": 1793678983.1085398,
+        "charge_1min": 3.54,
+        "charge_5min": 2.81,
+        "charge_15min": 2.85
+      },
+      {
+        "date": "2026-11-03T05:10:43+01:00",
+        "moment": "periodique",
+        "source": "secteur",
+        "brut": "Now drawing from 'AC Power'",
+        "horodatage": 1793679043.118724,
+        "charge_1min": 2.76,
+        "charge_5min": 2.72,
+        "charge_15min": 2.81
+      },
+      {
+        "date": "2026-11-03T05:11:43+01:00",
+        "moment": "periodique",
+        "source": "secteur",
+        "brut": "Now drawing from 'AC Power'",
+        "horodatage": 1793679103.148545,
+        "charge_1min": 2.53,
+        "charge_5min": 2.63,
+        "charge_15min": 2.77
+      },
+      {
+        "date": "2026-11-03T05:12:43+01:00",
+        "moment": "periodique",
+        "source": "secteur",
+        "brut": "Now drawing from 'AC Power'",
+        "horodatage": 1793679163.19435,
+        "charge_1min": 2.62,
+        "charge_5min": 2.65,
+        "charge_15min": 2.76
+      },
+      {
+        "date": "2026-11-03T05:13:43+01:00",
+        "moment": "periodique",
+        "source": "secteur",
+        "brut": "Now drawing from 'AC Power'",
+        "horodatage": 1793679223.236154,
+        "charge_1min": 3.31,
+        "charge_5min": 2.86,
+        "charge_15min": 2.83
+      },
+      {
+        "date": "2026-11-03T05:14:43+01:00",
+        "moment": "periodique",
+        "source": "secteur",
+        "brut": "Now drawing from 'AC Power'",
+        "horodatage": 1793679283.285849,
+        "charge_1min": 3.0,
+        "charge_5min": 2.87,
+        "charge_15min": 2.84
+      },
+      {
+        "date": "2026-11-03T05:14:44+01:00",
+        "moment": "fin",
+        "source": "secteur",
+        "brut": "Now drawing from 'AC Power'",
+        "horodatage": 1793679284.895819,
+        "charge_1min": 2.92,
+        "charge_5min": 2.86,
+        "charge_15min": 2.83
+      }
+    ],
+    "conforme": true,
+    "charge_concurrente": false
+  },
+  "fichiers": [
+    {
+      "uri": "ami__IS1008a",
+      "corpus": "ami",
+      "partition": "dev",
+      "duree_audio_s": 943.957,
+      "calcul_s": 50.633,
+      "rtf": 0.0536,
+      "n_locuteurs_hypothese": 4,
+      "n_locuteurs_impose": null,
+      "etapes_s": {
+        "segmentation": 4.377,
+        "detection": 0.018,
+        "empreintes": 42.451,
+        "regroupement": 0.161,
+        "sortie": 0.144,
+        "detection_fine": 3.449
+      },
+      "n_locuteurs_vbx": 4,
+      "kmeans": false,
+      "n_locuteurs_kmeans": null,
+      "silero": {
+        "parole_avant_s": 758.801,
+        "parole_retiree_s": 89.654,
+        "masque_parole_s": 673.12
+      }
+    },
+    {
+      "uri": "ami__IS1008b",
+      "corpus": "ami",
+      "partition": "dev",
+      "duree_audio_s": 1768.533,
+      "calcul_s": 94.325,
+      "rtf": 0.0533,
+      "n_locuteurs_hypothese": 5,
+      "n_locuteurs_impose": null,
+      "etapes_s": {
+        "segmentation": 6.931,
+        "detection": 0.038,
+        "empreintes": 80.78,
+        "regroupement": 0.37,
+        "sortie": 0.278,
+        "detection_fine": 5.827
+      },
+      "n_locuteurs_vbx": 5,
+      "kmeans": false,
+      "n_locuteurs_kmeans": null,
+      "silero": {
+        "parole_avant_s": 1419.728,
+        "parole_retiree_s": 233.455,
+        "masque_parole_s": 1193.62
+      }
+    },
+    {
+      "uri": "ami__IS1008c",
+      "corpus": "ami",
+      "partition": "dev",
+      "duree_audio_s": 1546.411,
+      "calcul_s": 82.742,
+      "rtf": 0.0535,
+      "n_locuteurs_hypothese": 4,
+      "n_locuteurs_impose": null,
+      "etapes_s": {
+        "segmentation": 6.89,
+        "detection": 0.03,
+        "empreintes": 69.806,
+        "regroupement": 0.313,
+        "sortie": 0.245,
+        "detection_fine": 5.377
+      },
+      "n_locuteurs_vbx": 4,
+      "kmeans": false,
+      "n_locuteurs_kmeans": null,
+      "silero": {
+        "parole_avant_s": 1262.655,
+        "parole_retiree_s": 170.394,
+        "masque_parole_s": 1101.152
+      }
+    },
+    {
+      "uri": "ami__IS1008d",
+      "corpus": "ami",
+      "partition": "dev",
+      "duree_audio_s": 1480.875,
+      "calcul_s": 78.44,
+      "rtf": 0.053,
+      "n_locuteurs_hypothese": 4,
+      "n_locuteurs_impose": null,
+      "etapes_s": {
+        "segmentation": 6.172,
+        "detection": 0.032,
+        "empreintes": 66.656,
+        "regroupement": 0.319,
+        "sortie": 0.244,
+        "detection_fine": 4.926
+      },
+      "n_locuteurs_vbx": 4,
+      "kmeans": false,
+      "n_locuteurs_kmeans": null,
+      "silero": {
+        "parole_avant_s": 1207.592,
+        "parole_retiree_s": 148.781,
+        "masque_parole_s": 1066.164
+      }
+    },
+    {
+      "uri": "ami__ES2011a",
+      "corpus": "ami",
+      "partition": "dev",
+      "duree_audio_s": 1113.845,
+      "calcul_s": 59.074,
+      "rtf": 0.053,
+      "n_locuteurs_hypothese": 3,
+      "n_locuteurs_impose": null,
+      "etapes_s": {
+        "segmentation": 4.711,
+        "detection": 0.022,
+        "empreintes": 50.245,
+        "regroupement": 0.243,
+        "sortie": 0.161,
+        "detection_fine": 3.615
+      },
+      "n_locuteurs_vbx": 3,
+      "kmeans": false,
+      "n_locuteurs_kmeans": null,
+      "silero": {
+        "parole_avant_s": 779.321,
+        "parole_retiree_s": 441.18,
+        "masque_parole_s": 338.696
+      }
+    },
+    {
+      "uri": "ami__ES2011b",
+      "corpus": "ami",
+      "partition": "dev",
+      "duree_audio_s": 1581.269,
+      "calcul_s": 83.742,
+      "rtf": 0.053,
+      "n_locuteurs_hypothese": 4,
+      "n_locuteurs_impose": null,
+      "etapes_s": {
+        "segmentation": 6.946,
+        "detection": 0.033,
+        "empreintes": 70.896,
+        "regroupement": 0.332,
+        "sortie": 0.262,
+        "detection_fine": 5.176
+      },
+      "n_locuteurs_vbx": 4,
+      "kmeans": false,
+      "n_locuteurs_kmeans": null,
+      "silero": {
+        "parole_avant_s": 1295.983,
+        "parole_retiree_s": 387.311,
+        "masque_parole_s": 909.327
+      }
+    },
+    {
+      "uri": "ami__ES2011c",
+      "corpus": "ami",
+      "partition": "dev",
+      "duree_audio_s": 1616.064,
+      "calcul_s": 86.646,
+      "rtf": 0.0536,
+      "n_locuteurs_hypothese": 4,
+      "n_locuteurs_impose": null,
+      "etapes_s": {
+        "segmentation": 6.861,
+        "detection": 0.032,
+        "empreintes": 73.623,
+        "regroupement": 0.388,
+        "sortie": 0.257,
+        "detection_fine": 5.382
+      },
+      "n_locuteurs_vbx": 4,
+      "kmeans": false,
+      "n_locuteurs_kmeans": null,
+      "silero": {
+        "parole_avant_s": 1332.551,
+        "parole_retiree_s": 411.143,
+        "masque_parole_s": 922.472
+      }
+    },
+    {
+      "uri": "ami__ES2011d",
+      "corpus": "ami",
+      "partition": "dev",
+      "duree_audio_s": 1982.325,
+      "calcul_s": 105.672,
+      "rtf": 0.0533,
+      "n_locuteurs_hypothese": 4,
+      "n_locuteurs_impose": null,
+      "etapes_s": {
+        "segmentation": 8.583,
+        "detection": 0.036,
+        "empreintes": 89.238,
+        "regroupement": 0.644,
+        "sortie": 0.307,
+        "detection_fine": 6.723
+      },
+      "n_locuteurs_vbx": 4,
+      "kmeans": false,
+      "n_locuteurs_kmeans": null,
+      "silero": {
+        "parole_avant_s": 1391.816,
+        "parole_retiree_s": 576.67,
+        "masque_parole_s": 817.464
+      }
+    },
+    {
+      "uri": "ami__TS3004a",
+      "corpus": "ami",
+      "partition": "dev",
+      "duree_audio_s": 1345.323,
+      "calcul_s": 70.655,
+      "rtf": 0.0525,
+      "n_locuteurs_hypothese": 4,
+      "n_locuteurs_impose": null,
+      "etapes_s": {
+        "segmentation": 5.264,
+        "detection": 0.028,
+        "empreintes": 60.283,
+        "regroupement": 0.324,
+        "sortie": 0.229,
+        "detection_fine": 4.453
+      },
+      "n_locuteurs_vbx": 4,
+      "kmeans": false,
+      "n_locuteurs_kmeans": null,
+      "silero": {
+        "parole_avant_s": 856.862,
+        "parole_retiree_s": 449.855,
+        "masque_parole_s": 409.148
+      }
+    },
+    {
+      "uri": "ami__TS3004b",
+      "corpus": "ami",
+      "partition": "dev",
+      "duree_audio_s": 2246.059,
+      "calcul_s": 119.934,
+      "rtf": 0.0534,
+      "n_locuteurs_hypothese": 4,
+      "n_locuteurs_impose": null,
+      "etapes_s": {
+        "segmentation": 9.001,
+        "detection": 0.042,
+        "empreintes": 102.249,
+        "regroupement": 0.713,
+        "sortie": 0.357,
+        "detection_fine": 7.404
+      },
+      "n_locuteurs_vbx": 4,
+      "kmeans": false,
+      "n_locuteurs_kmeans": null,
+      "silero": {
+        "parole_avant_s": 1890.017,
+        "parole_retiree_s": 837.107,
+        "masque_parole_s": 1055.776
+      }
+    },
+    {
+      "uri": "ami__TS3004c",
+      "corpus": "ami",
+      "partition": "dev",
+      "duree_audio_s": 2970.0,
+      "calcul_s": 159.251,
+      "rtf": 0.0536,
+      "n_locuteurs_hypothese": 4,
+      "n_locuteurs_impose": null,
+      "etapes_s": {
+        "segmentation": 12.307,
+        "detection": 0.059,
+        "empreintes": 135.569,
+        "regroupement": 0.929,
+        "sortie": 0.499,
+        "detection_fine": 9.672
+      },
+      "n_locuteurs_vbx": 4,
+      "kmeans": false,
+      "n_locuteurs_kmeans": null,
+      "silero": {
+        "parole_avant_s": 1929.724,
+        "parole_retiree_s": 759.945,
+        "masque_parole_s": 1176.456
+      }
+    },
+    {
+      "uri": "ami__TS3004d",
+      "corpus": "ami",
+      "partition": "dev",
+      "duree_audio_s": 2750.8,
+      "calcul_s": 146.122,
+      "rtf": 0.0531,
+      "n_locuteurs_hypothese": 4,
+      "n_locuteurs_impose": null,
+      "etapes_s": {
+        "segmentation": 11.622,
+        "detection": 0.055,
+        "empreintes": 123.36,
+        "regroupement": 1.307,
+        "sortie": 0.431,
+        "detection_fine": 9.005
+      },
+      "n_locuteurs_vbx": 4,
+      "kmeans": false,
+      "n_locuteurs_kmeans": null,
+      "silero": {
+        "parole_avant_s": 1757.936,
+        "parole_retiree_s": 780.644,
+        "masque_parole_s": 983.912
+      }
+    },
+    {
+      "uri": "ami__IB4001",
+      "corpus": "ami",
+      "partition": "dev",
+      "duree_audio_s": 1780.821,
+      "calcul_s": 95.593,
+      "rtf": 0.0537,
+      "n_locuteurs_hypothese": 4,
+      "n_locuteurs_impose": null,
+      "etapes_s": {
+        "segmentation": 8.001,
+        "detection": 0.041,
+        "empreintes": 80.632,
+        "regroupement": 0.419,
+        "sortie": 0.28,
+        "detection_fine": 6.088
+      },
+      "n_locuteurs_vbx": 4,
+      "kmeans": false,
+      "n_locuteurs_kmeans": null,
+      "silero": {
+        "parole_avant_s": 1328.788,
+        "parole_retiree_s": 233.221,
+        "masque_parole_s": 1105.688
+      }
+    },
+    {
+      "uri": "ami__IB4002",
+      "corpus": "ami",
+      "partition": "dev",
+      "duree_audio_s": 1882.368,
+      "calcul_s": 99.617,
+      "rtf": 0.0529,
+      "n_locuteurs_hypothese": 4,
+      "n_locuteurs_impose": null,
+      "etapes_s": {
+        "segmentation": 7.651,
+        "detection": 0.038,
+        "empreintes": 84.724,
+        "regroupement": 0.487,
+        "sortie": 0.298,
+        "detection_fine": 6.271
+      },
+      "n_locuteurs_vbx": 4,
+      "kmeans": false,
+      "n_locuteurs_kmeans": null,
+      "silero": {
+        "parole_avant_s": 1281.285,
+        "parole_retiree_s": 226.809,
+        "masque_parole_s": 1075.196
+      }
+    },
+    {
+      "uri": "ami__IB4003",
+      "corpus": "ami",
+      "partition": "dev",
+      "duree_audio_s": 2023.424,
+      "calcul_s": 106.058,
+      "rtf": 0.0524,
+      "n_locuteurs_hypothese": 4,
+      "n_locuteurs_impose": null,
+      "etapes_s": {
+        "segmentation": 7.904,
+        "detection": 0.039,
+        "empreintes": 90.503,
+        "regroupement": 0.539,
+        "sortie": 0.31,
+        "detection_fine": 6.622
+      },
+      "n_locuteurs_vbx": 4,
+      "kmeans": false,
+      "n_locuteurs_kmeans": null,
+      "silero": {
+        "parole_avant_s": 1906.942,
+        "parole_retiree_s": 223.328,
+        "masque_parole_s": 1689.884
+      }
+    },
+    {
+      "uri": "ami__IB4004",
+      "corpus": "ami",
+      "partition": "dev",
+      "duree_audio_s": 2393.003,
+      "calcul_s": 129.81,
+      "rtf": 0.0542,
+      "n_locuteurs_hypothese": 4,
+      "n_locuteurs_impose": null,
+      "etapes_s": {
+        "segmentation": 9.958,
+        "detection": 0.045,
+        "empreintes": 110.366,
+        "regroupement": 0.763,
+        "sortie": 0.377,
+        "detection_fine": 8.103
+      },
+      "n_locuteurs_vbx": 4,
+      "kmeans": false,
+      "n_locuteurs_kmeans": null,
+      "silero": {
+        "parole_avant_s": 2208.482,
+        "parole_retiree_s": 266.023,
+        "masque_parole_s": 1950.88
+      }
+    },
+    {
+      "uri": "ami__IB4010",
+      "corpus": "ami",
+      "partition": "dev",
+      "duree_audio_s": 2960.64,
+      "calcul_s": 157.801,
+      "rtf": 0.0533,
+      "n_locuteurs_hypothese": 4,
+      "n_locuteurs_impose": null,
+      "etapes_s": {
+        "segmentation": 11.708,
+        "detection": 0.06,
+        "empreintes": 134.541,
+        "regroupement": 0.983,
+        "sortie": 0.522,
+        "detection_fine": 9.721
+      },
+      "n_locuteurs_vbx": 4,
+      "kmeans": false,
+      "n_locuteurs_kmeans": null,
+      "silero": {
+        "parole_avant_s": 2679.581,
+        "parole_retiree_s": 334.709,
+        "masque_parole_s": 2359.344
+      }
+    },
+    {
+      "uri": "ami__IB4011",
+      "corpus": "ami",
+      "partition": "dev",
+      "duree_audio_s": 2417.067,
+      "calcul_s": 130.021,
+      "rtf": 0.0538,
+      "n_locuteurs_hypothese": 4,
+      "n_locuteurs_impose": null,
+      "etapes_s": {
+        "segmentation": 10.171,
+        "detection": 0.046,
+        "empreintes": 110.422,
+        "regroupement": 0.713,
+        "sortie": 0.459,
+        "detection_fine": 7.98
+      },
+      "n_locuteurs_vbx": 4,
+      "kmeans": false,
+      "n_locuteurs_kmeans": null,
+      "silero": {
+        "parole_avant_s": 2180.216,
+        "parole_retiree_s": 270.578,
+        "masque_parole_s": 1923.356
+      }
+    },
+    {
+      "uri": "ami__IS1009a",
+      "corpus": "ami",
+      "partition": "test",
+      "duree_audio_s": 838.997,
+      "calcul_s": 44.888,
+      "rtf": 0.0535,
+      "n_locuteurs_hypothese": 4,
+      "n_locuteurs_impose": null,
+      "etapes_s": {
+        "segmentation": 3.791,
+        "detection": 0.016,
+        "empreintes": 38.023,
+        "regroupement": 0.147,
+        "sortie": 0.123,
+        "detection_fine": 2.736
+      },
+      "n_locuteurs_vbx": 4,
+      "kmeans": false,
+      "n_locuteurs_kmeans": null,
+      "silero": {
+        "parole_avant_s": 617.288,
+        "parole_retiree_s": 113.308,
+        "masque_parole_s": 507.992
+      }
+    },
+    {
+      "uri": "ami__IS1009b",
+      "corpus": "ami",
+      "partition": "test",
+      "duree_audio_s": 2052.437,
+      "calcul_s": 108.3,
+      "rtf": 0.0528,
+      "n_locuteurs_hypothese": 5,
+      "n_locuteurs_impose": null,
+      "etapes_s": {
+        "segmentation": 8.156,
+        "detection": 0.04,
+        "empreintes": 92.349,
+        "regroupement": 0.498,
+        "sortie": 0.337,
+        "detection_fine": 6.788
+      },
+      "n_locuteurs_vbx": 5,
+      "kmeans": false,
+      "n_locuteurs_kmeans": null,
+      "silero": {
+        "parole_avant_s": 1774.052,
+        "parole_retiree_s": 174.191,
+        "masque_parole_s": 1605.268
+      }
+    },
+    {
+      "uri": "ami__IS1009c",
+      "corpus": "ami",
+      "partition": "test",
+      "duree_audio_s": 1820.843,
+      "calcul_s": 97.376,
+      "rtf": 0.0535,
+      "n_locuteurs_hypothese": 4,
+      "n_locuteurs_impose": null,
+      "etapes_s": {
+        "segmentation": 7.83,
+        "detection": 0.037,
+        "empreintes": 82.492,
+        "regroupement": 0.374,
+        "sortie": 0.313,
+        "detection_fine": 6.209
+      },
+      "n_locuteurs_vbx": 4,
+      "kmeans": false,
+      "n_locuteurs_kmeans": null,
+      "silero": {
+        "parole_avant_s": 1497.538,
+        "parole_retiree_s": 152.393,
+        "masque_parole_s": 1357.492
+      }
+    },
+    {
+      "uri": "ami__IS1009d",
+      "corpus": "ami",
+      "partition": "test",
+      "duree_audio_s": 1944.661,
+      "calcul_s": 103.509,
+      "rtf": 0.0532,
+      "n_locuteurs_hypothese": 4,
+      "n_locuteurs_impose": null,
+      "etapes_s": {
+        "segmentation": 7.563,
+        "detection": 0.038,
+        "empreintes": 88.519,
+        "regroupement": 0.466,
+        "sortie": 0.32,
+        "detection_fine": 6.461
+      },
+      "n_locuteurs_vbx": 4,
+      "kmeans": false,
+      "n_locuteurs_kmeans": null,
+      "silero": {
+        "parole_avant_s": 1558.643,
+        "parole_retiree_s": 220.831,
+        "masque_parole_s": 1352.736
+      }
+    },
+    {
+      "uri": "ami__ES2004a",
+      "corpus": "ami",
+      "partition": "test",
+      "duree_audio_s": 1049.355,
+      "calcul_s": 54.75,
+      "rtf": 0.0522,
+      "n_locuteurs_hypothese": 4,
+      "n_locuteurs_impose": null,
+      "etapes_s": {
+        "segmentation": 4.016,
+        "detection": 0.021,
+        "empreintes": 46.809,
+        "regroupement": 0.216,
+        "sortie": 0.158,
+        "detection_fine": 3.46
+      },
+      "n_locuteurs_vbx": 4,
+      "kmeans": false,
+      "n_locuteurs_kmeans": null,
+      "silero": {
+        "parole_avant_s": 749.183,
+        "parole_retiree_s": 301.559,
+        "masque_parole_s": 449.12
+      }
+    },
+    {
+      "uri": "ami__ES2004b",
+      "corpus": "ami",
+      "partition": "test",
+      "duree_audio_s": 2345.493,
+      "calcul_s": 124.392,
+      "rtf": 0.053,
+      "n_locuteurs_hypothese": 6,
+      "n_locuteurs_impose": null,
+      "etapes_s": {
+        "segmentation": 8.837,
+        "detection": 0.046,
+        "empreintes": 106.542,
+        "regroupement": 0.739,
+        "sortie": 0.399,
+        "detection_fine": 7.689
+      },
+      "n_locuteurs_vbx": 6,
+      "kmeans": false,
+      "n_locuteurs_kmeans": null,
+      "silero": {
+        "parole_avant_s": 2044.963,
+        "parole_retiree_s": 541.393,
+        "masque_parole_s": 1504.66
+      }
+    },
+    {
+      "uri": "ami__ES2004c",
+      "corpus": "ami",
+      "partition": "test",
+      "duree_audio_s": 2334.368,
+      "calcul_s": 124.286,
+      "rtf": 0.0532,
+      "n_locuteurs_hypothese": 5,
+      "n_locuteurs_impose": null,
+      "etapes_s": {
+        "segmentation": 9.714,
+        "detection": 0.046,
+        "empreintes": 105.612,
+        "regroupement": 0.656,
+        "sortie": 0.378,
+        "detection_fine": 7.726
+      },
+      "n_locuteurs_vbx": 5,
+      "kmeans": false,
+      "n_locuteurs_kmeans": null,
+      "silero": {
+        "parole_avant_s": 2056.725,
+        "parole_retiree_s": 491.225,
+        "masque_parole_s": 1567.55
+      }
+    },
+    {
+      "uri": "ami__ES2004d",
+      "corpus": "ami",
+      "partition": "test",
+      "duree_audio_s": 2222.291,
+      "calcul_s": 120.735,
+      "rtf": 0.0543,
+      "n_locuteurs_hypothese": 4,
+      "n_locuteurs_impose": null,
+      "etapes_s": {
+        "segmentation": 9.363,
+        "detection": 0.043,
+        "empreintes": 102.6,
+        "regroupement": 0.647,
+        "sortie": 0.332,
+        "detection_fine": 7.608
+      },
+      "n_locuteurs_vbx": 4,
+      "kmeans": false,
+      "n_locuteurs_kmeans": null,
+      "silero": {
+        "parole_avant_s": 1687.517,
+        "parole_retiree_s": 722.087,
+        "masque_parole_s": 967.608
+      }
+    },
+    {
+      "uri": "ami__TS3003a",
+      "corpus": "ami",
+      "partition": "test",
+      "duree_audio_s": 1505.643,
+      "calcul_s": 80.732,
+      "rtf": 0.0536,
+      "n_locuteurs_hypothese": 2,
+      "n_locuteurs_impose": null,
+      "etapes_s": {
+        "segmentation": 6.772,
+        "detection": 0.029,
+        "empreintes": 68.284,
+        "regroupement": 0.271,
+        "sortie": 0.193,
+        "detection_fine": 5.104
+      },
+      "n_locuteurs_vbx": 2,
+      "kmeans": false,
+      "n_locuteurs_kmeans": null,
+      "silero": {
+        "parole_avant_s": 881.263,
+        "parole_retiree_s": 574.105,
+        "masque_parole_s": 308.388
+      }
+    },
+    {
+      "uri": "ami__TS3003b",
+      "corpus": "ami",
+      "partition": "test",
+      "duree_audio_s": 2210.304,
+      "calcul_s": 117.948,
+      "rtf": 0.0534,
+      "n_locuteurs_hypothese": 4,
+      "n_locuteurs_impose": null,
+      "etapes_s": {
+        "segmentation": 8.918,
+        "detection": 0.043,
+        "empreintes": 100.597,
+        "regroupement": 0.532,
+        "sortie": 0.339,
+        "detection_fine": 7.381
+      },
+      "n_locuteurs_vbx": 4,
+      "kmeans": false,
+      "n_locuteurs_kmeans": null,
+      "silero": {
+        "parole_avant_s": 1757.717,
+        "parole_retiree_s": 842.995,
+        "masque_parole_s": 917.732
+      }
+    },
+    {
+      "uri": "ami__TS3003c",
+      "corpus": "ami",
+      "partition": "test",
+      "duree_audio_s": 2570.0,
+      "calcul_s": 136.314,
+      "rtf": 0.053,
+      "n_locuteurs_hypothese": 4,
+      "n_locuteurs_impose": null,
+      "etapes_s": {
+        "segmentation": 10.148,
+        "detection": 0.052,
+        "empreintes": 116.449,
+        "regroupement": 0.626,
+        "sortie": 0.383,
+        "detection_fine": 8.49
+      },
+      "n_locuteurs_vbx": 4,
+      "kmeans": false,
+      "n_locuteurs_kmeans": null,
+      "silero": {
+        "parole_avant_s": 1713.437,
+        "parole_retiree_s": 813.622,
+        "masque_parole_s": 903.876
+      }
+    },
+    {
+      "uri": "ami__TS3003d",
+      "corpus": "ami",
+      "partition": "test",
+      "duree_audio_s": 2618.2,
+      "calcul_s": 138.905,
+      "rtf": 0.0531,
+      "n_locuteurs_hypothese": 4,
+      "n_locuteurs_impose": null,
+      "etapes_s": {
+        "segmentation": 10.624,
+        "detection": 0.049,
+        "empreintes": 118.135,
+        "regroupement": 0.825,
+        "sortie": 0.404,
+        "detection_fine": 8.638
+      },
+      "n_locuteurs_vbx": 4,
+      "kmeans": false,
+      "n_locuteurs_kmeans": null,
+      "silero": {
+        "parole_avant_s": 1702.148,
+        "parole_retiree_s": 958.348,
+        "masque_parole_s": 748.372
+      }
+    },
+    {
+      "uri": "ami__EN2002a",
+      "corpus": "ami",
+      "partition": "test",
+      "duree_audio_s": 2142.709,
+      "calcul_s": 113.725,
+      "rtf": 0.0531,
+      "n_locuteurs_hypothese": 4,
+      "n_locuteurs_impose": null,
+      "etapes_s": {
+        "segmentation": 8.361,
+        "detection": 0.042,
+        "empreintes": 97.061,
+        "regroupement": 0.744,
+        "sortie": 0.34,
+        "detection_fine": 6.976
+      },
+      "n_locuteurs_vbx": 4,
+      "kmeans": false,
+      "n_locuteurs_kmeans": null,
+      "silero": {
+        "parole_avant_s": 1844.016,
+        "parole_retiree_s": 660.38,
+        "masque_parole_s": 1192.576
+      }
+    },
+    {
+      "uri": "ami__EN2002b",
+      "corpus": "ami",
+      "partition": "test",
+      "duree_audio_s": 1786.848,
+      "calcul_s": 94.867,
+      "rtf": 0.0531,
+      "n_locuteurs_hypothese": 4,
+      "n_locuteurs_impose": null,
+      "etapes_s": {
+        "segmentation": 7.805,
+        "detection": 0.035,
+        "empreintes": 80.042,
+        "regroupement": 0.506,
+        "sortie": 0.278,
+        "detection_fine": 6.07
+      },
+      "n_locuteurs_vbx": 4,
+      "kmeans": false,
+      "n_locuteurs_kmeans": null,
+      "silero": {
+        "parole_avant_s": 1469.391,
+        "parole_retiree_s": 520.326,
+        "masque_parole_s": 952.636
+      }
+    },
+    {
+      "uri": "ami__EN2002c",
+      "corpus": "ami",
+      "partition": "test",
+      "duree_audio_s": 2972.256,
+      "calcul_s": 158.992,
+      "rtf": 0.0535,
+      "n_locuteurs_hypothese": 3,
+      "n_locuteurs_impose": null,
+      "etapes_s": {
+        "segmentation": 11.898,
+        "detection": 0.058,
+        "empreintes": 135.138,
+        "regroupement": 1.08,
+        "sortie": 0.481,
+        "detection_fine": 10.074
+      },
+      "n_locuteurs_vbx": 3,
+      "kmeans": false,
+      "n_locuteurs_kmeans": null,
+      "silero": {
+        "parole_avant_s": 2553.474,
+        "parole_retiree_s": 718.689,
+        "masque_parole_s": 1840.86
+      }
+    },
+    {
+      "uri": "ami__EN2002d",
+      "corpus": "ami",
+      "partition": "test",
+      "duree_audio_s": 2209.899,
+      "calcul_s": 119.354,
+      "rtf": 0.054,
+      "n_locuteurs_hypothese": 4,
+      "n_locuteurs_impose": null,
+      "etapes_s": {
+        "segmentation": 9.534,
+        "detection": 0.043,
+        "empreintes": 100.943,
+        "regroupement": 0.983,
+        "sortie": 0.349,
+        "detection_fine": 7.281
+      },
+      "n_locuteurs_vbx": 4,
+      "kmeans": false,
+      "n_locuteurs_kmeans": null,
+      "silero": {
+        "parole_avant_s": 1905.407,
+        "parole_retiree_s": 668.267,
+        "masque_parole_s": 1240.344
+      }
+    }
+  ]
+}
