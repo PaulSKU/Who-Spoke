@@ -23,13 +23,30 @@ systemes:
     sources:
       - {exp_id: EXP-0001, corpus: ami, partitions: [dev, test]}
       - {exp_id: EXP-0007, corpus: summre, partitions: [dev, test]}
+      # Conditions de D24 (A3, EXP-0020), SUMM-RE test dégradé :
+      - {exp_id: EXP-0020, corpus: summre-rev04, partitions: [test]}
+      - {exp_id: EXP-0020, corpus: summre-rev08, partitions: [test]}
+      - {exp_id: EXP-0020, corpus: summre-bru15, partitions: [test]}
+      - {exp_id: EXP-0020, corpus: summre-bru05, partitions: [test]}
+      - {exp_id: EXP-0020, corpus: summre-cod16, partitions: [test]}
+      - {exp_id: EXP-0020, corpus: summre-cod08, partitions: [test]}
+      - {exp_id: EXP-0020, corpus: summre-salle, partitions: [test]}
   - nom: baseline-ecapa            # baseline ECAPA (D22), réglages retenus sur dev
     sources:
       - {exp_id: EXP-0010, corpus: ami, partitions: [dev, test]}
       - {exp_id: EXP-0012, corpus: summre, partitions: [dev, test]}
-  # - nom: pyannote-d24
-  #   sources:
-  #     - {exp_id: EXP-0020, corpus: summre-bru05, partitions: [test]}
+      # Conditions de D24 (A3, EXP-0021), SUMM-RE test dégradé :
+      - {exp_id: EXP-0021, corpus: summre-rev04, partitions: [test]}
+      - {exp_id: EXP-0021, corpus: summre-rev08, partitions: [test]}
+      - {exp_id: EXP-0021, corpus: summre-bru15, partitions: [test]}
+      - {exp_id: EXP-0021, corpus: summre-bru05, partitions: [test]}
+      - {exp_id: EXP-0021, corpus: summre-cod16, partitions: [test]}
+      - {exp_id: EXP-0021, corpus: summre-cod08, partitions: [test]}
+      - {exp_id: EXP-0021, corpus: summre-salle, partitions: [test]}
+  - nom: pyannote-silero-v2        # V2 de D25 : sortie habituelle + masque de Silero (A6)
+    sources:
+      - {exp_id: EXP-0024, corpus: ami, partitions: [dev, test]}
+      - {exp_id: EXP-0022, corpus: summre, partitions: [dev, test]}
   # - nom: nemotron3
   #   sources:
   #     - {exp_id: EXP-00NN, corpus: ami, partitions: [dev, test]}
