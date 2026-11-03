@@ -1249,3 +1249,16 @@ Objectif : interpréter la robustesse (D24), les variantes V2 et V3 de D25, et l
 Réalisé : interprétations et verdicts d'EXP-0020 à 0025 ; `notes.md` d'A-0002 et d'A-0003 ; constats C13 à C17 ; synthèse ; amendement du 03/11 de D25 (bilan).
 Résultats : la réverbération forte est la faiblesse de pyannote (+14,9 points en rev08, surtout de la parole manquée ; avance sur la baseline perdue en rev08) ; le bruit est celle de la baseline ; un codec à bas débit dégrade l'attribution des deux. V2 gagne 2,6 points en français mais en perd 22 sur AMI (Silero coupe la parole lointaine). Le chevauchement est le premier facteur d'échec identifiable.
 Décisions : V2 et V3 écartées, aucune variante de D25 retenue ; point de réglage au bord de la grille laissé tel quel (un seuil plus haut ne pourrait qu'aggraver AMI) ; A4 (Nemotron 3) lancé maintenant. L'option `--racine` de `scripts/reglage_silero.py` devient une option documentée et consignée dans la sortie, au lieu d'être cachée (traçabilité, D18).
+
+## 2026-11-03 — Cible d'affichage et défauts d'interface relevés par la candidate (cockpit)
+
+Décision (candidate et cockpit) : l'interface vise l'ordinateur portable et le vidéoprojecteur (1280 × 720, 1440 × 900, 1920 × 1080), en clair et en sombre. Plus aucun travail n'est fait pour le téléphone. Les captures de référence à 375 px sont retirées du contrôle, et un seul test vérifie l'absence de débordement horizontal à 1024 px.
+Défauts relevés par la candidate (`Prblms_UI_.pdf`, 03/11) :
+- coins inférieurs des champs encadrés rognés ou entaillés en sombre (option de radio sélectionnée, listes déroulantes, champs Minimum et Maximum, case à cocher du cache) ;
+- double cadre de focus sur les listes déroulantes et les champs numériques ;
+- cases et radios trop petites ;
+- étiquette « Référence RTTM » qui recouvre l'icône de dépôt ;
+- dans l'onglet Pipeline, sous-titre du modèle qui déborde de sa boîte (« WeSpeakerResNet34 3533c8c »), étiquettes des formes de données mal alignées sur les flèches et coupées sur plusieurs lignes.
+Ces défauts n'apparaissaient pas sur les captures du cockpit, faites à une autre résolution : ils doivent être reproduits dans le navigateur réel de la démonstration, sur écran Retina.
+Suite : chantier B14.
+Précision de la candidate : « Bouton paramètre plus accessible » désigne le bouton « Settings » du pied de page de Gradio. Il a disparu quand le pied de page a été masqué (B1), alors qu'il permettait de passer du mode clair au mode sombre. Décision : un sélecteur de thème (Clair, Sombre, Système) dans l'en-tête, visible aussi en mode présentation, mémorisé localement ; ajouté au chantier B14.
