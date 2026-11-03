@@ -1,0 +1,44 @@
+2026-11-03T17:10:25+0100 INFO alimentation au début : secteur (Now drawing from 'AC Power') ; charge sur 1 min 4.18 pour 6 cœurs de performance
+2026-11-03T17:10:25+0100 INFO expérience EXP-0029, mode complet
+2026-11-03T17:10:25+0100 INFO commit 0269b68775afe13d85882d19337fcdf5a788ad54, arbre propre (chemins contrôlés, D18) : True
+2026-11-03T17:10:25+0100 INFO fichiers non commités : experiments/EXP-0029_nemotron3-ami-sdm-niveau/config.yaml, experiments/EXP-0029_nemotron3-ami-sdm-niveau/run.log, experiments/EXP-0030_nemotron3-summre-niveau/config.yaml, experiments/EXP-0031_pyannote-c1-ami-sdm-niveau/config.yaml, experiments/EXP-0032_pyannote-c1-summre-niveau/config.yaml
+2026-11-03T17:10:25+0100 INFO python 3.11.15, torch 2.14.1, plateforme macOS-14.1.2-arm64-arm-64bit, fils torch 6
+2026-11-03T17:10:34+0100 INFO pipeline nemotron3-diarization chargée sur cpu en 8.79 s (paramètres : {}, nombre de locuteurs : estime, détection oracle : False, trace : False)
+2026-11-03T17:10:36+0100 INFO préchauffage : 60 s de ami__IS1008a en 1.84 s (non compté)
+2026-11-03T17:10:52+0100 INFO [1/34] dev ami__IS1008a : 944.0 s d'audio, 15.57 s de calcul, RTF 0.0165, 4 locuteurs, sonie -35.43 LUFS, gain 6.13 dB
+2026-11-03T17:11:15+0100 INFO [2/34] dev ami__IS1008b : 1768.5 s d'audio, 22.97 s de calcul, RTF 0.0130, 4 locuteurs, sonie -33.24 LUFS, gain 2.71 dB (réduit de 1.24 dB)
+2026-11-03T17:11:33+0100 INFO [3/34] dev ami__IS1008c : 1546.4 s d'audio, 18.08 s de calcul, RTF 0.0117, 4 locuteurs, sonie -31.94 LUFS, gain -0.96 dB (réduit de 3.6 dB)
+2026-11-03T17:11:52+0100 INFO [4/34] dev ami__IS1008d : 1480.9 s d'audio, 18.98 s de calcul, RTF 0.0128, 4 locuteurs, sonie -32.17 LUFS, gain 2.87 dB
+2026-11-03T17:12:04+0100 INFO [5/34] dev ami__ES2011a : 1113.8 s d'audio, 12.72 s de calcul, RTF 0.0114, 4 locuteurs, sonie -48.9 LUFS, gain 19.14 dB (réduit de 0.46 dB)
+2026-11-03T17:12:22+0100 INFO [6/34] dev ami__ES2011b : 1581.3 s d'audio, 17.88 s de calcul, RTF 0.0113, 4 locuteurs, sonie -47.44 LUFS, gain 8.04 dB (réduit de 10.1 dB)
+2026-11-03T17:12:40+0100 INFO [7/34] dev ami__ES2011c : 1616.1 s d'audio, 18.03 s de calcul, RTF 0.0112, 4 locuteurs, sonie -46.92 LUFS, gain 15.56 dB (réduit de 2.06 dB)
+2026-11-03T17:13:02+0100 INFO [8/34] dev ami__ES2011d : 1982.3 s d'audio, 21.43 s de calcul, RTF 0.0108, 4 locuteurs, sonie -48.09 LUFS, gain 8.01 dB (réduit de 10.78 dB)
+2026-11-03T17:13:17+0100 INFO [9/34] dev ami__TS3004a : 1345.3 s d'audio, 14.98 s de calcul, RTF 0.0111, 4 locuteurs, sonie -50.12 LUFS, gain 16.04 dB (réduit de 4.78 dB)
+2026-11-03T17:13:42+0100 INFO [10/34] dev ami__TS3004b : 2246.1 s d'audio, 24.84 s de calcul, RTF 0.0111, 4 locuteurs, sonie -49.76 LUFS, gain 17.19 dB (réduit de 3.28 dB)
+2026-11-03T17:14:14+0100 INFO [11/34] dev ami__TS3004c : 2970.0 s d'audio, 32.63 s de calcul, RTF 0.0110, 4 locuteurs, sonie -48.87 LUFS, gain 11.69 dB (réduit de 7.87 dB)
+2026-11-03T17:14:45+0100 INFO [12/34] dev ami__TS3004d : 2750.8 s d'audio, 30.33 s de calcul, RTF 0.0110, 4 locuteurs, sonie -49.83 LUFS, gain 14.22 dB (réduit de 6.31 dB)
+2026-11-03T17:15:06+0100 INFO [13/34] dev ami__IB4001 : 1780.8 s d'audio, 21.41 s de calcul, RTF 0.0120, 4 locuteurs, sonie -34.96 LUFS, gain 4.91 dB (réduit de 0.75 dB)
+2026-11-03T17:15:32+0100 INFO [14/34] dev ami__IB4002 : 1882.4 s d'audio, 25.67 s de calcul, RTF 0.0136, 4 locuteurs, sonie -33.68 LUFS, gain 2.83 dB (réduit de 1.55 dB)
+2026-11-03T17:15:58+0100 INFO [15/34] dev ami__IB4003 : 2023.4 s d'audio, 26.67 s de calcul, RTF 0.0132, 4 locuteurs, sonie -32.12 LUFS, gain 2.82 dB
+2026-11-03T17:16:32+0100 INFO [16/34] dev ami__IB4004 : 2393.0 s d'audio, 33.77 s de calcul, RTF 0.0141, 4 locuteurs, sonie -31.89 LUFS, gain 2.59 dB
+2026-11-03T17:17:11+0100 INFO [17/34] dev ami__IB4010 : 2960.6 s d'audio, 38.89 s de calcul, RTF 0.0131, 4 locuteurs, sonie -30.62 LUFS, gain -1.0 dB (réduit de 2.32 dB)
+2026-11-03T17:17:41+0100 INFO [18/34] dev ami__IB4011 : 2417.1 s d'audio, 29.75 s de calcul, RTF 0.0123, 4 locuteurs, sonie -31.77 LUFS, gain 2.1 dB (réduit de 0.37 dB)
+2026-11-03T17:17:50+0100 INFO [19/34] test ami__IS1009a : 839.0 s d'audio, 9.67 s de calcul, RTF 0.0115, 4 locuteurs, sonie -33.66 LUFS, gain 2.49 dB (réduit de 1.87 dB)
+2026-11-03T17:18:15+0100 INFO [20/34] test ami__IS1009b : 2052.4 s d'audio, 24.14 s de calcul, RTF 0.0118, 4 locuteurs, sonie -33.63 LUFS, gain 0.59 dB (réduit de 3.73 dB)
+2026-11-03T17:18:36+0100 INFO [21/34] test ami__IS1009c : 1820.8 s d'audio, 21.78 s de calcul, RTF 0.0120, 4 locuteurs, sonie -31.83 LUFS, gain -1.0 dB (réduit de 3.53 dB)
+2026-11-03T17:18:59+0100 INFO [22/34] test ami__IS1009d : 1944.7 s d'audio, 23.02 s de calcul, RTF 0.0118, 4 locuteurs, sonie -33.63 LUFS, gain -0.51 dB (réduit de 4.84 dB)
+2026-11-03T17:19:12+0100 INFO [23/34] test ami__ES2004a : 1049.4 s d'audio, 12.85 s de calcul, RTF 0.0122, 4 locuteurs, sonie -48.79 LUFS, gain 12.41 dB (réduit de 7.08 dB)
+2026-11-03T17:19:40+0100 INFO [24/34] test ami__ES2004b : 2345.5 s d'audio, 27.83 s de calcul, RTF 0.0119, 4 locuteurs, sonie -48.11 LUFS, gain 13.97 dB (réduit de 4.84 dB)
+2026-11-03T17:20:07+0100 INFO [25/34] test ami__ES2004c : 2334.4 s d'audio, 27.12 s de calcul, RTF 0.0116, 4 locuteurs, sonie -45.22 LUFS, gain 7.61 dB (réduit de 8.31 dB)
+2026-11-03T17:20:33+0100 INFO [26/34] test ami__ES2004d : 2222.3 s d'audio, 25.95 s de calcul, RTF 0.0117, 4 locuteurs, sonie -46.66 LUFS, gain 3.83 dB (réduit de 13.54 dB)
+2026-11-03T17:20:51+0100 INFO [27/34] test ami__TS3003a : 1505.6 s d'audio, 18.14 s de calcul, RTF 0.0120, 4 locuteurs, sonie -51.44 LUFS, gain 6.66 dB (réduit de 15.49 dB)
+2026-11-03T17:21:18+0100 INFO [28/34] test ami__TS3003b : 2210.3 s d'audio, 26.37 s de calcul, RTF 0.0119, 4 locuteurs, sonie -51.48 LUFS, gain 16.39 dB (réduit de 5.79 dB)
+2026-11-03T17:21:49+0100 INFO [29/34] test ami__TS3003c : 2570.0 s d'audio, 31.68 s de calcul, RTF 0.0123, 4 locuteurs, sonie -51.04 LUFS, gain 15.49 dB (réduit de 6.25 dB)
+2026-11-03T17:22:21+0100 INFO [30/34] test ami__TS3003d : 2618.2 s d'audio, 31.22 s de calcul, RTF 0.0119, 4 locuteurs, sonie -52.17 LUFS, gain 13.35 dB (réduit de 9.52 dB)
+2026-11-03T17:22:49+0100 INFO [31/34] test ami__EN2002a : 2142.7 s d'audio, 28.76 s de calcul, RTF 0.0134, 4 locuteurs, sonie -40.25 LUFS, gain 7.02 dB (réduit de 3.93 dB)
+2026-11-03T17:23:11+0100 INFO [32/34] test ami__EN2002b : 1786.8 s d'audio, 21.72 s de calcul, RTF 0.0122, 4 locuteurs, sonie -42.61 LUFS, gain 8.57 dB (réduit de 4.74 dB)
+2026-11-03T17:23:47+0100 INFO [33/34] test ami__EN2002c : 2972.3 s d'audio, 36.18 s de calcul, RTF 0.0122, 4 locuteurs, sonie -42.3 LUFS, gain 5.78 dB (réduit de 7.22 dB)
+2026-11-03T17:24:12+0100 INFO [34/34] test ami__EN2002d : 2209.9 s d'audio, 24.52 s de calcul, RTF 0.0111, 4 locuteurs, sonie -40.25 LUFS, gain 7.98 dB (réduit de 2.97 dB)
+2026-11-03T17:24:12+0100 INFO alimentation à la fin : secteur ; 15 relevés, conforme : True
+2026-11-03T17:24:12+0100 INFO charge concurrente : True (charge maximale sur 1 min : 6.64, 6 cœurs de performance)
+2026-11-03T17:24:15+0100 INFO total : 67427.1 s d'audio, 815.5 s de calcul, RTF 0.0121 ; temps pour 30 min : 22 s

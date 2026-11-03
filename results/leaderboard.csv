@@ -70,3 +70,11 @@ EXP-0028,2026-11-03T13:00:01+01:00,nemotron3-summre-degrade,EXP-0020,moteur,summ
 EXP-0028,2026-11-03T13:00:01+01:00,nemotron3-summre-degrade,EXP-0020,moteur,summre-cod16,test,nemotron3-diarization,estime,14.99,11.95,1.81,1.22,11.39,14.95,0.11,0.0123,0.0122,0358ccf
 EXP-0028,2026-11-03T13:00:01+01:00,nemotron3-summre-degrade,EXP-0020,moteur,summre-cod08,test,nemotron3-diarization,estime,16.44,12.14,2.09,2.21,12.6,17.52,0.0,0.0141,0.0122,0358ccf
 EXP-0028,2026-11-03T13:00:01+01:00,nemotron3-summre-degrade,EXP-0020,moteur,summre-salle,test,nemotron3-diarization,estime,17.67,14.44,1.82,1.41,12.74,18.0,0.03,0.0141,0.0122,0358ccf
+EXP-0029,2026-11-03T17:24:12+01:00,nemotron3-ami-sdm-niveau,EXP-0026,normalisation_niveau,ami,dev,nemotron3-diarization,estime,22.33,19.78,1.82,0.74,19.83,23.55,0.0,0.0122,0.0121,0269b68
+EXP-0029,2026-11-03T17:24:12+01:00,nemotron3-ami-sdm-niveau,EXP-0026,normalisation_niveau,ami,test,nemotron3-diarization,estime,27.97,24.91,1.5,1.56,25.73,31.05,0.06,0.012,0.0121,0269b68
+EXP-0030,2026-11-03T17:42:23+01:00,nemotron3-summre-niveau,EXP-0027,normalisation_niveau,summre,dev,nemotron3-diarization,estime,10.55,7.31,2.72,0.52,4.47,11.49,0.08,0.0116,0.0144,0269b68
+EXP-0030,2026-11-03T17:42:23+01:00,nemotron3-summre-niveau,EXP-0027,normalisation_niveau,summre,test,nemotron3-diarization,estime,15.34,11.65,1.89,1.81,11.99,15.08,0.16,0.0123,0.0144,0269b68
+EXP-0031,2026-11-03T18:43:21+01:00,pyannote-c1-ami-sdm-niveau,EXP-0001,normalisation_niveau,ami,dev,pyannote-community-1,estime,18.66,8.08,4.89,5.69,11.17,23.78,0.11,0.0538,,0269b68
+EXP-0031,2026-11-03T18:43:21+01:00,pyannote-c1-ami-sdm-niveau,EXP-0001,normalisation_niveau,ami,test,pyannote-community-1,estime,19.96,11.13,3.86,4.97,13.2,27.07,0.38,0.0527,,0269b68
+EXP-0032,2026-11-03T19:59:02+01:00,pyannote-c1-summre-niveau,EXP-0007,normalisation_niveau,summre,dev,pyannote-community-1,estime,26.01,5.13,14.24,6.64,10.76,29.3,0.08,0.0515,,0269b68
+EXP-0032,2026-11-03T19:59:02+01:00,pyannote-c1-summre-niveau,EXP-0007,normalisation_niveau,summre,test,pyannote-community-1,estime,26.29,7.16,11.28,7.86,14.81,28.72,0.16,0.0525,,0269b68

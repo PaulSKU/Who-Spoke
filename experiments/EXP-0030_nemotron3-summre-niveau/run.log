@@ -1,0 +1,83 @@
+2026-11-03T17:24:57+0100 INFO alimentation au début : secteur (Now drawing from 'AC Power') ; charge sur 1 min 4.39 pour 6 cœurs de performance
+2026-11-03T17:24:57+0100 INFO expérience EXP-0030, mode complet
+2026-11-03T17:24:57+0100 INFO commit 0269b68775afe13d85882d19337fcdf5a788ad54, arbre propre (chemins contrôlés, D18) : True
+2026-11-03T17:24:57+0100 INFO fichiers non commités : results/leaderboard.csv, experiments/EXP-0029_nemotron3-ami-sdm-niveau/config.yaml, experiments/EXP-0029_nemotron3-ami-sdm-niveau/execution_cpu.json, experiments/EXP-0029_nemotron3-ami-sdm-niveau/per_file_ami_dev.csv, experiments/EXP-0029_nemotron3-ami-sdm-niveau/per_file_ami_test.csv, experiments/EXP-0029_nemotron3-ami-sdm-niveau/results_ami_dev.json, experiments/EXP-0029_nemotron3-ami-sdm-niveau/results_ami_test.json, experiments/EXP-0029_nemotron3-ami-sdm-niveau/rttm/ami__EN2002a.rttm, experiments/EXP-0029_nemotron3-ami-sdm-niveau/rttm/ami__EN2002b.rttm, experiments/EXP-0029_nemotron3-ami-sdm-niveau/rttm/ami__EN2002c.rttm, experiments/EXP-0029_nemotron3-ami-sdm-niveau/rttm/ami__EN2002d.rttm, experiments/EXP-0029_nemotron3-ami-sdm-niveau/rttm/ami__ES2004a.rttm, experiments/EXP-0029_nemotron3-ami-sdm-niveau/rttm/ami__ES2004b.rttm, experiments/EXP-0029_nemotron3-ami-sdm-niveau/rttm/ami__ES2004c.rttm, experiments/EXP-0029_nemotron3-ami-sdm-niveau/rttm/ami__ES2004d.rttm, experiments/EXP-0029_nemotron3-ami-sdm-niveau/rttm/ami__ES2011a.rttm, experiments/EXP-0029_nemotron3-ami-sdm-niveau/rttm/ami__ES2011b.rttm, experiments/EXP-0029_nemotron3-ami-sdm-niveau/rttm/ami__ES2011c.rttm, experiments/EXP-0029_nemotron3-ami-sdm-niveau/rttm/ami__ES2011d.rttm, experiments/EXP-0029_nemotron3-ami-sdm-niveau/rttm/ami__IB4001.rttm, experiments/EXP-0029_nemotron3-ami-sdm-niveau/rttm/ami__IB4002.rttm, experiments/EXP-0029_nemotron3-ami-sdm-niveau/rttm/ami__IB4003.rttm, experiments/EXP-0029_nemotron3-ami-sdm-niveau/rttm/ami__IB4004.rttm, experiments/EXP-0029_nemotron3-ami-sdm-niveau/rttm/ami__IB4010.rttm, experiments/EXP-0029_nemotron3-ami-sdm-niveau/rttm/ami__IB4011.rttm, experiments/EXP-0029_nemotron3-ami-sdm-niveau/rttm/ami__IS1008a.rttm, experiments/EXP-0029_nemotron3-ami-sdm-niveau/rttm/ami__IS1008b.rttm, experiments/EXP-0029_nemotron3-ami-sdm-niveau/rttm/ami__IS1008c.rttm, experiments/EXP-0029_nemotron3-ami-sdm-niveau/rttm/ami__IS1008d.rttm, experiments/EXP-0029_nemotron3-ami-sdm-niveau/rttm/ami__IS1009a.rttm, experiments/EXP-0029_nemotron3-ami-sdm-niveau/rttm/ami__IS1009b.rttm, experiments/EXP-0029_nemotron3-ami-sdm-niveau/rttm/ami__IS1009c.rttm, experiments/EXP-0029_nemotron3-ami-sdm-niveau/rttm/ami__IS1009d.rttm, experiments/EXP-0029_nemotron3-ami-sdm-niveau/rttm/ami__TS3003a.rttm, experiments/EXP-0029_nemotron3-ami-sdm-niveau/rttm/ami__TS3003b.rttm, experiments/EXP-0029_nemotron3-ami-sdm-niveau/rttm/ami__TS3003c.rttm, experiments/EXP-0029_nemotron3-ami-sdm-niveau/rttm/ami__TS3003d.rttm, experiments/EXP-0029_nemotron3-ami-sdm-niveau/rttm/ami__TS3004a.rttm, experiments/EXP-0029_nemotron3-ami-sdm-niveau/rttm/ami__TS3004b.rttm, experiments/EXP-0029_nemotron3-ami-sdm-niveau/rttm/ami__TS3004c.rttm, experiments/EXP-0029_nemotron3-ami-sdm-niveau/rttm/ami__TS3004d.rttm, experiments/EXP-0029_nemotron3-ami-sdm-niveau/run.log, experiments/EXP-0030_nemotron3-summre-niveau/config.yaml, experiments/EXP-0030_nemotron3-summre-niveau/run.log, experiments/EXP-0031_pyannote-c1-ami-sdm-niveau/config.yaml, experiments/EXP-0032_pyannote-c1-summre-niveau/config.yaml
+2026-11-03T17:24:57+0100 INFO python 3.11.15, torch 2.14.1, plateforme macOS-14.1.2-arm64-arm-64bit, fils torch 6
+2026-11-03T17:25:05+0100 INFO pipeline nemotron3-diarization chargée sur cpu en 8.63 s (paramètres : {}, nombre de locuteurs : estime, détection oracle : False, trace : False)
+2026-11-03T17:25:08+0100 INFO préchauffage : 60 s de summre__004c_PAPH en 1.58 s (non compté)
+2026-11-03T17:25:22+0100 INFO [1/73] dev summre__004c_PAPH : 1263.7 s d'audio, 14.64 s de calcul, RTF 0.0116, 4 locuteurs, sonie -35.73 LUFS, gain 6.43 dB
+2026-11-03T17:25:37+0100 INFO [2/73] dev summre__006b_EADH : 1281.4 s d'audio, 14.76 s de calcul, RTF 0.0115, 4 locuteurs, sonie -29.15 LUFS, gain -0.15 dB
+2026-11-03T17:25:50+0100 INFO [3/73] dev summre__011c_ECPL : 1016.7 s d'audio, 12.96 s de calcul, RTF 0.0127, 4 locuteurs, sonie -35.81 LUFS, gain 6.51 dB
+2026-11-03T17:26:04+0100 INFO [4/73] dev summre__015b_EBDD : 1295.5 s d'audio, 14.39 s de calcul, RTF 0.0111, 4 locuteurs, sonie -33.18 LUFS, gain 3.88 dB
+2026-11-03T17:26:13+0100 INFO [5/73] dev summre__017a_EBRZ : 748.9 s d'audio, 8.11 s de calcul, RTF 0.0108, 3 locuteurs, sonie -29.11 LUFS, gain -0.19 dB
+2026-11-03T17:26:27+0100 INFO [6/73] dev summre__018a_EARZ : 1317.7 s d'audio, 14.41 s de calcul, RTF 0.0109, 4 locuteurs, sonie -34.1 LUFS, gain 4.8 dB
+2026-11-03T17:26:40+0100 INFO [7/73] dev summre__018b_EADZ : 1163.0 s d'audio, 12.86 s de calcul, RTF 0.0111, 4 locuteurs, sonie -33.95 LUFS, gain 4.65 dB
+2026-11-03T17:26:52+0100 INFO [8/73] dev summre__020b_EBDZ : 1101.1 s d'audio, 12.28 s de calcul, RTF 0.0112, 4 locuteurs, sonie -33.52 LUFS, gain 4.22 dB
+2026-11-03T17:27:05+0100 INFO [9/73] dev summre__020c_EBPZ : 1094.3 s d'audio, 12.50 s de calcul, RTF 0.0114, 4 locuteurs, sonie -34.44 LUFS, gain 5.14 dB
+2026-11-03T17:27:17+0100 INFO [10/73] dev summre__021a_EARD : 1126.4 s d'audio, 12.51 s de calcul, RTF 0.0111, 4 locuteurs, sonie -32.87 LUFS, gain 3.57 dB
+2026-11-03T17:27:30+0100 INFO [11/73] dev summre__021b_EADD : 1111.5 s d'audio, 12.72 s de calcul, RTF 0.0114, 4 locuteurs, sonie -29.55 LUFS, gain 0.25 dB
+2026-11-03T17:27:45+0100 INFO [12/73] dev summre__027a_EBRH : 1327.1 s d'audio, 14.91 s de calcul, RTF 0.0112, 3 locuteurs, sonie -30.68 LUFS, gain 1.38 dB
+2026-11-03T17:27:58+0100 INFO [13/73] dev summre__032a_EARH : 1180.7 s d'audio, 13.49 s de calcul, RTF 0.0114, 4 locuteurs, sonie -32.63 LUFS, gain 3.33 dB
+2026-11-03T17:28:12+0100 INFO [14/73] dev summre__032b_EADH : 1226.2 s d'audio, 14.18 s de calcul, RTF 0.0116, 4 locuteurs, sonie -29.5 LUFS, gain 0.2 dB
+2026-11-03T17:28:27+0100 INFO [15/73] dev summre__033a_EBRH : 1267.4 s d'audio, 14.49 s de calcul, RTF 0.0114, 4 locuteurs, sonie -25.76 LUFS, gain -3.54 dB
+2026-11-03T17:28:41+0100 INFO [16/73] dev summre__033c_EBPH : 1242.3 s d'audio, 14.37 s de calcul, RTF 0.0116, 5 locuteurs, sonie -28.43 LUFS, gain -0.87 dB
+2026-11-03T17:28:56+0100 INFO [17/73] dev summre__034a_EBRH : 1256.3 s d'audio, 14.24 s de calcul, RTF 0.0113, 4 locuteurs, sonie -29.04 LUFS, gain -0.26 dB
+2026-11-03T17:29:09+0100 INFO [18/73] dev summre__035b_EADH : 1188.3 s d'audio, 13.67 s de calcul, RTF 0.0115, 4 locuteurs, sonie -31.88 LUFS, gain 2.58 dB
+2026-11-03T17:29:24+0100 INFO [19/73] dev summre__036b_EADH : 1142.5 s d'audio, 15.14 s de calcul, RTF 0.0133, 4 locuteurs, sonie -28.65 LUFS, gain -0.65 dB
+2026-11-03T17:29:43+0100 INFO [20/73] dev summre__036c_EAPH : 1607.7 s d'audio, 18.67 s de calcul, RTF 0.0116, 4 locuteurs, sonie -30.29 LUFS, gain 0.99 dB
+2026-11-03T17:29:57+0100 INFO [21/73] dev summre__037a_EARH : 1207.9 s d'audio, 13.86 s de calcul, RTF 0.0115, 3 locuteurs, sonie -27.17 LUFS, gain -2.13 dB
+2026-11-03T17:30:12+0100 INFO [22/73] dev summre__040a_EERH : 1393.2 s d'audio, 15.40 s de calcul, RTF 0.0111, 4 locuteurs, sonie -28.26 LUFS, gain -1.04 dB
+2026-11-03T17:30:23+0100 INFO [23/73] dev summre__043a_EDRH : 987.0 s d'audio, 11.01 s de calcul, RTF 0.0112, 3 locuteurs, sonie -23.23 LUFS, gain -6.07 dB
+2026-11-03T17:30:36+0100 INFO [24/73] dev summre__044c_EBPH : 1106.7 s d'audio, 13.04 s de calcul, RTF 0.0118, 3 locuteurs, sonie -26.64 LUFS, gain -2.66 dB
+2026-11-03T17:30:48+0100 INFO [25/73] dev summre__066a_EARH : 1031.8 s d'audio, 11.61 s de calcul, RTF 0.0113, 3 locuteurs, sonie -26.06 LUFS, gain -3.24 dB
+2026-11-03T17:31:01+0100 INFO [26/73] dev summre__069b_EEDL : 1157.6 s d'audio, 13.29 s de calcul, RTF 0.0115, 4 locuteurs, sonie -27.09 LUFS, gain -2.21 dB
+2026-11-03T17:31:17+0100 INFO [27/73] dev summre__069c_EEPL : 1261.3 s d'audio, 15.80 s de calcul, RTF 0.0125, 4 locuteurs, sonie -26.52 LUFS, gain -2.78 dB
+2026-11-03T17:31:30+0100 INFO [28/73] dev summre__075b_EBDH : 1018.8 s d'audio, 12.44 s de calcul, RTF 0.0122, 3 locuteurs, sonie -31.37 LUFS, gain 2.07 dB
+2026-11-03T17:31:44+0100 INFO [29/73] dev summre__081a_EBRH : 1208.2 s d'audio, 14.85 s de calcul, RTF 0.0123, 4 locuteurs, sonie -30.35 LUFS, gain 1.05 dB
+2026-11-03T17:31:59+0100 INFO [30/73] dev summre__081c_EBPH : 1235.3 s d'audio, 14.56 s de calcul, RTF 0.0118, 4 locuteurs, sonie -27.88 LUFS, gain -1.42 dB
+2026-11-03T17:32:13+0100 INFO [31/73] dev summre__084c_EBPH : 1203.2 s d'audio, 13.98 s de calcul, RTF 0.0116, 2 locuteurs, sonie -25.34 LUFS, gain -3.96 dB
+2026-11-03T17:32:26+0100 INFO [32/73] dev summre__091b_EBDH : 1154.9 s d'audio, 13.53 s de calcul, RTF 0.0117, 3 locuteurs, sonie -32.14 LUFS, gain 2.84 dB
+2026-11-03T17:32:42+0100 INFO [33/73] dev summre__097b_EBDH : 1263.4 s d'audio, 15.60 s de calcul, RTF 0.0124, 4 locuteurs, sonie -31.92 LUFS, gain 2.62 dB
+2026-11-03T17:32:58+0100 INFO [34/73] dev summre__097c_EBPH : 1265.5 s d'audio, 15.82 s de calcul, RTF 0.0125, 4 locuteurs, sonie -29.06 LUFS, gain -0.24 dB
+2026-11-03T17:33:12+0100 INFO [35/73] dev summre__101c_EDPH : 1139.5 s d'audio, 13.77 s de calcul, RTF 0.0121, 2 locuteurs, sonie -28.01 LUFS, gain -1.29 dB
+2026-11-03T17:33:26+0100 INFO [36/73] dev summre__104b_EADH : 1223.8 s d'audio, 14.55 s de calcul, RTF 0.0119, 4 locuteurs, sonie -18.28 LUFS, gain -11.02 dB
+2026-11-03T17:33:45+0100 INFO [37/73] test summre__007a_ECRH : 1210.6 s d'audio, 18.90 s de calcul, RTF 0.0156, 4 locuteurs, sonie -31.54 LUFS, gain 2.24 dB
+2026-11-03T17:34:07+0100 INFO [38/73] test summre__008a_EARH : 1565.6 s d'audio, 21.42 s de calcul, RTF 0.0137, 4 locuteurs, sonie -28.66 LUFS, gain -0.64 dB
+2026-11-03T17:34:22+0100 INFO [39/73] test summre__012c_EBPZ : 1159.4 s d'audio, 15.17 s de calcul, RTF 0.0131, 3 locuteurs, sonie -33.12 LUFS, gain 3.82 dB
+2026-11-03T17:34:38+0100 INFO [40/73] test summre__013c_EAPD : 1226.2 s d'audio, 16.02 s de calcul, RTF 0.0131, 4 locuteurs, sonie -35.66 LUFS, gain 6.36 dB
+2026-11-03T17:34:53+0100 INFO [41/73] test summre__014c_EAPD : 1222.1 s d'audio, 15.70 s de calcul, RTF 0.0129, 5 locuteurs, sonie -30.23 LUFS, gain 0.93 dB
+2026-11-03T17:35:08+0100 INFO [42/73] test summre__016c_EBPZ : 1217.8 s d'audio, 14.53 s de calcul, RTF 0.0119, 3 locuteurs, sonie -33.04 LUFS, gain 3.74 dB
+2026-11-03T17:35:23+0100 INFO [43/73] test summre__019a_EARD : 1195.2 s d'audio, 14.94 s de calcul, RTF 0.0125, 5 locuteurs, sonie -27.78 LUFS, gain -1.52 dB
+2026-11-03T17:35:37+0100 INFO [44/73] test summre__019c_EAPD : 1211.0 s d'audio, 14.50 s de calcul, RTF 0.0120, 4 locuteurs, sonie -28.49 LUFS, gain -0.81 dB
+2026-11-03T17:35:52+0100 INFO [45/73] test summre__024c_EBPH : 1236.2 s d'audio, 14.79 s de calcul, RTF 0.0120, 3 locuteurs, sonie -31.07 LUFS, gain 1.77 dB
+2026-11-03T17:36:08+0100 INFO [46/73] test summre__025b_EBDH : 1317.4 s d'audio, 15.72 s de calcul, RTF 0.0119, 4 locuteurs, sonie -32.94 LUFS, gain 3.64 dB
+2026-11-03T17:36:25+0100 INFO [47/73] test summre__039b_EDDH : 1407.4 s d'audio, 16.60 s de calcul, RTF 0.0118, 5 locuteurs, sonie -33.96 LUFS, gain 3.44 dB (réduit de 1.22 dB)
+2026-11-03T17:36:38+0100 INFO [48/73] test summre__045a_EARH : 1169.7 s d'audio, 13.69 s de calcul, RTF 0.0117, 3 locuteurs, sonie -31.89 LUFS, gain 2.59 dB
+2026-11-03T17:36:53+0100 INFO [49/73] test summre__045b_EADH : 1170.8 s d'audio, 14.41 s de calcul, RTF 0.0123, 3 locuteurs, sonie -29.71 LUFS, gain 0.41 dB
+2026-11-03T17:37:08+0100 INFO [50/73] test summre__046c_EBPH : 1189.1 s d'audio, 15.73 s de calcul, RTF 0.0132, 4 locuteurs, sonie -25.46 LUFS, gain -3.84 dB
+2026-11-03T17:37:22+0100 INFO [51/73] test summre__047a_EDRH : 1095.4 s d'audio, 13.36 s de calcul, RTF 0.0122, 3 locuteurs, sonie -24.26 LUFS, gain -5.04 dB
+2026-11-03T17:37:37+0100 INFO [52/73] test summre__047c_EDPH : 1385.8 s d'audio, 15.34 s de calcul, RTF 0.0111, 3 locuteurs, sonie -25.95 LUFS, gain -3.35 dB
+2026-11-03T17:37:51+0100 INFO [53/73] test summre__049b_EBDH : 1193.1 s d'audio, 14.18 s de calcul, RTF 0.0119, 3 locuteurs, sonie -31.31 LUFS, gain 2.01 dB
+2026-11-03T17:38:03+0100 INFO [54/73] test summre__050c_EEPH : 1058.3 s d'audio, 11.91 s de calcul, RTF 0.0113, 3 locuteurs, sonie -26.07 LUFS, gain -3.23 dB
+2026-11-03T17:38:15+0100 INFO [55/73] test summre__051a_EARH : 983.8 s d'audio, 11.79 s de calcul, RTF 0.0120, 3 locuteurs, sonie -25.84 LUFS, gain -3.46 dB
+2026-11-03T17:38:27+0100 INFO [56/73] test summre__053b_EDDH : 1012.0 s d'audio, 11.74 s de calcul, RTF 0.0116, 3 locuteurs, sonie -27.11 LUFS, gain -2.19 dB
+2026-11-03T17:38:40+0100 INFO [57/73] test summre__054a_EARH : 1202.4 s d'audio, 13.65 s de calcul, RTF 0.0114, 3 locuteurs, sonie -29.15 LUFS, gain -0.15 dB
+2026-11-03T17:38:54+0100 INFO [58/73] test summre__054c_EAPH : 1188.0 s d'audio, 13.65 s de calcul, RTF 0.0115, 4 locuteurs, sonie -26.27 LUFS, gain -3.03 dB
+2026-11-03T17:39:11+0100 INFO [59/73] test summre__059b_EBDH : 1415.1 s d'audio, 16.89 s de calcul, RTF 0.0119, 4 locuteurs, sonie -28.96 LUFS, gain -0.34 dB
+2026-11-03T17:39:28+0100 INFO [60/73] test summre__060a_EDRH : 1513.6 s d'audio, 17.37 s de calcul, RTF 0.0115, 3 locuteurs, sonie -27.68 LUFS, gain -1.62 dB
+2026-11-03T17:39:38+0100 INFO [61/73] test summre__070a_EBRL : 867.1 s d'audio, 10.11 s de calcul, RTF 0.0117, 4 locuteurs, sonie -39.48 LUFS, gain 10.18 dB
+2026-11-03T17:39:52+0100 INFO [62/73] test summre__070b_EBDL : 1149.0 s d'audio, 14.02 s de calcul, RTF 0.0122, 4 locuteurs, sonie -39.36 LUFS, gain 10.06 dB
+2026-11-03T17:40:07+0100 INFO [63/73] test summre__072b_EEDH : 1200.8 s d'audio, 14.87 s de calcul, RTF 0.0124, 2 locuteurs, sonie -26.83 LUFS, gain -2.47 dB
+2026-11-03T17:40:21+0100 INFO [64/73] test summre__072c_EEPH : 1052.5 s d'audio, 13.22 s de calcul, RTF 0.0126, 2 locuteurs, sonie -28.75 LUFS, gain -0.55 dB
+2026-11-03T17:40:35+0100 INFO [65/73] test summre__074c_EAPH : 1044.7 s d'audio, 13.99 s de calcul, RTF 0.0134, 3 locuteurs, sonie -28.97 LUFS, gain -0.33 dB
+2026-11-03T17:40:40+0100 INFO [66/73] test summre__076b_EEDH : 489.3 s d'audio, 5.58 s de calcul, RTF 0.0114, 4 locuteurs, sonie -36.03 LUFS, gain 6.73 dB
+2026-11-03T17:40:56+0100 INFO [67/73] test summre__077c_EBPH : 1211.4 s d'audio, 15.77 s de calcul, RTF 0.0130, 4 locuteurs, sonie -34.72 LUFS, gain 5.42 dB
+2026-11-03T17:41:13+0100 INFO [68/73] test summre__080b_EBDH : 1316.3 s d'audio, 17.21 s de calcul, RTF 0.0131, 3 locuteurs, sonie -23.33 LUFS, gain -5.97 dB
+2026-11-03T17:41:28+0100 INFO [69/73] test summre__088b_EADH : 1226.5 s d'audio, 14.87 s de calcul, RTF 0.0121, 4 locuteurs, sonie -36.53 LUFS, gain 6.54 dB (réduit de 0.68 dB)
+2026-11-03T17:41:42+0100 INFO [70/73] test summre__093c_EBPZ : 1125.6 s d'audio, 13.56 s de calcul, RTF 0.0120, 3 locuteurs, sonie -31.23 LUFS, gain 1.93 dB
+2026-11-03T17:41:54+0100 INFO [71/73] test summre__100b_EADH : 1071.9 s d'audio, 12.49 s de calcul, RTF 0.0117, 3 locuteurs, sonie -31.95 LUFS, gain 2.65 dB
+2026-11-03T17:42:08+0100 INFO [72/73] test summre__102a_EBRH : 1211.8 s d'audio, 13.94 s de calcul, RTF 0.0115, 4 locuteurs, sonie -30.24 LUFS, gain 0.94 dB
+2026-11-03T17:42:23+0100 INFO [73/73] test summre__102c_EBPH : 1292.9 s d'audio, 15.17 s de calcul, RTF 0.0117, 4 locuteurs, sonie -26.61 LUFS, gain -2.69 dB
+2026-11-03T17:42:23+0100 INFO alimentation à la fin : secteur ; 19 relevés, conforme : True
+2026-11-03T17:42:23+0100 INFO charge concurrente : True (charge maximale sur 1 min : 8.5, 6 cœurs de performance)
+2026-11-03T17:42:26+0100 INFO total : 86622.5 s d'audio, 1035.2 s de calcul, RTF 0.0120 ; temps pour 30 min : 22 s
