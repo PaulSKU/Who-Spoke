@@ -1355,3 +1355,8 @@ Problèmes :
 - Surcoût fixe de Nemotron 3 non mesuré (vrai moteur exclu de cette session) : l'annonce le dit ; à mesurer à la fusion avec `scripts/measure_overhead.py mesure`.
 - Vrai moteur non lancé dans l'application : à vérifier à la fusion (chargement, avancement, fichier de 30 min, D29 condition 4).
 Suite : retour du cockpit ; à la fusion, essai du vrai moteur et mesure du surcoût.
+
+## 2026-11-03 — Priorités après l'avis du tuteur (cockpit)
+
+Avis du tuteur (03/11), réponse envoyée par la candidate. Décisions : corpus maison en priorité absolue (enregistrements d'ici au 8/11 ; annotation manuelle autorisée, sans pré-annotation) ; diagnostic de Nemotron 3 sur AMI par le niveau d'entrée, normalisation testée pour les deux moteurs (D29 §1) ; règle de choix du moteur fixée avant le corpus maison (D29) ; DiariZen écarté (échec documenté) ; arrêt du polissage de l'interface ; synthèse de 2 pages (tableau comparatif, ablation, 3 conclusions) et préparation de l'oral. Point ouvert : date du gel, à caler sur le retour du tuteur (la candidate le recontacte en milieu de semaine prochaine).
+Précisions de la candidate (03/11) : pas de date de gel ; la configuration de démonstration est fixée dès que la règle de D29 peut être appliquée. Pas de réponse attendue du tuteur sur le travail en parallèle : question close.

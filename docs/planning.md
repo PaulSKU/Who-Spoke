@@ -4,7 +4,9 @@ Version 2.1 du 2 novembre 2026 : recommandations de l'audit du 01/11 retenues, f
 
 ## Principes
 
-- **Gel.** La configuration de démonstration est gelée le **mardi 10 novembre** (`configs/demo.yaml`). Après le jeudi 12 novembre, plus aucune expérience : seulement des corrections, la documentation et la répétition.
+**Priorités depuis l'avis du tuteur du 03/11** : (1) corpus maison, priorité absolue, enregistrements d'ici au 8/11, annotation, évaluation fichier par fichier ; (2) diagnostic de Nemotron 3 sur AMI (D29) ; (3) synthèse de 2 pages et préparation de l'oral. Plus aucun polissage de l'interface (piste B en pause, seul reste l'essai au vidéoprojecteur). DiariZen écarté.
+
+- **Configuration de démonstration.** Pas de date de gel fixe (décision de la candidate, 03/11). `configs/demo.yaml` est écrit dès que la règle de D29 peut être appliquée, c'est-à-dire quand le corpus maison est évalué.
 - **Machine.** Une seule expérience tourne à la fois, sur secteur. Aucun autre calcul lourd ne tourne pendant une expérience (tests avec modèles, analyses), pour ne pas fausser les temps.
 - **Parallélisme.** Les travaux sans calcul (interface avec le moteur factice, outils, documents) avancent en parallèle dans des worktrees git séparés.
 - **Fusions.** Une fusion dans `main` n'a lieu que lorsque aucune expérience ne tourne. Seule la piste A ajoute des dépendances (`uv add`) ; les autres pistes demandent au cockpit.
@@ -73,7 +75,7 @@ Points de fusion : après B2, après B4, après B6 et après E1 et E2, chaque fo
 | Sam. 7/11 | Réserve | — | — | Synthèse à jour | Annotation (fin) |
 | Dim. 8/11 | Réserve | Réserve | — | — | Réserve |
 | Lun. 9/11 | A9 complet ; A-0003 avec le corpus maison ; coupe de ce qui n'a pas commencé | Fusion finale | Rapport du corpus maison | Choix de la configuration de démonstration | Écoute des cas d'échec |
-| **Mar. 10/11** | **Gel** (`configs/demo.yaml`) | Finitions | — | Fiche de gel | Essai de l'interface |
+| Mar. 10/11 | Application de D29 dès que le corpus maison est évalué ; `configs/demo.yaml` | — | — | Décision sur le moteur de démonstration | Essai au vidéoprojecteur |
 | Mer. 11/11 | Férié : réserve | — | — | — | — |
 | Jeu. 12/11 | Campagne de temps, machine au repos (D21, amendement du 01/11) ; installation sur machine vierge | — | — | README de reproduction | Répétition sur des fichiers inédits |
 | Ven. 13/11 | — | — | — | Document de synthèse | Relecture |
