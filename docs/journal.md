@@ -1360,3 +1360,24 @@ Suite : retour du cockpit ; à la fusion, essai du vrai moteur et mesure du surc
 
 Avis du tuteur (03/11), réponse envoyée par la candidate. Décisions : corpus maison en priorité absolue (enregistrements d'ici au 8/11 ; annotation manuelle autorisée, sans pré-annotation) ; diagnostic de Nemotron 3 sur AMI par le niveau d'entrée, normalisation testée pour les deux moteurs (D29 §1) ; règle de choix du moteur fixée avant le corpus maison (D29) ; DiariZen écarté (échec documenté) ; arrêt du polissage de l'interface ; synthèse de 2 pages (tableau comparatif, ablation, 3 conclusions) et préparation de l'oral. Point ouvert : date du gel, à caler sur le retour du tuteur (la candidate le recontacte en milieu de semaine prochaine).
 Précisions de la candidate (03/11) : pas de date de gel ; la configuration de démonstration est fixée dès que la règle de D29 peut être appliquée. Pas de réponse attendue du tuteur sur le travail en parallèle : question close.
+
+## 2026-11-03 — Fusion d'ui, Nemotron 3 réel dans l'application, diagnostic du niveau d'entrée (Claude Code)
+
+Objectif : fusionner `ui` (47e1788) dans `main` et vérifier le vrai Nemotron 3 dans l'application (D29, condition 4) ; puis diagnostic de la parole manquée de Nemotron 3 sur AMI (D29 §1), borné à 3 h hors fusion : A-0004 (niveau et parole manquée), normalisation du niveau si un lien existe, puis seulement ensuite seuil de décision réglé sur SUMM-RE dev. Calculs sous `caffeinate -i`, sur secteur, un à la fois.
+Réalisé :
+- Fusion d'`ui` dans `main` (`377bba4`), `docs/constats.yaml` non modifié ; `uv sync`, suite complète (707 tests) ; contrôles visuels : écarts limités aux compteurs d'Avancement (dossiers d'expérience non commités), captures de référence inchangées.
+- Application avec le vrai Nemotron 3, sous relevé réseau : extrait de 3 min (DER 7,95 %) et EN2002b (réunion d'AMI) traitée en 18,6 s, DER 31,28 %, identique à EXP-0026 ; aucune connexion hors 127.0.0.1. Surcoût fixe mesuré (`scripts/measure_overhead.py mesure`, 3 lancements) : 2,1 s en CPU, inscrit dans `app/moteurs.py` (`24f5336`).
+- A-0004 (`analyses/A-0004_niveau-entree/`, `02cb102`, `ef3e536`) : niveau RMS de la parole (zones de référence dans l'UEM) par fichier ; corrélation de Spearman avec la parole manquée. Niveau médian : AMI −43,0 dBFS, SUMM-RE −29,1 dBFS. rho sur AMI : Nemotron 3 −0,70, pyannote −0,45 ; sur SUMM-RE : −0,25 et −0,24 ; conditions de D24 : −0,38 à −0,03 (Nemotron 3), −0,15 à +0,15 (pyannote).
+- Normalisation du niveau en entrée (`src/whospoke/niveau.py`, clé `normalisation_niveau` de `run_experiment.py`, `0269b68`) : sonie intégrée BS.1770-4 ramenée à −29,3 LUFS (médiane de SUMM-RE dev), gain linéaire unique, garde de crête à −1 dBFS, appliquée après la normalisation de D16 ; tests `tests/test_niveau.py`.
+Résultats (écart à la référence sans collar, test, bootstrap apparié) :
+- EXP-0029 (Nemotron 3, AMI, réf. EXP-0026) : DER test 27,97 % contre 27,47 %, +0,50 [−0,35 ; +2,07] ; dev −0,04 [−0,42 ; +0,22] ; parole manquée test 24,91 contre 24,93 ; confusion 1,56 contre 1,08.
+- EXP-0030 (Nemotron 3, SUMM-RE, réf. EXP-0027) : 15,34 % contre 14,62 %, +0,73 [−0,06 ; +1,94] ; dev +0,05 [−0,00 ; +0,13] ; confusion 1,81 contre 1,10.
+- EXP-0031 (pyannote, AMI, réf. EXP-0001) : +0,04 [−0,06 ; +0,15] ; dev +0,02 [−0,02 ; +0,08].
+- EXP-0032 (pyannote, SUMM-RE, réf. EXP-0007) : −0,00 [−0,01 ; +0,00] ; dev +0,01 [−0,01 ; +0,02].
+- Aucun gain significatif (règle 1 de D25) ; aucune dégradation significative avec collar ni sur AMI. Conditions de D24 non exécutées avec la normalisation.
+Décisions : aucune.
+Problèmes :
+- Garde de crête : le gain est réduit sur 30 fichiers d'AMI sur 34 (de 0,4 à 15,5 dB), la cible n'est pas atteinte sur la plupart d'entre eux ; gains appliqués jusqu'à +19,1 dB. Sur SUMM-RE, 2 fichiers sur 73 (1,2 dB au plus).
+- `charge_concurrente` true sur les quatre expériences (charge sur 1 min de 6,6 à 9,0) ; RTF de Nemotron 3 proche de ceux d'EXP-0026 et 0027.
+- Borne de 3 h atteinte vers 19:49, à la fin d'EXP-0032 (19:59) : l'étape 3 (seuil de décision de Nemotron 3 réglé sur SUMM-RE dev) n'est pas faite.
+Suite : interprétation et verdicts d'EXP-0029 à 0032 par le cockpit ; décision sur l'étape 3 (seuil) ; options possibles pour le niveau : normalisation sans garde de crête (avec limiteur ou en flottant non borné), ou abandon de l'hypothèse 1.
