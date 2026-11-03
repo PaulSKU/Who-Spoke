@@ -1281,3 +1281,17 @@ Problèmes :
 - Charge concurrente vraie pour toutes les exécutions (jusqu'à 12,6 pour 6 cœurs de performance), pendant le travail des autres sessions.
 - Commit `0358ccf` (gel de l'environnement de Nemotron) fait après les seuls tests des moteurs externes ; suite complète lancée juste après, avant les expériences : 668 réussis.
 Suite : décision sur A5 ; interprétation d'A4 et choix du moteur de démonstration (cockpit).
+
+## 2026-11-03 — Retour de B14 (cockpit)
+
+Décisions : choix validés (formes de données sur deux rangées alternées plutôt que coupées, nom de modèle coupé en fin avec infobulle, tolérance nulle pour les captures des champs, thème « Système » par défaut). Bordure des listes déroulantes alignée sur celle des champs numériques, au même contraste d'au moins 3:1, pour qu'il n'y ait qu'un seul style de champ ; petite retouche à faire à la prochaine session B. Safari n'a pu être vérifié que dans son état par défaut : si la démonstration se fait dans Safari, la candidate contrôle à la main l'option Fourchette, le focus au clavier et le sélecteur de thème.
+
+## 2026-11-03 — Interprétation d'A4 et d'A5 ; D29 (cockpit)
+
+Objectif : interpréter Nemotron 3 Diarization et l'échec de calcul de DiariZen.
+Réalisé : interprétations d'EXP-0026 à 0028 (verdicts en attente de D29) ; constats C18 et C19 ; synthèse ; fiche D29. Vérification du cockpit sur les per_file : la parole manquée de Nemotron 3 sur AMI ne dépend pas de la durée des réunions (corrélation de rang de 0,05) et touche aussi les zones sans chevauchement.
+Décisions : D29. Règle de choix du moteur de démonstration fixée avant le corpus maison ; diagnostic de la parole manquée sur AMI (niveau d'entrée, puis seuil) ; DiariZen écarté (RTF de 2,1 en CPU, échec en MPS). Nemotron 3 est intégré à l'application (piste B), quel que soit le choix final.
+
+## 2026-11-03 — A5 : DiariZen écarté (Claude Code)
+
+Décision de la candidate, sur les options du rapport de la piste A : DiariZen est écarté. C'est un échec documenté, dû au calcul et non à l'installation, faite en 8 min 19 s pour une borne de 4 h. En CPU, le RTF est de 2,10 au premier fichier, soit environ 90 h pour AMI et SUMM-RE. En MPS, l'exécution est impossible avec torch 2.1.1, version imposée par DiariZen. Aucune expérience DiariZen n'est lancée. L'environnement `envs/diarizen/` (1,0 Go, non versionné) et les poids restent en place, sans usage. Le planning et D23 sont à mettre à jour par le cockpit.
