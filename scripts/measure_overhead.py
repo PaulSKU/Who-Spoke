@@ -59,7 +59,7 @@ ENGINES = (
     ("baseline-wespeaker", "cpu"),
     ("pyannote-community-1", "mps"),
     ("pyannote-community-1", "cpu"),
-    ("nemotron-3", "cpu"),            # à mesurer à la fusion (app/moteurs.py, OVERHEAD_TO_MEASURE)
+    ("nemotron-3", "cpu"),            # mesuré le 03/11/2026 (app/moteurs.py, FIXED_OVERHEAD)
 )
 MEASURE_CLIP = ("summre__004c_PAPH", 600.0, 60.0)       # uri, début (s), durée (s)
 SHORT_CLIP = ("summre__007a_ECRH", 0.0, 180.0)

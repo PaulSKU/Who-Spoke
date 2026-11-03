@@ -227,12 +227,16 @@ FIXED_OVERHEAD: dict[tuple[str, str], FixedOverhead] = {
     ("baseline-wespeaker", "cpu"): FixedOverhead(1.6, "2026-11-01"),
     ("pyannote-community-1", "mps"): FixedOverhead(1.1, "2026-11-01"),
     ("pyannote-community-1", "cpu"): FixedOverhead(6.6, "2026-11-01"),
+    # Mesure du 03/11/2026 après la fusion (D29, condition 4), sur secteur : 1,13, 3,92 et
+    # 1,18 s ; charge moyenne de 50 à 76 pendant la mesure, surtout due aux fils de torch
+    # du moteur lui-même en CPU.
+    ("nemotron-3", "cpu"): FixedOverhead(2.1, "2026-11-03"),
 }
 
 
-# Surcoût à mesurer avec le vrai moteur (scripts/measure_overhead.py), à la fusion : Nemotron 3
-# n'a été intégré qu'avec le moteur factice. D'ici là, l'annonce le dit « non mesuré ».
-OVERHEAD_TO_MEASURE = {("nemotron-3", "cpu")}
+# Surcoût à mesurer avec le vrai moteur (scripts/measure_overhead.py) ; l'annonce le dit
+# « non mesuré » tant qu'il figure ici. Nemotron 3 (CPU) : mesuré le 03/11/2026.
+OVERHEAD_TO_MEASURE: set[tuple[str, str]] = set()
 
 
 def fixed_overhead(key: str, device: str) -> FixedOverhead | None:

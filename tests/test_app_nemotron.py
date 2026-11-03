@@ -50,12 +50,13 @@ def test_construit_par_l_enveloppe_existante_en_cpu(monkeypatch):
     assert built == {"device": "cpu", "speaker_mode": "estime"}       # MPS ignoré : exception Metal
 
 
-def test_rtf_mesure_et_surcout_a_mesurer_a_la_fusion():
+def test_rtf_mesure_et_surcout_mesure_a_la_fusion():
     from app import temps
 
     measured = temps.measured_rtf("EXP-0027", "cpu", "cpu")
     assert measured is not None and measured.exp_id == "EXP-0027" and 0.005 < measured.rtf < 0.03
-    assert moteurs.fixed_overhead(KEY, "cpu") is None and (KEY, "cpu") in moteurs.OVERHEAD_TO_MEASURE
+    overhead = moteurs.fixed_overhead(KEY, "cpu")                      # mesuré le 03/11 (D29, condition 4)
+    assert overhead is not None and overhead.measured_on == "2026-11-03" and (KEY, "cpu") not in moteurs.OVERHEAD_TO_MEASURE
     script = (REPO_ROOT / "scripts" / "measure_overhead.py").read_text()
     assert '("nemotron-3", "cpu"),' in script
 
