@@ -161,3 +161,11 @@ constats:
     confiance: certain
     cle: true
 
+  - id: C20
+    etape: segmentation
+    moteurs: [nemotron-3]
+    texte: "La parole manquée de Nemotron 3 sur AMI est fortement corrélée au niveau d'enregistrement (rang −0,70), mais amplifier le signal jusqu'à +19 dB ne la change pas : le niveau n'est pas la cause. Dans toutes les salles d'AMI, Nemotron 3 manque environ 2,4 fois plus de parole que pyannote : il est globalement plus prudent, et le champ lointain l'accentue."
+    sources: [A-0004, EXP-0029, EXP-0031]
+    confiance: probable
+    cle: false
+

@@ -1381,3 +1381,8 @@ Problèmes :
 - `charge_concurrente` true sur les quatre expériences (charge sur 1 min de 6,6 à 9,0) ; RTF de Nemotron 3 proche de ceux d'EXP-0026 et 0027.
 - Borne de 3 h atteinte vers 19:49, à la fin d'EXP-0032 (19:59) : l'étape 3 (seuil de décision de Nemotron 3 réglé sur SUMM-RE dev) n'est pas faite.
 Suite : interprétation et verdicts d'EXP-0029 à 0032 par le cockpit ; décision sur l'étape 3 (seuil) ; options possibles pour le niveau : normalisation sans garde de crête (avec limiteur ou en flottant non borné), ou abandon de l'hypothèse 1.
+
+## 2026-11-03 — Interprétation de la normalisation du niveau (A-0004, EXP-0029 à 0032) (cockpit)
+
+Résultats : aucun effet significatif de la normalisation ; la parole manquée de Nemotron 3 sur AMI ne bouge pas, même avec +19 dB. La forte corrélation entre niveau et parole manquée (−0,70 sur AMI) vient des salles d'enregistrement (EN, ES, TS), plus difficiles pour les deux systèmes. Dans chaque salle, Nemotron 3 manque environ 2,4 fois plus de parole que pyannote.
+Décisions : hypothèse du niveau abandonnée, pas de nouvel essai sans garde de crête ; normalisation non retenue (EXP-0029 et 0030 écartées, 0031 et 0032 informatives) ; constat C20 ; étape 3 de D29 §1 (seuil de décision de Nemotron 3 réglé sur SUMM-RE dev) lancée, bornée à 2 h.

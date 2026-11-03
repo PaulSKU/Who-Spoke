@@ -1,7 +1,7 @@
 ---
 id: EXP-0030
 question: "La normalisation du niveau en entrée modifie-t-elle les résultats de Nemotron 3 sur SUMM-RE ?"
-verdict: en_cours
+verdict: ecarte
 decisions: [D25, D29]
 ---
 
@@ -31,4 +31,4 @@ Conditions de D24 non exécutées avec la normalisation (règle 4 de D25 non vé
 
 ## Interprétation (cockpit)
 
-À rédiger.
+La normalisation du niveau en entrée n'a d'effet significatif ni sur Nemotron 3 ni sur pyannote, sur AMI comme sur SUMM-RE. Pour Nemotron 3 sur AMI, la parole manquée ne bouge pas (24,9 contre 24,9 points), même sur les fichiers qui ont reçu le plus de gain (jusqu'à +19 dB). L'hypothèse du niveau d'entrée (D29 §1) est donc écartée. Une réserve : la garde de crête a limité le gain sur 30 des 34 fichiers d'AMI, et la cible de −29,3 LUFS n'est pas atteinte partout. Mais l'absence d'effet sur les fichiers les plus amplifiés suffit à conclure **[probable]** ; la variante sans garde de crête n'est pas testée. Les règles 2 et 3 de D25 sont respectées, la règle 1 ne l'est pas : la normalisation n'est pas retenue.
