@@ -85,25 +85,25 @@ Options : `--moteur` (`pyannote-community-1`, `baseline-mfcc`, `baseline-ecapa`,
 
 ## État d'avancement
 
-Au 2 novembre 2026.
+Au 4 novembre 2026.
 
 | Chantier | État |
 |---|---|
-| Cadrage, méthode, protocole d'évaluation | Fait (D1 à D28) ; audit du projet le 01/11, audit visuel le 02/11 |
+| Cadrage, méthode, protocole d'évaluation | Fait (D1 à D29) ; audit du projet le 01/11, audit visuel le 02/11, avis du tuteur le 03/11 (priorité au corpus maison, plus de polissage de l'interface) |
 | Chaîne d'évaluation (DER, JER, chevauchement, nombre de locuteurs, bootstrap) | Faite, testée |
 | Corpus AMI, micro de salle (dev et test) | Préparé |
 | pyannote community-1 | Intégré ; résultat publié reproduit sur AMI (EXP-0001) ; modèle figé à une révision (D18) |
 | Baseline classique (énergie, MFCC, regroupement) | Faite (EXP-0002, EXP-0009) |
 | Diagnostics oracles (détection, nombre de locuteurs) | Faits (EXP-0003 à EXP-0006) |
 | Empreintes neuronales (D8, D22) | Faites (EXP-0010 à EXP-0015) : ECAPA retenue pour la baseline ; la parole manquée par la détection d'énergie devient l'erreur principale |
-| Analyses a posteriori | A-0001 : sensibilité de la référence de SUMM-RE à la convention de découpage ; A-0002 (robustesse par condition et sous-groupe) et A-0003 (cas d'échec : pires fichiers, descripteurs, catégories d'erreur, extraits d'écoute) prêtes, exécutées après les expériences de robustesse |
-| Moteurs supplémentaires (D23) | Nemotron 3 Diarization et DiariZen installés dans des environnements séparés, à évaluer ; NeMo Sortformer v2 et Voxtral en option ; Nemotron 3.5 retiré (GPU NVIDIA seulement) |
-| Amélioration n° 2 : fausse alarme de pyannote (D25) | Sortie exclusive écartée (+4,1 points sur SUMM-RE, +4,6 sur AMI, EXP-0016 et EXP-0017) ; post-traitement par Silero VAD prêt, à évaluer |
+| Analyses a posteriori | Faites : A-0001 (sensibilité de la référence de SUMM-RE), A-0002 (robustesse par condition et sous-groupe), A-0003 (cas d'échec : le chevauchement est le premier facteur d'échec identifiable), A-0004 (niveau d'entrée : corrélé à la parole manquée de Nemotron 3 sur AMI, mais pas en cause) |
+| Moteurs supplémentaires (D23) | Nemotron 3 Diarization évalué (EXP-0026 à 0035) : bien meilleur que pyannote en français et sous dégradation, moins bon sur AMI (parole manquée deux fois plus forte, cause non identifiée) ; seuil de décision réglé à 0,35 ; intégré à l'application. DiariZen écarté (RTF de 2,1 en CPU, échec en MPS). NeMo Sortformer v2, Voxtral et Nemotron 3.5 non évalués |
+| Amélioration n° 2 : fausse alarme de pyannote (D25) | Aucune variante retenue : sortie exclusive (+4,1 points sur SUMM-RE, +4,6 sur AMI) et post-traitement par Silero VAD (−2,6 en français, mais +22,1 sur AMI, où il coupe la parole lointaine) écartés |
 | Nombre de locuteurs borné entre 2 et 6 | Effet non significatif (EXP-0018, EXP-0019) ; gardé comme garde-fou pour la démonstration |
-| Robustesse (D24) | SUMM-RE test dégradé généré et contrôlé à l'écoute (réverbération, bruit, codec de visio, 7 conditions) ; pyannote (EXP-0020) puis baseline ECAPA (EXP-0021) en cours |
+| Robustesse (D24) | Faite (EXP-0020, 0021, 0028, 0035) : la réverbération forte est la faiblesse de pyannote (+14,9 points), le bruit celle de la baseline ; Nemotron 3 reste entre 14,8 et 18,5 % dans toutes les conditions. La simulation ne reproduit pas tout un vrai micro de salle (classements opposés sur AMI) |
 | SUMM-RE (validation en français) | Préparé (dev 36, test 37 réunions) ; pyannote, oracle et baselines MFCC, ECAPA et WeSpeaker évalués (EXP-0007 à EXP-0009, EXP-0012, EXP-0015) |
-| Corpus maison (réunions en français) | Documents et chaîne d'annotation prêts (synchronisation, pré-annotation, Audacity, RTTM) ; enregistrements en cours, évalués au fil de l'eau |
-| Interface de démonstration (D17, D26, D28) | Faite : chantiers B1 à B13 des deux audits (système visuel unique, spectrogramme, nouveau schéma du pipeline, cas limites, mode présentation, configuration gelée) ; fonctionnement hors ligne vérifié (D27) ; essai au vidéoprojecteur à faire |
+| Corpus maison (réunions en français) | Priorité absolue depuis le 03/11. Premier enregistrement fait (M01 : 9 min, 3 locuteurs, habitacle de voiture), annotation manuelle en cours ; d'autres enregistrements d'ici au 8/11. Il décidera du moteur de démonstration, pyannote ou Nemotron 3 (D29) |
+| Interface de démonstration (D17, D26, D28) | Faite : chantiers B1 à B14 (système visuel unique, spectrogramme, schéma du pipeline, cas limites, mode présentation, sélecteur de thème), Nemotron 3 intégré ; cible : ordinateur et vidéoprojecteur ; fonctionnement hors ligne vérifié (D27). Polissage arrêté ; reste l'essai au vidéoprojecteur |
 | Outillage | Commande en ligne, intégration continue, licence, vérification d'installation sur machine vierge, chaîne d'annotation du corpus maison, campagne de temps, génération des tableaux et figures du rendu (`docs/rendu/`) |
 
 Résultats sur les partitions de test, chevauchements comptés :
@@ -118,8 +118,10 @@ Résultats sur les partitions de test, chevauchements comptés :
 | EXP-0013 — baseline WeSpeaker | AMI, micro de salle | 49,2 % | 44,0 % | 51,0 % | 0/16 | ≈ 36 s (CPU) |
 | EXP-0012 — baseline ECAPA | SUMM-RE, français | 33,4 % | 24,4 % | 39,2 % | 28/37 | non exploitable (batterie) |
 | EXP-0015 — baseline WeSpeaker | SUMM-RE, français | 35,9 % | 26,7 % | 44,3 % | 23/37 | ≈ 39 s (CPU) |
+| EXP-0033 — Nemotron 3 Diarization (seuil 0,35) | SUMM-RE, français | 14,3 % | 11,1 % | 13,9 % | 32/37 | ≈ 20 s (CPU) |
+| EXP-0034 — Nemotron 3 Diarization (seuil 0,35) | AMI, micro de salle | 26,4 % | 24,1 % | 28,5 % | 14/16 | ≈ 19 s (CPU) |
 
-Les chiffres sur AMI sont optimistes pour pyannote, qui a vu ce corpus à l'entraînement (`docs/corpus.md` §9). SUMM-RE est en français, mais il est enregistré en micros-casques, pas en micro de salle. Sur SUMM-RE, le DER sans collar dépend fortement de la convention de découpage de la référence (jusqu'à 8 points pour pyannote), alors que le DER avec collar n'en dépend presque pas (analyse A-0001) : les deux sont toujours rapportés. WeSpeaker est le modèle d'empreintes de pyannote : l'écart entre EXP-0013 et EXP-0001 (29 points sur AMI, dont 21 de parole manquée) mesure ce que pyannote doit à sa segmentation neuronale et à son regroupement, et non à ses empreintes. Les temps sont ceux des expériences ; des temps de référence, machine au repos, seront mesurés le 12/11 (D21). Les expériences et leur interprétation sont dans `experiments/` et `results/leaderboard.csv`.
+Les chiffres sur AMI sont optimistes pour pyannote, qui a vu ce corpus à l'entraînement (`docs/corpus.md` §9). SUMM-RE est en français, mais il est enregistré en micros-casques, pas en micro de salle. Sur SUMM-RE, le DER sans collar dépend fortement de la convention de découpage de la référence (jusqu'à 8 points pour pyannote), alors que le DER avec collar n'en dépend presque pas (analyse A-0001) : les deux sont toujours rapportés. WeSpeaker est le modèle d'empreintes de pyannote : l'écart entre EXP-0013 et EXP-0001 (29 points sur AMI, dont 21 de parole manquée) mesure ce que pyannote doit à sa segmentation neuronale et à son regroupement, et non à ses empreintes. Nemotron 3 fait presque deux fois mieux que pyannote en français, mais moins bien sur AMI, où il manque deux fois plus de parole ; le corpus maison tranchera (D29). Les temps sont ceux des expériences ; des temps de référence, machine au repos, seront mesurés le 12/11 (D21). Les expériences et leur interprétation sont dans `experiments/` et `results/leaderboard.csv`.
 
 ## Licence
 
