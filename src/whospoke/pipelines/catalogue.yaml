@@ -516,6 +516,18 @@ regroupements:
       libelle: "Segmentation neuronale (détection et segmentation)"
       etapes: [detection, segmentation]
       role: "Un seul réseau, le modèle de segmentation de pyannote, détecte la parole et découpe chaque fenêtre en tours locaux, chevauchements compris : détection et segmentation sont deux sorties du même calcul."
+  # Système de bout en bout (D23, A4) : un seul réseau, de l'audio aux tours de parole. La page
+  # en fait une seule étape, sans sous-étapes : ni empreintes ni regroupement séparés.
+  # `remplace` : étapes des systèmes en cascade que ce réseau réalise à lui seul ; la barre de
+  # la naissance des erreurs et les constats de ces étapes renvoient à lui.
+  nemotron3-diarization:
+    - id: reseau_bout_en_bout
+      libelle: "Réseau de bout en bout"
+      etapes: [detection, regroupement]
+      bout_en_bout: true
+      remplace: [detection, segmentation, empreintes, representation, regroupement, attribution]
+      famille: "Détection et attribution"
+      role: "Un seul réseau va de l'audio aux tours de parole : trame par trame, il décide qui parle parmi ses sorties de locuteur, chevauchements compris, et suit chaque voix d'une trame à l'autre. Ni empreintes vocales ni regroupement séparés : le nombre de locuteurs est celui des sorties actives."
 
 # Forme des données en sortie de chaque étape : étiquettes des flèches du schéma de la page
 # Pipeline (audit visuel du 02/11, §6 ; B12). `modele` : texte dont chaque {réglage} est lu
@@ -537,6 +549,13 @@ formes:
     regroupement:
       modele: "groupes, nombre {n_locuteurs}"
       generique: "groupes de locuteurs"
+    sortie:
+      modele: "tours de parole (RTTM)"
+      generique: "tours de parole"
+  nemotron3-diarization:
+    reseau_bout_en_bout:
+      modele: "{nemotron.locuteurs_max} sorties de locuteur, trames de {nemotron.trame_s}"
+      generique: "activité de chaque locuteur, trame par trame"
     sortie:
       modele: "tours de parole (RTTM)"
       generique: "tours de parole"

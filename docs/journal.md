@@ -1329,3 +1329,21 @@ Décisions : D29. Règle de choix du moteur de démonstration fixée avant le co
 ## 2026-11-03 — A5 : DiariZen écarté (Claude Code)
 
 Décision de la candidate, sur les options du rapport de la piste A : DiariZen est écarté. C'est un échec documenté, dû au calcul et non à l'installation, faite en 8 min 19 s pour une borne de 4 h. En CPU, le RTF est de 2,10 au premier fichier, soit environ 90 h pour AMI et SUMM-RE. En MPS, l'exécution est impossible avec torch 2.1.1, version imposée par DiariZen. Aucune expérience DiariZen n'est lancée. L'environnement `envs/diarizen/` (1,0 Go, non versionné) et les poids restent en place, sans usage. Le planning et D23 sont à mettre à jour par le cockpit.
+
+## 2026-11-03 — Interface : Nemotron 3 Diarization dans l'application, Pipeline de bout en bout (Claude Code)
+
+Objectif : D29 (Nemotron 3 intégré à l'application quel que soit le moteur retenu), dans le worktree `ui` resynchronisé avec `main` (`e618a47`), moteur factice, sans fusion vers `main` ni dépendance dans l'environnement principal ; sous `nice`.
+Réalisé :
+- Moteur `nemotron-3` (Nemotron 3 Diarization, EXP-0027) : enveloppe existante (`envs/nemotron`, sous-processus, CPU imposé), préchauffage et cache comme les autres moteurs (l'empreinte du code couvre `scripts/envs`), étape d'avancement « Réseau de bout en bout », durée annoncée au RTF d'EXP-0027 (0,0104), nombre de locuteurs estimé seulement (Imposé ou Fourchette : message sous le choix et au lancement, analyse en automatique ; refusé dans `configs/demo.yaml`), comparaison proposée par défaut Nemotron 3 contre pyannote, RTTM d'EXP-0027 en mode factice.
+- Onglet Pipeline : système de bout en bout en une seule étape, sans empreintes ni regroupement, réglages réunis ; barre de la naissance des erreurs renvoyée à ce réseau, avec sa légende propre ; formes des données lues dans la configuration ; mise en regard des cascades de pyannote et de la baseline ECAPA ; C18 et C19 sous le réseau. Catalogue : regroupement `bout_en_bout` avec les étapes de cascade qu'il remplace, formes de `nemotron3-diarization`.
+- `configs/demo.exemple.yaml` : les deux variantes du moteur par défaut, en commentaire, aucune retenue (D29, choix du 9/11).
+- Retouche de B14 : bordure des listes déroulantes alignée sur les champs numériques ; classe `ws-cache-info` posée sur la ligne du cache (le masque des captures ne trouvait rien).
+- Commande `whospoke diarize` (E1) : `nemotron-3` ajouté à ses moteurs, qui doivent rester ceux de l'application (test) ; `--locuteurs` autre que `auto` refusé pour lui.
+- Contrôles : stylelint, captures de référence (4 ajoutées : schéma et mise en regard de Nemotron 3 à dPR 2 ; 10 mises à jour pour la bordure des listes et le décompte d'Avancement issu de `main`), axe-core en clair et en sombre, et sur les vues de Nemotron 3 ; vérification dans Chrome à dPR 2. Tests : `tests/test_app_nemotron.py` (15) ; tests des moteurs, du cache et de la configuration de démonstration mis à jour.
+Résultats : aucune expérience.
+Décisions : aucune. Choix de la session, à valider : clé `nemotron-3` dans l'application (celle des constats) ; constats généraux d'une étape de cascade non repris sous le réseau de bout en bout ; trois choix du nombre de locuteurs gardés avec message, plutôt qu'Automatique seul ; mise en regard face à la baseline ECAPA (baseline retenue) ; aucune variante active dans l'exemple (sans clé, le défaut du code, pyannote).
+Problèmes :
+- Écarts de `docs/constats.yaml` (C18, C19) : moteur `nemotron-3`, alors que le moteur s'appelle `nemotron3-diarization` dans le code, EXP-0026 à 0028, le catalogue et le classement ; l'application a pris `nemotron-3` comme clé, rien n'est à corriger si ce choix est validé. Étape `segmentation` : Nemotron 3 n'en a pas (bout en bout) ; les deux constats sont affichés sous le réseau, qui la réalise.
+- Surcoût fixe de Nemotron 3 non mesuré (vrai moteur exclu de cette session) : l'annonce le dit ; à mesurer à la fusion avec `scripts/measure_overhead.py mesure`.
+- Vrai moteur non lancé dans l'application : à vérifier à la fusion (chargement, avancement, fichier de 30 min, D29 condition 4).
+Suite : retour du cockpit ; à la fusion, essai du vrai moteur et mesure du surcoût.

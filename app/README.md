@@ -638,3 +638,25 @@ Sélecteur de thème (en remplacement du bouton « Settings » du pied de page d
 
 Reproduit d'abord dans Chrome réel (Playwright, canal `chrome`, devicePixelRatio 2) et dans Safari réel sur l'écran Retina (capture d'écran ; `safaridriver` demande « Allow Remote Automation », réglage laissé tel quel). Captures de référence ajoutées à devicePixelRatio 2 : colonne des réglages en clair et en sombre (Fourchette, cache ouvert), focus de la liste et du champ numérique, schéma (baseline WeSpeaker et pyannote, 1280 et 1440 px), en-tête et timeline après bascule de thème dans les deux sens. Tolérance nulle pour les champs (les entailles ne couvraient que quelques pixels, sous la tolérance générale de 20) : vérifié en réinjectant l'ancien style de `.form`, la capture échoue. Captures avant et après : `docs/audit/b14-avant-apres/`. Tests : `tests/test_app_b14.py` (13).
 
+## Nemotron 3 Diarization dans l'application (D23, A4 ; D29)
+
+D29 : Nemotron 3 Diarization est intégré à l'application quel que soit le moteur de démonstration retenu le 9/11 ; l'autre moteur reste proposé pour la comparaison. Intégré avec le moteur factice ; le vrai moteur est vérifié à la fusion.
+
+| Élément | Comportement | Où |
+|---|---|---|
+| Moteur | Clé `nemotron-3` (celle de `docs/constats.yaml`), moteur `nemotron3-diarization` ; configuration reprise d'EXP-0027 (SUMM-RE). Construit par l'enveloppe existante (`whospoke.pipelines.nemotron3`) : environnement séparé `envs/nemotron`, sous-processus, CPU seul (en MPS, l'exécutant s'arrête sur une exception Metal ; le périphérique est imposé et le dit) | `app/moteurs.py` (`SPECS`, `build_engine`) |
+| Nombre de locuteurs | Estimé seulement, 8 au plus. Les trois choix restent proposés (ils valent pour le second moteur en comparaison) ; avec Imposé ou Fourchette, l'interface dit sous le choix et au lancement que Nemotron 3 analyse en automatique. `configs/demo.yaml` refuse un autre mode pour lui | `_auto_only_note`, `moteurs._speaker_default` |
+| Avancement | L'enveloppe signale une étape, libellée « Réseau de bout en bout » ; temps de traitement avec les étapes du moteur (caractéristiques, réseau, sous-processus) | `EngineSpec.step_labels` |
+| Durée annoncée | RTF mesuré par EXP-0027 (0,0104 en CPU, colonne `rtf_cpu`). Surcoût fixe non mesuré : l'annonce le dit ; à mesurer à la fusion (`scripts/measure_overhead.py mesure`, ligne ajoutée), puis à reporter dans `FIXED_OVERHEAD` et à retirer d'`OVERHEAD_TO_MEASURE` | `app/moteurs.py` |
+| Préchauffage, cache | Comme les autres moteurs ; l'empreinte du code dans la clé du cache couvre aussi `scripts/envs` (versions figées des environnements séparés) | `app/cache.py` |
+| Comparaison | Proposée par défaut : Nemotron 3 contre pyannote (l'autre moteur de la paire selon le moteur par défaut) ; sans la paire, la baseline ECAPA comme avant | `_second_engine` |
+| Mode factice | RTTM d'EXP-0027 (fichiers de SUMM-RE) | `FakeEngine` |
+
+Onglet Pipeline, système de bout en bout : une seule étape « Réseau de bout en bout », sans sous-étapes (ni empreintes ni regroupement), dans le même cadre que le réseau unique de pyannote (« De l'audio aux tours de parole ») ; ses réglages, rangés par l'enveloppe sous détection, regroupement et sortie, y sont réunis. Le catalogue le décrit (`regroupements` : `bout_en_bout`, `remplace`) : la barre de la naissance des erreurs renvoie les trois composantes à ce réseau, et les constats qui nomment le moteur sur une étape de cascade qu'il réalise (C18 et C19, étape « segmentation ») s'affichent sous lui ; un constat général sur une étape de cascade (C15) n'y est pas repris. Formes des données lues dans la configuration (« 8 sorties de locuteur, trames de 0,01 s »). Sous le schéma, « Bout en bout et en cascade » met le moteur en regard des cascades de pyannote et de la baseline ECAPA, sur trois colonnes alignées (normalisation, étapes intermédiaires, sortie), à partir de leurs propres pages. Un constat qui nomme un moteur inconnu de l'application est signalé dans les écarts de la page.
+
+`configs/demo.exemple.yaml` : les deux variantes du moteur par défaut (pyannote ou Nemotron 3), en commentaire, à décommenter le 9/11 selon D29 ; aucune n'est retenue d'ici là (sans la clé, le défaut du code).
+
+Retouche de B14 : la bordure des listes déroulantes prend celle des champs numériques (`--ws-control-line`, 3:1). Au passage, la ligne du cache porte enfin la classe `ws-cache-info` que les captures de référence masquent (le compte changeait d'un lancement à l'autre).
+
+Vérifié dans Chrome (dPR 2), moteur factice : choix du moteur, périphérique imposé, message sous « Nombre de locuteurs », annonce et avancement, comparaison pyannote–Nemotron 3, réaffichage depuis le cache, onglet Pipeline à 1280 et 1440 px en clair et en sombre ; axe-core sur ces vues. Captures de référence ajoutées (schéma de Nemotron 3 et mise en regard, 1280 et 1440 px, dPR 2) ; captures existantes mises à jour pour la bordure des listes et pour le contenu fusionné de `main` (décompte d'Avancement). Captures : `docs/audit/nemotron-interface/`. Tests : `tests/test_app_nemotron.py`.
+

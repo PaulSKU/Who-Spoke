@@ -65,7 +65,10 @@ FAMILIES = {
 SOURCE_FILES = {
     "baseline": "src/whospoke/pipelines/baseline.py",
     "pyannote-community-1": "src/whospoke/pipelines/pyannote_community1.py",
+    "nemotron3-diarization": "src/whospoke/pipelines/nemotron3.py (envs/nemotron, en sous-processus)",
 }
+# Systèmes en cascade mis en regard d'un système de bout en bout (moteurs de l'application).
+CASCADES = ("pyannote-community-1", "baseline-ecapa")
 NON_ERRORS = {"temps", "aucun effet sur le DER"}
 
 
@@ -95,9 +98,15 @@ class Stage:
     parts: list["Stage"] = field(default_factory=list)   # étapes d'un même réseau, regroupées
     shape: str = ""          # forme des données en sortie (flèche du schéma, catalogue `formes`)
     number: str = ""         # numéro dans le pipeline (« 2–3 » pour un bloc de deux étapes)
+    # Réseau de bout en bout : une seule étape, sans sous-étapes, qui réalise à lui seul les
+    # étapes `covers` des systèmes en cascade (catalogue, `regroupements`, `remplace`).
+    end_to_end: bool = False
+    covers: list[str] = field(default_factory=list)
 
     @property
     def step_ids(self) -> list[str]:
+        if self.covers:
+            return list(self.covers)
         return [part.id for part in self.parts] if self.parts else [self.id]
 
     @property
@@ -133,6 +142,8 @@ class Page:
     constat_issues: list[str] = field(default_factory=list)      # constats à étape inconnue, fichier mal formé
     shape_gaps: list[str] = field(default_factory=list)          # formes des données incomplètes
     errors: dict | None = None    # DER test sans collar de l'expérience source et ses composantes
+    # Système de bout en bout : systèmes en cascade mis en regard (libellé, étapes).
+    cascades: list[tuple[str, list["Stage"]]] = field(default_factory=list)
 
 
 def format_value(name: str, value) -> str:
@@ -284,13 +295,22 @@ def load_page(spec: moteurs.EngineSpec, root: Path) -> Page:
         ))
     page.not_configured += sorted(set(entries) - configured)
     page.evaluation = _evaluation(config)
-    _attach_constats(page, root, set(steps))
-    page.stages = _grouped(page.stages, _groups(catalogue, spec.pipeline))
+    groups = _groups(catalogue, spec.pipeline)
+    # Étapes de cascade réalisées par un réseau de bout en bout : leurs constats vont à lui.
+    aliases = {step: group["etapes"][0] for group in groups if group.get("bout_en_bout")
+               for step in group.get("remplace", []) if step not in group["etapes"]}
+    _attach_constats(page, root, set(steps), aliases)
+    page.stages = _grouped(page.stages, groups)
     values = {setting["nom"]: setting["valeur"] for setting in audio.describe_normalisation()}
     values.update({setting["nom"]: setting["valeur"] for settings in effective.values() for setting in settings})
     _shapes(page, _section(catalogue, "formes"), values)
     _number(page)
     page.errors = source_errors(spec, root)
+    if any(stage.end_to_end for stage in page.stages):
+        for key in CASCADES:
+            other = load_page(moteurs.SPECS[key], root) if key in moteurs.SPECS else None
+            if other is not None and not other.unavailable:
+                page.cascades.append((other.spec.label, other.stages))
     return page
 
 
@@ -379,24 +399,43 @@ def _grouped(stages: list[Stage], groups: list[dict]) -> list[Stage]:
             continue
         order = {step: i for i, step in enumerate(group["etapes"])}
         members.sort(key=lambda stage: order[stage.id])
-        block = Stage(id=group["id"], label=group.get("libelle", group["id"]), family=members[0].family,
-                      role=group.get("role", ""), defined_in=members[0].defined_in, rows=[], parts=members)
+        if group.get("bout_en_bout"):
+            # Une seule étape : réglages et constats réunis, sans sous-étapes.
+            block = Stage(id=group["id"], label=group.get("libelle", group["id"]),
+                          family=group.get("famille", members[0].family), role=group.get("role", ""),
+                          defined_in=members[0].defined_in, rows=[row for m in members for row in m.rows],
+                          constats=[c for m in members for c in m.constats], end_to_end=True,
+                          covers=list(group.get("remplace", group["etapes"])))
+        else:
+            block = Stage(id=group["id"], label=group.get("libelle", group["id"]), family=members[0].family,
+                          role=group.get("role", ""), defined_in=members[0].defined_in, rows=[], parts=members)
         position = min(stages.index(stage) for stage in members)
         stages = [stage for stage in stages if stage not in members]
         stages.insert(position, block)
     return stages
 
 
-def _attach_constats(page: Page, root: Path, known_steps: set[str]) -> None:
+def _attach_constats(page: Page, root: Path, known_steps: set[str], aliases: dict[str, str] | None = None) -> None:
+    """Constats de docs/constats.yaml sous leur étape ; `aliases` : étape de cascade → étape du
+    réseau de bout en bout qui la réalise, pour les constats qui nomment le moteur. Un moteur
+    inconnu de l'application est signalé."""
     data = constats_file.read(root)
     page.constat_issues += data.problems
     by_step = {stage.id: stage for stage in page.stages}
     by_step[constats_file.EVALUATION] = page.evaluation
     for constat in data.items:
+        unknown = [key for key in constat.moteurs if key not in moteurs.SPECS]
+        if unknown:
+            page.constat_issues.append(f"constat {constat.id} : moteur « {', '.join(unknown)} » inconnu de "
+                                       f"l'application (clés : {', '.join(moteurs.SPECS)})")
         if constat.etape not in known_steps and constat.etape != constats_file.EVALUATION:
             page.constat_issues.append(f"constat {constat.id} : étape « {constat.etape} » absente du catalogue")
             continue
         stage = by_step.get(constat.etape)
+        if stage is None and constat.moteurs:
+            # Étape de cascade réalisée par un réseau de bout en bout : seulement pour un constat
+            # qui nomme le moteur ; un constat général porte sur une étape que ce système n'a pas.
+            stage = by_step.get((aliases or {}).get(constat.etape, ""))
         if stage is not None and constat.concerns(page.spec.key):
             stage.constats.append(constat)
 
@@ -583,6 +622,10 @@ def _preview(step: str, x: float, y: float, w: float) -> str:
         rows = (((0.0, 0.3), (0.62, 0.8)), ((0.25, 0.55),), ((0.5, 0.7), (0.85, 1.0)))
         return "".join(f'<rect class="pl-spk-{k + 1}" x="{x + w * a:.1f}" y="{y + 1 + 8 * k}" width="{w * (b - a):.1f}" height="6" rx="2"/>'
                        for k, row in enumerate(rows) for a, b in row)
+    if step == "reseau_bout_en_bout":
+        rows = (((0.0, 0.24), (0.58, 0.82)), ((0.2, 0.46), (0.86, 1.0)), ((0.44, 0.62),))
+        return "".join(f'<rect class="pl-spk-{k + 1}" x="{x + w * a:.1f}" y="{y + 1 + 8 * k}" width="{w * (b - a):.1f}" height="6" rx="2"/>'
+                       for k, row in enumerate(rows) for a, b in row)
     if step in ("empreintes", "representation"):
         return "".join(f'<circle class="pl-pv-ink" cx="{x + w * a:.1f}" cy="{y + 3 + (h - 6) * b:.1f}" r="2.4"/>'
                        for a, b in _DOTS)
@@ -655,7 +698,7 @@ def _diagram(page: Page, selected: str) -> str:
     stages = page.stages
     units = sum(len(stage.parts) or 1 for stage in stages) + 1
     inner_gaps = sum(len(stage.parts) - 1 for stage in stages if stage.parts)
-    frames = sum(1 for stage in stages if stage.parts)
+    frames = sum(1 for stage in stages if stage.parts or stage.end_to_end)
     unit = (VIEW_W - GAP * (len(stages) - 1) - SEP - INNER * inner_gaps - 2 * FRAME * frames) / units
     y = TOP
     nodes, arrows, shapes = [], [], []
@@ -695,6 +738,17 @@ def _diagram(page: Page, selected: str) -> str:
                      f'<text class="pl-frame-label" x="{start + 10:.1f}" y="{y - 7}">Un seul réseau : '
                      f'{escape(model)}</text>')
             nodes.append(tab(stage, frame + "".join(content), label + " ; un seul réseau"))
+            right = x
+        elif stage.end_to_end:
+            # Même cadre que « Un seul réseau » de pyannote, autour d'une seule étape.
+            start = x
+            x += FRAME
+            content = _box(stage, x, y, unit)
+            x += unit + FRAME
+            frame = (f'<rect class="pl-frame" x="{start:.1f}" y="{y - 22}" width="{x - start:.1f}" '
+                     f'height="{NODE_H + 22 + FRAME}" rx="12"/>'
+                     f'<text class="pl-frame-label" x="{start + 10:.1f}" y="{y - 7}">De l\'audio aux tours de parole</text>')
+            nodes.append(tab(stage, frame + content, label + " ; un seul réseau, de bout en bout"))
             right = x
         else:
             nodes.append(tab(stage, _box(stage, x, y, unit), label))
@@ -777,9 +831,12 @@ def _errors_bar(page: Page) -> str:
         f'{escape(formatage.pourcentage(data["der"], 2))}</span></p>'
         f'<div class="pl-errbar" role="group" aria-label="Composantes du DER ; un clic sélectionne l\'étape">'
         f'{"".join(segments)}</div><ul class="pl-errlegend">{"".join(legend)}</ul>'
-        '<p class="ws-caption">Attribution simplifiée : la parole manquée et la fausse alarme naissent surtout à '
-        'la détection de la parole, la confusion aux empreintes et au regroupement (passer des MFCC à ECAPA '
-        'divise la confusion par trois, constat C05) ; une erreur peut avoir plusieurs causes en amont.</p></section>'
+        + (f'<p class="ws-caption">Attribution simplifiée : {escape(page.spec.label)} est un système de bout en bout, '
+           'les trois composantes naissent dans le même réseau ; la barre en donne la part, pas une étape '
+           'responsable.</p></section>' if any(stage.end_to_end for stage in page.stages) else
+           '<p class="ws-caption">Attribution simplifiée : la parole manquée et la fausse alarme naissent surtout à '
+           'la détection de la parole, la confusion aux empreintes et au regroupement (passer des MFCC à ECAPA '
+           'divise la confusion par trois, constat C05) ; une erreur peut avoir plusieurs causes en amont.</p></section>')
     )
 
 
@@ -820,6 +877,53 @@ def _stepper(page: Page) -> str:
     return f'<ol class="pl-stepper" aria-label="Étapes du pipeline">{"".join(items)}</ol>'
 
 
+def _cascades_html(page: Page) -> str:
+    """Système de bout en bout mis en regard des systèmes en cascade : une ligne par moteur,
+    trois colonnes alignées (normalisation, étapes intermédiaires, sortie). Le réseau de bout
+    en bout occupe à lui seul la largeur des étapes intermédiaires des cascades."""
+    if not page.cascades:
+        return ""
+    label_w, edge_w, gap, row_h, row_gap = 190, 112, 8, 46, 12
+    middle_x = label_w + edge_w + gap
+    middle_w = VIEW_W - middle_x - gap - edge_w
+    size = 11.5
+    rows = [(page.spec.label, "de bout en bout", page.stages)] + [(label, "en cascade", stages)
+                                                                    for label, stages in page.cascades]
+    parts, described = [], []
+
+    def chip(x: float, y: float, w: float, text: str, strong: bool = False) -> str:
+        lines = _wrap(text, w - 12, size, bold=strong, lines=2, cut_words=True)
+        top = y + row_h / 2 - (len(lines) - 1) * 7 + 4
+        cls = "pl-cas-chip pl-cas-e2e" if strong else "pl-cas-chip"
+        return (f'<rect class="{cls}" x="{x:.1f}" y="{y:.1f}" width="{w:.1f}" height="{row_h}" rx="6"/>'
+                + _text(lines, x + w / 2, top, 14, "pl-cas-text" + (" pl-cas-strong" if strong else ""), "middle",
+                        tooltip=text if " ".join(lines) != text else ""))
+
+    for index, (label, kind, stages) in enumerate(rows):
+        y = index * (row_h + row_gap)
+        parts.append(_text([label], 0, y + row_h / 2 - 2, 14, "pl-cas-label")
+                     + _text([kind], 0, y + row_h / 2 + 13, 14, "pl-cas-kind"))
+        first, last, middle = stages[0], stages[-1], stages[1:-1]
+        parts.append(chip(label_w, y, edge_w, first.label))
+        parts.append(chip(VIEW_W - edge_w, y, edge_w, last.label))
+        width = (middle_w - gap * (len(middle) - 1)) / max(1, len(middle))
+        for k, stage in enumerate(middle):
+            parts.append(chip(middle_x + k * (width + gap), y, width, stage.label, strong=stage.end_to_end))
+        described.append(f"{label}, {kind} : " + ", ".join(stage.label for stage in stages))
+    height = len(rows) * (row_h + row_gap) - row_gap + 2
+    summary = " ; ".join(described)
+    return (
+        '<figure class="pl-cascades"><p class="pl-cascades-head"><span class="strong">Bout en bout et en cascade'
+        '</span></p>'
+        f'<svg class="pl-cascades-svg" viewBox="0 0 {VIEW_W} {height}" role="img" aria-label="{escape(summary, quote=True)}">'
+        f'{"".join(parts)}</svg>'
+        f'<figcaption class="ws-caption">{escape(page.spec.label)} remplace par un seul réseau les étapes intermédiaires '
+        'des systèmes en cascade : détection, segmentation, empreintes ou représentation, regroupement et '
+        'attribution. Étapes des cascades lues dans leur configuration et le catalogue, comme leurs pages.</figcaption>'
+        '</figure>'
+    )
+
+
 def render(page: Page) -> str:
     spec = page.spec
     if page.unavailable:
@@ -850,7 +954,7 @@ def render(page: Page) -> str:
     sheets = "".join(_stage_html(stage, stage.id == first) for stage in page.stages)
     sheets += _stage_html(page.evaluation, False)
     return (
-        f'<div class="pl-root">{head}{callout}{_diagram(page, first)}{_errors_bar(page)}'
+        f'<div class="pl-root">{head}{callout}{_diagram(page, first)}{_errors_bar(page)}{_cascades_html(page)}'
         f'<div class="pl-sheets">{sheets}</div>{_stepper(page)}'
         f'<p class="ws-caption">Lecture seule : toute modification passe par une fiche de décision '
         f'et une expérience (D17).</p></div>'

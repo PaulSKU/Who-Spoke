@@ -93,7 +93,8 @@ test.describe('Retina (devicePixelRatio 2)', () => {
     });
   }
 
-  for (const [engine, short] of [['Baseline WeSpeaker', 'wespeaker'], ['pyannote community-1', 'pyannote']]) {
+  for (const [engine, short] of [['Baseline WeSpeaker', 'wespeaker'], ['pyannote community-1', 'pyannote'],
+                                 ['Nemotron 3 Diarization', 'nemotron']]) {
     for (const width of [1280, 1440]) {
       test(`schéma ${short} ${width}`, async ({ page }) => {
         await page.setViewportSize({ width, height: 900 });
@@ -103,6 +104,10 @@ test.describe('Retina (devicePixelRatio 2)', () => {
         await page.getByRole('option', { name: engine, exact: true }).click();
         await page.waitForTimeout(600);
         await expect(page.locator('.pl-diagram')).toHaveScreenshot(`dpr2-schema-${short}-${width}.png`);
+        // Système de bout en bout : mis en regard des systèmes en cascade.
+        if (short === 'nemotron') {
+          await expect(page.locator('.pl-cascades')).toHaveScreenshot(`dpr2-cascades-${width}.png`);
+        }
       });
     }
   }

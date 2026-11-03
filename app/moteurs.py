@@ -6,14 +6,21 @@ paramètres (`pipeline.parametres` de config.yaml), le θ retenu par son balayag
 `app/temps.py`). Les sources sont les expériences sur SUMM-RE, jeu de validation
 prioritaire (D3 ; D17, amendement 1) : EXP-0009 (MFCC), EXP-0012 (ECAPA), EXP-0007
 (pyannote) et EXP-0015 (WeSpeaker), ce dernier moteur restant indisponible tant
-qu'EXP-0015 n'existe pas ou n'a pas été exécutée. Au gel du 10/11, elle passe dans
+qu'EXP-0015 n'existe pas ou n'a pas été exécutée ; EXP-0027 pour Nemotron 3 Diarization
+(D23, A4 ; D29 : intégré à l'application quel que soit le moteur de démonstration retenu). Au gel du 10/11, elle passe dans
 `configs/demo.yaml` (`DemoConfig`), qui fixe aussi le moteur proposé par défaut et le nombre
 de locuteurs par défaut de chaque moteur ; tant que ce fichier n'existe pas, l'application
 garde la correspondance ci-dessous (`SPECS`, `DEFAULT_ENGINE`).
 
 Périphériques : la baseline MFCC s'exécute en CPU seul (D19) et les empreintes ECAPA et
-WeSpeaker en CPU (D22, amendement 2 : NaN intermittents en MPS) ; seul pyannote suit le
-choix de l'utilisateur.
+WeSpeaker en CPU (D22, amendement 2 : NaN intermittents en MPS), Nemotron 3 en CPU (en MPS,
+l'exécutant s'arrête sur une exception Metal, EXP-0027) ; seul pyannote suit le choix de
+l'utilisateur.
+
+Nemotron 3 Diarization est un système de bout en bout (un seul réseau, de l'audio aux tours
+de parole) : il tourne dans son environnement séparé (`envs/nemotron`), appelé en
+sous-processus par l'enveloppe `whospoke.pipelines.nemotron3`, et estime seul le nombre de
+locuteurs, 8 au plus, sans pouvoir l'imposer ni le borner.
 
 Le moteur factice (`FakeEngine`) respecte le contrat de `base.py` sans aucune inférence :
 il simule les étapes du moteur imité, puis renvoie le RTTM que l'expérience source a
@@ -47,6 +54,8 @@ BASELINE_STEPS = (
     "representation", "regroupement", "attribution",
 )
 PYANNOTE_STEPS = ("segmentation", "detection", "empreintes", "regroupement", "sortie")
+# Nemotron 3 : l'enveloppe ne signale qu'une étape, le passage dans le réseau (« detection »).
+NEMOTRON_STEPS = ("detection",)
 
 
 @dataclass(frozen=True)
@@ -60,6 +69,13 @@ class EngineSpec:
     steps: tuple[str, ...]    # étapes annoncées par progress(), dans l'ordre
     cpu_only: bool
     supports_range: bool      # fourchette min–max du nombre de locuteurs
+    auto_only: bool = False   # nombre de locuteurs estimé seulement : ni imposé ni borné
+    max_speakers: int | None = None              # plafond du modèle (Nemotron 3 : 8)
+    step_labels: tuple[tuple[str, str], ...] = ()   # libellés propres au moteur (étape, libellé)
+
+    def step_label(self, step: str, default: str) -> str:
+        """Libellé de l'étape `step` pour ce moteur, sinon `default` (catalogue)."""
+        return dict(self.step_labels).get(step, default)
 
 
 SPECS: dict[str, EngineSpec] = {
@@ -70,6 +86,11 @@ SPECS: dict[str, EngineSpec] = {
         EngineSpec("baseline-wespeaker", "Baseline WeSpeaker", "baseline", "EXP-0015", BASELINE_STEPS, True, False),
         EngineSpec("pyannote-community-1", "pyannote community-1", "pyannote-community-1", "EXP-0007",
                    PYANNOTE_STEPS, False, True),
+        EngineSpec("nemotron-3", "Nemotron 3 Diarization", "nemotron3-diarization", "EXP-0027",
+                   NEMOTRON_STEPS, True, False, auto_only=True, max_speakers=8,
+                   step_labels=(("detection", "Réseau de bout en bout"),
+                                ("analyse", "Caractéristiques du réseau"),
+                                ("sous_processus", "Sous-processus (total, échanges compris)"))),
     )
 }
 
@@ -112,6 +133,10 @@ def _speaker_default(spec: EngineSpec, value, where: str) -> dict:
     if not isinstance(value, dict) or value.get("mode") not in ("automatique", "impose", "fourchette"):
         raise DemoConfigError(f"{where} : « mode » vaut automatique, impose ou fourchette.")
     mode = value["mode"]
+    if spec.auto_only and mode != "automatique":
+        raise DemoConfigError(f"{where} : {spec.label} estime seul le nombre de locuteurs "
+                              f"({spec.max_speakers} au plus) ; retirez « nombre_locuteurs » ou mettez "
+                              "« mode: automatique ».")
 
     def count(name: str) -> int:
         number = value.get(name)
@@ -205,6 +230,11 @@ FIXED_OVERHEAD: dict[tuple[str, str], FixedOverhead] = {
 }
 
 
+# Surcoût à mesurer avec le vrai moteur (scripts/measure_overhead.py), à la fusion : Nemotron 3
+# n'a été intégré qu'avec le moteur factice. D'ici là, l'annonce le dit « non mesuré ».
+OVERHEAD_TO_MEASURE = {("nemotron-3", "cpu")}
+
+
 def fixed_overhead(key: str, device: str) -> FixedOverhead | None:
     """Surcoût fixe mesuré du moteur `key` sur `device`, ou None s'il n'a pas été mesuré."""
     return FIXED_OVERHEAD.get((key, device))
@@ -259,10 +289,12 @@ def model_revisions(spec: EngineSpec, root: Path = EXPERIMENTS_DIR) -> dict[str,
     """Révisions figées des modèles pré-entraînés du moteur (D18, amendement du 01/11) :
     {dépôt : commit}. La baseline MFCC n'en utilise aucun."""
     from whospoke import embeddings
-    from whospoke.pipelines import pyannote_community1
+    from whospoke.pipelines import nemotron3, pyannote_community1
 
     if spec.pipeline == pyannote_community1.PyannoteCommunity1.name:
         return {pyannote_community1.MODEL_ID: pyannote_community1.MODEL_REVISION}
+    if spec.pipeline == nemotron3.Nemotron3Diarization.name:
+        return {nemotron3.MODEL_ID: nemotron3.MODEL_REVISION}
     representation = (source_config(spec, root)["pipeline"].get("parametres") or {}).get("representation")
     return {
         "ecapa": {embeddings.ECAPA_SOURCE: embeddings.ECAPA_REVISION},
@@ -296,6 +328,11 @@ def build_engine(spec: EngineSpec, device: str, root: Path = EXPERIMENTS_DIR) ->
         from whospoke.pipelines.baseline import Baseline
 
         return Baseline(device="cpu", **params)
+    if spec.pipeline == "nemotron3-diarization":
+        # Enveloppe existante : environnement séparé, sous-processus, CPU (EXP-0027).
+        from whospoke.pipelines.nemotron3 import Nemotron3Diarization
+
+        return Nemotron3Diarization(device="cpu", speaker_mode="estime", **params)
     from whospoke.pipelines.pyannote_community1 import PyannoteCommunity1
 
     return PyannoteCommunity1(device=device, **params)

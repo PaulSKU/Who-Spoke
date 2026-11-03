@@ -197,6 +197,10 @@ textarea:focus-visible { outline: none !important; }
 input[type="number"]:focus,
 input[type="text"]:not([role="combobox"]):focus,
 textarea:focus { box-shadow: var(--ws-ring-focus) !important; }
+/* Un seul style de champ (retour du cockpit sur B14) : la liste déroulante prend la bordure
+   des champs numériques, --ws-control-line, au contraste d'au moins 3:1 (WCAG 1.4.11) ;
+   Gradio lui donnait la teinte des filets. */
+.wrap:has(input[role="combobox"]) { border-color: var(--ws-control-line) !important; }
 .wrap:has(input[role="combobox"]:focus) { box-shadow: var(--ws-ring-focus) !important; }
 
 /* Cases et radios (B14) : case visible de 18 px, zone cliquable d'au moins 24 px de haut,
@@ -512,6 +516,16 @@ button.primary:active, button.secondary:active { transform: scale(0.97); }
 .pl-n-rev { fill: var(--ws-slate); font-size: 10px; font-family: var(--font-mono); }
 .pl-n-badge { fill: var(--ws-ink); font-size: 10px; }
 .pl-n-shape { fill: var(--ws-slate); font-size: 10.5px; }
+/* Système de bout en bout mis en regard des systèmes en cascade (Nemotron 3). */
+.pl-cascades { margin: var(--ws-space-4) 0 0; }
+.pl-cascades-head { margin: 0 0 var(--ws-space-2); font-size: 0.9rem; }
+.pl-cascades-svg { display: block; width: 100%; height: auto; }
+.pl-cas-chip { fill: var(--ws-surface); stroke: var(--ws-control-line); stroke-width: 1; }
+.pl-cas-e2e { stroke: var(--ws-ink); stroke-width: 2; }
+.pl-cas-text { fill: var(--ws-ink); font-size: 11.5px; }
+.pl-cas-strong { font-weight: 600; }
+.pl-cas-label { fill: var(--ws-ink); font-size: 12px; font-weight: 600; }
+.pl-cas-kind { fill: var(--ws-slate); font-size: 11px; }
 .pl-n-meta { fill: var(--ws-slate); font-size: 10px; }
 .pl-arrow { stroke: var(--ws-slate); stroke-width: 1.5; }
 .pl-arrow-dash { stroke-dasharray: 4 3; }

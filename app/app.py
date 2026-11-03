@@ -963,8 +963,9 @@ def _times_html(result: dict | None) -> str:
     else:
         loading = "déjà chargé" if result["chargement_s"] is None else f"{_num(result['chargement_s'], 2)}\u202fs"
     rows.append(("Chargement du modèle", loading))
-    rows += [(STEP_LABELS.get(step, step), f"{_num(seconds, 2)}\u202fs")
-             for step, seconds in result["durees_etapes"].items()]
+    spec = moteurs.SPECS.get(result.get("moteur_cle", ""))
+    rows += [(spec.step_label(step, STEP_LABELS.get(step, step)) if spec else STEP_LABELS.get(step, step),
+              f"{_num(seconds, 2)}\u202fs") for step, seconds in result["durees_etapes"].items()]
     body = "".join(f'<tr><td>{escape(label)}</td><td class="num">{value}</td></tr>' for label, value in rows)
     body += f'<tr><td class="strong">Calcul total</td><td class="num strong">{_num(result["calcul_s"], 2)}\u202fs</td></tr>'
     rtf = result["calcul_s"] / result["duree_s"] if result["duree_s"] else 0.0
@@ -1230,12 +1231,29 @@ def _config_html(demo: moteurs.DemoConfig, engine_key: str) -> str:
             f'{excluded}</p>')
 
 
+# Comparaison proposée par défaut : Nemotron 3 contre pyannote (D29 : l'autre moteur reste
+# proposé pour la comparaison, quel que soit le moteur de démonstration).
+COMPARISON_PAIR = ("nemotron-3", "pyannote-community-1")
+
+
 def _second_engine(specs: dict, default: str) -> str:
-    """Second moteur proposé en comparaison : la baseline ECAPA si elle est retenue, sinon le
-    premier autre moteur retenu (le moteur par défaut s'il est seul)."""
+    """Second moteur proposé en comparaison : l'autre moteur de la paire Nemotron 3 –
+    pyannote si les deux sont retenus et que le moteur par défaut en est un ; sinon la
+    baseline ECAPA, sinon le premier autre moteur retenu (le moteur par défaut s'il est seul)."""
+    if default in COMPARISON_PAIR and all(key in specs for key in COMPARISON_PAIR):
+        return next(key for key in COMPARISON_PAIR if key != default)
     if "baseline-ecapa" in specs and default != "baseline-ecapa":
         return "baseline-ecapa"
     return next((key for key in specs if key != default), default)
+
+
+def _auto_only_note(spec: moteurs.EngineSpec, mode: str) -> str | None:
+    """Message quand un moteur qui estime seul le nombre de locuteurs reçoit « Imposé » ou
+    « Fourchette » ; None sinon."""
+    if not spec.auto_only or mode == "Automatique":
+        return None
+    return (f"{spec.label} estime seul le nombre de locuteurs ({spec.max_speakers} au plus) : "
+            f"« {mode} » ne s'applique pas à lui, il analyse en automatique.")
 
 
 THEMES = (("clair", "Clair"), ("sombre", "Sombre"), ("systeme", "Système"))
@@ -1294,7 +1312,8 @@ def _shown_path(path: Path) -> str:
 def _cache_info_html(store: ResultCache) -> str:
     count, size = store.stats()
     amount = "aucun résultat" if not count else f"{count} résultat{'s' if count > 1 else ''}, {formatage.taille(size)}"
-    return (f'<p class="ws-caption">Cache : {amount}, dans <code>{escape(_shown_path(store.directory))}</code>. '
+    # Classe ws-cache-info : masquée dans les captures de référence (le compte change).
+    return (f'<p class="ws-caption ws-cache-info">Cache : {amount}, dans <code>{escape(_shown_path(store.directory))}</code>. '
             "Ni audio ni nom de fichier : segments, durées et réglages seulement.</p>")
 
 
@@ -1388,6 +1407,9 @@ VIEWER_TEMPLATE = (
 )
 
 ENGINE_INFO_DEVICE = "auto : CUDA, puis MPS, puis CPU (D15)."
+# Périphérique imposé, et pourquoi (clé None : baseline).
+CPU_ONLY_INFO = {None: "CPU seul pour ce moteur (D19, D22).",
+                 "nemotron-3": "CPU seul pour ce moteur (en MPS, exception Metal ; EXP-0027)."}
 
 
 # --- Application ----------------------------------------------------------------------
@@ -1463,28 +1485,37 @@ def build_app(fake: bool = False, fake_max_s: float = 20.0, repo_root: Path = RE
         return f"Indisponible : {reason}" if reason else f"Configuration reprise de {spec.source_exp}."
 
     def speaker_modes(key: str) -> list[str]:
-        return list(SPEAKER_MODES if specs[key].supports_range else SPEAKER_MODES[:2])
+        # Moteur à nombre estimé seulement : les trois choix restent, l'interface dit qu'Imposé
+        # et Fourchette ne s'appliquent pas à lui (ils valent pour le second moteur en comparaison).
+        return list(SPEAKER_MODES if specs[key].supports_range or specs[key].auto_only else SPEAKER_MODES[:2])
+
+    def mode_info(key: str, mode: str) -> str | None:
+        return _auto_only_note(specs[key], mode)
 
     def engine_changed(key: str):
         # Nombre de locuteurs : celui que la configuration en vigueur donne pour ce moteur.
         spec = specs[key]
         speakers = demo.speakers[key]
-        device = (gr.update(value="cpu", interactive=False, info="CPU seul pour ce moteur (D19, D22).")
+        device = (gr.update(value="cpu", interactive=False, info=CPU_ONLY_INFO.get(key, CPU_ONLY_INFO[None]))
                   if spec.cpu_only else gr.update(interactive=True, info=ENGINE_INFO_DEVICE))
         fixed = speakers["mode"] == "impose"
         span = speakers["mode"] == "fourchette"
         return (gr.update(info=engine_info(key)),
-                gr.update(choices=speaker_modes(key), value=MODE_LABELS[speakers["mode"]]), device,
+                gr.update(choices=speaker_modes(key), value=MODE_LABELS[speakers["mode"]],
+                          info=mode_info(key, MODE_LABELS[speakers["mode"]])), device,
                 gr.update(value=speakers["valeur"]) if fixed else gr.skip(),
                 gr.update(value=speakers["min"]) if span else gr.skip(),
                 gr.update(value=speakers["max"]) if span else gr.skip(),
                 _details_html(demo, key))
 
-    def mode_changed(mode: str):
-        return gr.update(visible=mode == "Imposé"), gr.update(visible=mode == "Fourchette")
+    def mode_changed(mode: str, key: str):
+        return (gr.update(visible=mode == "Imposé"), gr.update(visible=mode == "Fourchette"),
+                gr.update(info=mode_info(key, mode)))
 
     def speaker_options(spec, mode, k, k_min, k_max):
         """(nombre imposé, configuration consignée) ; erreur explicite si le moteur ne suit pas."""
+        if spec.auto_only:
+            return None, {"mode": "automatique"}
         if mode == "Imposé":
             if not k or int(k) < 1:
                 raise gr.Error("Nombre de locuteurs imposé : saisissez un entier supérieur ou égal à 1.")
@@ -1508,8 +1539,10 @@ def build_app(fake: bool = False, fake_max_s: float = 20.0, repo_root: Path = RE
             if availability[engine_key] is not None:
                 raise gr.Error(f"{spec.label} est indisponible ({availability[engine_key]}). "
                                "Choisissez un autre moteur.")
-            note = None
-            if index > 1 and mode == "Fourchette" and not spec.supports_range:
+            note = _auto_only_note(spec, mode)
+            if note is not None:
+                num_speakers, speaker_conf = None, {"mode": "automatique"}
+            elif index > 1 and mode == "Fourchette" and not spec.supports_range:
                 # Comparaison : la fourchette (pyannote seulement, D17, amendement 1) ne
                 # s'applique pas au second moteur, qui estime le nombre de locuteurs (D19).
                 num_speakers, speaker_conf = None, {"mode": "automatique"}
@@ -1682,7 +1715,7 @@ def build_app(fake: bool = False, fake_max_s: float = 20.0, repo_root: Path = RE
             for step in ("chargement", *run["spec"].steps):
                 step_id = f"{run['index']}:{step}"
                 steps.append(step_id)
-                label = PRE_LABELS.get(step) or STEP_LABELS.get(step, step)
+                label = PRE_LABELS.get(step) or run["spec"].step_label(step, STEP_LABELS.get(step, step))
                 labels[step_id] = f"{run['spec'].label} : {label}" if prefix else label
         state: dict[str, float] = {}
 
@@ -1935,15 +1968,21 @@ def build_app(fake: bool = False, fake_max_s: float = 20.0, repo_root: Path = RE
                                               label="Second moteur",
                                               visible=False)
                         mode = gr.Radio(speaker_modes(demo.default_engine), value=MODE_LABELS[initial["mode"]],
-                                        label="Nombre de locuteurs")
+                                        label="Nombre de locuteurs",
+                                        info=mode_info(demo.default_engine, MODE_LABELS[initial["mode"]]))
                         k = gr.Number(value=initial.get("valeur", 2), precision=0, minimum=1, label="Nombre imposé",
                                       visible=initial["mode"] == "impose")
                         with gr.Row(visible=initial["mode"] == "fourchette") as range_row:
                             k_min = gr.Number(value=initial.get("min", 2), precision=0, minimum=1, label="Minimum")
                             k_max = gr.Number(value=initial.get("max", 6), precision=0, minimum=1, label="Maximum")
                         # Réglage secondaire : masqué en mode présentation (B8).
-                        device = gr.Dropdown(list(DEVICES), value="auto", label="Périphérique",
-                                             info=ENGINE_INFO_DEVICE, elem_classes="ws-secondary")
+                        # Moteur par défaut en CPU seul (Nemotron 3) : périphérique imposé d'emblée.
+                        cpu_only = specs[demo.default_engine].cpu_only
+                        device = gr.Dropdown(list(DEVICES), value="cpu" if cpu_only else "auto", label="Périphérique",
+                                             interactive=not cpu_only,
+                                             info=(CPU_ONLY_INFO.get(demo.default_engine, CPU_ONLY_INFO[None])
+                                                   if cpu_only else ENGINE_INFO_DEVICE),
+                                             elem_classes="ws-secondary")
                         reference = gr.File(label="Référence RTTM (facultative, pour le DER)",
                                             file_types=[".rttm"], type="filepath", height=150,
                                             elem_classes="ws-reference")
@@ -2073,7 +2112,7 @@ def build_app(fake: bool = False, fake_max_s: float = 20.0, repo_root: Path = RE
                                                      progress_queue])
         progress_timeline.click(show_notes, None, [notes_view, notes_card])
         progress_learned.click(show_notes, None, [notes_view, notes_card])
-        mode.change(mode_changed, mode, [k, range_row])
+        mode.change(mode_changed, [mode, engine], [k, range_row, mode])
 
         # Durée annoncée : recalculée à chaque changement de fichier ou de réglage.
         settings_inputs = [engine, compare, engine2, mode, k, k_min, k_max, device, use_cache]

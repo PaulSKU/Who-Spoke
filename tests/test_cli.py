@@ -131,3 +131,13 @@ def test_moteur_inconnu(tmp_path):
     with pytest.raises(SystemExit) as error:
         cli.main(["diarize", str(tmp_path / "a.wav"), "--moteur", "inconnu"], environ={})
     assert error.value.code == 2
+
+
+def test_nemotron_3_en_automatique_seulement(tmp_path, capsys):
+    """Nemotron 3 Diarization (D29) : nombre de locuteurs estimé seulement, 8 au plus."""
+    audio = tmp_path / "a.wav"
+    audio.write_bytes(b"")
+    for value in ("3", "2-6"):
+        assert cli.main(["diarize", str(audio), "--moteur", "nemotron-3", "--locuteurs", value], environ={}) == 1
+        assert "estime seul le nombre de locuteurs (8 au plus)" in capsys.readouterr().err
+
