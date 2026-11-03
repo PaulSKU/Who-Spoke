@@ -1,7 +1,7 @@
 ---
 id: EXP-0035
 question: "Le seuil retenu sur SUMM-RE dev dégrade-t-il Nemotron 3 sur les conditions de D24 (règle 4 de D25) ?"
-verdict: en_cours
+verdict: retenu
 decisions: [D25, D29]
 ---
 
@@ -65,4 +65,4 @@ RTF de 0,0103 à 0,0115 selon la condition, CPU. Contrôle d'arbre propre : à l
 
 ## Interprétation (cockpit)
 
-À rédiger.
+Le gain se retrouve dans les 7 conditions de D24 (de −0,33 à −0,76 point sans collar, significatif partout ; avec collar, partout sauf en cod08), sans dégradation. Le réglage est robuste aux dégradations.

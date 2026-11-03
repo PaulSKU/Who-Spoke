@@ -1406,3 +1406,8 @@ Résultats (écart à la référence, bootstrap apparié, test) :
 Décisions : aucune.
 Problèmes : `charge_concurrente` true sur les trois expériences (charge sur 1 min jusqu'à 11,1) ; RTF de 0,0103 à 0,0115.
 Suite : interprétation et verdicts d'EXP-0033 à 0035 ; si le seuil 0,35 est retenu, report dans l'application (moteur `nemotron-3`, expérience source et RTTM du mode factice) et dans les constats C18 et C19 ; application de la règle de D29 le 9/11.
+
+## 2026-11-04 — Interprétation du seuil de Nemotron 3 (EXP-0033 à 0035) (cockpit)
+
+Résultats : seuil de 0,35 réglé sur SUMM-RE dev ; gains faibles et significatifs sur SUMM-RE test (−0,37), AMI (−1,04) et les 7 conditions de D24 ; écart à pyannote sur AMI encore de +6,5 points.
+Décisions : EXP-0033 à 0035 retenues ; seuil de 0,35 adopté pour Nemotron 3 (application : expérience source EXP-0033) ; constats C19 mis à jour et C21 ajouté ; amendement du 04/11 de D29 (condition 2 non remplie par AMI, le corpus maison tranche) ; fin des expériences sur corpus publics.

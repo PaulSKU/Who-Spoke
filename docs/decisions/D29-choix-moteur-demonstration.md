@@ -47,6 +47,16 @@ Il est écarté de l'évaluation. Il s'installe, mais tourne à un RTF de 2,1 en
 
 Fixer la règle avant les résultats du corpus maison empêche de choisir le moteur après coup. La règle donne au corpus maison, seul test réel en français et en champ lointain, le dernier mot. Elle ne retient pas pour autant un moteur qui serait nettement moins bon en champ lointain sans explication.
 
+## Amendement du 04/11/2026 — bilan du diagnostic
+
+Statut : actée
+
+- **Niveau d'entrée.** Écarté : une normalisation sans effet (EXP-0029 à 0032), et une corrélation expliquée par les salles d'AMI (A-0004).
+- **Seuil de décision.** Retenu à 0,35, réglé sur SUMM-RE dev. Il donne un gain faible mais significatif partout (EXP-0033 à 0035). Nemotron 3 est désormais évalué et proposé avec ce seuil.
+- **Condition 2.** Elle n'est pas remplie par AMI : l'écart à pyannote reste de +6,5 points [+4,8 ; +8,2], dû à une parole manquée environ deux fois plus forte. L'écart est caractérisé (prudence générale du modèle, amplifiée en champ lointain), mais sa cause n'est pas identifiée.
+
+Conformément au §2, c'est le corpus maison qui tranche : Nemotron 3 n'est retenu que si son avantage en français se confirme en salle réelle et si sa parole manquée n'y réapparaît pas. On ne lance plus d'autre expérience sur les corpus publics.
+
 ## Liens
 
 D23, D24, D25, D17 ; EXP-0001, EXP-0007, EXP-0020, EXP-0026 à EXP-0028 ; `docs/corpus.md` §9.

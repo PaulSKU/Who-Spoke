@@ -1,7 +1,7 @@
 ---
 id: EXP-0033
 question: "Le seuil de décision de Nemotron 3 réglé sur SUMM-RE dev réduit-il son DER sur SUMM-RE ?"
-verdict: en_cours
+verdict: retenu
 decisions: [D25, D29]
 ---
 
@@ -40,4 +40,4 @@ RTF 0,0104 (dev) et 0,0108 (test), CPU. Contrôle d'arbre propre : à l'exécuti
 
 ## Interprétation (cockpit)
 
-À rédiger.
+Le seuil de décision de Nemotron 3, réglé sur SUMM-RE dev seulement (minimum à 0,35, à l'intérieur de la grille de 0,20 à 0,80), apporte un gain faible mais net sur SUMM-RE test : −0,37 point sans collar, 35 fichiers sur 37 améliorés, −0,16 avec collar. Il échange un peu de parole manquée (11,6 → 10,6 points) contre un peu de fausse alarme (1,9 → 2,5). Les quatre règles de D25 sont respectées (EXP-0034 et EXP-0035). Le seuil de 0,35 est retenu pour Nemotron 3.

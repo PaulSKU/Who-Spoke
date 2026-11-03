@@ -6,7 +6,7 @@
 # sources (expériences ou analyses) ; confiance (certain | probable | incertain) ; cle (vrai = repris dans l'encadré).
 
 version: 1
-date: 2026-11-03
+date: 2026-11-04
 
 constats:
   - id: C01
@@ -156,8 +156,8 @@ constats:
   - id: C19
     etape: segmentation
     moteurs: [nemotron-3]
-    texte: "Sur AMI (anglais, micro distant), Nemotron 3 fait moins bien que pyannote (27,5 contre 19,9 %) : il manque beaucoup plus de parole, même hors chevauchement, indépendamment de la durée des réunions ; la cause est en cours de diagnostic (D29)."
-    sources: [EXP-0026]
+    texte: "Sur AMI (anglais, micro distant), Nemotron 3 fait moins bien que pyannote (27,5 contre 19,9 %) : il manque environ deux fois plus de parole, même hors chevauchement. Ni la durée des réunions, ni le niveau d'enregistrement, ni le seuil de décision ne l'expliquent : avec le seuil réglé, l'écart reste de +6,5 points."
+    sources: [EXP-0026, EXP-0034, A-0004]
     confiance: certain
     cle: true
 
@@ -167,5 +167,13 @@ constats:
     texte: "La parole manquée de Nemotron 3 sur AMI est fortement corrélée au niveau d'enregistrement (rang −0,70), mais amplifier le signal jusqu'à +19 dB ne la change pas : le niveau n'est pas la cause. Dans toutes les salles d'AMI, Nemotron 3 manque environ 2,4 fois plus de parole que pyannote : il est globalement plus prudent, et le champ lointain l'accentue."
     sources: [A-0004, EXP-0029, EXP-0031]
     confiance: probable
+    cle: false
+
+  - id: C21
+    etape: segmentation
+    moteurs: [nemotron-3]
+    texte: "Régler le seuil de décision de Nemotron 3 sur SUMM-RE dev (0,35 au lieu de 0,5) l'améliore un peu partout, en français (−0,4 point), sur AMI (−1,0) et dans les 7 conditions dégradées : il manque moins de parole, au prix d'un peu plus de fausse alarme."
+    sources: [EXP-0033, EXP-0034, EXP-0035]
+    confiance: certain
     cle: false
 

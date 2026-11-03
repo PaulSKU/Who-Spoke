@@ -1,7 +1,7 @@
 ---
 id: EXP-0034
 question: "Le seuil retenu sur SUMM-RE dev dégrade-t-il Nemotron 3 sur AMI (règle 3 de D25) ?"
-verdict: en_cours
+verdict: retenu
 decisions: [D25, D29]
 ---
 
@@ -40,4 +40,4 @@ RTF 0,0103, CPU. Contrôle d'arbre propre : à l'exécution et à l'évaluation 
 
 ## Interprétation (cockpit)
 
-À rédiger.
+Sur AMI, le seuil réglé sur le français améliore aussi Nemotron 3 (−1,04 point, avec et sans collar) : le réglage n'est pas propre à SUMM-RE, il se transporte. L'écart à pyannote se réduit, mais reste net : +6,5 points [+4,8 ; +8,2], et Nemotron 3 manque encore deux fois plus de parole (22,5 contre 11,2 points). Le seuil n'explique donc qu'une petite part de sa prudence en champ lointain. Après le diagnostic de D29 §1 (ni le niveau, ni la durée des réunions, ni le seuil), la condition 2 de D29 n'est pas remplie par AMI : c'est le corpus maison qui tranche (conditions 2 et 3).
