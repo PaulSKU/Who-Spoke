@@ -1386,3 +1386,7 @@ Suite : interprétation et verdicts d'EXP-0029 à 0032 par le cockpit ; décisio
 
 Résultats : aucun effet significatif de la normalisation ; la parole manquée de Nemotron 3 sur AMI ne bouge pas, même avec +19 dB. La forte corrélation entre niveau et parole manquée (−0,70 sur AMI) vient des salles d'enregistrement (EN, ES, TS), plus difficiles pour les deux systèmes. Dans chaque salle, Nemotron 3 manque environ 2,4 fois plus de parole que pyannote.
 Décisions : hypothèse du niveau abandonnée, pas de nouvel essai sans garde de crête ; normalisation non retenue (EXP-0029 et 0030 écartées, 0031 et 0032 informatives) ; constat C20 ; étape 3 de D29 §1 (seuil de décision de Nemotron 3 réglé sur SUMM-RE dev) lancée, bornée à 2 h.
+
+## 2026-11-03 — Annotation du corpus maison (cockpit)
+
+Décision de la candidate : annotation entièrement manuelle dans Audacity, sans aucune pré-annotation (ni par un moteur comparé, ni par une détection de parole seule), pour une référence indépendante de tout système. La chaîne d'E2 sert à partir de l'import des étiquettes (conversion, fusion à 200 ms, UEM, contrôle qualité).
