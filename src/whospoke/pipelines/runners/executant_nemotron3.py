@@ -5,6 +5,10 @@ Lancé par `whospoke.pipelines.nemotron3` ; configuration en premier argument (J
 (`is_streaming=False`) du fichier entier, puis `processor.extract_speaker_dict` (sigmoïde
 par trame de 10 ms au-dessus du seuil ; chevauchements conservés). Les locuteurs sont
 numérotés dans l'ordre de première prise de parole.
+
+Requête : `entree`, `sortie`, `uri`, et facultativement `seuil` (remplace celui de la
+configuration) ou `sorties` (liste de `{seuil, sortie}` : balayage du seuil, D19 §4, le
+réseau ne passe qu'une fois et chaque seuil écrit son RTTM).
 """
 
 import os
@@ -62,9 +66,12 @@ def handle(state, request):
     if state["device"] == "mps":
         torch.mps.synchronize()
     inference_s = time.perf_counter() - start
-    segments = processor.extract_speaker_dict(logits, inputs.attention_mask, threshold=state["seuil"])[0]
-    protocole.write_rttm(request["sortie"], request["uri"],
-                         [(s["Start"], s["End"], f"SPK_{s['Speaker']:02d}") for s in segments])
+    # Balayage (D19 §4) : un seul passage du réseau, une sortie par seuil.
+    outputs = request.get("sorties") or [{"seuil": request.get("seuil", state["seuil"]), "sortie": request["sortie"]}]
+    for output in outputs:
+        segments = processor.extract_speaker_dict(logits, inputs.attention_mask, threshold=float(output["seuil"]))[0]
+        protocole.write_rttm(output["sortie"], request["uri"],
+                             [(s["Start"], s["End"], f"SPK_{s['Speaker']:02d}") for s in segments])
     return {"durees": {"analyse": round(features_s, 3), "detection": round(inference_s, 3)},
             "n_trames": int(logits.shape[1])}
 

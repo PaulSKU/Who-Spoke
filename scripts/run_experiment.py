@@ -37,6 +37,8 @@ Clés de `config.yaml` lues ici (D19) :
   fait avec cette seule valeur. Pour θ de la baseline, l'analyse, la détection, la
   segmentation, les représentations et la matrice de liaison sont calculées une seule
   fois par fichier ; seule la coupe et l'attribution sont refaites pour chaque valeur.
+  Pour le seuil de décision de Nemotron 3 (`threshold`, D29 §1), le réseau passe une fois
+  par fichier et sa sortie est binarisée à chaque valeur.
 
 Fenêtres trop courtes (D22) : avec une représentation neuronale, une fenêtre dont la
 parole est plus courte que la longueur minimale du modèle d'empreintes est retirée du
@@ -227,11 +229,16 @@ def run_sweep(config: dict, pipeline, exp_dir: Path, logger: logging.Logger) -> 
     jeux = [jeu for jeu in config["jeux"] if jeu["partition"] == spec["partition"]]
     if spec["partition"] == "test" or len(jeux) != 1:
         sys.exit(f"Balayage : une seule partition de réglage attendue, jamais test ({spec['partition']!r})")
-    if not (isinstance(pipeline, Baseline) and parameter == "theta"):
+    values = sweep_values(spec)
+    # Réglages balayables : θ de la baseline, seuil de décision de Nemotron 3 (D29 §1).
+    if isinstance(pipeline, Baseline) and parameter == "theta":
+        extra = {}
+    elif isinstance(pipeline, Nemotron3Diarization) and parameter == "threshold":
+        extra = {"thresholds": values}
+    else:
         sys.exit(f"Balayage de {parameter!r} non pris en charge pour {pipeline.name}")
     jeu = jeux[0]
     corpus, partition = jeu["corpus"], jeu["partition"]
-    values = sweep_values(spec)
     logger.info("balayage de %s sur %s/%s : %d valeurs de %s à %s", parameter, corpus, partition,
                 len(values), values[0], values[-1])
 
@@ -241,7 +248,7 @@ def run_sweep(config: dict, pipeline, exp_dir: Path, logger: logging.Logger) -> 
         waveform, sample_rate = load_waveform(processed_wav(corpus, uri))
         num_speakers, speech = oracle_inputs(config, corpus, uri)
         truth = (load_rttm(reference_rttm(corpus, uri), uri), load_uem(uem_path(corpus, uri), uri))
-        prep = pipeline.prepare(waveform, sample_rate, uri=uri, speech=speech)
+        prep = pipeline.prepare(waveform, sample_rate, uri=uri, speech=speech, **extra)
         if prep.n_too_short:
             logger.warning("balayage : %s, %d fenêtres trop courtes pour le modèle d'empreintes, "
                            "retirées du regroupement", uri, prep.n_too_short)
@@ -255,7 +262,7 @@ def run_sweep(config: dict, pipeline, exp_dir: Path, logger: logging.Logger) -> 
         evaluator = DiarizationEvaluator()
         counts = []
         for prep, num_speakers, (reference, uem) in prepared:
-            annotation = pipeline.finish(prep, theta=value, num_speakers=num_speakers).annotation
+            annotation = pipeline.finish(prep, num_speakers=num_speakers, **{parameter: value}).annotation
             result = evaluator.add(reference, annotation, uem=uem)
             counts.append((result["n_locuteurs"]["reference"], result["n_locuteurs"]["hypothese"]))
         row = sweep_row(value, evaluator.report(), counts)

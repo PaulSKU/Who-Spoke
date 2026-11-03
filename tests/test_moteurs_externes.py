@@ -41,6 +41,11 @@ def load(config):
 
 
 def handle(config, request):
+    if "sorties" in request:      # balayage du seuil : un locuteur de plus à chaque seuil
+        for index, output in enumerate(request["sorties"]):
+            protocole.write_rttm(output["sortie"], request["uri"],
+                                 [(float(k), float(k) + 0.5, f"SPK_{{k:02d}}") for k in range(index + 1)])
+        return {{"durees": {{"detection": 0.01}}, "seuils": [o["seuil"] for o in request["sorties"]]}}
     if request["uri"] == "plante":
         raise ValueError("fichier illisible")
     if request["uri"] == "meurt":
@@ -126,6 +131,30 @@ def test_nemotron_refuse_nombre_impose_et_parole_oracle(runner):
         with pytest.raises(ValueError, match="oracle"):
             engine.run(signal(), SR, uri="a", speech=Timeline([Segment(0, 1)]))
         assert {s.name: s.origin for s in engine.describe()["detection"]}["nemotron.seuil"] == "experience"
+    finally:
+        engine.close()
+
+
+def test_nemotron_balayage_du_seuil_un_seul_passage(runner):
+    engine = nemotron3.Nemotron3Diarization(python=sys.executable, runner=runner)
+    try:
+        prepared = engine.prepare(signal(4.0), SR, uri="summre__essai", thresholds=[0.3, 0.35, 0.4])
+        assert sorted(prepared.annotations) == [0.3, 0.35, 0.4] and prepared.n_too_short == 0
+        assert "sous_processus" in prepared.durations
+        result = engine.finish(prepared, threshold=0.35)
+        assert result.annotation.uri == "summre__essai" and sorted(result.annotation.labels()) == ["SPK_00", "SPK_01"]
+        with pytest.raises(ValueError, match="nombre de locuteurs"):
+            engine.finish(prepared, threshold=0.3, num_speakers=2)
+        with pytest.raises(ValueError, match="au moins un seuil"):
+            engine.prepare(signal(), SR, uri="a")
+        # Valeur retenue : transmise à l'exécutant à chaque requête, origine « experience ».
+        sent, request = [], engine._process.request
+        engine._process.request = lambda message: sent.append(message) or request(message)
+        engine.set_param("threshold", 0.35)
+        assert engine.run(signal(2.0), SR, uri="b").annotation.labels() and sent[-1]["seuil"] == 0.35
+        assert {s.name: s.origin for s in engine.describe()["detection"]}["nemotron.seuil"] == "experience"
+        with pytest.raises(ValueError, match="seul threshold"):
+            engine.set_param("theta", 0.5)
     finally:
         engine.close()
 
