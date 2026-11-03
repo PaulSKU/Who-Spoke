@@ -1390,3 +1390,19 @@ Décisions : hypothèse du niveau abandonnée, pas de nouvel essai sans garde de
 ## 2026-11-03 — Annotation du corpus maison (cockpit)
 
 Décision de la candidate : annotation entièrement manuelle dans Audacity, sans aucune pré-annotation (ni par un moteur comparé, ni par une détection de parole seule), pour une référence indépendante de tout système. La chaîne d'E2 sert à partir de l'import des étiquettes (conversion, fusion à 200 ms, UEM, contrôle qualité).
+
+## 2026-11-03 — Seuil de décision de Nemotron 3 (D29 §1, hypothèse 2) (Claude Code)
+
+Objectif : régler le seuil de décision de Nemotron 3 sur SUMM-RE dev seulement, puis l'évaluer sur les tests et sur AMI selon les règles de D25 ; borné à 2 h (journal du cockpit), de 20:10 à 21:52 ; sous `caffeinate -i`, sur secteur.
+Réalisé :
+- Balayage du seuil de Nemotron 3 dans `scripts/run_experiment.py` (`balayage.parametre: threshold`) : le réseau passe une fois par fichier et sa sortie est binarisée à chaque valeur (`Nemotron3Diarization.prepare`, `finish`, `set_param` ; l'exécutant accepte `seuil` ou `sorties`) ; test dans `tests/test_moteurs_externes.py` (`f78a220`, 709 tests).
+- EXP-0033 : grille de 0,20 à 0,80 au pas de 0,05 sur SUMM-RE dev, DER sans collar le plus bas (D19 §4) ; 0,35 retenu (10,28 %, contre 10,50 % à 0,5), valeur intérieure. Contrôle : la ligne 0,5 redonne EXP-0027 dev.
+- EXP-0034 (AMI) et EXP-0035 (7 conditions de D24) au seuil 0,35, sans réglage sur ces jeux.
+Résultats (écart à la référence, bootstrap apparié, test) :
+- EXP-0033 (SUMM-RE, réf. EXP-0027) : DER 14,25 % contre 14,62 %, −0,37 [−0,45 ; −0,28], 35 fichiers améliorés sur 37 ; avec collar −0,16 [−0,24 ; −0,08] ; dev −0,22 [−0,37 ; −0,03]. Parole manquée 10,61 contre 11,61, fausse alarme 2,53 contre 1,91.
+- EXP-0034 (AMI, réf. EXP-0026) : 26,44 % contre 27,47 %, −1,04 [−1,39 ; −0,65] ; avec collar −1,03 [−1,35 ; −0,70] ; dev −0,67 [−0,93 ; −0,48]. Parole manquée 22,51 contre 24,93. Face à pyannote (EXP-0001) : +6,51 [+4,77 ; +8,23].
+- EXP-0035 (D24, réf. EXP-0028) : gain sans collar significatif dans les 7 conditions, de −0,33 (rev04) à −0,76 (bru05) ; avec collar, significatif dans 6 conditions, cod08 −0,19 [−0,36 ; +0,04].
+- Règles de D25 : 1 (gain significatif sur SUMM-RE test), 2 (aucune dégradation avec collar), 3 (AMI) et 4 (D24) vérifiées dans les sorties ; verdicts laissés au cockpit.
+Décisions : aucune.
+Problèmes : `charge_concurrente` true sur les trois expériences (charge sur 1 min jusqu'à 11,1) ; RTF de 0,0103 à 0,0115.
+Suite : interprétation et verdicts d'EXP-0033 à 0035 ; si le seuil 0,35 est retenu, report dans l'application (moteur `nemotron-3`, expérience source et RTTM du mode factice) et dans les constats C18 et C19 ; application de la règle de D29 le 9/11.
