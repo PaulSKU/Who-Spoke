@@ -1238,6 +1238,9 @@ def _second_engine(specs: dict, default: str) -> str:
     return next((key for key in specs if key != default), default)
 
 
+THEMES = (("clair", "Clair"), ("sombre", "Sombre"), ("systeme", "Système"))
+
+
 def _header_html(fake: bool, status: WarmupStatus | None = None, demo: moteurs.DemoConfig | None = None,
                  engine_key: str | None = None, presentation: bool = False) -> str:
     demo = demo or moteurs.demo_config()
@@ -1250,6 +1253,10 @@ def _header_html(fake: bool, status: WarmupStatus | None = None, demo: moteurs.D
                f'aria-pressed="{"true" if presentation else "false"}" '
                'title="Texte et commandes agrandis, contrastes renforcés, réglages secondaires masqués">'
                '<span class="ws-switch-track" aria-hidden="true"></span>Mode présentation</button>')
+    # Thème (B14) : à la place du bouton « Settings » de Gradio ; état posé par theme.js.
+    badges += ('<div class="ws-segmented ws-theme" role="group" aria-label="Thème">'
+               + "".join(f'<button type="button" data-theme="{key}" aria-pressed="false">{label}</button>'
+                         for key, label in THEMES) + "</div>")
     # Configuration et moteur en vigueur : panneau « Détails » à part (V6, `_details_html`),
     # que le redessin de l'en-tête pendant le préchauffage ne referme pas.
     return ('<header class="ws-header"><div><h1>Who Spoke?</h1>'
@@ -2121,10 +2128,11 @@ def build_app(fake: bool = False, fake_max_s: float = 20.0, repo_root: Path = RE
 
 def page_head(presentation: bool = False) -> str:
     """En-tête de page : jetons du système visuel (hors réécriture du CSS par Gradio), renvois du
-    glossaire, puis mode présentation (posé d'emblée si demandé)."""
+    glossaire, mode présentation (posé d'emblée si demandé), sélecteur de thème."""
     flag = "<script>window.WS_PRESENTATION = true;</script>" if presentation else ""
     return (f"{theme.head()}<script>{(STATIC_DIR / 'glossaire.js').read_text()}</script>{flag}"
-            f"<script>{(STATIC_DIR / 'presentation.js').read_text()}</script>")
+            f"<script>{(STATIC_DIR / 'presentation.js').read_text()}</script>"
+            f"<script>{(STATIC_DIR / 'theme.js').read_text()}</script>")
 
 
 def main(argv: list[str] | None = None) -> None:

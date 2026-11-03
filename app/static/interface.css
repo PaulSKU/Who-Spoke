@@ -67,6 +67,14 @@
   box-sizing: border-box; background: transparent; border: 1.5px solid var(--ws-slate);
 }
 
+/* Conteneur des champs de Gradio (`.form`, div.svelte-d5xbca) : il reprend l'arrondi des
+   blocs (--block-radius, celui des cartes, 12 px) et masque son débordement vertical. Ses
+   coins arrondis rognaient donc les coins inférieurs des champs placés à ses bords (option
+   de radio, listes déroulantes, Minimum et Maximum, case du cache), surtout visibles en
+   sombre et sur écran Retina, et coupaient l'anneau de focus (B14). Sans arrondi ni
+   débordement masqué : chaque champ dessine lui-même son cadre. */
+.form { border-radius: 0 !important; overflow: visible !important; }
+
 /* Onglets : soulignement fin, sans couleur. */
 .tab-wrapper, .tab-container { border-bottom: 1px solid var(--ws-line) !important; }
 button[role="tab"] { font-weight: 500 !important; color: var(--ws-slate) !important; }
@@ -168,10 +176,44 @@ button[role="tab"][aria-selected="true"]::after,
 
 /* Focus visible partout, contraste ≥ 3:1, jamais rogné. Gradio retire l'anneau des radios et
    des cases (outline: none) : il est rendu à leur étiquette. */
-:is(button, a, input, textarea, select, [tabindex]):focus-visible {
+button:focus-visible, a:focus-visible, input:focus-visible, textarea:focus-visible, select:focus-visible,
+[tabindex]:focus-visible {
   outline: 2px solid var(--ws-ink) !important; outline-offset: 2px !important;
 }
-label:has(input:focus-visible) { outline: 2px solid var(--ws-ink); outline-offset: 2px; }
+/* Le réécrivain CSS de Gradio préfixe chaque sélecteur par « .gradio-container.gradio-container-N
+   .contain » et coupe aux virgules, même entre parenthèses : ni virgule dans :is() ou :has(),
+   ni sélecteur qui commence lui-même par .gradio-container (sa version préfixée ne correspond
+   plus à rien et perd face aux règles préfixées) (B14). */
+label:has(> input[type="radio"]:focus-visible),
+label:has(> input[type="checkbox"]:focus-visible) { outline: 2px solid var(--ws-ink); outline-offset: 2px; }
+/* Champs encadrés (texte, nombre, liste déroulante) : un seul anneau, celui du système visuel
+   (--ws-ring-focus, 2 px autour du cadre), au lieu du contour du champ plus le cadre de Gradio
+   ou de son étiquette (double cadre, B14). Le champ d'une liste déroulante est sans bordure :
+   l'anneau va à son cadre (.wrap). */
+input[type="number"]:focus-visible,
+input[type="text"]:focus-visible,
+input[role="combobox"]:focus-visible,
+textarea:focus-visible { outline: none !important; }
+input[type="number"]:focus,
+input[type="text"]:not([role="combobox"]):focus,
+textarea:focus { box-shadow: var(--ws-ring-focus) !important; }
+.wrap:has(input[role="combobox"]:focus) { box-shadow: var(--ws-ring-focus) !important; }
+
+/* Cases et radios (B14) : case visible de 18 px, zone cliquable d'au moins 24 px de haut,
+   étiquette comprise (Gradio enveloppe la case dans son étiquette : un clic sur le texte
+   coche). */
+input[type="checkbox"],
+input[type="radio"] { width: 18px !important; height: 18px !important; flex: none; }
+label:has(> input[type="checkbox"]),
+label:has(> input[type="radio"]) { min-height: 24px; cursor: pointer; }
+/* Trois options du nombre de locuteurs sur une ligne malgré la case agrandie. */
+fieldset label:has(> input[type="radio"]) { padding-left: 10px !important; padding-right: 10px !important; }
+
+/* Zones de dépôt (« Fichier audio », « Référence RTTM ») : l'étiquette flotte en haut à gauche
+   du bloc, et le contenu de Gradio (min-height de 240 px) débordait du bloc de 150 px, centré :
+   l'icône passait sous l'étiquette (B14). Contenu à sa hauteur, centré sous l'étiquette. */
+.block:has(> label.float) > .upload-container { padding-top: 30px; }
+.upload-container .wrap { min-height: 0 !important; padding-top: 0; font-size: 0.875rem; line-height: 1.3; }
 
 /* --- Cartes -------------------------------------------------------------------- */
 .ws-card {

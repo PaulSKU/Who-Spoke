@@ -508,20 +508,29 @@ SHAPE_DY = 20     # première ligne de la forme des données, sous les étapes
 # Tailles du mode présentation (interface.css), les plus grandes : le texte coupé pour elles
 # tient aussi en taille normale.
 FONT = {"title": 12.5, "sub": 12, "badge": 11.5, "shape": 12}
+# Largeur moyenne d'un caractère, en em, mesurée dans Chrome sur la police système (B14) :
+# texte courant 0,50 à 0,51 ; nom de modèle en un mot à capitales (« WeSpeakerResNet34 ») 0,60.
+CHAR_EM = {"text": 0.52, "bold": 0.55, "name": 0.6}
+SHAPE_LINE = 13   # interligne des formes des données
+SHAPE_ROW = 2 * SHAPE_LINE + 6   # décalage de la seconde rangée quand les formes alternent
 # Composantes du DER dans le badge d'une étape, en mots courts ; les autres effets (frontières,
 # nombre de locuteurs) restent dans la fiche de l'étape.
 BADGE = {"parole manquée": "manquée", "fausse alarme": "fausse alarme", "confusion": "confusion"}
 CORPORA = {"summre": "SUMM-RE", "ami": "AMI"}
 
 
-def _wrap(text: str, width: float, size: float, bold: bool = False, lines: int = 3) -> list[str]:
-    """Lignes de `text` tenant dans `width` unités (largeur moyenne d'un caractère : 0,52 em,
-    mesurée sur les polices système ; 0,55 em en gras) ; la dernière finit par « … » si le
-    texte dépasse `lines` lignes. Un mot plus long qu'une ligne reste entier."""
-    per_char = size * (0.55 if bold else 0.52)
+def _wrap(text: str, width: float, size: float, bold: bool = False, lines: int = 3, em: float | None = None,
+          cut_words: bool = False) -> list[str]:
+    """Lignes de `text` tenant dans `width` unités (largeur moyenne d'un caractère : CHAR_EM) ;
+    la dernière finit par « … » si le texte dépasse `lines` lignes ; avec `cut_words`, un mot
+    plus long qu'une ligne est coupé de même (sinon il reste entier : titres). Coupure aux seules espaces ordinaires : « 1,5 s », dont l'espace
+    est fine et insécable, ne se sépare pas (B14)."""
+    per_char = size * (em or CHAR_EM["bold" if bold else "text"])
     limit = max(4, int(width / per_char))
     out, current = [], ""
-    for word in text.split():
+    for word in (w for w in text.split(" ") if w):
+        if cut_words and len(word) > limit:
+            word = word[: limit - 1] + "…"
         candidate = f"{current} {word}".strip()
         if len(candidate) <= limit or not current:
             current = candidate
@@ -536,10 +545,13 @@ def _wrap(text: str, width: float, size: float, bold: bool = False, lines: int =
     return out
 
 
-def _text(lines: list[str], x: float, y: float, step: float, cls: str, anchor: str = "start") -> str:
+def _text(lines: list[str], x: float, y: float, step: float, cls: str, anchor: str = "start",
+          tooltip: str = "") -> str:
+    """Texte SVG ; `tooltip` : texte complet en infobulle quand il a été coupé."""
     spans = "".join(f'<tspan x="{x:.1f}" dy="{0 if i == 0 else step}">{escape(line)}</tspan>'
                     for i, line in enumerate(lines))
-    return f'<text class="{cls}" x="{x:.1f}" y="{y:.1f}" text-anchor="{anchor}">{spans}</text>'
+    title = f"<title>{escape(tooltip)}</title>" if tooltip else ""
+    return f'<text class="{cls}" x="{x:.1f}" y="{y:.1f}" text-anchor="{anchor}">{title}{spans}</text>'
 
 
 # Aperçus de 24 px, schématiques et statiques : la page ne dispose pas des données d'un
@@ -593,7 +605,10 @@ def _box(stage: Stage, x: float, y: float, w: float, evaluation: bool = False) -
     inner = w - 2 * pad
     model, revision = _subtitle(stage)
     title = _wrap(stage.label, inner, FONT["title"], bold=True, lines=3)
-    sub = _wrap(model, inner, FONT["sub"], lines=2)
+    # Nom de modèle sur une ligne, coupé en fin, nom complet en infobulle (B14) ; sans modèle,
+    # la famille de l'étape, sur deux lignes au plus.
+    sub = (_wrap(model, inner, FONT["sub"], lines=1, em=CHAR_EM["name"], cut_words=True) if stage.models
+           else _wrap(model, inner, FONT["sub"], lines=2))
     errors = " · ".join(BADGE[e] for e in stage.errors if e in BADGE) if not evaluation else "mesure seulement"
     badge = _wrap(errors or "aucune erreur du DER", inner, FONT["badge"], lines=2)
     parts = [f'<rect class="pl-box{" pl-box-eval" if evaluation else ""}" x="{x:.1f}" y="{y:.1f}" width="{w:.1f}" '
@@ -608,12 +623,32 @@ def _box(stage: Stage, x: float, y: float, w: float, evaluation: bool = False) -
                      f'{escape(stage.number)}</text>')
     parts.append(_text(title, x + pad, y + 46, 15, "pl-n-title"))
     sub_y = y + 46 + 15 * len(title) + 2
-    parts.append(_text(sub, x + pad, sub_y, 13, "pl-n-sub"))
+    parts.append(_text(sub, x + pad, sub_y, 13, "pl-n-sub", tooltip=model if sub != [model] else ""))
     if revision:
         parts.append(f'<text class="pl-n-rev" x="{x + pad:.1f}" y="{sub_y + 13 * len(sub):.1f}">{escape(revision)}</text>')
     parts.append(_preview("evaluation" if evaluation else stage.id, x + pad, y + NODE_H - 64, inner))
     parts.append(_text(badge, x + pad, y + NODE_H - 24, 12, "pl-n-badge"))
     return "".join(parts)
+
+
+def _shape_labels(labels: list[tuple[float, str]], pitch: float, top: float, out: list[str]) -> int:
+    """Formes des données, centrées sous leur flèche, deux lignes au plus (B14). Si l'une
+    d'elles en demande davantage dans l'espace d'une flèche, les étiquettes alternent sur deux
+    rangées : deux voisines d'une même rangée sont à deux flèches l'une de l'autre, chacune a
+    donc le double de largeur, sans chevauchement. Texte coupé : complet en infobulle.
+    Renvoie le nombre de rangées."""
+    size = FONT["shape"]
+    per_char = size * CHAR_EM["text"]
+    rows = 2 if any(len(_wrap(text, pitch - 8, size, lines=99)) > 2 for _, text in labels) else 1
+    width = rows * pitch - 8
+    for index, (center, text) in enumerate(labels):
+        lines = _wrap(text, width, size, lines=2, cut_words=True)
+        half = max(len(line) for line in lines) * per_char / 2
+        center = min(max(center, half + 2), VIEW_W - half - 2)        # dans le cadre du schéma
+        cut = " ".join(lines) != " ".join(w for w in text.split(" ") if w)
+        out.append(_text(lines, center, top + SHAPE_ROW * (index % rows), SHAPE_LINE, "pl-n-shape", "middle",
+                         tooltip=text if cut else ""))
+    return rows
 
 
 def _diagram(page: Page, selected: str) -> str:
@@ -624,6 +659,7 @@ def _diagram(page: Page, selected: str) -> str:
     unit = (VIEW_W - GAP * (len(stages) - 1) - SEP - INNER * inner_gaps - 2 * FRAME * frames) / units
     y = TOP
     nodes, arrows, shapes = [], [], []
+    labels: list[tuple[float, str]] = []     # (milieu de la flèche, forme des données)
     x = 0.0
 
     def tab(stage: Stage, content: str, label: str) -> str:
@@ -638,9 +674,7 @@ def _diagram(page: Page, selected: str) -> str:
         arrows.append(f'<line class="{cls}" x1="{x1 + 2:.1f}" y1="{mid}" x2="{x2 - 6:.1f}" y2="{mid}"/>'
                       f'<path class="pl-arrow-head" d="M{x2 - 7:.1f} {mid - 4} L{x2 - 1:.1f} {mid} L{x2 - 7:.1f} {mid + 4} Z"/>')
         if shape:
-            width = unit + GAP - 8
-            lines = _wrap(shape, width, FONT["shape"], lines=3)
-            shapes.append(_text(lines, (x1 + x2) / 2, y + NODE_H + SHAPE_DY, 13, "pl-n-shape", "middle"))
+            labels.append(((x1 + x2) / 2, shape))
 
     for index, stage in enumerate(stages):
         model, revision = _subtitle(stage)
@@ -678,7 +712,8 @@ def _diagram(page: Page, selected: str) -> str:
                      "Évaluation, mesure seulement : hors du pipeline"))
     separator = (f'<line class="pl-sep-line" x1="{sep_x:.1f}" y1="{y - 22}" x2="{sep_x:.1f}" '
                  f'y2="{y + NODE_H + 6}"/>')
-    height = y + NODE_H + SHAPE_DY + 13 * 3 + 6
+    rows = _shape_labels(labels, unit + GAP, y + NODE_H + SHAPE_DY, shapes)
+    height = y + NODE_H + SHAPE_DY + SHAPE_LINE + SHAPE_ROW * (rows - 1) + SHAPE_LINE + 6
     return (f'<div class="pl-diagram-wrap" role="tablist" aria-label="Étapes du pipeline" aria-orientation="horizontal">'
             f'<svg class="pl-diagram" role="none" viewBox="0 0 {VIEW_W} {height}">{separator}{"".join(arrows)}{"".join(shapes)}{"".join(nodes)}</svg></div>')
 
