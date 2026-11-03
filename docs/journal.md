@@ -1295,3 +1295,11 @@ Décisions : D29. Règle de choix du moteur de démonstration fixée avant le co
 ## 2026-11-03 — A5 : DiariZen écarté (Claude Code)
 
 Décision de la candidate, sur les options du rapport de la piste A : DiariZen est écarté. C'est un échec documenté, dû au calcul et non à l'installation, faite en 8 min 19 s pour une borne de 4 h. En CPU, le RTF est de 2,10 au premier fichier, soit environ 90 h pour AMI et SUMM-RE. En MPS, l'exécution est impossible avec torch 2.1.1, version imposée par DiariZen. Aucune expérience DiariZen n'est lancée. L'environnement `envs/diarizen/` (1,0 Go, non versionné) et les poids restent en place, sans usage. Le planning et D23 sont à mettre à jour par le cockpit.
+
+## 2026-11-03 — Clé du moteur Nemotron 3 et fusion d'ui (cockpit)
+
+Décisions :
+- la clé de l'application `nemotron-3` est validée. Les clés de l'application désignent les moteurs proposés et non les pipelines (déjà le cas de `baseline-ecapa`, dont la pipeline s'appelle `baseline`) ; `docs/constats.yaml` n'est pas modifié ;
+- le test `test_constats_du_depot_principal_bien_formes`, qui échoue sur main, se règle par la fusion d'ui (47e1788) dans main, qui apporte le moteur ; on ne retire pas les constats ;
+- validés pour l'intégration de Nemotron 3 : les trois choix du nombre de locuteurs gardés avec un message (analyse faite en automatique), la mise en regard avec pyannote et la baseline ECAPA, et aucune variante active dans `configs/demo.exemple.yaml` jusqu'à la décision du 9/11 (D29) ;
+- piste B en pause : avis du tuteur du 03/11, plus de polissage de l'interface ; seul reste l'essai au vidéoprojecteur.
