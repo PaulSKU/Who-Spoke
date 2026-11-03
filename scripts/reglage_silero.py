@@ -32,6 +32,11 @@ Déroulé :
    signalé, sans second élargissement.
 5. V3 : sortie exclusive + le réglage retenu pour V2 (D25 : « réglage de V2 repris »).
 
+Option `--racine` : racine du dépôt lu (listes, références, UEM, audio, expériences sources,
+cache de Silero et sortie par défaut), par défaut ce dépôt. Une autre racine sert aux essais
+et aux tests ; elle est consignée dans `reglage.json` (`racine` : « dépôt » ou le chemin) et en
+tête de `reglage.md`, et l'état git n'est relevé que pour ce dépôt.
+
 Sorties dans `--sortie` (par défaut `results/reglage_silero/<date>_<heure>/`) :
 `reglage.json` (tout : sources, fichiers, version de Silero, grille, lignes, choix, état
 git), `grille.csv` (une ligne par point) et `reglage.md` (tableau à reporter dans le
@@ -248,7 +253,8 @@ def markdown(summary: dict) -> str:
         "",
         f"Silero VAD {summary['silero']['version']} (`{summary['silero']['empreinte'][:12]}`) ; "
         f"{len(summary['fichiers'])} fichiers ; sources : V2 `{summary['sources']['v2']}`"
-        + (f", V3 `{summary['sources']['v3']}`" if summary['sources'].get('v3') else "") + ".",
+        + (f", V3 `{summary['sources']['v3']}`" if summary['sources'].get('v3') else "")
+        + f" ; racine : {summary.get('racine', 'dépôt')}.",
         "",
         "| Système | Seuil | Silence min. (s) | Marge (s) | DER sans collar | FA | Manquée | Confusion | DER collar 0,25 | Parole retirée (min) |",
         "|---|---|---|---|---|---|---|---|---|---|",
@@ -314,7 +320,11 @@ def build_parser() -> argparse.ArgumentParser:
     parser.add_argument("--marges", type=floats, default=GRID["marge_s"], help="marge autour de la parole (s)")
     parser.add_argument("--probabilites", action="store_true", help="remplit le cache de Silero, sans grille")
     parser.add_argument("--sortie", type=Path, default=None)
-    parser.add_argument("--racine", type=Path, default=REPO_ROOT, help=argparse.SUPPRESS)  # tests
+    parser.add_argument("--racine", type=Path, default=REPO_ROOT,
+                        help="racine du dépôt lu (listes, références, UEM, audio, expériences sources, cache "
+                             "de Silero et dossier de sortie par défaut) ; défaut : ce dépôt. Une autre racine sert "
+                             "aux essais et aux tests ; elle est consignée dans reglage.json et reglage.md, et l'état "
+                             "git n'est relevé que pour ce dépôt")
     return parser
 
 
@@ -420,6 +430,7 @@ def main(argv: list[str] | None = None, model_loader=silero.load_model, binarize
                             "(décision du cockpit du 02/11)"),
                   "limite_collar_0_25": limit_c25, "elargissement": widening, "alerte": alert},
         "duree_s": round(time.perf_counter() - t0, 1),
+        "racine": "dépôt" if root == REPO_ROOT else str(root),
         "git": git_state() if root == REPO_ROOT else None,
     }
     output = args.sortie or root / "results" / "reglage_silero" / f"{now:%Y-%m-%d_%Hh%M}"

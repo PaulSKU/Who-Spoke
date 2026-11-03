@@ -339,6 +339,9 @@ def test_reglage_de_bout_en_bout(depot, capsys):
     summary = json.loads((out / "reglage.json").read_text())
     assert summary["controle_sources"]["v2"]["conforme"] is True
     assert summary["silero"]["lus_en_cache"] == 2 and summary["silero"]["calcules"] == []
+    # --racine documentée et consignée (D18 : aucune option cachée).
+    assert summary["racine"] == str(depot.resolve()) and summary["git"] is None
+    assert f"racine : {depot.resolve()}" in (out / "reglage.md").read_text()
     # Point retenu au bord (seuil 0,5 et silence 0,2 s, minimums de leur axe) : un élargissement.
     widening = summary["choix"]["elargissement"]
     assert widening["bord_avant"] == {"seuil": "bas", "silence_min_s": "bas"}

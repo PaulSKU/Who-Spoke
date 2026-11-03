@@ -80,6 +80,7 @@ Options : `--moteur` (`pyannote-community-1`, `baseline-mfcc`, `baseline-ecapa`,
 | `experiments/`, `analyses/` | Expériences et analyses a posteriori, avec leur interprétation (`notes.md`) |
 | `docs/journal.md` | Journal de bord |
 | `results/leaderboard.csv` | Une ligne par expérience et par jeu évalué |
+| `results/reglage_silero/` | Réglage de Silero VAD sur SUMM-RE dev (D25), produit par `scripts/reglage_silero.py` (options dans `--help`, dont `--racine` : racine du dépôt lu, consignée dans la sortie) |
 | [`docs/rendu/`](docs/rendu/README.md) | Tableaux et figures du rendu, générés par `scripts/rendu.py` (systèmes, oracles, robustesse, temps) |
 
 ## État d'avancement
