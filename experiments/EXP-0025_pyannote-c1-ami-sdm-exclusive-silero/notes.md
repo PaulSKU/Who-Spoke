@@ -1,7 +1,7 @@
 ---
 id: EXP-0025
 question: "V3 de D25 dégrade-t-elle AMI (règle 3) ?"
-verdict: en_cours
+verdict: ecarte
 decisions: [D25]
 ---
 
@@ -20,6 +20,6 @@ Masque de Silero VAD 6.2.3 (seuil 0,8, silence minimal 0,0 s, marge 0,03 s), ré
 
 Porte l'exécution partagée avec l'expérience V2 ; temps : voir `execution_*.json` (alimentation conforme, charge concurrente relevée).
 
-## Interprétation
+## Interprétation (cockpit)
 
-À rédiger par le cockpit.
+Même conclusion que pour EXP-0024, avec en plus la perte du chevauchement due à la sortie exclusive.

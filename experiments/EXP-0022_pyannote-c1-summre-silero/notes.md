@@ -1,7 +1,7 @@
 ---
 id: EXP-0022
 question: "V2 de D25 (sortie habituelle + masque de Silero) réduit-elle l'erreur de pyannote sur SUMM-RE ?"
-verdict: en_cours
+verdict: ecarte
 decisions: [D25]
 ---
 
@@ -20,6 +20,6 @@ Masque de Silero VAD 6.2.3 (seuil 0,8, silence minimal 0,0 s, marge 0,03 s), ré
 
 Exécution partagée portée par EXP-0023 (V3), qui rapporte le temps ; ce dossier en a le rappel (`execution_partagee.json`).
 
-## Interprétation
+## Interprétation (cockpit)
 
-À rédiger par le cockpit.
+V2 améliore bien SUMM-RE test (−2,60 points, IC [−3,71 ; −1,64]) : la fausse alarme est divisée par deux (11,3 → 5,5 points), sans dégradation significative avec collar. C'était la cible visée (pauses pontées, A-0001). La règle 3 de D25 l'écarte cependant : sur AMI, Silero coupe la parole du micro distant (EXP-0024). Le gain sur SUMM-RE tient à des micros-casques, où la parole est forte et nette ; il ne se transporte pas en champ lointain, qui est la cible. C'est exactement le risque que la règle de D25 devait couvrir. Le point de réglage (seuil 0,8) est resté au bord de la grille : un seuil plus haut couperait encore davantage de parole faible, et n'aurait donc pas changé le verdict sur AMI. La grille n'est pas élargie davantage.

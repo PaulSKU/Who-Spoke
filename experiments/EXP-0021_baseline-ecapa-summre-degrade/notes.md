@@ -1,7 +1,7 @@
 ---
 id: EXP-0021
 question: "Comment la baseline ECAPA se dégrade-t-elle sur SUMM-RE test dégradé (D24) ?"
-verdict: en_cours
+verdict: informatif
 decisions: [D24]
 ---
 
@@ -25,6 +25,11 @@ Propre (EXP-0012, test) : 33,4 % sans collar. Écarts à propre et comparaison �
 
 Exécution en CPU sur le commit `fbbff49` (arbre propre), RTF 0,0158, alimentation conforme, `charge_concurrente` vraie (jusqu'à 10,17).
 
-## Interprétation
+## Interprétation (cockpit)
 
-À rédiger par le cockpit.
+La baseline ECAPA a le profil inverse de pyannote.
+- **Bruit.** C'est son point faible : +5,7 points à 15 dB, +14,0 points à 5 dB, surtout en parole manquée. Le seuil de sa détection par énergie, calé sur les percentiles du fichier, monte avec le plancher de bruit et coupe la parole faible **[probable]**.
+- **Réverbération.** Elle la gêne moins (+7,4 points en rev08) : la détection par énergie ne perd pas de parole, et c'est la confusion qui augmente (8,5 → 13,3 points).
+- **Codec à 8 kbit/s.** Comme pour pyannote, il dégrade l'attribution (confusion 8,5 → 14,6 points).
+
+Conséquence : en rev08, pyannote perd l'essentiel de son avance (écart de +0,4 point, non significatif, A-0002). C'est la seule condition où ce n'est pas le cas.

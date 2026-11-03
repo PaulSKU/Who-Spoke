@@ -1242,3 +1242,10 @@ Problèmes :
 - Le worktree `ui` contient des modifications non commitées (`app/app.py`, `app/avancement.py`, `app/static/interface.css`, etc.) : non fusionnées, laissées en place.
 - `scripts/reglage_silero.py` a une option cachée (`--racine`, `argparse.SUPPRESS`), contraire à la règle « pas d'option cachée » (D18).
 Suite : interprétation au cockpit (A3, A-0002, A6, A-0003) ; écoute des 8 extraits d'A-0003 par la candidate ; puis A4 (Nemotron 3) et A5 (DiariZen).
+
+## 2026-11-03 — Interprétation d'A3, A6 et A-0003 (cockpit)
+
+Objectif : interpréter la robustesse (D24), les variantes V2 et V3 de D25, et les cas d'échec.
+Réalisé : interprétations et verdicts d'EXP-0020 à 0025 ; `notes.md` d'A-0002 et d'A-0003 ; constats C13 à C17 ; synthèse ; amendement du 03/11 de D25 (bilan).
+Résultats : la réverbération forte est la faiblesse de pyannote (+14,9 points en rev08, surtout de la parole manquée ; avance sur la baseline perdue en rev08) ; le bruit est celle de la baseline ; un codec à bas débit dégrade l'attribution des deux. V2 gagne 2,6 points en français mais en perd 22 sur AMI (Silero coupe la parole lointaine). Le chevauchement est le premier facteur d'échec identifiable.
+Décisions : V2 et V3 écartées, aucune variante de D25 retenue ; point de réglage au bord de la grille laissé tel quel (un seuil plus haut ne pourrait qu'aggraver AMI) ; A4 (Nemotron 3) lancé maintenant. L'option `--racine` de `scripts/reglage_silero.py` devient une option documentée et consignée dans la sortie, au lieu d'être cachée (traçabilité, D18).

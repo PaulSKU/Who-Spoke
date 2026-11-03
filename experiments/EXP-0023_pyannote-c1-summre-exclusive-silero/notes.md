@@ -1,7 +1,7 @@
 ---
 id: EXP-0023
 question: "V3 de D25 (sortie exclusive + masque de Silero) réduit-elle l'erreur de pyannote sur SUMM-RE ?"
-verdict: en_cours
+verdict: ecarte
 decisions: [D25]
 ---
 
@@ -20,6 +20,6 @@ Masque de Silero VAD 6.2.3 (seuil 0,8, silence minimal 0,0 s, marge 0,03 s), ré
 
 Porte l'exécution partagée avec l'expérience V2 ; temps : voir `execution_*.json` (alimentation conforme, charge concurrente relevée).
 
-## Interprétation
+## Interprétation (cockpit)
 
-À rédiger par le cockpit.
+V3 cumule la sortie exclusive, déjà écartée (EXP-0016), et le masque de Silero. Elle hérite des deux défauts : perte du chevauchement réel et coupure de la parole faible. Écartée.
