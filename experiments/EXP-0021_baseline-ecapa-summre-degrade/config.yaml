@@ -1,0 +1,57 @@
+# EXP-0021 — baseline ECAPA sur SUMM-RE test dégradé (D24 ; planning v2.0, rang A3).
+# Configuration d'EXP-0012, avec θ = 1,00 retenu par son balayage sur SUMM-RE dev (aucun
+# nouveau balayage) ; seule variable : le signal (7 conditions de D24), avec les références
+# et l'UEM de SUMM-RE test. Hypothèses dans rttm/<corpus>/. En CPU, le temps de calcul est
+# celui de l'exécution principale.
+exp_id: EXP-0021
+slug: baseline-ecapa-summre-degrade
+reference: EXP-0012
+variable_modifiee: signal     # condition de D24 (propre : EXP-0012, partition test)
+graine: 0                     # baseline déterministe ; graine consignée par convention
+
+pipeline:
+  nom: baseline               # src/whospoke/pipelines/baseline.py, valeurs de D19 §2 hors représentation
+  vad: energie                # seuil sur l'énergie logarithmique (α = 0,3)
+  parametres:
+    representation: ecapa     # ECAPA-TDNN (D22)
+    normalisation: fichier    # centrage-réduction sur le fichier (amendement 1 de D22)
+    theta: 1.0                # valeur retenue par le balayage d'EXP-0012 sur SUMM-RE dev
+
+mode_n_locuteurs: estime      # coupe de l'arbre au seuil θ
+detection_oracle: false
+
+device: cpu                   # empreintes en CPU : NaN intermittents en MPS (amendement 2 de D22)
+prechauffage_s: 60            # extrait du premier fichier, non compté (protocole §3.5)
+
+jeux:                         # SUMM-RE test dégradé (D24 §1), 37 réunions par condition
+  - corpus: summre-rev04
+    partition: test
+    liste: data/splits/summre/test.txt
+  - corpus: summre-rev08
+    partition: test
+    liste: data/splits/summre/test.txt
+  - corpus: summre-bru15
+    partition: test
+    liste: data/splits/summre/test.txt
+  - corpus: summre-bru05
+    partition: test
+    liste: data/splits/summre/test.txt
+  - corpus: summre-cod16
+    partition: test
+    liste: data/splits/summre/test.txt
+  - corpus: summre-cod08
+    partition: test
+    liste: data/splits/summre/test.txt
+  - corpus: summre-salle
+    partition: test
+    liste: data/splits/summre/test.txt
+
+evaluation:
+  references: data/processed/summre/rttm   # références de SUMM-RE test, inchangées (D24 §1)
+  uem: data/splits/summre/uem              # UEM de SUMM-RE test, inchangés
+  conditions: {collar_0: 0.0, collar_0_25: 0.5}
+  skip_overlap: false
+
+materiel:
+  machine: MacBook Pro M2 Pro
+  ram_go: 16

@@ -37,3 +37,17 @@ EXP-0018,2026-11-02T00:46:48+01:00,pyannote-c1-summre-borne-2-6,EXP-0007,mode_n_
 EXP-0018,2026-11-02T00:46:48+01:00,pyannote-c1-summre-borne-2-6,EXP-0007,mode_n_locuteurs,summre,test,pyannote-community-1,borne,25.82,7.15,11.28,7.39,14.31,28.39,0.16,0.0549,0.896,2fcf766
 EXP-0019,2026-11-02T02:20:51+01:00,pyannote-c1-ami-sdm-borne-2-6,EXP-0001,mode_n_locuteurs,ami,dev,pyannote-community-1,borne,18.64,8.1,4.86,5.68,11.15,23.75,0.11,0.0509,0.748,45b309d
 EXP-0019,2026-11-02T02:20:51+01:00,pyannote-c1-ami-sdm-borne-2-6,EXP-0001,mode_n_locuteurs,ami,test,pyannote-community-1,borne,19.92,11.16,3.81,4.94,13.21,27.07,0.38,0.0493,0.748,45b309d
+EXP-0020,2026-11-03T00:35:39+01:00,pyannote-c1-summre-degrade,EXP-0007,signal,summre-rev04,test,pyannote-community-1,estime,28.78,11.17,8.33,9.28,17.44,33.02,0.24,0.0523,,fbbff49
+EXP-0020,2026-11-03T00:35:39+01:00,pyannote-c1-summre-degrade,EXP-0007,signal,summre-rev08,test,pyannote-community-1,estime,41.24,23.16,9.19,8.89,28.42,44.5,0.3,0.0527,,fbbff49
+EXP-0020,2026-11-03T00:35:39+01:00,pyannote-c1-summre-degrade,EXP-0007,signal,summre-bru15,test,pyannote-community-1,estime,26.83,7.39,11.43,8.0,15.18,29.01,0.11,0.0523,,fbbff49
+EXP-0020,2026-11-03T00:35:39+01:00,pyannote-c1-summre-degrade,EXP-0007,signal,summre-bru05,test,pyannote-community-1,estime,30.15,9.57,11.54,9.03,18.46,33.48,0.14,0.0501,,fbbff49
+EXP-0020,2026-11-03T00:35:39+01:00,pyannote-c1-summre-degrade,EXP-0007,signal,summre-cod16,test,pyannote-community-1,estime,25.51,7.83,9.31,8.36,14.7,28.65,0.14,0.0493,,fbbff49
+EXP-0020,2026-11-03T00:35:39+01:00,pyannote-c1-summre-degrade,EXP-0007,signal,summre-cod08,test,pyannote-community-1,estime,30.24,10.1,5.69,14.44,21.98,41.54,0.68,0.0498,,fbbff49
+EXP-0020,2026-11-03T00:35:39+01:00,pyannote-c1-summre-degrade,EXP-0007,signal,summre-salle,test,pyannote-community-1,estime,41.23,23.41,8.41,9.41,29.19,45.56,0.41,0.0495,,fbbff49
+EXP-0021,2026-11-03T01:58:57+01:00,baseline-ecapa-summre-degrade,EXP-0012,signal,summre-rev04,test,baseline,estime,35.45,21.34,3.98,10.12,25.46,42.22,0.32,0.0163,0.0158,fbbff49
+EXP-0021,2026-11-03T01:58:57+01:00,baseline-ecapa-summre-degrade,EXP-0012,signal,summre-rev08,test,baseline,estime,40.81,22.13,5.34,13.34,30.13,47.98,0.49,0.0172,0.0158,fbbff49
+EXP-0021,2026-11-03T01:58:57+01:00,baseline-ecapa-summre-degrade,EXP-0012,signal,summre-bru15,test,baseline,estime,39.13,27.56,2.67,8.9,30.8,45.02,0.38,0.0147,0.0158,fbbff49
+EXP-0021,2026-11-03T01:58:57+01:00,baseline-ecapa-summre-degrade,EXP-0012,signal,summre-bru05,test,baseline,estime,47.38,28.05,7.96,11.37,38.38,50.71,0.46,0.0156,0.0158,fbbff49
+EXP-0021,2026-11-03T01:58:57+01:00,baseline-ecapa-summre-degrade,EXP-0012,signal,summre-cod16,test,baseline,estime,32.71,20.56,3.22,8.93,23.54,38.09,0.27,0.0167,0.0158,fbbff49
+EXP-0021,2026-11-03T01:58:57+01:00,baseline-ecapa-summre-degrade,EXP-0012,signal,summre-cod08,test,baseline,estime,38.43,20.62,3.23,14.58,29.54,48.03,0.59,0.0164,0.0158,fbbff49
+EXP-0021,2026-11-03T01:58:57+01:00,baseline-ecapa-summre-degrade,EXP-0012,signal,summre-salle,test,baseline,estime,49.21,31.86,4.02,13.33,41.47,55.21,0.54,0.0138,0.0158,fbbff49
