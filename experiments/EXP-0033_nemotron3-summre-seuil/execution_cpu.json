@@ -1,0 +1,1646 @@
+{
+  "exp_id": "EXP-0033",
+  "mode": "complet",
+  "sous_ensemble": null,
+  "date_fin": "2026-11-03T20:40:01+01:00",
+  "git_commit": "f78a22023115af486da8f46a6444383281adba18",
+  "arbre_propre": true,
+  "fichiers_non_commites": [
+    "experiments/EXP-0033_nemotron3-summre-seuil/config.yaml",
+    "experiments/EXP-0033_nemotron3-summre-seuil/run.log"
+  ],
+  "config_sha256": "21b1fdec8e8fadd177b6622af33cc48f2519ec5e9d6881efc5926e6daf72b755",
+  "device": "cpu",
+  "torch_threads": 6,
+  "versions": {
+    "python": "3.11.15",
+    "torch": "2.14.1",
+    "pyannote.audio": "4.0.7",
+    "librosa": "0.11.0",
+    "speechbrain": "1.1.2"
+  },
+  "mode_n_locuteurs": "estime",
+  "detection_oracle": false,
+  "trace": false,
+  "balayage": {
+    "parametre": "threshold",
+    "corpus": "summre",
+    "partition": "dev",
+    "valeurs": [
+      0.2,
+      0.25,
+      0.3,
+      0.35,
+      0.4,
+      0.45,
+      0.5,
+      0.55,
+      0.6,
+      0.65,
+      0.7,
+      0.75,
+      0.8
+    ],
+    "critere": "der collar_0 minimal",
+    "valeur_retenue": 0.35,
+    "der_c0_retenu": 10.28,
+    "fichier": "balayage_summre_dev.csv",
+    "preparation_s": 433.537,
+    "calcul_s": 737.446
+  },
+  "normalisation_niveau": null,
+  "configuration_effective": {
+    "detection": [
+      {
+        "nom": "nemotron.modele",
+        "valeur": "nvidia/Nemotron-3-Diarization@f667ed73aee5",
+        "origine": "experience"
+      },
+      {
+        "nom": "nemotron.seuil",
+        "valeur": 0.35,
+        "origine": "experience"
+      },
+      {
+        "nom": "nemotron.trame_s",
+        "valeur": 0.01,
+        "origine": "modele"
+      }
+    ],
+    "regroupement": [
+      {
+        "nom": "nemotron.locuteurs_max",
+        "valeur": 8,
+        "origine": "modele"
+      },
+      {
+        "nom": "nemotron.n_locuteurs",
+        "valeur": "estimé (ni imposé ni borné)",
+        "origine": "code"
+      }
+    ],
+    "sortie": [
+      {
+        "nom": "nemotron.mode",
+        "valeur": "hors ligne (is_streaming=False)",
+        "origine": "code"
+      },
+      {
+        "nom": "nemotron.environnement",
+        "valeur": "envs/nemotron (python 3.12.13, torch 2.15.0, transformers 5.22.1), cpu",
+        "origine": "code"
+      }
+    ]
+  },
+  "chargement_modeles_s": 8.938,
+  "prechauffage": {
+    "uri": "summre__004c_PAPH",
+    "duree_s": 60.0
+  },
+  "duree_audio_s": 86622.454,
+  "calcul_s": 920.689,
+  "rtf": 0.0106,
+  "alimentation": {
+    "commande": "pmset -g batt",
+    "commande_charge": "os.getloadavg() (sysctl vm.loadavg)",
+    "intervalle_s": 60.0,
+    "coeurs_performance": 6,
+    "releves": [
+      {
+        "date": "2026-11-03T20:12:13+01:00",
+        "moment": "debut",
+        "source": "secteur",
+        "brut": "Now drawing from 'AC Power'",
+        "horodatage": 1793733133.437612,
+        "charge_1min": 2.53,
+        "charge_5min": 2.38,
+        "charge_15min": 3.15
+      },
+      {
+        "date": "2026-11-03T20:13:13+01:00",
+        "moment": "periodique",
+        "source": "secteur",
+        "brut": "Now drawing from 'AC Power'",
+        "horodatage": 1793733193.4583738,
+        "charge_1min": 4.14,
+        "charge_5min": 2.89,
+        "charge_15min": 3.28
+      },
+      {
+        "date": "2026-11-03T20:14:13+01:00",
+        "moment": "periodique",
+        "source": "secteur",
+        "brut": "Now drawing from 'AC Power'",
+        "horodatage": 1793733253.48869,
+        "charge_1min": 3.84,
+        "charge_5min": 3.01,
+        "charge_15min": 3.3
+      },
+      {
+        "date": "2026-11-03T20:15:13+01:00",
+        "moment": "periodique",
+        "source": "secteur",
+        "brut": "Now drawing from 'AC Power'",
+        "horodatage": 1793733313.514575,
+        "charge_1min": 3.74,
+        "charge_5min": 3.17,
+        "charge_15min": 3.33
+      },
+      {
+        "date": "2026-11-03T20:16:13+01:00",
+        "moment": "periodique",
+        "source": "secteur",
+        "brut": "Now drawing from 'AC Power'",
+        "horodatage": 1793733373.543404,
+        "charge_1min": 4.51,
+        "charge_5min": 3.45,
+        "charge_15min": 3.42
+      },
+      {
+        "date": "2026-11-03T20:17:13+01:00",
+        "moment": "periodique",
+        "source": "secteur",
+        "brut": "Now drawing from 'AC Power'",
+        "horodatage": 1793733433.572913,
+        "charge_1min": 4.76,
+        "charge_5min": 3.73,
+        "charge_15min": 3.53
+      },
+      {
+        "date": "2026-11-03T20:18:13+01:00",
+        "moment": "periodique",
+        "source": "secteur",
+        "brut": "Now drawing from 'AC Power'",
+        "horodatage": 1793733493.597016,
+        "charge_1min": 4.56,
+        "charge_5min": 3.85,
+        "charge_15min": 3.59
+      },
+      {
+        "date": "2026-11-03T20:19:13+01:00",
+        "moment": "periodique",
+        "source": "secteur",
+        "brut": "Now drawing from 'AC Power'",
+        "horodatage": 1793733553.61845,
+        "charge_1min": 5.18,
+        "charge_5min": 4.12,
+        "charge_15min": 3.7
+      },
+      {
+        "date": "2026-11-03T20:20:13+01:00",
+        "moment": "periodique",
+        "source": "secteur",
+        "brut": "Now drawing from 'AC Power'",
+        "horodatage": 1793733613.6875782,
+        "charge_1min": 4.17,
+        "charge_5min": 4.05,
+        "charge_15min": 3.7
+      },
+      {
+        "date": "2026-11-03T20:21:13+01:00",
+        "moment": "periodique",
+        "source": "secteur",
+        "brut": "Now drawing from 'AC Power'",
+        "horodatage": 1793733673.747987,
+        "charge_1min": 4.6,
+        "charge_5min": 4.27,
+        "charge_15min": 3.81
+      },
+      {
+        "date": "2026-11-03T20:22:13+01:00",
+        "moment": "periodique",
+        "source": "secteur",
+        "brut": "Now drawing from 'AC Power'",
+        "horodatage": 1793733733.813656,
+        "charge_1min": 2.7,
+        "charge_5min": 3.79,
+        "charge_15min": 3.66
+      },
+      {
+        "date": "2026-11-03T20:23:13+01:00",
+        "moment": "periodique",
+        "source": "secteur",
+        "brut": "Now drawing from 'AC Power'",
+        "horodatage": 1793733793.8739321,
+        "charge_1min": 3.4,
+        "charge_5min": 3.8,
+        "charge_15min": 3.68
+      },
+      {
+        "date": "2026-11-03T20:24:13+01:00",
+        "moment": "periodique",
+        "source": "secteur",
+        "brut": "Now drawing from 'AC Power'",
+        "horodatage": 1793733853.930372,
+        "charge_1min": 2.94,
+        "charge_5min": 3.62,
+        "charge_15min": 3.62
+      },
+      {
+        "date": "2026-11-03T20:25:13+01:00",
+        "moment": "periodique",
+        "source": "secteur",
+        "brut": "Now drawing from 'AC Power'",
+        "horodatage": 1793733913.956555,
+        "charge_1min": 2.82,
+        "charge_5min": 3.43,
+        "charge_15min": 3.54
+      },
+      {
+        "date": "2026-11-03T20:26:13+01:00",
+        "moment": "periodique",
+        "source": "secteur",
+        "brut": "Now drawing from 'AC Power'",
+        "horodatage": 1793733973.979897,
+        "charge_1min": 3.56,
+        "charge_5min": 3.53,
+        "charge_15min": 3.57
+      },
+      {
+        "date": "2026-11-03T20:27:14+01:00",
+        "moment": "periodique",
+        "source": "secteur",
+        "brut": "Now drawing from 'AC Power'",
+        "horodatage": 1793734034.009045,
+        "charge_1min": 4.64,
+        "charge_5min": 3.79,
+        "charge_15min": 3.66
+      },
+      {
+        "date": "2026-11-03T20:28:14+01:00",
+        "moment": "periodique",
+        "source": "secteur",
+        "brut": "Now drawing from 'AC Power'",
+        "horodatage": 1793734094.038812,
+        "charge_1min": 4.63,
+        "charge_5min": 3.95,
+        "charge_15min": 3.73
+      },
+      {
+        "date": "2026-11-03T20:29:14+01:00",
+        "moment": "periodique",
+        "source": "secteur",
+        "brut": "Now drawing from 'AC Power'",
+        "horodatage": 1793734154.066664,
+        "charge_1min": 4.71,
+        "charge_5min": 4.07,
+        "charge_15min": 3.78
+      },
+      {
+        "date": "2026-11-03T20:30:14+01:00",
+        "moment": "periodique",
+        "source": "secteur",
+        "brut": "Now drawing from 'AC Power'",
+        "horodatage": 1793734214.107376,
+        "charge_1min": 4.38,
+        "charge_5min": 4.08,
+        "charge_15min": 3.81
+      },
+      {
+        "date": "2026-11-03T20:31:14+01:00",
+        "moment": "periodique",
+        "source": "secteur",
+        "brut": "Now drawing from 'AC Power'",
+        "horodatage": 1793734274.131487,
+        "charge_1min": 6.36,
+        "charge_5min": 4.56,
+        "charge_15min": 3.99
+      },
+      {
+        "date": "2026-11-03T20:32:14+01:00",
+        "moment": "periodique",
+        "source": "secteur",
+        "brut": "Now drawing from 'AC Power'",
+        "horodatage": 1793734334.1579971,
+        "charge_1min": 5.04,
+        "charge_5min": 4.57,
+        "charge_15min": 4.04
+      },
+      {
+        "date": "2026-11-03T20:33:14+01:00",
+        "moment": "periodique",
+        "source": "secteur",
+        "brut": "Now drawing from 'AC Power'",
+        "horodatage": 1793734394.180285,
+        "charge_1min": 3.91,
+        "charge_5min": 4.29,
+        "charge_15min": 3.97
+      },
+      {
+        "date": "2026-11-03T20:34:14+01:00",
+        "moment": "periodique",
+        "source": "secteur",
+        "brut": "Now drawing from 'AC Power'",
+        "horodatage": 1793734454.204752,
+        "charge_1min": 3.38,
+        "charge_5min": 4.07,
+        "charge_15min": 3.91
+      },
+      {
+        "date": "2026-11-03T20:35:14+01:00",
+        "moment": "periodique",
+        "source": "secteur",
+        "brut": "Now drawing from 'AC Power'",
+        "horodatage": 1793734514.235765,
+        "charge_1min": 4.2,
+        "charge_5min": 4.13,
+        "charge_15min": 3.93
+      },
+      {
+        "date": "2026-11-03T20:36:14+01:00",
+        "moment": "periodique",
+        "source": "secteur",
+        "brut": "Now drawing from 'AC Power'",
+        "horodatage": 1793734574.256429,
+        "charge_1min": 6.27,
+        "charge_5min": 4.82,
+        "charge_15min": 4.21
+      },
+      {
+        "date": "2026-11-03T20:37:14+01:00",
+        "moment": "periodique",
+        "source": "secteur",
+        "brut": "Now drawing from 'AC Power'",
+        "horodatage": 1793734634.28014,
+        "charge_1min": 4.46,
+        "charge_5min": 4.54,
+        "charge_15min": 4.14
+      },
+      {
+        "date": "2026-11-03T20:38:14+01:00",
+        "moment": "periodique",
+        "source": "secteur",
+        "brut": "Now drawing from 'AC Power'",
+        "horodatage": 1793734694.304477,
+        "charge_1min": 5.19,
+        "charge_5min": 4.68,
+        "charge_15min": 4.22
+      },
+      {
+        "date": "2026-11-03T20:39:14+01:00",
+        "moment": "periodique",
+        "source": "secteur",
+        "brut": "Now drawing from 'AC Power'",
+        "horodatage": 1793734754.3294551,
+        "charge_1min": 3.95,
+        "charge_5min": 4.43,
+        "charge_15min": 4.15
+      },
+      {
+        "date": "2026-11-03T20:40:01+01:00",
+        "moment": "fin",
+        "source": "secteur",
+        "brut": "Now drawing from 'AC Power'",
+        "horodatage": 1793734801.558651,
+        "charge_1min": 5.46,
+        "charge_5min": 4.89,
+        "charge_15min": 4.34
+      }
+    ],
+    "conforme": true,
+    "charge_concurrente": true
+  },
+  "fichiers": [
+    {
+      "uri": "summre__004c_PAPH",
+      "corpus": "summre",
+      "partition": "dev",
+      "duree_audio_s": 1263.667,
+      "calcul_s": 12.356,
+      "rtf": 0.0098,
+      "n_locuteurs_hypothese": 4,
+      "n_locuteurs_impose": null,
+      "etapes_s": {
+        "analyse": 0.524,
+        "detection": 11.702,
+        "sous_processus": 12.239
+      },
+      "n_trames": 126367,
+      "chargement_s": 8.821
+    },
+    {
+      "uri": "summre__006b_EADH",
+      "corpus": "summre",
+      "partition": "dev",
+      "duree_audio_s": 1281.376,
+      "calcul_s": 12.628,
+      "rtf": 0.0099,
+      "n_locuteurs_hypothese": 4,
+      "n_locuteurs_impose": null,
+      "etapes_s": {
+        "analyse": 0.486,
+        "detection": 11.999,
+        "sous_processus": 12.494
+      },
+      "n_trames": 128138,
+      "chargement_s": 8.821
+    },
+    {
+      "uri": "summre__011c_ECPL",
+      "corpus": "summre",
+      "partition": "dev",
+      "duree_audio_s": 1016.72,
+      "calcul_s": 10.25,
+      "rtf": 0.0101,
+      "n_locuteurs_hypothese": 4,
+      "n_locuteurs_impose": null,
+      "etapes_s": {
+        "analyse": 0.404,
+        "detection": 9.703,
+        "sous_processus": 10.119
+      },
+      "n_trames": 101673,
+      "chargement_s": 8.821
+    },
+    {
+      "uri": "summre__015b_EBDD",
+      "corpus": "summre",
+      "partition": "dev",
+      "duree_audio_s": 1295.453,
+      "calcul_s": 12.919,
+      "rtf": 0.01,
+      "n_locuteurs_hypothese": 4,
+      "n_locuteurs_impose": null,
+      "etapes_s": {
+        "analyse": 0.483,
+        "detection": 12.277,
+        "sous_processus": 12.774
+      },
+      "n_trames": 129546,
+      "chargement_s": 8.821
+    },
+    {
+      "uri": "summre__017a_EBRZ",
+      "corpus": "summre",
+      "partition": "dev",
+      "duree_audio_s": 748.877,
+      "calcul_s": 7.509,
+      "rtf": 0.01,
+      "n_locuteurs_hypothese": 3,
+      "n_locuteurs_impose": null,
+      "etapes_s": {
+        "analyse": 0.3,
+        "detection": 7.118,
+        "sous_processus": 7.425
+      },
+      "n_trames": 74888,
+      "chargement_s": 8.821
+    },
+    {
+      "uri": "summre__018a_EARZ",
+      "corpus": "summre",
+      "partition": "dev",
+      "duree_audio_s": 1317.716,
+      "calcul_s": 13.166,
+      "rtf": 0.01,
+      "n_locuteurs_hypothese": 4,
+      "n_locuteurs_impose": null,
+      "etapes_s": {
+        "analyse": 0.651,
+        "detection": 12.346,
+        "sous_processus": 13.01
+      },
+      "n_trames": 131772,
+      "chargement_s": 8.821
+    },
+    {
+      "uri": "summre__018b_EADZ",
+      "corpus": "summre",
+      "partition": "dev",
+      "duree_audio_s": 1163.016,
+      "calcul_s": 11.977,
+      "rtf": 0.0103,
+      "n_locuteurs_hypothese": 4,
+      "n_locuteurs_impose": null,
+      "etapes_s": {
+        "analyse": 0.644,
+        "detection": 11.193,
+        "sous_processus": 11.851
+      },
+      "n_trames": 116302,
+      "chargement_s": 8.821
+    },
+    {
+      "uri": "summre__020b_EBDZ",
+      "corpus": "summre",
+      "partition": "dev",
+      "duree_audio_s": 1101.147,
+      "calcul_s": 11.59,
+      "rtf": 0.0105,
+      "n_locuteurs_hypothese": 4,
+      "n_locuteurs_impose": null,
+      "etapes_s": {
+        "analyse": 0.5,
+        "detection": 10.945,
+        "sous_processus": 11.457
+      },
+      "n_trames": 110115,
+      "chargement_s": 8.821
+    },
+    {
+      "uri": "summre__020c_EBPZ",
+      "corpus": "summre",
+      "partition": "dev",
+      "duree_audio_s": 1094.332,
+      "calcul_s": 10.987,
+      "rtf": 0.01,
+      "n_locuteurs_hypothese": 4,
+      "n_locuteurs_impose": null,
+      "etapes_s": {
+        "analyse": 0.462,
+        "detection": 10.402,
+        "sous_processus": 10.874
+      },
+      "n_trames": 109434,
+      "chargement_s": 8.821
+    },
+    {
+      "uri": "summre__021a_EARD",
+      "corpus": "summre",
+      "partition": "dev",
+      "duree_audio_s": 1126.383,
+      "calcul_s": 11.402,
+      "rtf": 0.0101,
+      "n_locuteurs_hypothese": 4,
+      "n_locuteurs_impose": null,
+      "etapes_s": {
+        "analyse": 0.424,
+        "detection": 10.826,
+        "sous_processus": 11.265
+      },
+      "n_trames": 112639,
+      "chargement_s": 8.821
+    },
+    {
+      "uri": "summre__021b_EADD",
+      "corpus": "summre",
+      "partition": "dev",
+      "duree_audio_s": 1111.525,
+      "calcul_s": 11.057,
+      "rtf": 0.0099,
+      "n_locuteurs_hypothese": 4,
+      "n_locuteurs_impose": null,
+      "etapes_s": {
+        "analyse": 0.515,
+        "detection": 10.401,
+        "sous_processus": 10.927
+      },
+      "n_trames": 111153,
+      "chargement_s": 8.821
+    },
+    {
+      "uri": "summre__027a_EBRH",
+      "corpus": "summre",
+      "partition": "dev",
+      "duree_audio_s": 1327.065,
+      "calcul_s": 13.116,
+      "rtf": 0.0099,
+      "n_locuteurs_hypothese": 3,
+      "n_locuteurs_impose": null,
+      "etapes_s": {
+        "analyse": 0.536,
+        "detection": 12.429,
+        "sous_processus": 12.976
+      },
+      "n_trames": 132707,
+      "chargement_s": 8.821
+    },
+    {
+      "uri": "summre__032a_EARH",
+      "corpus": "summre",
+      "partition": "dev",
+      "duree_audio_s": 1180.746,
+      "calcul_s": 12.052,
+      "rtf": 0.0102,
+      "n_locuteurs_hypothese": 4,
+      "n_locuteurs_impose": null,
+      "etapes_s": {
+        "analyse": 0.718,
+        "detection": 11.157,
+        "sous_processus": 11.885
+      },
+      "n_trames": 118075,
+      "chargement_s": 8.821
+    },
+    {
+      "uri": "summre__032b_EADH",
+      "corpus": "summre",
+      "partition": "dev",
+      "duree_audio_s": 1226.158,
+      "calcul_s": 12.561,
+      "rtf": 0.0102,
+      "n_locuteurs_hypothese": 4,
+      "n_locuteurs_impose": null,
+      "etapes_s": {
+        "analyse": 0.48,
+        "detection": 11.914,
+        "sous_processus": 12.407
+      },
+      "n_trames": 122616,
+      "chargement_s": 8.821
+    },
+    {
+      "uri": "summre__033a_EBRH",
+      "corpus": "summre",
+      "partition": "dev",
+      "duree_audio_s": 1267.428,
+      "calcul_s": 12.904,
+      "rtf": 0.0102,
+      "n_locuteurs_hypothese": 4,
+      "n_locuteurs_impose": null,
+      "etapes_s": {
+        "analyse": 0.482,
+        "detection": 12.262,
+        "sous_processus": 12.756
+      },
+      "n_trames": 126743,
+      "chargement_s": 8.821
+    },
+    {
+      "uri": "summre__033c_EBPH",
+      "corpus": "summre",
+      "partition": "dev",
+      "duree_audio_s": 1242.259,
+      "calcul_s": 11.68,
+      "rtf": 0.0094,
+      "n_locuteurs_hypothese": 5,
+      "n_locuteurs_impose": null,
+      "etapes_s": {
+        "analyse": 0.51,
+        "detection": 11.017,
+        "sous_processus": 11.539
+      },
+      "n_trames": 124226,
+      "chargement_s": 8.821
+    },
+    {
+      "uri": "summre__034a_EBRH",
+      "corpus": "summre",
+      "partition": "dev",
+      "duree_audio_s": 1256.3,
+      "calcul_s": 12.245,
+      "rtf": 0.0097,
+      "n_locuteurs_hypothese": 4,
+      "n_locuteurs_impose": null,
+      "etapes_s": {
+        "analyse": 0.497,
+        "detection": 11.593,
+        "sous_processus": 12.103
+      },
+      "n_trames": 125631,
+      "chargement_s": 8.821
+    },
+    {
+      "uri": "summre__035b_EADH",
+      "corpus": "summre",
+      "partition": "dev",
+      "duree_audio_s": 1188.292,
+      "calcul_s": 11.835,
+      "rtf": 0.01,
+      "n_locuteurs_hypothese": 4,
+      "n_locuteurs_impose": null,
+      "etapes_s": {
+        "analyse": 0.503,
+        "detection": 11.195,
+        "sous_processus": 11.71
+      },
+      "n_trames": 118830,
+      "chargement_s": 8.821
+    },
+    {
+      "uri": "summre__036b_EADH",
+      "corpus": "summre",
+      "partition": "dev",
+      "duree_audio_s": 1142.487,
+      "calcul_s": 11.553,
+      "rtf": 0.0101,
+      "n_locuteurs_hypothese": 4,
+      "n_locuteurs_impose": null,
+      "etapes_s": {
+        "analyse": 0.446,
+        "detection": 10.912,
+        "sous_processus": 11.369
+      },
+      "n_trames": 114249,
+      "chargement_s": 8.821
+    },
+    {
+      "uri": "summre__036c_EAPH",
+      "corpus": "summre",
+      "partition": "dev",
+      "duree_audio_s": 1607.75,
+      "calcul_s": 17.397,
+      "rtf": 0.0108,
+      "n_locuteurs_hypothese": 4,
+      "n_locuteurs_impose": null,
+      "etapes_s": {
+        "analyse": 0.777,
+        "detection": 16.346,
+        "sous_processus": 17.141
+      },
+      "n_trames": 160775,
+      "chargement_s": 8.821
+    },
+    {
+      "uri": "summre__037a_EARH",
+      "corpus": "summre",
+      "partition": "dev",
+      "duree_audio_s": 1207.941,
+      "calcul_s": 13.243,
+      "rtf": 0.011,
+      "n_locuteurs_hypothese": 3,
+      "n_locuteurs_impose": null,
+      "etapes_s": {
+        "analyse": 0.618,
+        "detection": 12.473,
+        "sous_processus": 13.105
+      },
+      "n_trames": 120795,
+      "chargement_s": 8.821
+    },
+    {
+      "uri": "summre__040a_EERH",
+      "corpus": "summre",
+      "partition": "dev",
+      "duree_audio_s": 1393.163,
+      "calcul_s": 16.519,
+      "rtf": 0.0119,
+      "n_locuteurs_hypothese": 4,
+      "n_locuteurs_impose": null,
+      "etapes_s": {
+        "analyse": 0.626,
+        "detection": 15.688,
+        "sous_processus": 16.329
+      },
+      "n_trames": 139317,
+      "chargement_s": 8.821
+    },
+    {
+      "uri": "summre__043a_EDRH",
+      "corpus": "summre",
+      "partition": "dev",
+      "duree_audio_s": 987.018,
+      "calcul_s": 10.971,
+      "rtf": 0.0111,
+      "n_locuteurs_hypothese": 3,
+      "n_locuteurs_impose": null,
+      "etapes_s": {
+        "analyse": 0.408,
+        "detection": 10.461,
+        "sous_processus": 10.881
+      },
+      "n_trames": 98702,
+      "chargement_s": 8.821
+    },
+    {
+      "uri": "summre__044c_EBPH",
+      "corpus": "summre",
+      "partition": "dev",
+      "duree_audio_s": 1106.662,
+      "calcul_s": 11.434,
+      "rtf": 0.0103,
+      "n_locuteurs_hypothese": 3,
+      "n_locuteurs_impose": null,
+      "etapes_s": {
+        "analyse": 0.469,
+        "detection": 10.808,
+        "sous_processus": 11.289
+      },
+      "n_trames": 110667,
+      "chargement_s": 8.821
+    },
+    {
+      "uri": "summre__066a_EARH",
+      "corpus": "summre",
+      "partition": "dev",
+      "duree_audio_s": 1031.779,
+      "calcul_s": 10.568,
+      "rtf": 0.0102,
+      "n_locuteurs_hypothese": 3,
+      "n_locuteurs_impose": null,
+      "etapes_s": {
+        "analyse": 0.572,
+        "detection": 9.826,
+        "sous_processus": 10.412
+      },
+      "n_trames": 103178,
+      "chargement_s": 8.821
+    },
+    {
+      "uri": "summre__069b_EEDL",
+      "corpus": "summre",
+      "partition": "dev",
+      "duree_audio_s": 1157.635,
+      "calcul_s": 11.844,
+      "rtf": 0.0102,
+      "n_locuteurs_hypothese": 4,
+      "n_locuteurs_impose": null,
+      "etapes_s": {
+        "analyse": 0.521,
+        "detection": 11.173,
+        "sous_processus": 11.706
+      },
+      "n_trames": 115764,
+      "chargement_s": 8.821
+    },
+    {
+      "uri": "summre__069c_EEPL",
+      "corpus": "summre",
+      "partition": "dev",
+      "duree_audio_s": 1261.308,
+      "calcul_s": 13.052,
+      "rtf": 0.0103,
+      "n_locuteurs_hypothese": 4,
+      "n_locuteurs_impose": null,
+      "etapes_s": {
+        "analyse": 0.554,
+        "detection": 12.358,
+        "sous_processus": 12.926
+      },
+      "n_trames": 126131,
+      "chargement_s": 8.821
+    },
+    {
+      "uri": "summre__075b_EBDH",
+      "corpus": "summre",
+      "partition": "dev",
+      "duree_audio_s": 1018.842,
+      "calcul_s": 11.105,
+      "rtf": 0.0109,
+      "n_locuteurs_hypothese": 3,
+      "n_locuteurs_impose": null,
+      "etapes_s": {
+        "analyse": 0.421,
+        "detection": 10.533,
+        "sous_processus": 10.967
+      },
+      "n_trames": 101885,
+      "chargement_s": 8.821
+    },
+    {
+      "uri": "summre__081a_EBRH",
+      "corpus": "summre",
+      "partition": "dev",
+      "duree_audio_s": 1208.174,
+      "calcul_s": 11.806,
+      "rtf": 0.0098,
+      "n_locuteurs_hypothese": 4,
+      "n_locuteurs_impose": null,
+      "etapes_s": {
+        "analyse": 0.54,
+        "detection": 11.119,
+        "sous_processus": 11.669
+      },
+      "n_trames": 120818,
+      "chargement_s": 8.821
+    },
+    {
+      "uri": "summre__081c_EBPH",
+      "corpus": "summre",
+      "partition": "dev",
+      "duree_audio_s": 1235.307,
+      "calcul_s": 12.917,
+      "rtf": 0.0105,
+      "n_locuteurs_hypothese": 4,
+      "n_locuteurs_impose": null,
+      "etapes_s": {
+        "analyse": 0.537,
+        "detection": 12.207,
+        "sous_processus": 12.783
+      },
+      "n_trames": 123531,
+      "chargement_s": 8.821
+    },
+    {
+      "uri": "summre__084c_EBPH",
+      "corpus": "summre",
+      "partition": "dev",
+      "duree_audio_s": 1203.192,
+      "calcul_s": 12.741,
+      "rtf": 0.0106,
+      "n_locuteurs_hypothese": 2,
+      "n_locuteurs_impose": null,
+      "etapes_s": {
+        "analyse": 0.55,
+        "detection": 12.043,
+        "sous_processus": 12.607
+      },
+      "n_trames": 120320,
+      "chargement_s": 8.821
+    },
+    {
+      "uri": "summre__091b_EBDH",
+      "corpus": "summre",
+      "partition": "dev",
+      "duree_audio_s": 1154.856,
+      "calcul_s": 12.408,
+      "rtf": 0.0107,
+      "n_locuteurs_hypothese": 3,
+      "n_locuteurs_impose": null,
+      "etapes_s": {
+        "analyse": 0.515,
+        "detection": 11.738,
+        "sous_processus": 12.268
+      },
+      "n_trames": 115486,
+      "chargement_s": 8.821
+    },
+    {
+      "uri": "summre__097b_EBDH",
+      "corpus": "summre",
+      "partition": "dev",
+      "duree_audio_s": 1263.361,
+      "calcul_s": 14.04,
+      "rtf": 0.0111,
+      "n_locuteurs_hypothese": 5,
+      "n_locuteurs_impose": null,
+      "etapes_s": {
+        "analyse": 0.561,
+        "detection": 13.302,
+        "sous_processus": 13.88
+      },
+      "n_trames": 126337,
+      "chargement_s": 8.821
+    },
+    {
+      "uri": "summre__097c_EBPH",
+      "corpus": "summre",
+      "partition": "dev",
+      "duree_audio_s": 1265.472,
+      "calcul_s": 15.569,
+      "rtf": 0.0123,
+      "n_locuteurs_hypothese": 4,
+      "n_locuteurs_impose": null,
+      "etapes_s": {
+        "analyse": 0.676,
+        "detection": 14.674,
+        "sous_processus": 15.366
+      },
+      "n_trames": 126548,
+      "chargement_s": 8.821
+    },
+    {
+      "uri": "summre__101c_EDPH",
+      "corpus": "summre",
+      "partition": "dev",
+      "duree_audio_s": 1139.458,
+      "calcul_s": 13.228,
+      "rtf": 0.0116,
+      "n_locuteurs_hypothese": 2,
+      "n_locuteurs_impose": null,
+      "etapes_s": {
+        "analyse": 0.537,
+        "detection": 12.542,
+        "sous_processus": 13.092
+      },
+      "n_trames": 113946,
+      "chargement_s": 8.821
+    },
+    {
+      "uri": "summre__104b_EADH",
+      "corpus": "summre",
+      "partition": "dev",
+      "duree_audio_s": 1223.778,
+      "calcul_s": 13.457,
+      "rtf": 0.011,
+      "n_locuteurs_hypothese": 4,
+      "n_locuteurs_impose": null,
+      "etapes_s": {
+        "analyse": 0.656,
+        "detection": 12.613,
+        "sous_processus": 13.284
+      },
+      "n_trames": 122378,
+      "chargement_s": 8.821
+    },
+    {
+      "uri": "summre__007a_ECRH",
+      "corpus": "summre",
+      "partition": "test",
+      "duree_audio_s": 1210.595,
+      "calcul_s": 12.532,
+      "rtf": 0.0104,
+      "n_locuteurs_hypothese": 4,
+      "n_locuteurs_impose": null,
+      "etapes_s": {
+        "analyse": 0.609,
+        "detection": 11.759,
+        "sous_processus": 12.383
+      },
+      "n_trames": 121060,
+      "chargement_s": 8.821
+    },
+    {
+      "uri": "summre__008a_EARH",
+      "corpus": "summre",
+      "partition": "test",
+      "duree_audio_s": 1565.566,
+      "calcul_s": 16.657,
+      "rtf": 0.0106,
+      "n_locuteurs_hypothese": 4,
+      "n_locuteurs_impose": null,
+      "etapes_s": {
+        "analyse": 1.235,
+        "detection": 15.215,
+        "sous_processus": 16.469
+      },
+      "n_trames": 156557,
+      "chargement_s": 8.821
+    },
+    {
+      "uri": "summre__012c_EBPZ",
+      "corpus": "summre",
+      "partition": "test",
+      "duree_audio_s": 1159.431,
+      "calcul_s": 11.979,
+      "rtf": 0.0103,
+      "n_locuteurs_hypothese": 3,
+      "n_locuteurs_impose": null,
+      "etapes_s": {
+        "analyse": 0.529,
+        "detection": 11.286,
+        "sous_processus": 11.826
+      },
+      "n_trames": 115944,
+      "chargement_s": 8.821
+    },
+    {
+      "uri": "summre__013c_EAPD",
+      "corpus": "summre",
+      "partition": "test",
+      "duree_audio_s": 1226.22,
+      "calcul_s": 12.711,
+      "rtf": 0.0104,
+      "n_locuteurs_hypothese": 4,
+      "n_locuteurs_impose": null,
+      "etapes_s": {
+        "analyse": 0.447,
+        "detection": 12.084,
+        "sous_processus": 12.549
+      },
+      "n_trames": 122623,
+      "chargement_s": 8.821
+    },
+    {
+      "uri": "summre__014c_EAPD",
+      "corpus": "summre",
+      "partition": "test",
+      "duree_audio_s": 1222.102,
+      "calcul_s": 13.357,
+      "rtf": 0.0109,
+      "n_locuteurs_hypothese": 5,
+      "n_locuteurs_impose": null,
+      "etapes_s": {
+        "analyse": 0.507,
+        "detection": 12.695,
+        "sous_processus": 13.219
+      },
+      "n_trames": 122211,
+      "chargement_s": 8.821
+    },
+    {
+      "uri": "summre__016c_EBPZ",
+      "corpus": "summre",
+      "partition": "test",
+      "duree_audio_s": 1217.826,
+      "calcul_s": 12.804,
+      "rtf": 0.0105,
+      "n_locuteurs_hypothese": 3,
+      "n_locuteurs_impose": null,
+      "etapes_s": {
+        "analyse": 0.535,
+        "detection": 12.065,
+        "sous_processus": 12.616
+      },
+      "n_trames": 121783,
+      "chargement_s": 8.821
+    },
+    {
+      "uri": "summre__019a_EARD",
+      "corpus": "summre",
+      "partition": "test",
+      "duree_audio_s": 1195.192,
+      "calcul_s": 12.813,
+      "rtf": 0.0107,
+      "n_locuteurs_hypothese": 5,
+      "n_locuteurs_impose": null,
+      "etapes_s": {
+        "analyse": 0.475,
+        "detection": 12.171,
+        "sous_processus": 12.663
+      },
+      "n_trames": 119520,
+      "chargement_s": 8.821
+    },
+    {
+      "uri": "summre__019c_EAPD",
+      "corpus": "summre",
+      "partition": "test",
+      "duree_audio_s": 1211.023,
+      "calcul_s": 11.995,
+      "rtf": 0.0099,
+      "n_locuteurs_hypothese": 4,
+      "n_locuteurs_impose": null,
+      "etapes_s": {
+        "analyse": 0.493,
+        "detection": 11.348,
+        "sous_processus": 11.854
+      },
+      "n_trames": 121103,
+      "chargement_s": 8.821
+    },
+    {
+      "uri": "summre__024c_EBPH",
+      "corpus": "summre",
+      "partition": "test",
+      "duree_audio_s": 1236.215,
+      "calcul_s": 13.63,
+      "rtf": 0.011,
+      "n_locuteurs_hypothese": 3,
+      "n_locuteurs_impose": null,
+      "etapes_s": {
+        "analyse": 0.525,
+        "detection": 12.938,
+        "sous_processus": 13.479
+      },
+      "n_trames": 123622,
+      "chargement_s": 8.821
+    },
+    {
+      "uri": "summre__025b_EBDH",
+      "corpus": "summre",
+      "partition": "test",
+      "duree_audio_s": 1317.369,
+      "calcul_s": 13.39,
+      "rtf": 0.0102,
+      "n_locuteurs_hypothese": 4,
+      "n_locuteurs_impose": null,
+      "etapes_s": {
+        "analyse": 0.766,
+        "detection": 12.451,
+        "sous_processus": 13.233
+      },
+      "n_trames": 131737,
+      "chargement_s": 8.821
+    },
+    {
+      "uri": "summre__039b_EDDH",
+      "corpus": "summre",
+      "partition": "test",
+      "duree_audio_s": 1407.377,
+      "calcul_s": 14.502,
+      "rtf": 0.0103,
+      "n_locuteurs_hypothese": 5,
+      "n_locuteurs_impose": null,
+      "etapes_s": {
+        "analyse": 0.618,
+        "detection": 13.723,
+        "sous_processus": 14.36
+      },
+      "n_trames": 140738,
+      "chargement_s": 8.821
+    },
+    {
+      "uri": "summre__045a_EARH",
+      "corpus": "summre",
+      "partition": "test",
+      "duree_audio_s": 1169.736,
+      "calcul_s": 12.27,
+      "rtf": 0.0105,
+      "n_locuteurs_hypothese": 3,
+      "n_locuteurs_impose": null,
+      "etapes_s": {
+        "analyse": 0.478,
+        "detection": 11.654,
+        "sous_processus": 12.144
+      },
+      "n_trames": 116974,
+      "chargement_s": 8.821
+    },
+    {
+      "uri": "summre__045b_EADH",
+      "corpus": "summre",
+      "partition": "test",
+      "duree_audio_s": 1170.761,
+      "calcul_s": 12.396,
+      "rtf": 0.0106,
+      "n_locuteurs_hypothese": 3,
+      "n_locuteurs_impose": null,
+      "etapes_s": {
+        "analyse": 0.527,
+        "detection": 11.698,
+        "sous_processus": 12.259
+      },
+      "n_trames": 117077,
+      "chargement_s": 8.821
+    },
+    {
+      "uri": "summre__046c_EBPH",
+      "corpus": "summre",
+      "partition": "test",
+      "duree_audio_s": 1189.116,
+      "calcul_s": 13.742,
+      "rtf": 0.0116,
+      "n_locuteurs_hypothese": 4,
+      "n_locuteurs_impose": null,
+      "etapes_s": {
+        "analyse": 0.639,
+        "detection": 12.93,
+        "sous_processus": 13.586
+      },
+      "n_trames": 118912,
+      "chargement_s": 8.821
+    },
+    {
+      "uri": "summre__047a_EDRH",
+      "corpus": "summre",
+      "partition": "test",
+      "duree_audio_s": 1095.354,
+      "calcul_s": 13.308,
+      "rtf": 0.0121,
+      "n_locuteurs_hypothese": 3,
+      "n_locuteurs_impose": null,
+      "etapes_s": {
+        "analyse": 0.52,
+        "detection": 12.629,
+        "sous_processus": 13.161
+      },
+      "n_trames": 109536,
+      "chargement_s": 8.821
+    },
+    {
+      "uri": "summre__047c_EDPH",
+      "corpus": "summre",
+      "partition": "test",
+      "duree_audio_s": 1385.831,
+      "calcul_s": 14.305,
+      "rtf": 0.0103,
+      "n_locuteurs_hypothese": 3,
+      "n_locuteurs_impose": null,
+      "etapes_s": {
+        "analyse": 0.669,
+        "detection": 13.456,
+        "sous_processus": 14.141
+      },
+      "n_trames": 138584,
+      "chargement_s": 8.821
+    },
+    {
+      "uri": "summre__049b_EBDH",
+      "corpus": "summre",
+      "partition": "test",
+      "duree_audio_s": 1193.076,
+      "calcul_s": 12.576,
+      "rtf": 0.0105,
+      "n_locuteurs_hypothese": 3,
+      "n_locuteurs_impose": null,
+      "etapes_s": {
+        "analyse": 0.523,
+        "detection": 11.858,
+        "sous_processus": 12.391
+      },
+      "n_trames": 119308,
+      "chargement_s": 8.821
+    },
+    {
+      "uri": "summre__050c_EEPH",
+      "corpus": "summre",
+      "partition": "test",
+      "duree_audio_s": 1058.321,
+      "calcul_s": 11.058,
+      "rtf": 0.0104,
+      "n_locuteurs_hypothese": 3,
+      "n_locuteurs_impose": null,
+      "etapes_s": {
+        "analyse": 0.449,
+        "detection": 10.449,
+        "sous_processus": 10.91
+      },
+      "n_trames": 105833,
+      "chargement_s": 8.821
+    },
+    {
+      "uri": "summre__051a_EARH",
+      "corpus": "summre",
+      "partition": "test",
+      "duree_audio_s": 983.784,
+      "calcul_s": 10.206,
+      "rtf": 0.0104,
+      "n_locuteurs_hypothese": 3,
+      "n_locuteurs_impose": null,
+      "etapes_s": {
+        "analyse": 0.412,
+        "detection": 9.657,
+        "sous_processus": 10.077
+      },
+      "n_trames": 98379,
+      "chargement_s": 8.821
+    },
+    {
+      "uri": "summre__053b_EDDH",
+      "corpus": "summre",
+      "partition": "test",
+      "duree_audio_s": 1012.02,
+      "calcul_s": 10.558,
+      "rtf": 0.0104,
+      "n_locuteurs_hypothese": 3,
+      "n_locuteurs_impose": null,
+      "etapes_s": {
+        "analyse": 0.386,
+        "detection": 10.02,
+        "sous_processus": 10.417
+      },
+      "n_trames": 101203,
+      "chargement_s": 8.821
+    },
+    {
+      "uri": "summre__054a_EARH",
+      "corpus": "summre",
+      "partition": "test",
+      "duree_audio_s": 1202.419,
+      "calcul_s": 12.819,
+      "rtf": 0.0107,
+      "n_locuteurs_hypothese": 3,
+      "n_locuteurs_impose": null,
+      "etapes_s": {
+        "analyse": 0.547,
+        "detection": 12.047,
+        "sous_processus": 12.607
+      },
+      "n_trames": 120242,
+      "chargement_s": 8.821
+    },
+    {
+      "uri": "summre__054c_EAPH",
+      "corpus": "summre",
+      "partition": "test",
+      "duree_audio_s": 1188.025,
+      "calcul_s": 12.613,
+      "rtf": 0.0106,
+      "n_locuteurs_hypothese": 4,
+      "n_locuteurs_impose": null,
+      "etapes_s": {
+        "analyse": 0.542,
+        "detection": 11.896,
+        "sous_processus": 12.451
+      },
+      "n_trames": 118803,
+      "chargement_s": 8.821
+    },
+    {
+      "uri": "summre__059b_EBDH",
+      "corpus": "summre",
+      "partition": "test",
+      "duree_audio_s": 1415.136,
+      "calcul_s": 15.887,
+      "rtf": 0.0112,
+      "n_locuteurs_hypothese": 4,
+      "n_locuteurs_impose": null,
+      "etapes_s": {
+        "analyse": 0.8,
+        "detection": 14.894,
+        "sous_processus": 15.709
+      },
+      "n_trames": 141514,
+      "chargement_s": 8.821
+    },
+    {
+      "uri": "summre__060a_EDRH",
+      "corpus": "summre",
+      "partition": "test",
+      "duree_audio_s": 1513.625,
+      "calcul_s": 15.78,
+      "rtf": 0.0104,
+      "n_locuteurs_hypothese": 3,
+      "n_locuteurs_impose": null,
+      "etapes_s": {
+        "analyse": 0.798,
+        "detection": 14.687,
+        "sous_processus": 15.516
+      },
+      "n_trames": 151363,
+      "chargement_s": 8.821
+    },
+    {
+      "uri": "summre__070a_EBRL",
+      "corpus": "summre",
+      "partition": "test",
+      "duree_audio_s": 867.135,
+      "calcul_s": 9.171,
+      "rtf": 0.0106,
+      "n_locuteurs_hypothese": 4,
+      "n_locuteurs_impose": null,
+      "etapes_s": {
+        "analyse": 0.368,
+        "detection": 8.7,
+        "sous_processus": 9.077
+      },
+      "n_trames": 86714,
+      "chargement_s": 8.821
+    },
+    {
+      "uri": "summre__070b_EBDL",
+      "corpus": "summre",
+      "partition": "test",
+      "duree_audio_s": 1149.023,
+      "calcul_s": 12.671,
+      "rtf": 0.011,
+      "n_locuteurs_hypothese": 4,
+      "n_locuteurs_impose": null,
+      "etapes_s": {
+        "analyse": 0.468,
+        "detection": 12.044,
+        "sous_processus": 12.526
+      },
+      "n_trames": 114903,
+      "chargement_s": 8.821
+    },
+    {
+      "uri": "summre__072b_EEDH",
+      "corpus": "summre",
+      "partition": "test",
+      "duree_audio_s": 1200.774,
+      "calcul_s": 13.252,
+      "rtf": 0.011,
+      "n_locuteurs_hypothese": 2,
+      "n_locuteurs_impose": null,
+      "etapes_s": {
+        "analyse": 0.565,
+        "detection": 12.5,
+        "sous_processus": 13.076
+      },
+      "n_trames": 120078,
+      "chargement_s": 8.821
+    },
+    {
+      "uri": "summre__072c_EEPH",
+      "corpus": "summre",
+      "partition": "test",
+      "duree_audio_s": 1052.478,
+      "calcul_s": 11.027,
+      "rtf": 0.0105,
+      "n_locuteurs_hypothese": 2,
+      "n_locuteurs_impose": null,
+      "etapes_s": {
+        "analyse": 0.443,
+        "detection": 10.442,
+        "sous_processus": 10.895
+      },
+      "n_trames": 105248,
+      "chargement_s": 8.821
+    },
+    {
+      "uri": "summre__074c_EAPH",
+      "corpus": "summre",
+      "partition": "test",
+      "duree_audio_s": 1044.699,
+      "calcul_s": 10.484,
+      "rtf": 0.01,
+      "n_locuteurs_hypothese": 3,
+      "n_locuteurs_impose": null,
+      "etapes_s": {
+        "analyse": 0.424,
+        "detection": 9.919,
+        "sous_processus": 10.351
+      },
+      "n_trames": 104470,
+      "chargement_s": 8.821
+    },
+    {
+      "uri": "summre__076b_EEDH",
+      "corpus": "summre",
+      "partition": "test",
+      "duree_audio_s": 489.298,
+      "calcul_s": 5.256,
+      "rtf": 0.0107,
+      "n_locuteurs_hypothese": 4,
+      "n_locuteurs_impose": null,
+      "etapes_s": {
+        "analyse": 0.196,
+        "detection": 4.995,
+        "sous_processus": 5.199
+      },
+      "n_trames": 48930,
+      "chargement_s": 8.821
+    },
+    {
+      "uri": "summre__077c_EBPH",
+      "corpus": "summre",
+      "partition": "test",
+      "duree_audio_s": 1211.419,
+      "calcul_s": 13.565,
+      "rtf": 0.0112,
+      "n_locuteurs_hypothese": 4,
+      "n_locuteurs_impose": null,
+      "etapes_s": {
+        "analyse": 0.557,
+        "detection": 12.855,
+        "sous_processus": 13.428
+      },
+      "n_trames": 121142,
+      "chargement_s": 8.821
+    },
+    {
+      "uri": "summre__080b_EBDH",
+      "corpus": "summre",
+      "partition": "test",
+      "duree_audio_s": 1316.261,
+      "calcul_s": 15.767,
+      "rtf": 0.012,
+      "n_locuteurs_hypothese": 3,
+      "n_locuteurs_impose": null,
+      "etapes_s": {
+        "analyse": 0.725,
+        "detection": 14.854,
+        "sous_processus": 15.596
+      },
+      "n_trames": 131627,
+      "chargement_s": 8.821
+    },
+    {
+      "uri": "summre__088b_EADH",
+      "corpus": "summre",
+      "partition": "test",
+      "duree_audio_s": 1226.451,
+      "calcul_s": 13.67,
+      "rtf": 0.0111,
+      "n_locuteurs_hypothese": 3,
+      "n_locuteurs_impose": null,
+      "etapes_s": {
+        "analyse": 0.64,
+        "detection": 12.827,
+        "sous_processus": 13.498
+      },
+      "n_trames": 122646,
+      "chargement_s": 8.821
+    },
+    {
+      "uri": "summre__093c_EBPZ",
+      "corpus": "summre",
+      "partition": "test",
+      "duree_audio_s": 1125.567,
+      "calcul_s": 12.476,
+      "rtf": 0.0111,
+      "n_locuteurs_hypothese": 3,
+      "n_locuteurs_impose": null,
+      "etapes_s": {
+        "analyse": 0.5,
+        "detection": 11.795,
+        "sous_processus": 12.306
+      },
+      "n_trames": 112557,
+      "chargement_s": 8.821
+    },
+    {
+      "uri": "summre__100b_EADH",
+      "corpus": "summre",
+      "partition": "test",
+      "duree_audio_s": 1071.882,
+      "calcul_s": 13.862,
+      "rtf": 0.0129,
+      "n_locuteurs_hypothese": 3,
+      "n_locuteurs_impose": null,
+      "etapes_s": {
+        "analyse": 0.522,
+        "detection": 13.167,
+        "sous_processus": 13.709
+      },
+      "n_trames": 107189,
+      "chargement_s": 8.821
+    },
+    {
+      "uri": "summre__102a_EBRH",
+      "corpus": "summre",
+      "partition": "test",
+      "duree_audio_s": 1211.783,
+      "calcul_s": 15.857,
+      "rtf": 0.0131,
+      "n_locuteurs_hypothese": 4,
+      "n_locuteurs_impose": null,
+      "etapes_s": {
+        "analyse": 0.58,
+        "detection": 15.061,
+        "sous_processus": 15.67
+      },
+      "n_trames": 121179,
+      "chargement_s": 8.821
+    },
+    {
+      "uri": "summre__102c_EBPH",
+      "corpus": "summre",
+      "partition": "test",
+      "duree_audio_s": 1292.921,
+      "calcul_s": 13.657,
+      "rtf": 0.0106,
+      "n_locuteurs_hypothese": 4,
+      "n_locuteurs_impose": null,
+      "etapes_s": {
+        "analyse": 0.6,
+        "detection": 12.835,
+        "sous_processus": 13.453
+      },
+      "n_trames": 129293,
+      "chargement_s": 8.821
+    }
+  ]
+}

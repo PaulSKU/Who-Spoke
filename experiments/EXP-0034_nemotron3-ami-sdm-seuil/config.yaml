@@ -1,0 +1,44 @@
+# EXP-0034 — Nemotron 3 Diarization sur AMI SDM (Array1-01), dev et test, seuil de décision 0,35 (D29 §1, hypothèse 2).
+# Variable modifiée par rapport à EXP-0026 : le seuil de décision (0,5 par défaut), fixé à la valeur
+# retenue par le balayage d'EXP-0033 sur SUMM-RE dev (0,35, DER sans collar 10,28 %).
+# Aucun réglage sur ces jeux : vérification des règles 3 et 4 de D25.
+exp_id: EXP-0034
+slug: nemotron3-ami-sdm-seuil
+reference: EXP-0026
+variable_modifiee: seuil       # seuil de décision retenu par EXP-0033 (SUMM-RE dev)
+graine: 0                      # inférence déterministe ; graine consignée par convention
+
+pipeline:
+  nom: nemotron3-diarization   # nvidia/Nemotron-3-Diarization, 8 locuteurs au plus
+  vad: integree               # détection faite par le modèle de bout en bout
+  parametres:                # nombre de locuteurs estimé par le modèle ; ni imposé ni borné
+    threshold: 0.35           # retenu par EXP-0033 (balayage sur SUMM-RE dev)
+
+mode_n_locuteurs: estime
+detection_oracle: false
+
+device: cpu
+prechauffage_s: 60             # extrait du premier fichier, non compté (protocole §3.5)
+
+jeux:
+  - corpus: ami
+    partition: dev
+    liste: data/splits/ami/dev.txt
+  - corpus: ami
+    partition: test
+    liste: data/splits/ami/test.txt
+
+# Device cpu : temps_cpu tiré de l'exécution principale restreinte à ces fichiers (protocole §3.5).
+mesure_cpu:
+  corpus: ami
+  liste: data/splits/ami/temps.txt
+
+evaluation:
+  references: data/processed/ami/rttm   # RTTM only_words, uri réécrit en ami__<réunion>
+  uem: data/splits/ami/uem
+  conditions: {collar_0: 0.0, collar_0_25: 0.5}
+  skip_overlap: false
+
+materiel:
+  machine: MacBook Pro M2 Pro
+  ram_go: 16

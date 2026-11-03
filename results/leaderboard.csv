@@ -78,3 +78,14 @@ EXP-0031,2026-11-03T18:43:21+01:00,pyannote-c1-ami-sdm-niveau,EXP-0001,normalisa
 EXP-0031,2026-11-03T18:43:21+01:00,pyannote-c1-ami-sdm-niveau,EXP-0001,normalisation_niveau,ami,test,pyannote-community-1,estime,19.96,11.13,3.86,4.97,13.2,27.07,0.38,0.0527,,0269b68
 EXP-0032,2026-11-03T19:59:02+01:00,pyannote-c1-summre-niveau,EXP-0007,normalisation_niveau,summre,dev,pyannote-community-1,estime,26.01,5.13,14.24,6.64,10.76,29.3,0.08,0.0515,,0269b68
 EXP-0032,2026-11-03T19:59:02+01:00,pyannote-c1-summre-niveau,EXP-0007,normalisation_niveau,summre,test,pyannote-community-1,estime,26.29,7.16,11.28,7.86,14.81,28.72,0.16,0.0525,,0269b68
+EXP-0033,2026-11-03T20:40:01+01:00,nemotron3-summre-seuil,EXP-0027,seuil,summre,dev,nemotron3-diarization,estime,10.28,6.31,3.42,0.55,4.38,11.13,0.11,0.0104,0.0103,f78a220
+EXP-0033,2026-11-03T20:40:01+01:00,nemotron3-summre-seuil,EXP-0027,seuil,summre,test,nemotron3-diarization,estime,14.25,10.61,2.53,1.11,11.07,13.87,0.14,0.0108,0.0103,f78a220
+EXP-0034,2026-11-03T20:53:09+01:00,nemotron3-ami-sdm-seuil,EXP-0026,seuil,ami,dev,nemotron3-diarization,estime,21.7,17.66,3.0,1.04,19.13,22.79,0.0,0.0103,0.0101,f78a220
+EXP-0034,2026-11-03T20:53:09+01:00,nemotron3-ami-sdm-seuil,EXP-0026,seuil,ami,test,nemotron3-diarization,estime,26.44,22.51,2.57,1.36,24.12,28.48,0.12,0.0103,0.0101,f78a220
+EXP-0035,2026-11-03T21:49:48+01:00,nemotron3-summre-degrade-seuil,EXP-0028,seuil,summre-rev04,test,nemotron3-diarization,estime,14.51,10.65,2.88,0.99,10.91,14.13,0.03,0.0107,0.0109,f78a220
+EXP-0035,2026-11-03T21:49:48+01:00,nemotron3-summre-degrade-seuil,EXP-0028,seuil,summre-rev08,test,nemotron3-diarization,estime,15.68,10.84,3.47,1.37,11.42,15.57,0.03,0.0108,0.0109,f78a220
+EXP-0035,2026-11-03T21:49:48+01:00,nemotron3-summre-degrade-seuil,EXP-0028,seuil,summre-bru15,test,nemotron3-diarization,estime,15.64,11.49,2.27,1.88,12.27,15.47,0.16,0.0103,0.0109,f78a220
+EXP-0035,2026-11-03T21:49:48+01:00,nemotron3-summre-degrade-seuil,EXP-0028,seuil,summre-bru05,test,nemotron3-diarization,estime,17.71,13.28,2.41,2.02,12.88,18.78,0.11,0.0108,0.0109,f78a220
+EXP-0035,2026-11-03T21:49:48+01:00,nemotron3-summre-degrade-seuil,EXP-0028,seuil,summre-cod16,test,nemotron3-diarization,estime,14.57,10.87,2.43,1.27,11.15,14.4,0.11,0.0108,0.0109,f78a220
+EXP-0035,2026-11-03T21:49:48+01:00,nemotron3-summre-degrade-seuil,EXP-0028,seuil,summre-cod08,test,nemotron3-diarization,estime,16.11,10.32,3.52,2.27,12.41,16.92,0.0,0.0114,0.0109,f78a220
+EXP-0035,2026-11-03T21:49:48+01:00,nemotron3-summre-degrade-seuil,EXP-0028,seuil,summre-salle,test,nemotron3-diarization,estime,16.98,12.78,2.73,1.47,12.27,17.09,0.03,0.0115,0.0109,f78a220

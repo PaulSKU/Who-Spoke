@@ -1,0 +1,52 @@
+# EXP-0033 — Nemotron 3 Diarization sur SUMM-RE, seuil de décision réglé sur dev (D29 §1, hypothèse 2).
+# Variable modifiée par rapport à EXP-0027 : le seuil de décision (sigmoïde par trame, 0,5 par
+# défaut), choisi par balayage sur SUMM-RE dev seulement (D19 §4 : DER sans collar le plus bas,
+# la plus petite valeur en cas d'égalité), puis appliqué à dev et test. Grille de 0,20 à 0,80 au
+# pas de 0,05 (13 valeurs), symétrique autour de 0,5 : le réseau ne passe qu'une fois par fichier,
+# seule la binarisation est refaite. La valeur 0,5 doit redonner EXP-0027 (contrôle).
+exp_id: EXP-0033
+slug: nemotron3-summre-seuil
+reference: EXP-0027
+variable_modifiee: seuil       # seuil de décision de Nemotron 3, réglé sur SUMM-RE dev
+graine: 0                      # inférence déterministe ; graine consignée par convention
+
+pipeline:
+  nom: nemotron3-diarization   # nvidia/Nemotron-3-Diarization, 8 locuteurs au plus
+  vad: integree               # détection faite par le modèle de bout en bout
+  parametres: {}             # nombre de locuteurs estimé par le modèle ; ni imposé ni borné
+
+balayage:
+  parametre: threshold
+  debut: 0.20
+  fin: 0.80
+  pas: 0.05
+  partition: dev
+
+mode_n_locuteurs: estime
+detection_oracle: false
+
+device: cpu
+prechauffage_s: 60             # extrait du premier fichier, non compté (protocole §3.5)
+
+jeux:
+  - corpus: summre
+    partition: dev
+    liste: data/splits/summre/dev.txt
+  - corpus: summre
+    partition: test
+    liste: data/splits/summre/test.txt
+
+# Device cpu : temps_cpu tiré de l'exécution principale restreinte à ces fichiers (protocole §3.5).
+mesure_cpu:
+  corpus: summre
+  liste: data/splits/summre/temps.txt
+
+evaluation:
+  references: data/processed/summre/rttm   # mots alignés, fusion à 200 ms, sans jetons non lexicaux (D20)
+  uem: data/splits/summre/uem
+  conditions: {collar_0: 0.0, collar_0_25: 0.5}
+  skip_overlap: false
+
+materiel:
+  machine: MacBook Pro M2 Pro
+  ram_go: 16

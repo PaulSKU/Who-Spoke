@@ -1,0 +1,99 @@
+2026-11-03T20:12:13+0100 INFO alimentation au début : secteur (Now drawing from 'AC Power') ; charge sur 1 min 2.53 pour 6 cœurs de performance
+2026-11-03T20:12:13+0100 INFO expérience EXP-0033, mode complet
+2026-11-03T20:12:13+0100 INFO commit f78a22023115af486da8f46a6444383281adba18, arbre propre (chemins contrôlés, D18) : True
+2026-11-03T20:12:13+0100 INFO fichiers non commités : experiments/EXP-0033_nemotron3-summre-seuil/config.yaml, experiments/EXP-0033_nemotron3-summre-seuil/run.log
+2026-11-03T20:12:13+0100 INFO python 3.11.15, torch 2.14.1, plateforme macOS-14.1.2-arm64-arm-64bit, fils torch 6
+2026-11-03T20:12:22+0100 INFO pipeline nemotron3-diarization chargée sur cpu en 8.94 s (paramètres : {}, nombre de locuteurs : estime, détection oracle : False, trace : False)
+2026-11-03T20:12:22+0100 INFO balayage de threshold sur summre/dev : 13 valeurs de 0.2 à 0.8
+2026-11-03T20:19:35+0100 INFO balayage : préparation de 36 fichiers en 433.5 s
+2026-11-03T20:20:01+0100 INFO balayage threshold = 0.2 : DER c0 10.44 %, 3.78 locuteurs en moyenne
+2026-11-03T20:20:27+0100 INFO balayage threshold = 0.25 : DER c0 10.33 %, 3.75 locuteurs en moyenne
+2026-11-03T20:20:52+0100 INFO balayage threshold = 0.3 : DER c0 10.29 %, 3.72 locuteurs en moyenne
+2026-11-03T20:21:17+0100 INFO balayage threshold = 0.35 : DER c0 10.28 %, 3.72 locuteurs en moyenne
+2026-11-03T20:21:40+0100 INFO balayage threshold = 0.4 : DER c0 10.30 %, 3.72 locuteurs en moyenne
+2026-11-03T20:22:03+0100 INFO balayage threshold = 0.45 : DER c0 10.39 %, 3.72 locuteurs en moyenne
+2026-11-03T20:22:25+0100 INFO balayage threshold = 0.5 : DER c0 10.50 %, 3.72 locuteurs en moyenne
+2026-11-03T20:22:48+0100 INFO balayage threshold = 0.55 : DER c0 10.69 %, 3.72 locuteurs en moyenne
+2026-11-03T20:23:10+0100 INFO balayage threshold = 0.6 : DER c0 10.94 %, 3.72 locuteurs en moyenne
+2026-11-03T20:23:33+0100 INFO balayage threshold = 0.65 : DER c0 11.23 %, 3.69 locuteurs en moyenne
+2026-11-03T20:23:55+0100 INFO balayage threshold = 0.7 : DER c0 11.56 %, 3.69 locuteurs en moyenne
+2026-11-03T20:24:17+0100 INFO balayage threshold = 0.75 : DER c0 11.92 %, 3.69 locuteurs en moyenne
+2026-11-03T20:24:39+0100 INFO balayage threshold = 0.8 : DER c0 12.35 %, 3.67 locuteurs en moyenne
+2026-11-03T20:24:39+0100 INFO balayage : threshold retenu = 0.35 (DER c0 10.28 %), 737.4 s au total
+2026-11-03T20:24:40+0100 INFO préchauffage : 60 s de summre__004c_PAPH en 0.65 s (non compté)
+2026-11-03T20:24:52+0100 INFO [1/73] dev summre__004c_PAPH : 1263.7 s d'audio, 12.36 s de calcul, RTF 0.0098, 4 locuteurs
+2026-11-03T20:25:05+0100 INFO [2/73] dev summre__006b_EADH : 1281.4 s d'audio, 12.63 s de calcul, RTF 0.0099, 4 locuteurs
+2026-11-03T20:25:15+0100 INFO [3/73] dev summre__011c_ECPL : 1016.7 s d'audio, 10.25 s de calcul, RTF 0.0101, 4 locuteurs
+2026-11-03T20:25:28+0100 INFO [4/73] dev summre__015b_EBDD : 1295.5 s d'audio, 12.92 s de calcul, RTF 0.0100, 4 locuteurs
+2026-11-03T20:25:36+0100 INFO [5/73] dev summre__017a_EBRZ : 748.9 s d'audio, 7.51 s de calcul, RTF 0.0100, 3 locuteurs
+2026-11-03T20:25:49+0100 INFO [6/73] dev summre__018a_EARZ : 1317.7 s d'audio, 13.17 s de calcul, RTF 0.0100, 4 locuteurs
+2026-11-03T20:26:01+0100 INFO [7/73] dev summre__018b_EADZ : 1163.0 s d'audio, 11.98 s de calcul, RTF 0.0103, 4 locuteurs
+2026-11-03T20:26:13+0100 INFO [8/73] dev summre__020b_EBDZ : 1101.1 s d'audio, 11.59 s de calcul, RTF 0.0105, 4 locuteurs
+2026-11-03T20:26:24+0100 INFO [9/73] dev summre__020c_EBPZ : 1094.3 s d'audio, 10.99 s de calcul, RTF 0.0100, 4 locuteurs
+2026-11-03T20:26:35+0100 INFO [10/73] dev summre__021a_EARD : 1126.4 s d'audio, 11.40 s de calcul, RTF 0.0101, 4 locuteurs
+2026-11-03T20:26:46+0100 INFO [11/73] dev summre__021b_EADD : 1111.5 s d'audio, 11.06 s de calcul, RTF 0.0099, 4 locuteurs
+2026-11-03T20:26:59+0100 INFO [12/73] dev summre__027a_EBRH : 1327.1 s d'audio, 13.12 s de calcul, RTF 0.0099, 3 locuteurs
+2026-11-03T20:27:11+0100 INFO [13/73] dev summre__032a_EARH : 1180.7 s d'audio, 12.05 s de calcul, RTF 0.0102, 4 locuteurs
+2026-11-03T20:27:24+0100 INFO [14/73] dev summre__032b_EADH : 1226.2 s d'audio, 12.56 s de calcul, RTF 0.0102, 4 locuteurs
+2026-11-03T20:27:37+0100 INFO [15/73] dev summre__033a_EBRH : 1267.4 s d'audio, 12.90 s de calcul, RTF 0.0102, 4 locuteurs
+2026-11-03T20:27:48+0100 INFO [16/73] dev summre__033c_EBPH : 1242.3 s d'audio, 11.68 s de calcul, RTF 0.0094, 5 locuteurs
+2026-11-03T20:28:01+0100 INFO [17/73] dev summre__034a_EBRH : 1256.3 s d'audio, 12.24 s de calcul, RTF 0.0097, 4 locuteurs
+2026-11-03T20:28:12+0100 INFO [18/73] dev summre__035b_EADH : 1188.3 s d'audio, 11.84 s de calcul, RTF 0.0100, 4 locuteurs
+2026-11-03T20:28:24+0100 INFO [19/73] dev summre__036b_EADH : 1142.5 s d'audio, 11.55 s de calcul, RTF 0.0101, 4 locuteurs
+2026-11-03T20:28:41+0100 INFO [20/73] dev summre__036c_EAPH : 1607.7 s d'audio, 17.40 s de calcul, RTF 0.0108, 4 locuteurs
+2026-11-03T20:28:55+0100 INFO [21/73] dev summre__037a_EARH : 1207.9 s d'audio, 13.24 s de calcul, RTF 0.0110, 3 locuteurs
+2026-11-03T20:29:11+0100 INFO [22/73] dev summre__040a_EERH : 1393.2 s d'audio, 16.52 s de calcul, RTF 0.0119, 4 locuteurs
+2026-11-03T20:29:22+0100 INFO [23/73] dev summre__043a_EDRH : 987.0 s d'audio, 10.97 s de calcul, RTF 0.0111, 3 locuteurs
+2026-11-03T20:29:34+0100 INFO [24/73] dev summre__044c_EBPH : 1106.7 s d'audio, 11.43 s de calcul, RTF 0.0103, 3 locuteurs
+2026-11-03T20:29:44+0100 INFO [25/73] dev summre__066a_EARH : 1031.8 s d'audio, 10.57 s de calcul, RTF 0.0102, 3 locuteurs
+2026-11-03T20:29:56+0100 INFO [26/73] dev summre__069b_EEDL : 1157.6 s d'audio, 11.84 s de calcul, RTF 0.0102, 4 locuteurs
+2026-11-03T20:30:09+0100 INFO [27/73] dev summre__069c_EEPL : 1261.3 s d'audio, 13.05 s de calcul, RTF 0.0103, 4 locuteurs
+2026-11-03T20:30:20+0100 INFO [28/73] dev summre__075b_EBDH : 1018.8 s d'audio, 11.11 s de calcul, RTF 0.0109, 3 locuteurs
+2026-11-03T20:30:32+0100 INFO [29/73] dev summre__081a_EBRH : 1208.2 s d'audio, 11.81 s de calcul, RTF 0.0098, 4 locuteurs
+2026-11-03T20:30:45+0100 INFO [30/73] dev summre__081c_EBPH : 1235.3 s d'audio, 12.92 s de calcul, RTF 0.0105, 4 locuteurs
+2026-11-03T20:30:58+0100 INFO [31/73] dev summre__084c_EBPH : 1203.2 s d'audio, 12.74 s de calcul, RTF 0.0106, 2 locuteurs
+2026-11-03T20:31:10+0100 INFO [32/73] dev summre__091b_EBDH : 1154.9 s d'audio, 12.41 s de calcul, RTF 0.0107, 3 locuteurs
+2026-11-03T20:31:24+0100 INFO [33/73] dev summre__097b_EBDH : 1263.4 s d'audio, 14.04 s de calcul, RTF 0.0111, 5 locuteurs
+2026-11-03T20:31:40+0100 INFO [34/73] dev summre__097c_EBPH : 1265.5 s d'audio, 15.57 s de calcul, RTF 0.0123, 4 locuteurs
+2026-11-03T20:31:53+0100 INFO [35/73] dev summre__101c_EDPH : 1139.5 s d'audio, 13.23 s de calcul, RTF 0.0116, 2 locuteurs
+2026-11-03T20:32:06+0100 INFO [36/73] dev summre__104b_EADH : 1223.8 s d'audio, 13.46 s de calcul, RTF 0.0110, 4 locuteurs
+2026-11-03T20:32:19+0100 INFO [37/73] test summre__007a_ECRH : 1210.6 s d'audio, 12.53 s de calcul, RTF 0.0104, 4 locuteurs
+2026-11-03T20:32:36+0100 INFO [38/73] test summre__008a_EARH : 1565.6 s d'audio, 16.66 s de calcul, RTF 0.0106, 4 locuteurs
+2026-11-03T20:32:48+0100 INFO [39/73] test summre__012c_EBPZ : 1159.4 s d'audio, 11.98 s de calcul, RTF 0.0103, 3 locuteurs
+2026-11-03T20:33:00+0100 INFO [40/73] test summre__013c_EAPD : 1226.2 s d'audio, 12.71 s de calcul, RTF 0.0104, 4 locuteurs
+2026-11-03T20:33:14+0100 INFO [41/73] test summre__014c_EAPD : 1222.1 s d'audio, 13.36 s de calcul, RTF 0.0109, 5 locuteurs
+2026-11-03T20:33:26+0100 INFO [42/73] test summre__016c_EBPZ : 1217.8 s d'audio, 12.80 s de calcul, RTF 0.0105, 3 locuteurs
+2026-11-03T20:33:39+0100 INFO [43/73] test summre__019a_EARD : 1195.2 s d'audio, 12.81 s de calcul, RTF 0.0107, 5 locuteurs
+2026-11-03T20:33:51+0100 INFO [44/73] test summre__019c_EAPD : 1211.0 s d'audio, 12.00 s de calcul, RTF 0.0099, 4 locuteurs
+2026-11-03T20:34:05+0100 INFO [45/73] test summre__024c_EBPH : 1236.2 s d'audio, 13.63 s de calcul, RTF 0.0110, 3 locuteurs
+2026-11-03T20:34:18+0100 INFO [46/73] test summre__025b_EBDH : 1317.4 s d'audio, 13.39 s de calcul, RTF 0.0102, 4 locuteurs
+2026-11-03T20:34:33+0100 INFO [47/73] test summre__039b_EDDH : 1407.4 s d'audio, 14.50 s de calcul, RTF 0.0103, 5 locuteurs
+2026-11-03T20:34:45+0100 INFO [48/73] test summre__045a_EARH : 1169.7 s d'audio, 12.27 s de calcul, RTF 0.0105, 3 locuteurs
+2026-11-03T20:34:57+0100 INFO [49/73] test summre__045b_EADH : 1170.8 s d'audio, 12.40 s de calcul, RTF 0.0106, 3 locuteurs
+2026-11-03T20:35:11+0100 INFO [50/73] test summre__046c_EBPH : 1189.1 s d'audio, 13.74 s de calcul, RTF 0.0116, 4 locuteurs
+2026-11-03T20:35:24+0100 INFO [51/73] test summre__047a_EDRH : 1095.4 s d'audio, 13.31 s de calcul, RTF 0.0121, 3 locuteurs
+2026-11-03T20:35:39+0100 INFO [52/73] test summre__047c_EDPH : 1385.8 s d'audio, 14.30 s de calcul, RTF 0.0103, 3 locuteurs
+2026-11-03T20:35:51+0100 INFO [53/73] test summre__049b_EBDH : 1193.1 s d'audio, 12.58 s de calcul, RTF 0.0105, 3 locuteurs
+2026-11-03T20:36:02+0100 INFO [54/73] test summre__050c_EEPH : 1058.3 s d'audio, 11.06 s de calcul, RTF 0.0104, 3 locuteurs
+2026-11-03T20:36:13+0100 INFO [55/73] test summre__051a_EARH : 983.8 s d'audio, 10.21 s de calcul, RTF 0.0104, 3 locuteurs
+2026-11-03T20:36:23+0100 INFO [56/73] test summre__053b_EDDH : 1012.0 s d'audio, 10.56 s de calcul, RTF 0.0104, 3 locuteurs
+2026-11-03T20:36:36+0100 INFO [57/73] test summre__054a_EARH : 1202.4 s d'audio, 12.82 s de calcul, RTF 0.0107, 3 locuteurs
+2026-11-03T20:36:49+0100 INFO [58/73] test summre__054c_EAPH : 1188.0 s d'audio, 12.61 s de calcul, RTF 0.0106, 4 locuteurs
+2026-11-03T20:37:04+0100 INFO [59/73] test summre__059b_EBDH : 1415.1 s d'audio, 15.89 s de calcul, RTF 0.0112, 4 locuteurs
+2026-11-03T20:37:20+0100 INFO [60/73] test summre__060a_EDRH : 1513.6 s d'audio, 15.78 s de calcul, RTF 0.0104, 3 locuteurs
+2026-11-03T20:37:29+0100 INFO [61/73] test summre__070a_EBRL : 867.1 s d'audio, 9.17 s de calcul, RTF 0.0106, 4 locuteurs
+2026-11-03T20:37:42+0100 INFO [62/73] test summre__070b_EBDL : 1149.0 s d'audio, 12.67 s de calcul, RTF 0.0110, 4 locuteurs
+2026-11-03T20:37:55+0100 INFO [63/73] test summre__072b_EEDH : 1200.8 s d'audio, 13.25 s de calcul, RTF 0.0110, 2 locuteurs
+2026-11-03T20:38:06+0100 INFO [64/73] test summre__072c_EEPH : 1052.5 s d'audio, 11.03 s de calcul, RTF 0.0105, 2 locuteurs
+2026-11-03T20:38:17+0100 INFO [65/73] test summre__074c_EAPH : 1044.7 s d'audio, 10.48 s de calcul, RTF 0.0100, 3 locuteurs
+2026-11-03T20:38:22+0100 INFO [66/73] test summre__076b_EEDH : 489.3 s d'audio, 5.26 s de calcul, RTF 0.0107, 4 locuteurs
+2026-11-03T20:38:36+0100 INFO [67/73] test summre__077c_EBPH : 1211.4 s d'audio, 13.57 s de calcul, RTF 0.0112, 4 locuteurs
+2026-11-03T20:38:51+0100 INFO [68/73] test summre__080b_EBDH : 1316.3 s d'audio, 15.77 s de calcul, RTF 0.0120, 3 locuteurs
+2026-11-03T20:39:05+0100 INFO [69/73] test summre__088b_EADH : 1226.5 s d'audio, 13.67 s de calcul, RTF 0.0111, 3 locuteurs
+2026-11-03T20:39:18+0100 INFO [70/73] test summre__093c_EBPZ : 1125.6 s d'audio, 12.48 s de calcul, RTF 0.0111, 3 locuteurs
+2026-11-03T20:39:32+0100 INFO [71/73] test summre__100b_EADH : 1071.9 s d'audio, 13.86 s de calcul, RTF 0.0129, 3 locuteurs
+2026-11-03T20:39:47+0100 INFO [72/73] test summre__102a_EBRH : 1211.8 s d'audio, 15.86 s de calcul, RTF 0.0131, 4 locuteurs
+2026-11-03T20:40:01+0100 INFO [73/73] test summre__102c_EBPH : 1292.9 s d'audio, 13.66 s de calcul, RTF 0.0106, 4 locuteurs
+2026-11-03T20:40:01+0100 INFO alimentation à la fin : secteur ; 29 relevés, conforme : True
+2026-11-03T20:40:01+0100 INFO charge concurrente : True (charge maximale sur 1 min : 6.36, 6 cœurs de performance)
+2026-11-03T20:40:05+0100 INFO total : 86622.5 s d'audio, 920.7 s de calcul, RTF 0.0106 ; temps pour 30 min : 19 s
