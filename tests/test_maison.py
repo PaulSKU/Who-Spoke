@@ -573,3 +573,12 @@ def test_donnees_traitees_ignorees_par_git():
     for path in ("data/processed/maison/audio/M01_uem.wav", "data/processed/maison/rttm/M01_uem.rttm",
                  "data/processed/maison/rttm/maison__M01.rttm", "data/raw/maison/M01/annotation/M01.txt"):
         assert subprocess.run(["git", "check-ignore", "-q", path], cwd=REPO_ROOT).returncode == 0, path
+
+
+def test_projets_audacity_ignores(tmp_path):
+    directory = tmp_path / "M01"
+    directory.mkdir()
+    for name in ("table.m4a", "table.aup4", "table.aup4-wal", "table.aup4-shm", "M01.aup3", "S1.aup4"):
+        (directory / name).write_bytes(b"")
+    table, aids = maison.source_files(directory)
+    assert table.name == "table.m4a" and aids == {}

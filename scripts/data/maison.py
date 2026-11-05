@@ -69,7 +69,8 @@ from whospoke.maison import synchro
 DEFAULT_ROOT = DATA_DIR / "raw" / "maison"
 PROCESSED_DIR = DATA_DIR / "processed" / "maison"   # références, non versionnées
 VERSIONED_DIR = DATA_DIR / "splits" / "maison"      # copie versionnée (option 3 de tous)
-NOT_AUDIO = {".md", ".txt", ".json", ".csv", ".rttm", ".uem", ".yaml", ".yml", ".aup3", ".aup3-wal", ".aup3-shm"}
+NOT_AUDIO = {".md", ".txt", ".json", ".csv", ".rttm", ".uem", ".yaml", ".yml", ".aup3", ".aup3-wal", ".aup3-shm",
+             ".aup4", ".aup4-wal", ".aup4-shm"}   # projets Audacity 3 et 4
 _AID = re.compile(r"^S\d+$")
 CONTROL_WINDOW_S = 120.0      # conventions §5 : deux minutes ré-annotées
 MIN_DELAY_H = 24.0            # conventions §5 : au moins un jour après la première annotation
