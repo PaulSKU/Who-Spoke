@@ -44,3 +44,9 @@ tests/visuel/defauts/
 tests/visuel/b11/
 tests/visuel/b12/
 tests/visuel/b13/
+
+# Corpus maison : aucune sortie par segment versionnée tant que les consentements ne sont pas
+# recueillis (conventions d'annotation, emplacement des références ; prompt A9 du 05/11).
+# Hypothèses des expériences maison (rttm/, rttm_<sortie>/) gardées en local.
+experiments/*maison*/rttm/
+experiments/*maison*/rttm_*/
