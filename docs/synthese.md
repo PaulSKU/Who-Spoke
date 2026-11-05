@@ -28,6 +28,8 @@ Qu'est-ce qui fait la qualité d'une diarisation de réunions en français, enre
 
 **La mesure elle-même doit être lue avec prudence.** Le DER sans collar dépend de la convention de découpage de la référence ; avec collar, presque pas (C09) **[certain]**.
 
+**Sur la première réunion réelle, l'écart se confirme, mais pas encore en champ lointain.** Sur M01 (voiture, 3 locuteurs), Nemotron 3 fait 14,7 % de DER sans collar contre 34,1 % pour pyannote, qui ne trouve que deux locuteurs et confond aussi les deux autres (C22) **[certain]**. Nemotron 3 y manque un peu plus de parole que pyannote, trace atténuée de son défaut sur AMI. M01 étant enregistré à courte distance, la question du champ lointain reste ouverte jusqu'à un enregistrement en salle (D29, amendement du 05/11) **[probable]**.
+
 ## 3. Ce qui est en cours (file D23, planning v2.0)
 
 | Question | Expériences | État |
@@ -37,7 +39,7 @@ Qu'est-ce qui fait la qualité d'une diarisation de réunions en français, enre
 | Quel système résiste le mieux à la réverbération, au bruit et au codec de visio ? | A3 (D24) : EXP-0020, EXP-0021, A-0002 | Fait : réverbération forte = faiblesse de pyannote (C13) |
 | Nemotron 3 Diarization et DiariZen font-ils mieux que pyannote en français ? | A4 : EXP-0026 à 0028 ; A5 | Nemotron 3 : oui en français et sous dégradation, non sur AMI (diagnostic en cours, D29) ; DiariZen écarté (trop lent en CPU, plante en MPS) |
 | Une détection fine en post-traitement réduit-elle la fausse alarme de pyannote ? | A6 (D25, V2 et V3) : EXP-0022 à 0025 | Non : gain en français, forte perte sur AMI, écartée (C16) |
-| Que donnent les systèmes sur de vraies réunions en français, en salle et en visio ? | A9, corpus maison | Enregistrements en cours |
+| Que donnent les systèmes sur de vraies réunions en français, en salle et en visio ? | A9, corpus maison | M01 évaluée (EXP-0036, EXP-0037, A-0005) ; enregistrement en salle à faire |
 
 ## 4. Limites connues
 

@@ -57,6 +57,23 @@ Statut : actée
 
 Conformément au §2, c'est le corpus maison qui tranche : Nemotron 3 n'est retenu que si son avantage en français se confirme en salle réelle et si sa parole manquée n'y réapparaît pas. On ne lance plus d'autre expérience sur les corpus publics.
 
+## Amendement du 05/11/2026 — premier enregistrement du corpus maison (M01)
+
+Statut : état intermédiaire ; la décision reste à prendre au 9/11.
+
+M01 (voiture, 3 locuteurs, 9 min ; EXP-0036, EXP-0037, A-0005) : Nemotron 3 fait 14,7 % de DER sans collar contre 34,1 % pour pyannote, et 6,9 contre 19,6 % avec collar. Il trouve les trois locuteurs, pyannote deux. Sa parole manquée reste plus élevée que celle de pyannote (6,6 contre 4,3 points).
+
+| Condition | État au 05/11 |
+|---|---|
+| 1. Français public | Remplie |
+| 2. Champ lointain | Non remplie sur AMI. M01 n'est pas en champ lointain (0,5 à 1,2 m, habitacle) : il ne la teste pas |
+| 3. Corpus maison | Remplie sur M01, seul enregistrement : le critère de majorité n'a pas encore de sens |
+| 4. Pratique | Intégré, fonctionnement hors ligne vérifié sous relevé réseau (EXP-0037). Restent la vérification sur 30 min et l'essai de démonstration |
+
+**Point de lecture à trancher avant les autres enregistrements.** Le §2 (condition 2) demande que « l'écart restant », c'est-à-dire l'écart de DER à pyannote, ne se retrouve pas sur le corpus maison. L'amendement du 04/11 l'a reformulé ainsi : « sa parole manquée n'y réapparaît pas », ce qui est plus strict. Sur M01, l'écart de DER ne se retrouve pas (−19,4 points), mais un surplus de parole manquée réapparaît (+2,3 points). Lecture proposée par le cockpit : la règle fixée le 03/11 avant tout résultat (§2) fait foi, et la parole manquée reste un indicateur suivi et rapporté, non un critère éliminatoire. Cette lecture est à confirmer par la candidate **avant** les enregistrements suivants, pour ne pas choisir la règle après les résultats.
+
+Il manque surtout un enregistrement en salle, avec des participants à plus de 2 m du téléphone : c'est le seul qui teste le risque vu sur AMI.
+
 ## Liens
 
-D23, D24, D25, D17 ; EXP-0001, EXP-0007, EXP-0020, EXP-0026 à EXP-0028 ; `docs/corpus.md` §9.
+D23, D24, D25, D17 ; EXP-0001, EXP-0007, EXP-0020, EXP-0026 à EXP-0028, EXP-0033 à EXP-0037 ; A-0004, A-0005 ; `docs/corpus.md` §9.

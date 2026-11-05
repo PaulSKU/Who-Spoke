@@ -1494,3 +1494,7 @@ Problèmes :
 - La charge de la machine était élevée pendant les deux exécutions (`charge_concurrente` true) ; le RTF de pyannote (0,0555) est au-dessus de celui des expériences sur SUMM-RE.
 - `results_maison_test.json`, `per_file_maison_test.csv` et `execution_*.json` contiennent, comme pour tout corpus, la durée exacte de l'audio et les durées de parole par composante (en secondes) : au-delà du niveau publiable décidé le 01/11 (durée arrondie à la minute) pour le document de synthèse, mais sans horaire ni sortie par segment. Versionnés selon la consigne du prompt A9 ; à confirmer par le cockpit.
 Suite : interprétation par le cockpit (D29, condition 3) ; M02 et M03 à leur conversion.
+
+## 2026-11-05 — Cockpit : interprétation d'A9 (M01)
+
+Interprétations rédigées pour EXP-0036, EXP-0037 et A-0005 ; constat C22 ; amendement du 05/11 de D29 (état des quatre conditions, point de lecture de la condition 2 à trancher avant les enregistrements suivants) ; synthèse mise à jour. Décisions sur les questions d'A9 : le niveau de détail des fichiers de résultats (durée exacte, secondes par composante, sans horaire ni sortie par segment) est accepté pour le corpus maison, la règle du 01/11 visant les horaires et les sorties par segment ; champs reference et variable_modifiee à null acceptés ; numéro A-0005 entériné. Point ouvert : la catégorie « décalage de frontière » de pyannote dépasse de 7 points l'erreur retirée par le collar sur M01.

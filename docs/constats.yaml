@@ -177,3 +177,11 @@ constats:
     confiance: certain
     cle: false
 
+
+  - id: C22
+    etape: evaluation
+    moteurs: [pyannote-community-1, nemotron-3]
+    texte: "Sur la première réunion réelle du corpus maison (M01 : voiture, 3 locuteurs, 9 min), Nemotron 3 fait 14,7 % de DER sans collar contre 34,1 % pour pyannote (6,9 contre 19,6 % avec collar). pyannote ne trouve que 2 locuteurs et confond aussi les deux autres (14,4 points de confusion) ; Nemotron 3 en trouve 3, avec 0,7 point de confusion, mais manque un peu plus de parole (6,6 contre 4,3 points)."
+    sources: [EXP-0036, EXP-0037, A-0005]
+    confiance: certain
+    cle: true

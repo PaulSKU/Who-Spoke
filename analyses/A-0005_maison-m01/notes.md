@@ -24,3 +24,6 @@ Les métriques de l'UEM complète redonnent exactement celles de `scripts/evalua
 
 ## Interprétation (cockpit)
 
+La musique coûte peu aux deux moteurs. Retirer ses 15,6 s, soit 2,9 % de l'UEM, fait baisser le DER de 0,4 point pour pyannote et de 0,7 point pour Nemotron 3, avec ou sans collar. Le passage est donc un peu plus difficile que la moyenne, sans changer l'écart entre les deux. Sur 15 s, cette lecture reste descriptive.
+
+Les catégories confirment deux profils distincts. Pour pyannote, l'erreur est d'abord aux frontières (21,6 points), puis dans « autre » (7,7 points, fausse alarme et confusion à parts presque égales). Pour Nemotron 3, elle est aux frontières (10,3 points), partagée entre parole manquée et fausse alarme, avec une confusion négligeable. La catégorie « locuteur de référence non apparié » reste faible pour pyannote (1,9 point), alors qu'un locuteur n'a pas de groupe. L'ordre de priorité des catégories range d'abord aux frontières la parole de ce locuteur, faite de tours courts **[probable]**.

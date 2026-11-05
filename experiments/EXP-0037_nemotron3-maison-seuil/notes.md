@@ -38,3 +38,8 @@ Temps : 5,96 s de calcul, RTF 0,0108 en CPU, chargement du modèle 3,88 s. Alime
 
 ## Interprétation (cockpit)
 
+Nemotron 3 fait 14,7 % de DER sans collar et 6,9 % avec collar, soit 43 % et 35 % du DER de pyannote, et trouve les trois locuteurs. Sa confusion est presque nulle (0,7 point), comme en français public (C18) : c'est là que se fait l'essentiel de l'écart avec pyannote (−13,6 points), puis sur la fausse alarme (7,4 contre 15,4 points).
+
+Il manque un peu plus de parole que pyannote : 6,6 contre 4,3 points, soit un rapport de 1,5. C'est une trace atténuée du défaut vu sur AMI, où le rapport était d'environ 2,4 (C20). Sur M01, ce surplus de 2,3 points est largement compensé. M01 est un habitacle de voiture, avec des distances de 0,5 à 1,2 m et peu de réverbération : il ne teste pas le champ lointain d'une salle de réunion, où ce défaut a pesé sur AMI **[probable]**. Un enregistrement en salle, avec des participants à plus de 2 m du téléphone, reste nécessaire pour la condition 2 de D29.
+
+Le RTF (0,011) est mesuré sous forte charge, comme celui de pyannote ; il n'est pas un temps de référence (D21). L'exécution sous relevé réseau, sans connexion extérieure, vérifie une partie de la condition 4 de D29 (fonctionnement hors ligne).
