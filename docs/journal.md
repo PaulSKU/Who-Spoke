@@ -1437,6 +1437,34 @@ EXP-0026 à 0028 (Nemotron 3 au seuil de 0,5) passent en « informatif » : elle
 
 Question de la candidate pendant l'annotation de M01. Décision : un fredonnement sans paroles n'est pas de la parole et n'est pas annoté, comme les rires ; un chant avec des paroles en est. Amendement du 04/11 des conventions d'annotation ; occurrence notée dans la fiche de M01.
 
+## 2026-11-05 — Outils : E9, conversion d'une séance sans clap ni piste d'aide (M01) (Claude Code)
+
+Objectif : permettre la conversion de M01 (voiture, 3 locuteurs, sans claquement ni piste d'aide, annotée à la main dans Audacity 4), puis la lancer, dans le worktree `outils`, sans modèle chargé, accès réseau, fusion vers `main` ni dépendance ajoutée, sous `nice`.
+Réalisé :
+- `outils` avancé sur `origin/main` (`1b45125`, avance rapide ; `outils` y était déjà contenu).
+- Deux contradictions entre le prompt et le guide d'annotation, soumises à la candidate avant d'écrire. (1) Les références restent `rttm/maison__M01.rttm` et `uem/maison__M01.uem`, chemins lus par l'évaluation (`whospoke.experiment`), et non `M01.rttm`. (2) Les règles de texte du guide sont gardées pour toutes les séances (label sans texte d'un fichier par piste, `M01_S1`, `exclu`, zones « à vérifier » ignorées avec un avertissement). Seuls trois ajouts : les repères `début` et `fin`, la normalisation de la casse et des espaces des codes, l'arrêt sur un label sans texte dans un fichier dont le nom ne donne pas de code.
+- `src/whospoke/maison/reference.py` et `scripts/data/maison.py` (`8b295ce`) :
+  - sans `synchro.json`, l'UEM va du repère `début` au repère `fin` (casse, accents et espaces indifférents), moins les zones `exclusion`, sans marge ; la source « repères manuels », les instants et l'emplacement des repères sont consignés dans `conversion.json` (`uem_source`). Repère manquant, en double ou fin avant début : arrêt. Avec `synchro.json`, les repères sont ignorés avec un avertissement ;
+  - toutes les étiquettes fautives sont listées en une fois (fichier, ligne, instants, texte) ;
+  - sans synchronisation, `convertir` normalise lui-même la table (ffmpeg local) ; participants attendus : `--locuteurs`, sinon `metadonnees.yaml`, sinon les pistes d'aide, sinon les locuteurs des étiquettes ;
+  - nombre d'étiquettes, après union des doublons et recouvrements, puis après fusion à 200 ms, par locuteur (`fusions`) ; statistiques affichées par locuteur, puis taux de chevauchement global ;
+  - copies pour l'interface : `audio/M01_uem.wav` (16 kHz mono, coupé de début à fin d'UEM par `atrim`, durée contrôlée à deux échantillons près) et `rttm/M01_uem.rttm` (fichier `M01_uem`, décalé de −début) ; zones exclues au milieu de l'UEM signalées, car elles restent dans l'extrait. `rapport_maison.py` ne lit que `maison__M*.rttm` : la copie n'y entre pas ;
+  - `etat` : la synchronisation est faite si les repères existent ; `metadonnees.yaml` est signalé sans bloquer les étapes suivantes (seul `versionner` l'exige).
+- `491643c` : projets Audacity 4 (`.aup4`, `-wal`, `-shm`) ignorés parmi les fichiers déposés (le dossier de M01 en contient). Commité après les tests du corpus maison seuls ; suite complète relancée ensuite.
+- `tests/test_maison.py` : 18 tests ajoutés sur fixtures synthétiques (codes normalisés, UEM par repères pour 5 graphies, repères manquants, doubles ou inversés, fautes toutes listées, label sans texte dans un fichier par piste, fusion des doublons et recouvrements puis à 200 ms, conversion complète sans clap ni métadonnées avec copies `_uem` décalées, arrêt sans repères, arrêt sur texte invalide par la ligne de commande sans rien écrire, repères ignorés avec claquements, `data/processed/` et `data/raw/` ignorés par git, projets `.aup4`) ; test d'`etat` adapté.
+- `docs/corpus-maison/guide-annotation.md` (`2892343`) : séance sans clap, repères du §3.3, codes normalisés, label sans texte dans un export unique, copies `_uem`, `metadonnees.yaml` facultatif pour convertir, dépannage.
+- Conversion de M01 (`--racine ~/Dev/Who-Spoke/data/raw/maison --references ~/Dev/Who-Spoke/data/processed/maison`, sous `nice -n 19`) : aucun texte invalide.
+Résultats (niveau de détail publiable du corpus maison, décision du cockpit du 01/11 : code, nombre de locuteurs, durée arrondie à la minute ; ni horaires ni statistiques par locuteur) :
+- M01 : conversion valide, UEM par repères manuels, environ 9 min, 3 locuteurs, sans zone d'exclusion ; aucun contrôle bloquant ; un seul avertissement, `metadonnees.yaml` absent. Toutes les étiquettes ont un texte valide.
+- Statistiques détaillées (UEM, parole, chevauchement, segments et temps par locuteur, fusions) : dans `data/raw/maison/M01/conversion.json`, non versionné. Références et copies de l'interface dans `~/Dev/Who-Spoke/data/processed/maison/` (ignoré par git, vérifié par `git check-ignore`).
+Décisions : aucune ; les deux contradictions ont été tranchées par la candidate (ci-dessus).
+Problèmes :
+- La convention d'UEM (conventions d'annotation §2) ne prévoit que les claquements : les repères manuels d'une séance sans clap n'y figurent pas. À consigner par le cockpit (amendement), le code et le guide l'appliquant déjà.
+- La durée annoncée du fichier AAC et celle décodée par ffmpeg diffèrent de moins d'une seconde, sans effet sur l'UEM.
+- Une première version de cette entrée, poussée sur `origin/outils` (`1bee964`), donnait les statistiques détaillées de M01 (bornes de l'UEM, durées, temps et segments par locuteur), au-delà du niveau publiable. Elle est remplacée par celle-ci ; le commit reste dans l'historique distant tant qu'il n'est pas réécrit.
+- Suite complète, sans lents ni `modele` : 711 réussis avant le premier commit, 712 après le correctif `.aup4`.
+Suite : `metadonnees.yaml` de M01 après recueil des consentements (pour versionner) ; contrôle qualité (`tirer-controle M01`, puis ré-annotation au moins un jour plus tard) ; évaluation des moteurs sur M01 (piste A, A9).
+
 ## 2026-11-05 — Cockpit : M01 annotée et convertie
 
 Première passe d'annotation manuelle de M01 (Audacity 4), puis passe de correction locuteur par locuteur. Export unique relu par le cockpit : trois labels corrigés (un texte ambigu, un label vide, un code posé sur la mauvaise piste). Conversion sans clap par E9 (UEM par repères manuels). Musique sans paroles pendant 15,6 s, parole annotée dessous ; intervalle dans la fiche de séance. Amendement du 05/11 des conventions (séance sans claquement, export unique, bruit fort). Décision sur 1bee964 (statistiques par code dans l'historique d'origin/outils) : pas de réécriture d'historique ; ces statistiques ne contiennent ni nom ni donnée audio.

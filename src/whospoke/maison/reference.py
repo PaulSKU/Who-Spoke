@@ -2,21 +2,28 @@
 
 Étiquettes Audacity : une ligne par étiquette, `début<TAB>fin<TAB>texte`, en secondes.
 Les lignes de sélection spectrale (qui commencent par `\\`) sont ignorées. Le texte de
-chaque étiquette porte le code du locuteur (`S1`, ou `M01_S1`) : la référence ne dépend
-donc pas de la façon dont Audacity répartit les pistes dans les fichiers exportés. Une
-étiquette sans texte prend le code tiré du nom de son fichier (`M01_S1.txt`, `S1.txt`).
-Le texte `exclusion` marque une zone retirée de l'UEM (annonce, voix extérieure). Les
-zones « à vérifier » de la pré-annotation sont ignorées, avec un avertissement.
+chaque étiquette porte le code du locuteur (`S1`, ou `M01_S1`), à la casse et aux espaces
+près (`s1`, `S 2`) : la référence ne dépend donc pas de la façon dont Audacity répartit
+les pistes dans les fichiers exportés. Une étiquette sans texte prend le code tiré du nom
+de son fichier (`M01_S1.txt`, `S1.txt`) ; dans un fichier dont le nom ne donne pas de code
+(export unique `M01.txt`), elle arrête la conversion. Le texte `exclusion` marque une zone
+retirée de l'UEM (annonce, voix extérieure). Les repères ponctuels `début` et `fin` (à la
+casse et aux accents près) bornent l'UEM d'une séance sans claquement. Les zones « à
+vérifier » de la pré-annotation sont ignorées, avec un avertissement. Tout autre texte
+arrête la conversion ; toutes les étiquettes fautives sont alors listées (fichier, ligne,
+instants, texte), pour être corrigées dans Audacity.
 
 Référence (conventions §2 et §4) : par locuteur, union des étiquettes avec fusion des
 pauses de 200 ms ou moins (même règle que `scripts/data/get_summre.py`), coupée à l'UEM ;
 locuteurs `M01_S1`… ; fichier `maison__M01` (methode.md §3). UEM : du claquement de
-début + 1 s au claquement de fin − 1 s, moins les zones d'exclusion.
+début + 1 s au claquement de fin − 1 s, moins les zones d'exclusion ; pour une séance sans
+claquement ni piste d'aide (M01), du repère `début` au repère `fin`, moins les exclusions.
 """
 
 from __future__ import annotations
 
 import re
+import unicodedata
 from dataclasses import asdict, dataclass, field
 from pathlib import Path
 
@@ -25,6 +32,7 @@ Interval = tuple[float, float]
 MERGE_GAP_S = 0.2       # conventions-annotation.md §2
 UEM_MARGIN_S = 1.0      # conventions-annotation.md §2 : claquement + 1 s, claquement − 1 s
 EXCLUSION_TEXTS = ("exclusion", "exclu", "exclue")
+MARKERS = {"debut": "début", "fin": "fin"}   # repères de l'UEM d'une séance sans claquement
 
 _SPEAKER = re.compile(r"^(?:(M\d{2})_)?(S\d+)$")
 _SESSION = re.compile(r"^M\d{2}$")
@@ -83,6 +91,11 @@ def write_labels(path: Path, labels: list[tuple[float, float, str]]) -> None:
 
 def read_labels(path: Path) -> list[tuple[float, float, str]]:
     """Étiquettes d'un fichier exporté par Audacity (virgule décimale acceptée)."""
+    return [(start, end, text) for _, start, end, text in numbered_labels(path)]
+
+
+def numbered_labels(path: Path) -> list[tuple[int, float, float, str]]:
+    """Comme `read_labels`, avec le numéro de ligne de chaque étiquette dans le fichier."""
     labels = []
     for number, line in enumerate(path.read_text(encoding="utf-8-sig").splitlines(), start=1):
         if not line.strip() or line.lstrip().startswith("\\"):
@@ -96,16 +109,23 @@ def read_labels(path: Path) -> list[tuple[float, float, str]]:
             raise LabelError(f"{path.name}, ligne {number} : instants illisibles") from error
         if end < start:
             raise LabelError(f"{path.name}, ligne {number} : fin ({end}) avant le début ({start})")
-        labels.append((start, end, fields[2].strip() if len(fields) > 2 else ""))
+        labels.append((number, start, end, fields[2].strip() if len(fields) > 2 else ""))
     return labels
 
 
+def plain(text: str) -> str:
+    """Texte comparé sans casse, sans accents et sans espaces (`Début` -> `debut`)."""
+    decomposed = unicodedata.normalize("NFKD", text)
+    return "".join(c for c in decomposed if not unicodedata.combining(c) and not c.isspace()).casefold()
+
+
 def speaker_code(text: str, session: str) -> str | None:
-    """`S1` ou `M01_S1` -> `M01_S1` ; None si le texte n'est pas un code de locuteur.
+    """`S1` ou `M01_S1` -> `M01_S1`, à la casse et aux espaces près (`s1`, `S 2`) ; None si
+    le texte n'est pas un code de locuteur.
 
     Lève `LabelError` pour le code d'une autre session.
     """
-    match = _SPEAKER.match(text.strip().upper())
+    match = _SPEAKER.match(re.sub(r"\s+", "", text).upper())
     if not match:
         return None
     if match.group(1) and match.group(1) != session:
@@ -115,38 +135,64 @@ def speaker_code(text: str, session: str) -> str | None:
 
 @dataclass
 class Annotation:
-    """Étiquettes relues : intervalles bruts par locuteur, exclusions, avertissements."""
+    """Étiquettes relues : intervalles bruts par locuteur, exclusions, repères (`debut`,
+    `fin` : instants et emplacements), avertissements."""
 
     speakers: dict[str, list[Interval]] = field(default_factory=dict)
     exclusions: list[Interval] = field(default_factory=list)
     warnings: list[str] = field(default_factory=list)
+    markers: dict[str, list[tuple[float, str]]] = field(default_factory=dict)
 
 
 def read_annotation(directory: Path, session: str) -> Annotation:
-    """Toutes les étiquettes `*.txt` de `directory`, réparties par locuteur."""
+    """Toutes les étiquettes `*.txt` de `directory`, réparties par locuteur.
+
+    Lève `LabelError` avec la liste de toutes les étiquettes fautives (texte inconnu, code
+    d'une autre session, étiquette sans texte dans un fichier sans code), après lecture de
+    tous les fichiers : aucune n'est écartée en silence."""
     if not _SESSION.match(session):
         raise ValueError(f"Session {session!r} : M01, M02… attendu")
     files = sorted(directory.glob("*.txt"))
     if not files:
         raise LabelError(f"Aucun fichier d'étiquettes (*.txt) dans {directory}")
     result = Annotation()
+    faults = []
     for path in files:
         default = speaker_code(path.stem.removeprefix(f"{session}_"), session)
-        for start, end, text in read_labels(path):
+        for number, start, end, text in numbered_labels(path):
             where = f"{path.name} ({start:.2f}–{end:.2f} s)"
-            if text.lower() in EXCLUSION_TEXTS:
+            key = plain(text)
+            if key in EXCLUSION_TEXTS:
                 result.exclusions.append((start, end))
                 continue
-            if text.lower().startswith(("à vérifier", "a verifier", "a vérifier")):
+            if key in MARKERS:
+                instant = start if key == "debut" else end
+                if end > start:
+                    result.warnings.append(f"{where} : repère « {MARKERS[key]} » non ponctuel, instant "
+                                           f"retenu {instant:.3f} s ({'début' if key == 'debut' else 'fin'} du label)")
+                result.markers.setdefault(key, []).append((instant, f"{path.name}, ligne {number}"))
+                continue
+            if key.startswith("averifier"):
                 result.warnings.append(f"{where} : zone « à vérifier » ignorée")
                 continue
-            code = speaker_code(text, session) if text else default
+            fault = f"{path.name}, ligne {number}, {start:.3f}–{end:.3f} s : texte {text!r}"
+            try:
+                code = speaker_code(text, session) if text else default
+            except LabelError as error:
+                faults.append(f"{fault} ({error})")
+                continue
             if code is None:
-                raise LabelError(f"{where} : texte {text!r} inconnu ; attendu un code (S1, S2…) ou « exclusion »")
+                faults.append(fault + (" ; étiquette sans texte, et le nom du fichier ne donne pas de code"
+                                       if not text else " inconnu ; attendu un code (S1, S2…), « exclusion », "
+                                                        "« début » ou « fin »"))
+                continue
             if end - start <= 0.0:
                 result.warnings.append(f"{where} : étiquette ponctuelle (durée nulle) ignorée")
                 continue
             result.speakers.setdefault(code, []).append((start, end))
+    if faults:
+        raise LabelError(f"{len(faults)} étiquette(s) à corriger dans Audacity :\n"
+                         + "\n".join(f"  - {fault}" for fault in faults))
     return result
 
 
@@ -160,6 +206,25 @@ def uem_intervals(clap_start_s: float, clap_end_s: float, exclusions: list[Inter
     if end <= start:
         raise ValueError("UEM vide : claquements trop proches")
     return subtract([(start, end)], list(exclusions))
+
+
+def marker_bounds(annotation: Annotation) -> tuple[float, float]:
+    """(début, fin) d'une séance sans claquement, lus dans ses repères ; `LabelError` s'il
+    manque un repère, s'il y en a plusieurs du même nom ou si la fin précède le début."""
+    problems = []
+    for key, name in MARKERS.items():
+        found = annotation.markers.get(key, [])
+        if len(found) != 1:
+            places = ", ".join(where for _, where in found)
+            problems.append(f"{len(found)} repère(s) « {name} » au lieu d'un" + (f" ({places})" if places else ""))
+    if not problems:
+        start, end = annotation.markers["debut"][0][0], annotation.markers["fin"][0][0]
+        if end <= start:
+            problems.append(f"repère « fin » ({end:.3f} s) avant le repère « début » ({start:.3f} s)")
+        else:
+            return start, end
+    raise LabelError("Séance sans claquement : UEM par repères impossible : " + " ; ".join(problems)
+                     + ". Posez un label ponctuel « début » et un « fin » dans Audacity, puis exportez.")
 
 
 @dataclass

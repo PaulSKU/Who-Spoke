@@ -376,8 +376,10 @@ def test_locuteur_sans_segment_bloque_la_conversion(tmp_path):
 def test_pistes_deja_alignees_et_etat(tmp_path):
     directory = write_session(tmp_path, aids=())
     processed = tmp_path / "processed"
-    assert "Étape suivante : metadonnees.yaml" in maison.status(directory, "M01", processed)
+    state = maison.status(directory, "M01", processed)
+    assert "[ ] metadonnees.yaml" in state and "Étape suivante : synchroniser" in state   # non bloquant
     (directory / "metadonnees.yaml").write_text("session: M01\ncondition: visio\nconsentements:\n  S1: [1]\n")
+    assert "[x] metadonnees.yaml" in maison.status(directory, "M01", processed)
     assert "Étape suivante : synchroniser" in maison.status(directory, "M01", processed)
     sync = maison.synchronize(directory, "M01", already_aligned=True)
     assert sync["pistes"] == []
@@ -434,3 +436,149 @@ def test_metadonnees_et_option_3(tmp_path):
 
 def test_session_mal_nommee(tmp_path, capsys):
     assert maison.main(["--racine", str(tmp_path), "etat", "m1"]) == 2
+
+
+# --- Séance sans claquement ni piste d'aide (M01, E9) ---------------------------------------
+
+
+def test_normalisation_des_codes(tmp_path):
+    (tmp_path / "M01.txt").write_text("1.0\t2.0\t s1 \n3.0\t4.0\tS 2\n5.0\t6.0\ts3\n7.0\t8.0\tm01_s1\n")
+    annotation = ref.read_annotation(tmp_path, "M01")
+    assert annotation.speakers == {"M01_S1": [(1.0, 2.0), (7.0, 8.0)], "M01_S2": [(3.0, 4.0)],
+                                   "M01_S3": [(5.0, 6.0)]}
+
+
+@pytest.mark.parametrize("start_text, end_text", [("début", "fin"), ("Début", "Fin"), ("DEBUT", "FIN"),
+                                                  (" debut ", "fin "), ("Début", "FIN")])
+def test_uem_par_reperes(tmp_path, start_text, end_text):
+    (tmp_path / "M01.txt").write_text(f"2.5\t2.5\t{start_text}\n3.0\t9.0\tS1\n12.0\t14.0\texclusion\n"
+                                      f"20.0\t21.0\tS2\n36.5\t36.5\t{end_text}\n")
+    annotation = ref.read_annotation(tmp_path, "M01")
+    assert ref.marker_bounds(annotation) == (2.5, 36.5)
+    uem = ref.uem_intervals(*ref.marker_bounds(annotation), annotation.exclusions, margin_s=0.0)
+    assert uem == [(2.5, 12.0), (14.0, 36.5)]
+    assert annotation.warnings == []          # repères ponctuels : rien à signaler
+
+
+@pytest.mark.parametrize("labels, message", [
+    ("3.0\t9.0\tS1\n36.5\t36.5\tfin\n", "0 repère"),
+    ("2.5\t2.5\tdébut\n4.0\t4.0\tDébut\n3.0\t9.0\tS1\n36.5\t36.5\tfin\n", "2 repère"),
+    ("30.0\t30.0\tdébut\n3.0\t9.0\tS1\n10.0\t10.0\tfin\n", "avant le repère"),
+])
+def test_reperes_manquants_doubles_ou_inverses(tmp_path, labels, message):
+    (tmp_path / "M01.txt").write_text(labels)
+    with pytest.raises(ref.LabelError, match=message):
+        ref.marker_bounds(ref.read_annotation(tmp_path, "M01"))
+
+
+def test_textes_fautifs_tous_listes(tmp_path):
+    (tmp_path / "M01.txt").write_text("1.0\t2.0\tS1\n3.0\t4.5\tS1 ou S3 ?\n5.0\t6.0\t\n7.25\t8.0\tPaul\n")
+    with pytest.raises(ref.LabelError) as error:
+        ref.read_annotation(tmp_path, "M01")
+    message = str(error.value)
+    assert message.startswith("3 étiquette(s) à corriger dans Audacity")
+    assert "M01.txt, ligne 2, 3.000–4.500 s : texte 'S1 ou S3 ?'" in message
+    assert "M01.txt, ligne 3, 5.000–6.000 s : texte ''" in message and "ne donne pas de code" in message
+    assert "M01.txt, ligne 4, 7.250–8.000 s : texte 'Paul'" in message
+    assert "ligne 1" not in message
+
+
+def test_label_sans_texte_dans_un_fichier_par_piste(tmp_path):
+    (tmp_path / "M01_S2.txt").write_text("1.0\t2.0\t\n")          # règle du guide conservée
+    assert ref.read_annotation(tmp_path, "M01").speakers == {"M01_S2": [(1.0, 2.0)]}
+
+
+def test_fusion_doublons_recouvrements_et_pauses():
+    raw = [(1.0, 2.0), (1.0, 2.0), (1.5, 3.0), (3.2, 4.0), (4.25, 5.0)]
+    assert ref.merge_intervals(raw, 0.0) == [(1.0, 3.0), (3.2, 4.0), (4.25, 5.0)]
+    assert ref.merge_intervals(raw) == [(1.0, 4.0), (4.25, 5.0)]       # 0,2 s fusionné, 0,25 s non
+
+
+SANS_CLAP = ("2.5\t2.5\tDébut\n4.0\t7.0\tS1\n4.0\t7.0\tS1\n6.5\t7.1\ts1\n7.5\t10.0\tS2\n10.3\t13.0\tS 3\n"
+             "15.0\t17.0\texclusion\n20.5\t23.0\tS3\n24.0\t27.0\tS1\n26.0\t27.5\tS2\n36.5\t36.5\tFIN\n")
+
+
+@needs_ffmpeg
+def test_conversion_sans_clap_ni_piste_d_aide(tmp_path):
+    directory = write_session(tmp_path, aids=())
+    processed = tmp_path / "processed" / "maison"
+    (directory / "annotation").mkdir()
+    (directory / "annotation" / "M01.txt").write_text(SANS_CLAP)
+    assert "Étape suivante : corriger dans Audacity" not in maison.status(directory, "M01", processed)
+    assert "[x] synchroniser" in maison.status(directory, "M01", processed)
+    report = maison.convert(directory, "M01", processed=processed)          # ni synchro.json ni metadonnees.yaml
+    assert report["valide"] and report["condition"] is None
+    assert report["uem_source"]["methode"] == "repères manuels" and report["uem_source"]["reperes_s"] == [2.5, 36.5]
+    saved = json.loads((directory / "conversion.json").read_text())
+    assert saved["uem_source"]["methode"] == "repères manuels"
+    assert saved["fusions"]["M01_S1"] == {"etiquettes": 4, "apres_union": 2, "apres_fusion_200_ms": 2}
+    paths = maison.reference_paths("M01", processed)
+    assert maison.read_uem(paths["uem"]) == [(2.5, 15.0), (17.0, 36.5)]
+    rttm = maison.read_rttm(paths["rttm"])
+    assert rttm["M01_S1"] == [(4.0, 7.1), (24.0, 27.0)] and set(rttm) == {"M01_S1", "M01_S2", "M01_S3"}
+    stats = report["statistiques"]
+    assert stats["locuteurs"]["M01_S2"]["n_segments"] == 2
+    assert stats["chevauchement_s"] == pytest.approx(1.0)    # S1 et S2 sur 26–27 ; 6,5–7,1 : S1 avec lui-même
+    assert not report["bloquants"]
+    # Copies pour l'interface : audio coupé à l'UEM, référence décalée de −2,5 s.
+    copies = maison.interface_paths("M01", processed)
+    rate, samples = wavfile.read(copies["wav"])
+    assert rate == 16000 and samples.ndim == 1 and len(samples) == pytest.approx((36.5 - 2.5) * 16000, abs=2)
+    _, table = wavfile.read(directory / "travail" / "table.wav")
+    offset = int(2.5 * 16000)
+    assert np.abs(samples[:1000].astype(int) - table[offset:offset + 1000].astype(int)).max() <= 1
+    shifted = maison.read_rttm(copies["rttm"])
+    assert shifted["M01_S1"] == [(1.5, 4.6), (21.5, 24.5)]
+    assert copies["rttm"].read_text().split()[1] == "M01_uem"
+    assert report["interface"]["decalage_s"] == -2.5
+    assert report["interface"]["exclusions_dans_l_extrait_s"] == [[12.5, 14.5]]
+    assert "Session terminée" not in maison.status(directory, "M01", processed)
+
+
+@needs_ffmpeg
+def test_sans_clap_ni_reperes_arrete(tmp_path):
+    directory = write_session(tmp_path, aids=())
+    (directory / "annotation").mkdir()
+    (directory / "annotation" / "M01.txt").write_text("4.0\t7.0\tS1\n")
+    with pytest.raises(ref.LabelError, match="repère"):
+        maison.convert(directory, "M01", processed=tmp_path / "processed")
+    assert not (tmp_path / "processed").exists()
+
+
+def test_textes_fautifs_arretent_la_conversion(tmp_path, capsys):
+    directory = write_session(tmp_path, aids=())
+    (directory / "annotation").mkdir()
+    (directory / "annotation" / "M01.txt").write_text(SANS_CLAP + "30.0\t31.0\tS1 ou S3 ?\n")
+    processed = tmp_path / "processed"
+    assert maison.main(["--racine", str(tmp_path), "--references", str(processed), "convertir", "M01"]) == 1
+    out = capsys.readouterr().out
+    assert "1 étiquette(s) à corriger" in out and "ligne 12, 30.000–31.000 s : texte 'S1 ou S3 ?'" in out
+    assert not processed.exists() and not (directory / "conversion.json").exists()
+
+
+@needs_ffmpeg
+def test_reperes_ignores_avec_les_claquements(tmp_path):
+    directory = write_session(tmp_path, aids=())
+    maison.synchronize(directory, "M01", already_aligned=True)
+    (directory / "annotation").mkdir()
+    (directory / "annotation" / "M01.txt").write_text(SANS_CLAP.replace("15.0\t17.0\texclusion\n", ""))
+    report = maison.convert(directory, "M01", processed=tmp_path / "processed")
+    assert report["uem_source"]["methode"] == "claquements"
+    assert any("repères" in w and "ignorés" in w for w in report["avertissements_lecture"])
+
+
+def test_donnees_traitees_ignorees_par_git():
+    import subprocess
+
+    for path in ("data/processed/maison/audio/M01_uem.wav", "data/processed/maison/rttm/M01_uem.rttm",
+                 "data/processed/maison/rttm/maison__M01.rttm", "data/raw/maison/M01/annotation/M01.txt"):
+        assert subprocess.run(["git", "check-ignore", "-q", path], cwd=REPO_ROOT).returncode == 0, path
+
+
+def test_projets_audacity_ignores(tmp_path):
+    directory = tmp_path / "M01"
+    directory.mkdir()
+    for name in ("table.m4a", "table.aup4", "table.aup4-wal", "table.aup4-shm", "M01.aup3", "S1.aup4"):
+        (directory / name).write_bytes(b"")
+    table, aids = maison.source_files(directory)
+    assert table.name == "table.m4a" and aids == {}

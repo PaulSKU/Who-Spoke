@@ -16,7 +16,7 @@ Version 1.1 du 1er novembre 2026 (chantier E2 ; amendement du 01/11 des conventi
 | 1 | Script | `synchroniser M01` | `synchro.json`, pistes alignées | < 1 min |
 | 2 | Script | `preannoter M01` | `preannotation/` | < 1 min |
 | 3 | Candidate | Audacity | `annotation/` | 40 à 60 min |
-| 4 | Script | `convertir M01` | `data/processed/maison/` (audio, RTTM, UEM) ; `M01/conversion.json` | < 1 min |
+| 4 | Script | `convertir M01` | `data/processed/maison/` (audio, RTTM, UEM, copies `_uem` pour l'interface) ; `M01/conversion.json` | < 1 min |
 | 5 | Script, puis candidate | `tirer-controle M01` puis, **au moins un jour plus tard**, Audacity et `accord M01` | `controle/` | 15 à 20 min |
 | 6 | Script | `versionner M01`, seulement si tous les participants ont coché l'option 3 | `data/splits/maison/{rttm,uem}/` | < 1 min |
 
@@ -78,6 +78,8 @@ Le script repère les deux claquements de mains dans la table : le plus franc de
 
 **Session sans piste d'aide** (visio sans pistes séparées) : la commande trouve seulement les claquements de la table, qui servent à l'UEM. Passer directement à l'étape 3 et annoter à partir de zéro.
 
+**Séance sans claquement ni piste d'aide** (M01, voiture) : ne lancer ni `synchroniser` ni `preannoter`. Annoter à partir de zéro (étape 3) et poser les deux repères de l'UEM décrits au §3.3. `convertir` normalise alors lui-même `table.<ext>` (ffmpeg, en local).
+
 **Visio avec pistes séparées** (M02) : si les pistes séparées commencent au même instant que le mixage, ce qui est à vérifier à l'oreille, utiliser `--deja-alignees` (aucun décalage appliqué). Sinon, essayer la synchronisation normale. Si les claquements n'apparaissent pas dans les pistes séparées, annoter à partir de zéro.
 
 ---
@@ -132,11 +134,13 @@ Toutes les règles de fond sont dans `conventions-annotation.md` §1 et §2. Ce 
 | Zones « à vérifier » | Écouter chacune : chevauchement réel, ou locuteur à corriger. Supprimer ensuite cette piste, ou la laisser : elle est ignorée à la conversion, avec un avertissement |
 | Pauses courtes | Inutile de réunir deux segments séparés de 200 ms ou moins : la conversion le fait |
 
-**Le texte de chaque label est le code du locuteur** (`S1`, `S2`…). C'est lui, et non le nom de la piste, qui désigne le locuteur dans la référence. Un label sans texte prend le code du nom de son fichier (`M01_S1.txt`). Un texte inconnu (un prénom, par exemple) arrête la conversion : c'est voulu.
+**Le texte de chaque label est le code du locuteur** (`S1`, `S2`…). C'est lui, et non le nom de la piste, qui désigne le locuteur dans la référence. La casse et les espaces sont sans importance : `s1`, ` S2 ` et `S 3` sont lus `S1`, `S2` et `S3`. Un label sans texte prend le code du nom de son fichier (`M01_S1.txt`). Dans un fichier dont le nom ne donne pas de code (export unique `M01.txt`), un label sans texte arrête la conversion. Un texte inconnu (un prénom, « S1 ou S3 ? ») l'arrête aussi : c'est voulu. Le message liste alors toutes les étiquettes fautives (fichier, ligne, instants, texte), à corriger dans Audacity avant de réexporter.
 
 ### 3.3 Exclure des zones de l'UEM
 
-L'UEM va automatiquement du claquement de début + 1 s au claquement de fin − 1 s. Les annonces de début et de fin (« Session M01, début », « fin ») sont en plus couvertes par un label `exclusion` (conventions, amendement du 01/11). L'annonce qui suit le claquement, toute voix extérieure longue (passant, télévision) et tout incident à écarter doivent être exclus à la main : créer une piste de labels (*Pistes > Ajouter nouvelle > Piste de labels*), y poser un label de texte **`exclusion`** sur chaque zone, et noter ces zones dans la fiche de session.
+L'UEM va automatiquement du claquement de début + 1 s au claquement de fin − 1 s.
+
+**Séance sans claquement** (pas de `synchro.json`, M01) : l'UEM va du repère `début` au repère `fin`, moins les zones `exclusion`. Poser deux labels **ponctuels** (un clic, *Édition > Labels > Ajouter un label à la position de lecture*), de texte `début` et `fin`, à la casse et aux accents près (`Début`, `debut`, `FIN`). Il en faut exactement un de chaque ; la fin doit suivre le début. Le rapport consigne « repères manuels » comme source de l'UEM. Dans une séance synchronisée, ces repères sont ignorés, avec un avertissement. Les annonces de début et de fin (« Session M01, début », « fin ») sont en plus couvertes par un label `exclusion` (conventions, amendement du 01/11). L'annonce qui suit le claquement, toute voix extérieure longue (passant, télévision) et tout incident à écarter doivent être exclus à la main : créer une piste de labels (*Pistes > Ajouter nouvelle > Piste de labels*), y poser un label de texte **`exclusion`** sur chaque zone, et noter ces zones dans la fiche de session.
 
 ### 3.4 Exporter
 
@@ -153,6 +157,10 @@ uv run python scripts/data/maison.py convertir M01
 ```
 
 Le script relit `annotation/`, fusionne les pauses de 200 ms ou moins par locuteur (même règle que la référence de SUMM-RE), retire de l'UEM les zones `exclusion` et coupe à l'UEM. Il écrit les références là où l'évaluation les lit, dans `data/processed/maison/` (non versionné) : `maison__M01.wav` (signal de test normalisé), `rttm/maison__M01.rttm` (locuteurs `M01_S1`…) et `uem/maison__M01.uem`. Le rapport va dans `M01/conversion.json` **[certain]**.
+
+Pour essayer la référence dans l'interface, qui évalue de 0 à la durée du fichier, il écrit aussi `audio/M01_uem.wav` (16 kHz mono, coupé du début à la fin de l'UEM) et `rttm/M01_uem.rttm` (mêmes locuteurs, instants décalés de −début de l'UEM), au même endroit non versionné. Les zones exclues au milieu de l'UEM restent dans cet extrait : le script les signale.
+
+`metadonnees.yaml` n'est pas exigé pour convertir (avertissement seulement) ; seul `versionner` l'exige.
 
 | Sortie | Signification | Action |
 |---|---|---|
@@ -211,5 +219,6 @@ La commande copie `rttm/maison__M01.rttm` et `uem/maison__M01.uem` dans `data/sp
 | Claquement mal détecté (instant éloigné de celui de la fiche) | `--clap-debut` / `--clap-fin` avec les instants lus dans Audacity |
 | « claquement de fin hors de la piste » | Le téléphone a été arrêté avant le claquement de fin : la dérive n'est pas corrigée. Vérifier à l'oreille la fin de l'enregistrement ; sur 10 min, l'écart reste en général de quelques dizaines de millisecondes |
 | Pré-annotation presque vide ou pleine de bruit | Ajuster `--seuil-activite-db` (étape 2) |
-| « texte '…' inconnu » à la conversion | Un label porte autre chose qu'un code `S1`… ou `exclusion` : corriger son texte dans Audacity |
+| « étiquette(s) à corriger dans Audacity » à la conversion | Chaque ligne de la liste porte autre chose qu'un code `S1`…, `exclusion`, `début` ou `fin`, ou n'a pas de texte dans un export unique : corriger son texte dans Audacity, réexporter |
+| « UEM par repères impossible » | Séance sans claquement : il manque un repère `début` ou `fin`, il y en a deux, ou la fin précède le début |
 | « code d'une autre session » | Un label `M02_S1` dans la session M01 : fichiers mélangés |
