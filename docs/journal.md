@@ -1428,3 +1428,15 @@ Résultats : aucune expérience.
 Décisions : aucune.
 Problèmes : les notes d'EXP-0026 à 0028 sont encore en `verdict: en_cours` (affichées « en cours » dans le rendu).
 Suite : plus aucune expérience sur corpus publics ; la piste A attend les références du corpus maison (A9).
+
+## 2026-11-04 — Verdicts d'EXP-0026 à 0028 (cockpit)
+
+EXP-0026 à 0028 (Nemotron 3 au seuil de 0,5) passent en « informatif » : elles sont remplacées par EXP-0033 à 0035 (seuil de 0,35, retenues), désormais expérience source du moteur dans l'application. Essai du vrai moteur au seuil de 0,35 concluant (extrait de 3 min, réunion de 30 min, aucune connexion extérieure).
+
+## 2026-11-04 — Convention : fredonnement (cockpit)
+
+Question de la candidate pendant l'annotation de M01. Décision : un fredonnement sans paroles n'est pas de la parole et n'est pas annoté, comme les rires ; un chant avec des paroles en est. Amendement du 04/11 des conventions d'annotation ; occurrence notée dans la fiche de M01.
+
+## 2026-11-05 — Cockpit : M01 annotée et convertie
+
+Première passe d'annotation manuelle de M01 (Audacity 4), puis passe de correction locuteur par locuteur. Export unique relu par le cockpit : trois labels corrigés (un texte ambigu, un label vide, un code posé sur la mauvaise piste). Conversion sans clap par E9 (UEM par repères manuels). Musique sans paroles pendant 15,6 s, parole annotée dessous ; intervalle dans la fiche de séance. Amendement du 05/11 des conventions (séance sans claquement, export unique, bruit fort). Décision sur 1bee964 (statistiques par code dans l'historique d'origin/outils) : pas de réécriture d'historique ; ces statistiques ne contiennent ni nom ni donnée audio.

@@ -1,7 +1,7 @@
 ---
 id: EXP-0027
 question: "Nemotron 3 Diarization fait-il mieux que pyannote en français (SUMM-RE) ?"
-verdict: en_cours
+verdict: informatif
 decisions: [D23, D29]
 ---
 
@@ -31,4 +31,4 @@ Temps : RTF 0,0116 en CPU (commit `0358ccf`, arbre propre), alimentation conform
 
 ## Interprétation (cockpit)
 
-En français, Nemotron 3 fait beaucoup mieux que pyannote : −11,7 points sur test (36 fichiers sur 37 meilleurs), −15,5 sur dev. Le gain vient de la fausse alarme (11,3 → 1,9 points) et de la confusion (7,9 → 1,1). Il manque un peu plus de parole (7,2 → 11,6), un profil de système prudent qui n'attribue la parole qu'à coup sûr. Avec collar, l'écart reste net (11,2 contre 14,8 %). Il trouve le bon nombre de locuteurs dans 86 % des réunions de test (pyannote : 84 %). SUMM-RE n'apparaît pas dans ses données d'entraînement déclarées. Des sources multilingues (YODAS, David AI) peuvent contenir du français, mais une contamination par SUMM-RE n'est pas documentée **[incertain, peu probable]**. Verdict en attente de D29.
+En français, Nemotron 3 fait beaucoup mieux que pyannote : −11,7 points sur test (36 fichiers sur 37 meilleurs), −15,5 sur dev. Le gain vient de la fausse alarme (11,3 → 1,9 points) et de la confusion (7,9 → 1,1). Il manque un peu plus de parole (7,2 → 11,6), un profil de système prudent qui n'attribue la parole qu'à coup sûr. Avec collar, l'écart reste net (11,2 contre 14,8 %). Il trouve le bon nombre de locuteurs dans 86 % des réunions de test (pyannote : 84 %). SUMM-RE n'apparaît pas dans ses données d'entraînement déclarées. Des sources multilingues (YODAS, David AI) peuvent contenir du français, mais une contamination par SUMM-RE n'est pas documentée **[incertain, peu probable]**. Verdict : informatif. Ces résultats, au seuil par défaut de 0,5, sont remplacés par ceux du seuil réglé à 0,35 (EXP-0033 à 0035, retenus) ; le choix du moteur reste régi par D29.

@@ -64,3 +64,20 @@ Avec pré-annotation à partir des pistes d'aide, il faut compter environ 3 à 5
 | Contrôle qualité | Les 2 min tirées au sort sont ré-annotées sans voir la pré-annotation ni la première annotation ; seule l'écoute des pistes d'aide alignées est permise |
 | Emplacement des références | RTTM et UEM dans `data/processed/maison/` (non versionné). Ils ne sont copiés dans `data/splits/maison/` (versionné) que pour un enregistrement dont tous les participants ont coché l'option 3 du formulaire de consentement. Cette information est consignée par enregistrement, sans aucun nom |
 
+### Amendement du 04/11/2026 — fredonnement et chant
+
+| Phénomène | Convention |
+|---|---|
+| Fredonnement ou chantonnement sans paroles | **Non-parole** (non annoté), comme les rires : ce n'est pas une prise de parole. Noté dans la fiche de session comme incident s'il dure plus d'une seconde |
+| Chant avec des paroles articulées | Parole |
+
+Cohérence : la référence de SUMM-RE retire aussi les vocalisations non lexicales (D20, amendement). Un système qui détecte le fredonnement compte une fausse alarme, ce qui est attendu et consigné.
+
+
+### Amendement du 05/11/2026 — séance sans claquement (M01)
+
+| Point | Règle |
+|---|---|
+| UEM sans claquement | Si une séance n'a pas de claquement, l'UEM va du repère ponctuel `début` au repère ponctuel `fin`, posés à l'écoute dans la piste `exclusion`, moins les zones `exclusion`. La règle « clap ± 1 s » ne s'applique pas. `début` se place au début de la conversation stable, `fin` avant les manipulations d'arrêt du téléphone. La source de l'UEM (« repères manuels ») est consignée dans `conversion.json` (chantier E9, guide d'annotation) |
+| Export unique | Audacity 4 exporte toutes les pistes de labels dans un seul fichier : chaque label doit porter son code, et un label sans texte arrête la conversion |
+| Bruit fort sous la parole (musique, etc.) | La parole est annotée si l'annotatrice est sûre du locuteur et des frontières ; sinon, la zone est couverte par un label `exclusion`. L'intervalle du bruit est noté dans la fiche de séance, pour une évaluation avec et sans la zone |
