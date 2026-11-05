@@ -1,0 +1,85 @@
+exp_id,systeme,condition,uri,type,categorie,libelle,points_der_c0
+EXP-0036,pyannote-community-1,uem_complete,maison__M01,manquee,frontiere,Décalage de frontière,3.02
+EXP-0036,pyannote-community-1,uem_complete,maison__M01,manquee,chevauchement,Chevauchement,0.61
+EXP-0036,pyannote-community-1,uem_complete,maison__M01,manquee,reference_non_appariee,Locuteur de référence non apparié,0.03
+EXP-0036,pyannote-community-1,uem_complete,maison__M01,manquee,trouve_en_trop,Locuteur trouvé en trop,0.0
+EXP-0036,pyannote-community-1,uem_complete,maison__M01,manquee,tour_court,Tour court,0.1
+EXP-0036,pyannote-community-1,uem_complete,maison__M01,manquee,pause,Pause courte,0.0
+EXP-0036,pyannote-community-1,uem_complete,maison__M01,manquee,autre,Autre,0.58
+EXP-0036,pyannote-community-1,uem_complete,maison__M01,fausse_alarme,frontiere,Décalage de frontière,10.46
+EXP-0036,pyannote-community-1,uem_complete,maison__M01,fausse_alarme,chevauchement,Chevauchement,0.0
+EXP-0036,pyannote-community-1,uem_complete,maison__M01,fausse_alarme,reference_non_appariee,Locuteur de référence non apparié,0.0
+EXP-0036,pyannote-community-1,uem_complete,maison__M01,fausse_alarme,trouve_en_trop,Locuteur trouvé en trop,0.0
+EXP-0036,pyannote-community-1,uem_complete,maison__M01,fausse_alarme,tour_court,Tour court,0.18
+EXP-0036,pyannote-community-1,uem_complete,maison__M01,fausse_alarme,pause,Pause courte,1.07
+EXP-0036,pyannote-community-1,uem_complete,maison__M01,fausse_alarme,autre,Autre,3.7
+EXP-0036,pyannote-community-1,uem_complete,maison__M01,confusion,frontiere,Décalage de frontière,8.11
+EXP-0036,pyannote-community-1,uem_complete,maison__M01,confusion,chevauchement,Chevauchement,0.41
+EXP-0036,pyannote-community-1,uem_complete,maison__M01,confusion,reference_non_appariee,Locuteur de référence non apparié,1.84
+EXP-0036,pyannote-community-1,uem_complete,maison__M01,confusion,trouve_en_trop,Locuteur trouvé en trop,0.0
+EXP-0036,pyannote-community-1,uem_complete,maison__M01,confusion,tour_court,Tour court,0.57
+EXP-0036,pyannote-community-1,uem_complete,maison__M01,confusion,pause,Pause courte,0.0
+EXP-0036,pyannote-community-1,uem_complete,maison__M01,confusion,autre,Autre,3.44
+EXP-0036,pyannote-community-1,sans_musique,maison__M01,manquee,frontiere,Décalage de frontière,2.8
+EXP-0036,pyannote-community-1,sans_musique,maison__M01,manquee,chevauchement,Chevauchement,0.62
+EXP-0036,pyannote-community-1,sans_musique,maison__M01,manquee,reference_non_appariee,Locuteur de référence non apparié,0.0
+EXP-0036,pyannote-community-1,sans_musique,maison__M01,manquee,trouve_en_trop,Locuteur trouvé en trop,0.0
+EXP-0036,pyannote-community-1,sans_musique,maison__M01,manquee,tour_court,Tour court,0.03
+EXP-0036,pyannote-community-1,sans_musique,maison__M01,manquee,pause,Pause courte,0.0
+EXP-0036,pyannote-community-1,sans_musique,maison__M01,manquee,autre,Autre,0.59
+EXP-0036,pyannote-community-1,sans_musique,maison__M01,fausse_alarme,frontiere,Décalage de frontière,10.4
+EXP-0036,pyannote-community-1,sans_musique,maison__M01,fausse_alarme,chevauchement,Chevauchement,0.0
+EXP-0036,pyannote-community-1,sans_musique,maison__M01,fausse_alarme,reference_non_appariee,Locuteur de référence non apparié,0.0
+EXP-0036,pyannote-community-1,sans_musique,maison__M01,fausse_alarme,trouve_en_trop,Locuteur trouvé en trop,0.0
+EXP-0036,pyannote-community-1,sans_musique,maison__M01,fausse_alarme,tour_court,Tour court,0.18
+EXP-0036,pyannote-community-1,sans_musique,maison__M01,fausse_alarme,pause,Pause courte,1.0
+EXP-0036,pyannote-community-1,sans_musique,maison__M01,fausse_alarme,autre,Autre,3.5
+EXP-0036,pyannote-community-1,sans_musique,maison__M01,confusion,frontiere,Décalage de frontière,8.22
+EXP-0036,pyannote-community-1,sans_musique,maison__M01,confusion,chevauchement,Chevauchement,0.41
+EXP-0036,pyannote-community-1,sans_musique,maison__M01,confusion,reference_non_appariee,Locuteur de référence non apparié,1.87
+EXP-0036,pyannote-community-1,sans_musique,maison__M01,confusion,trouve_en_trop,Locuteur trouvé en trop,0.0
+EXP-0036,pyannote-community-1,sans_musique,maison__M01,confusion,tour_court,Tour court,0.57
+EXP-0036,pyannote-community-1,sans_musique,maison__M01,confusion,pause,Pause courte,0.0
+EXP-0036,pyannote-community-1,sans_musique,maison__M01,confusion,autre,Autre,3.48
+EXP-0037,nemotron3-diarization,uem_complete,maison__M01,manquee,frontiere,Décalage de frontière,4.68
+EXP-0037,nemotron3-diarization,uem_complete,maison__M01,manquee,chevauchement,Chevauchement,0.59
+EXP-0037,nemotron3-diarization,uem_complete,maison__M01,manquee,reference_non_appariee,Locuteur de référence non apparié,0.0
+EXP-0037,nemotron3-diarization,uem_complete,maison__M01,manquee,trouve_en_trop,Locuteur trouvé en trop,0.0
+EXP-0037,nemotron3-diarization,uem_complete,maison__M01,manquee,tour_court,Tour court,0.05
+EXP-0037,nemotron3-diarization,uem_complete,maison__M01,manquee,pause,Pause courte,0.0
+EXP-0037,nemotron3-diarization,uem_complete,maison__M01,manquee,autre,Autre,1.31
+EXP-0037,nemotron3-diarization,uem_complete,maison__M01,fausse_alarme,frontiere,Décalage de frontière,5.07
+EXP-0037,nemotron3-diarization,uem_complete,maison__M01,fausse_alarme,chevauchement,Chevauchement,0.05
+EXP-0037,nemotron3-diarization,uem_complete,maison__M01,fausse_alarme,reference_non_appariee,Locuteur de référence non apparié,0.0
+EXP-0037,nemotron3-diarization,uem_complete,maison__M01,fausse_alarme,trouve_en_trop,Locuteur trouvé en trop,0.0
+EXP-0037,nemotron3-diarization,uem_complete,maison__M01,fausse_alarme,tour_court,Tour court,0.13
+EXP-0037,nemotron3-diarization,uem_complete,maison__M01,fausse_alarme,pause,Pause courte,0.21
+EXP-0037,nemotron3-diarization,uem_complete,maison__M01,fausse_alarme,autre,Autre,1.88
+EXP-0037,nemotron3-diarization,uem_complete,maison__M01,confusion,frontiere,Décalage de frontière,0.55
+EXP-0037,nemotron3-diarization,uem_complete,maison__M01,confusion,chevauchement,Chevauchement,0.0
+EXP-0037,nemotron3-diarization,uem_complete,maison__M01,confusion,reference_non_appariee,Locuteur de référence non apparié,0.0
+EXP-0037,nemotron3-diarization,uem_complete,maison__M01,confusion,trouve_en_trop,Locuteur trouvé en trop,0.0
+EXP-0037,nemotron3-diarization,uem_complete,maison__M01,confusion,tour_court,Tour court,0.05
+EXP-0037,nemotron3-diarization,uem_complete,maison__M01,confusion,pause,Pause courte,0.0
+EXP-0037,nemotron3-diarization,uem_complete,maison__M01,confusion,autre,Autre,0.14
+EXP-0037,nemotron3-diarization,sans_musique,maison__M01,manquee,frontiere,Décalage de frontière,4.62
+EXP-0037,nemotron3-diarization,sans_musique,maison__M01,manquee,chevauchement,Chevauchement,0.59
+EXP-0037,nemotron3-diarization,sans_musique,maison__M01,manquee,reference_non_appariee,Locuteur de référence non apparié,0.0
+EXP-0037,nemotron3-diarization,sans_musique,maison__M01,manquee,trouve_en_trop,Locuteur trouvé en trop,0.0
+EXP-0037,nemotron3-diarization,sans_musique,maison__M01,manquee,tour_court,Tour court,0.05
+EXP-0037,nemotron3-diarization,sans_musique,maison__M01,manquee,pause,Pause courte,0.0
+EXP-0037,nemotron3-diarization,sans_musique,maison__M01,manquee,autre,Autre,1.32
+EXP-0037,nemotron3-diarization,sans_musique,maison__M01,fausse_alarme,frontiere,Décalage de frontière,4.95
+EXP-0037,nemotron3-diarization,sans_musique,maison__M01,fausse_alarme,chevauchement,Chevauchement,0.05
+EXP-0037,nemotron3-diarization,sans_musique,maison__M01,fausse_alarme,reference_non_appariee,Locuteur de référence non apparié,0.0
+EXP-0037,nemotron3-diarization,sans_musique,maison__M01,fausse_alarme,trouve_en_trop,Locuteur trouvé en trop,0.0
+EXP-0037,nemotron3-diarization,sans_musique,maison__M01,fausse_alarme,tour_court,Tour court,0.13
+EXP-0037,nemotron3-diarization,sans_musique,maison__M01,fausse_alarme,pause,Pause courte,0.21
+EXP-0037,nemotron3-diarization,sans_musique,maison__M01,fausse_alarme,autre,Autre,1.47
+EXP-0037,nemotron3-diarization,sans_musique,maison__M01,confusion,frontiere,Décalage de frontière,0.47
+EXP-0037,nemotron3-diarization,sans_musique,maison__M01,confusion,chevauchement,Chevauchement,0.0
+EXP-0037,nemotron3-diarization,sans_musique,maison__M01,confusion,reference_non_appariee,Locuteur de référence non apparié,0.0
+EXP-0037,nemotron3-diarization,sans_musique,maison__M01,confusion,trouve_en_trop,Locuteur trouvé en trop,0.0
+EXP-0037,nemotron3-diarization,sans_musique,maison__M01,confusion,tour_court,Tour court,0.02
+EXP-0037,nemotron3-diarization,sans_musique,maison__M01,confusion,pause,Pause courte,0.0
+EXP-0037,nemotron3-diarization,sans_musique,maison__M01,confusion,autre,Autre,0.14

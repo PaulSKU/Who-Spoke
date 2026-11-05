@@ -1,0 +1,26 @@
+# A-0005 — corpus maison, M01 : coût de la zone de musique et catégories d'erreur (A9 ; D29 §2, condition 3).
+# Analyse a posteriori (D21 §1, methode.md §4.7) : aucun moteur n'est exécuté ; hypothèses
+# d'EXP-0036 et EXP-0037 (rttm/, gardés en local), référence et UEM de data/processed/maison/.
+#
+#   uv run python scripts/analyses/a0005_maison_conditions.py --config analyses/A-0005_maison-m01/config.yaml
+analyse_id: A-0005
+slug: maison-m01
+question: >-
+  Sur M01, que coûte à chaque moteur la zone de musique sans paroles notée dans la fiche de
+  séance (15,6 s, parole annotée dessous) ? Quelles catégories d'erreur de l'application
+  composent leur DER ?
+
+corpus: maison
+liste: data/splits/maison/test.txt
+
+experiences:
+  - {exp_id: EXP-0036, systeme: pyannote-community-1}    # configuration de démonstration (bornes 2 à 6)
+  - {exp_id: EXP-0037, systeme: nemotron3-diarization}   # seuil de 0,35 (EXP-0033)
+
+# Dossiers d'UEM, non versionnés (conventions d'annotation : UEM du corpus maison hors de git).
+# sans_musique : UEM complète moins l'intervalle de musique de la fiche de séance de M01
+# (data/raw/maison/M01/fiche.md) ; ses bornes ne sont pas versionnées, son empreinte est
+# consignée dans execution.json.
+conditions:
+  - {nom: uem_complete, uem: data/processed/maison/uem}
+  - {nom: sans_musique, uem: data/processed/maison/uem_sans_musique}

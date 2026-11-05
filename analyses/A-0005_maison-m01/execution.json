@@ -1,0 +1,35 @@
+{
+  "analyse_id": "A-0005",
+  "date": "2026-11-05T15:21:52+01:00",
+  "git_commit": "bf460b887c4adbed1c1b928ef9fb7bd94fc1ead4",
+  "arbre_propre": true,
+  "fichiers_non_commites": [
+    "results/leaderboard.csv",
+    "analyses/A-0005_maison-m01/config.yaml",
+    "experiments/EXP-0036_pyannote-c1-maison-borne-2-6/config.yaml",
+    "experiments/EXP-0036_pyannote-c1-maison-borne-2-6/execution_mps.json",
+    "experiments/EXP-0036_pyannote-c1-maison-borne-2-6/per_file_maison_test.csv",
+    "experiments/EXP-0036_pyannote-c1-maison-borne-2-6/results_maison_test.json",
+    "experiments/EXP-0036_pyannote-c1-maison-borne-2-6/run.log",
+    "experiments/EXP-0037_nemotron3-maison-seuil/config.yaml",
+    "experiments/EXP-0037_nemotron3-maison-seuil/execution_cpu.json",
+    "experiments/EXP-0037_nemotron3-maison-seuil/per_file_maison_test.csv",
+    "experiments/EXP-0037_nemotron3-maison-seuil/results_maison_test.json",
+    "experiments/EXP-0037_nemotron3-maison-seuil/run.log"
+  ],
+  "config_sha256": "8be09bd8d51c135854d507d086b6fe76d575d9d93b3f56ac8773dc3428b26b46",
+  "sources_sha256": {
+    "experiments/EXP-0036_pyannote-c1-maison-borne-2-6/rttm/maison__M01.rttm": "4430f2a99363ffac6ecce33f933d86d8a5286b20993bd2aefb708886e78bcec2",
+    "data/processed/maison/rttm/maison__M01.rttm": "4b78fb6bd2f2e1c93d922d909d715196cc1ffca06a19b414303595f65b2a4870",
+    "data/processed/maison/uem/maison__M01.uem": "77389653e150bf867063978b896b9dd3f8ab0cd28168fdd6f3725e194d90e591",
+    "data/processed/maison/uem_sans_musique/maison__M01.uem": "6fa4465a7327c31b51d6e87d3e67089ebd5da054ca31f890f11ab4bbe1ee3f75",
+    "experiments/EXP-0037_nemotron3-maison-seuil/rttm/maison__M01.rttm": "e82736af4db55de3b2dc251176e13848d479cda3ff50f6741efc31a365a72dd3"
+  },
+  "app_sortie_sha256": "94d455a979ab634ccc7daaa48f450573d90bca227bd85faf1b20d5e9f0c71119",
+  "seuils_carte": {
+    "tour_court_s": 1.0,
+    "pause_courte_s": 1.0,
+    "frontiere_s": 0.25,
+    "contigu_s": 0.05
+  }
+}

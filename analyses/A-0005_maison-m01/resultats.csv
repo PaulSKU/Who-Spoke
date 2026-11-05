@@ -1,0 +1,5 @@
+exp_id,systeme,condition,uri,der_c0,manquee_c0,fausse_alarme_c0,confusion_c0,jer_c0,der_c025,manquee_c025,fausse_alarme_c025,confusion_c025,jer_c025,n_locuteurs_reference,n_locuteurs_hypothese
+EXP-0036,pyannote-community-1,uem_complete,maison__M01,34.11,4.34,15.41,14.37,55.8,19.57,2.06,7.73,9.78,48.36,3,2
+EXP-0036,pyannote-community-1,sans_musique,maison__M01,33.67,4.04,15.08,14.56,55.7,19.12,1.93,7.31,9.89,48.19,3,2
+EXP-0037,nemotron3-diarization,uem_complete,maison__M01,14.7,6.62,7.35,0.73,18.43,6.88,3.04,3.55,0.29,8.03,3,3
+EXP-0037,nemotron3-diarization,sans_musique,maison__M01,14.03,6.59,6.81,0.63,17.26,6.23,3.07,2.91,0.24,6.46,3,3
