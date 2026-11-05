@@ -1446,14 +1446,13 @@ Réalisé :
 - `tests/test_maison.py` : 18 tests ajoutés sur fixtures synthétiques (codes normalisés, UEM par repères pour 5 graphies, repères manquants, doubles ou inversés, fautes toutes listées, label sans texte dans un fichier par piste, fusion des doublons et recouvrements puis à 200 ms, conversion complète sans clap ni métadonnées avec copies `_uem` décalées, arrêt sans repères, arrêt sur texte invalide par la ligne de commande sans rien écrire, repères ignorés avec claquements, `data/processed/` et `data/raw/` ignorés par git, projets `.aup4`) ; test d'`etat` adapté.
 - `docs/corpus-maison/guide-annotation.md` (`2892343`) : séance sans clap, repères du §3.3, codes normalisés, label sans texte dans un export unique, copies `_uem`, `metadonnees.yaml` facultatif pour convertir, dépannage.
 - Conversion de M01 (`--racine ~/Dev/Who-Spoke/data/raw/maison --references ~/Dev/Who-Spoke/data/processed/maison`, sous `nice -n 19`) : aucun texte invalide.
-Résultats :
-- UEM par repères manuels : 7,515 à 545,247 s, soit 537,7 s, sans zone d'exclusion ; parole 382,3 s (71 % de l'UEM) ; 3 locuteurs.
-- M01_S1 : 103 segments, 197,1 s (48 % du temps de parole) ; M01_S2 : 115 segments (116 étiquettes, une pause de 200 ms ou moins fusionnée), 188,9 s (46 %) ; M01_S3 : 34 segments, 28,5 s (7 %). Aucun doublon ni recouvrement d'un même locuteur.
-- Chevauchement : 32,3 s, 8,5 % de la parole. Aucun contrôle bloquant ; un seul avertissement, `metadonnees.yaml` absent.
-- Table normalisée : 552,02 s à 16 kHz mono. Copie de l'interface : 537,732 s, RTTM `M01_uem` de 0,641 à 537,19 s. Sorties dans `~/Dev/Who-Spoke/data/processed/maison/` (ignoré par git, vérifié par `git check-ignore`), rapport dans `data/raw/maison/M01/conversion.json`.
+Résultats (niveau de détail publiable du corpus maison, décision du cockpit du 01/11 : code, nombre de locuteurs, durée arrondie à la minute ; ni horaires ni statistiques par locuteur) :
+- M01 : conversion valide, UEM par repères manuels, environ 9 min, 3 locuteurs, sans zone d'exclusion ; aucun contrôle bloquant ; un seul avertissement, `metadonnees.yaml` absent. Toutes les étiquettes ont un texte valide.
+- Statistiques détaillées (UEM, parole, chevauchement, segments et temps par locuteur, fusions) : dans `data/raw/maison/M01/conversion.json`, non versionné. Références et copies de l'interface dans `~/Dev/Who-Spoke/data/processed/maison/` (ignoré par git, vérifié par `git check-ignore`).
 Décisions : aucune ; les deux contradictions ont été tranchées par la candidate (ci-dessus).
 Problèmes :
 - La convention d'UEM (conventions d'annotation §2) ne prévoit que les claquements : les repères manuels d'une séance sans clap n'y figurent pas. À consigner par le cockpit (amendement), le code et le guide l'appliquant déjà.
-- La durée du fichier AAC annoncée (552,1 s) et celle décodée par ffmpeg (552,02 s) diffèrent de 0,08 s, sans effet sur l'UEM (fin à 545,25 s).
+- La durée annoncée du fichier AAC et celle décodée par ffmpeg diffèrent de moins d'une seconde, sans effet sur l'UEM.
+- Une première version de cette entrée, poussée sur `origin/outils` (`1bee964`), donnait les statistiques détaillées de M01 (bornes de l'UEM, durées, temps et segments par locuteur), au-delà du niveau publiable. Elle est remplacée par celle-ci ; le commit reste dans l'historique distant tant qu'il n'est pas réécrit.
 - Suite complète, sans lents ni `modele` : 711 réussis avant le premier commit, 712 après le correctif `.aup4`.
 Suite : `metadonnees.yaml` de M01 après recueil des consentements (pour versionner) ; contrôle qualité (`tirer-controle M01`, puis ré-annotation au moins un jour plus tard) ; évaluation des moteurs sur M01 (piste A, A9).
