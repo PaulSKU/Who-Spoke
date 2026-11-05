@@ -1468,3 +1468,29 @@ Suite : `metadonnees.yaml` de M01 après recueil des consentements (pour version
 ## 2026-11-05 — Cockpit : M01 annotée et convertie
 
 Première passe d'annotation manuelle de M01 (Audacity 4), puis passe de correction locuteur par locuteur. Export unique relu par le cockpit : trois labels corrigés (un texte ambigu, un label vide, un code posé sur la mauvaise piste). Conversion sans clap par E9 (UEM par repères manuels). Musique sans paroles pendant 15,6 s, parole annotée dessous ; intervalle dans la fiche de séance. Amendement du 05/11 des conventions (séance sans claquement, export unique, bruit fort). Décision sur 1bee964 (statistiques par code dans l'historique d'origin/outils) : pas de réécriture d'historique ; ces statistiques ne contiennent ni nom ni donnée audio.
+
+## 2026-11-05 — A9 : pyannote et Nemotron 3 sur le corpus maison (M01) (Claude Code)
+
+Objectif : appliquer la condition 3 de D29 sur la première référence du corpus maison.
+Réalisé :
+- Documents du cockpit commités à part (`27a2e41`) après contrôle par `git diff` (documentation seule) ; fusion d'`origin/outils` (E9, `b9d3117`), conflit du journal résolu en gardant les entrées des deux branches dans l'ordre chronologique ; 728 tests réussis.
+- `bf460b8` : liste `data/splits/maison/test.txt` (le seul code M01, corpus maison entièrement en test, protocole §2) ; règle `.gitignore` sur `experiments/*maison*/rttm/` et `rttm_*/` (aucune hypothèse par segment versionnée, consentements non recueillis) ; analyse A-0005 (`scripts/analyses/a0005_maison_conditions.py` : métriques du protocole par condition d'UEM, catégories d'erreur de `app/sortie.py` en points de DER, sorties en taux seulement) ; tests (`tests/test_a0005_maison.py`, dont le contrôle des règles d'ignorance) ; 733 tests réussis.
+- Contrôle réseau de D27 avant toute exécution sur le corpus maison : exécution courte des deux configurations sur un fichier de SUMM-RE dev (`summre__004c_PAPH`, hors dépôt, non évaluée) sous relevé `lsof` continu ; aucune connexion hors local. Les deux expériences ont ensuite tourné sous le même relevé : aucune connexion hors local.
+- EXP-0036 (pyannote community-1, configuration d'EXP-0018, MPS) et EXP-0037 (Nemotron 3, seuil 0,35, configuration d'EXP-0033, CPU) sur `maison__M01`, l'une après l'autre, sur secteur, sous `caffeinate -i`. Nouveau corpus : `reference` et `variable_modifiee` à null (convention d'EXP-0007).
+- UEM sans la zone de musique (fiche de séance) écrite dans `data/processed/maison/uem_sans_musique/` (non versionnée, 15,62 s retirées) ; A-0005 exécutée sur les deux expériences.
+Résultats (M01, un seul fichier, aucun intervalle de confiance) :
+
+| Moteur | UEM | DER c0 | Manquée | FA | Confusion | DER c0,25 | JER c0 | Locuteurs (réf. 3) |
+|---|---|---|---|---|---|---|---|---|
+| pyannote (EXP-0036) | complète | 34,11 % | 4,34 | 15,41 | 14,37 | 19,57 % | 55,80 % | 2 |
+| pyannote (EXP-0036) | sans musique | 33,67 % | 4,04 | 15,08 | 14,56 | 19,12 % | 55,70 % | 2 |
+| Nemotron 3 (EXP-0037) | complète | 14,70 % | 6,62 | 7,35 | 0,73 | 6,88 % | 18,43 % | 3 |
+| Nemotron 3 (EXP-0037) | sans musique | 14,03 % | 6,59 | 6,81 | 0,63 | 6,23 % | 17,26 % | 3 |
+
+- Catégories (UEM complète, points de DER sans collar) : pyannote, décalage de frontière 21,59, autre 7,72, référence non appariée 1,87, pause courte 1,07, chevauchement 1,02, tour court 0,85 ; Nemotron 3, décalage de frontière 10,30, autre 3,33, chevauchement 0,64, tour court 0,23, pause courte 0,21.
+- Temps : pyannote 30,61 s de calcul, RTF 0,0555 (MPS) ; Nemotron 3 5,96 s, RTF 0,0108 (CPU). Alimentation conforme ; `charge_concurrente` true pour les deux (charge sur 1 min jusqu'à 6,04 pour 6 cœurs de performance).
+Décisions : aucune.
+Problèmes :
+- La charge de la machine était élevée pendant les deux exécutions (`charge_concurrente` true) ; le RTF de pyannote (0,0555) est au-dessus de celui des expériences sur SUMM-RE.
+- `results_maison_test.json`, `per_file_maison_test.csv` et `execution_*.json` contiennent, comme pour tout corpus, la durée exacte de l'audio et les durées de parole par composante (en secondes) : au-delà du niveau publiable décidé le 01/11 (durée arrondie à la minute) pour le document de synthèse, mais sans horaire ni sortie par segment. Versionnés selon la consigne du prompt A9 ; à confirmer par le cockpit.
+Suite : interprétation par le cockpit (D29, condition 3) ; M02 et M03 à leur conversion.
