@@ -1,0 +1,41 @@
+# EXP-0036 — pyannote community-1 sur le corpus maison (M01), configuration de démonstration
+# actuelle : celle d'EXP-0018 (EXP-0007, nombre de locuteurs borné entre 2 et 6), hors des jeux
+# évalués (A9 ; D29 §2, condition 3). Nouveau corpus : aucune expérience de référence, aucune
+# variable modifiée (même convention qu'EXP-0007). Aucun réglage sur ce corpus.
+# Confidentialité (consentements non recueillis) : les RTTM d'hypothèse (rttm/, rttm_exclusive/)
+# restent en local, ignorés par git (.gitignore) ; seules les métriques agrégées sont versionnées.
+exp_id: EXP-0036
+slug: pyannote-c1-maison-borne-2-6
+reference: null
+variable_modifiee: null
+graine: 0                     # pipeline déterministe ; graine consignée par convention
+
+pipeline:
+  nom: pyannote-community-1   # pyannote/speaker-diarization-community-1, signal en mémoire (D16)
+  vad: integree               # segmentation de la pipeline, pas de VAD séparée
+  parametres:                 # nombre de locuteurs estimé dans des bornes (D23, rang A2 ; EXP-0018)
+    num_speakers: null
+    min_speakers: 2
+    max_speakers: 6
+    sortie: habituelle          # sortie évaluée, comme EXP-0018 ; la sortie exclusive est aussi enregistrée
+
+mode_n_locuteurs: borne
+detection_oracle: false
+
+device: mps
+prechauffage_s: 60            # extrait du premier fichier, non compté (protocole §3.5)
+
+jeux:
+  - corpus: maison
+    partition: test           # corpus maison entièrement en test (protocole §2)
+    liste: data/splits/maison/test.txt
+
+evaluation:
+  references: data/processed/maison/rttm   # annotation manuelle, fusion à 200 ms (conventions d'annotation)
+  uem: data/processed/maison/uem           # repères manuels début et fin (amendement du 05/11), non versionnée
+  conditions: {collar_0: 0.0, collar_0_25: 0.5}
+  skip_overlap: false
+
+materiel:
+  machine: MacBook Pro M2 Pro
+  ram_go: 16

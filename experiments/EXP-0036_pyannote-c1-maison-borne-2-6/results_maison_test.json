@@ -1,0 +1,71 @@
+{
+  "exp_id": "EXP-0036",
+  "slug": "pyannote-c1-maison-borne-2-6",
+  "date": "2026-11-05T15:21:08+01:00",
+  "git_commit": "bf460b8",
+  "arbre_propre": true,
+  "reference": null,
+  "variable_modifiee": null,
+  "donnees": {
+    "corpus": "maison",
+    "partition": "test",
+    "n_fichiers": 1,
+    "duree_audio_s": 552.0
+  },
+  "systeme": {
+    "pipeline": "pyannote-community-1",
+    "mode_n_locuteurs": "borne",
+    "vad": "integree",
+    "device": "mps"
+  },
+  "materiel": {
+    "machine": "MacBook Pro M2 Pro",
+    "ram_go": 16
+  },
+  "metriques": {
+    "collar_0": {
+      "der": 34.11,
+      "manquee": 4.34,
+      "fausse_alarme": 15.41,
+      "confusion": 14.37,
+      "jer": 55.8
+    },
+    "collar_0_25": {
+      "der": 19.57,
+      "manquee": 2.06,
+      "fausse_alarme": 7.73,
+      "confusion": 9.78,
+      "jer": 48.36
+    },
+    "der_zones_sans_chevauchement": 36.83,
+    "der_zones_chevauchement": 19.41,
+    "n_locuteurs": {
+      "erreur_absolue_moyenne": 1.0,
+      "taux_exact": 0.0
+    }
+  },
+  "temps": {
+    "device": "mps",
+    "chargement_modeles_s": 1.93,
+    "calcul_s": 30.61,
+    "rtf": 0.0555,
+    "conforme": true,
+    "charge_concurrente": true
+  },
+  "temps_cpu": null,
+  "evaluation": {
+    "date": "2026-11-05T15:21:37+01:00",
+    "git_commit": "bf460b887c4adbed1c1b928ef9fb7bd94fc1ead4",
+    "arbre_propre": true,
+    "fichiers_non_commites": [
+      "analyses/A-0005_maison-m01/config.yaml",
+      "experiments/EXP-0036_pyannote-c1-maison-borne-2-6/config.yaml",
+      "experiments/EXP-0036_pyannote-c1-maison-borne-2-6/execution_mps.json",
+      "experiments/EXP-0036_pyannote-c1-maison-borne-2-6/run.log",
+      "experiments/EXP-0037_nemotron3-maison-seuil/config.yaml",
+      "experiments/EXP-0037_nemotron3-maison-seuil/execution_cpu.json",
+      "experiments/EXP-0037_nemotron3-maison-seuil/run.log"
+    ]
+  },
+  "invalidee": null
+}

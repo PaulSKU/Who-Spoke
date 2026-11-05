@@ -1,0 +1,11 @@
+2026-11-05T15:21:11+0100 INFO alimentation au début : secteur (Now drawing from 'AC Power') ; charge sur 1 min 6.04 pour 6 cœurs de performance
+2026-11-05T15:21:11+0100 INFO expérience EXP-0037, mode complet
+2026-11-05T15:21:11+0100 INFO commit bf460b887c4adbed1c1b928ef9fb7bd94fc1ead4, arbre propre (chemins contrôlés, D18) : True
+2026-11-05T15:21:11+0100 INFO fichiers non commités : analyses/A-0005_maison-m01/config.yaml, experiments/EXP-0036_pyannote-c1-maison-borne-2-6/config.yaml, experiments/EXP-0036_pyannote-c1-maison-borne-2-6/execution_mps.json, experiments/EXP-0036_pyannote-c1-maison-borne-2-6/run.log, experiments/EXP-0037_nemotron3-maison-seuil/config.yaml, experiments/EXP-0037_nemotron3-maison-seuil/run.log
+2026-11-05T15:21:11+0100 INFO python 3.11.15, torch 2.14.1, plateforme macOS-14.1.2-arm64-arm-64bit, fils torch 6
+2026-11-05T15:21:15+0100 INFO pipeline nemotron3-diarization chargée sur cpu en 3.88 s (paramètres : {'threshold': 0.35}, nombre de locuteurs : estime, détection oracle : False, trace : False)
+2026-11-05T15:21:16+0100 INFO préchauffage : 60 s de maison__M01 en 1.39 s (non compté)
+2026-11-05T15:21:22+0100 INFO [1/1] test maison__M01 : 552.0 s d'audio, 5.96 s de calcul, RTF 0.0108, 3 locuteurs
+2026-11-05T15:21:22+0100 INFO alimentation à la fin : secteur ; 2 relevés, conforme : True
+2026-11-05T15:21:22+0100 INFO charge concurrente : True (charge maximale sur 1 min : 6.04, 6 cœurs de performance)
+2026-11-05T15:21:23+0100 INFO total : 552.0 s d'audio, 6.0 s de calcul, RTF 0.0108 ; temps pour 30 min : 19 s

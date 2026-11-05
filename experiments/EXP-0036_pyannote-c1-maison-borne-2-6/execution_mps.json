@@ -1,0 +1,211 @@
+{
+  "exp_id": "EXP-0036",
+  "mode": "complet",
+  "sous_ensemble": null,
+  "date_fin": "2026-11-05T15:21:08+01:00",
+  "git_commit": "bf460b887c4adbed1c1b928ef9fb7bd94fc1ead4",
+  "arbre_propre": true,
+  "fichiers_non_commites": [
+    "analyses/A-0005_maison-m01/config.yaml",
+    "experiments/EXP-0036_pyannote-c1-maison-borne-2-6/config.yaml",
+    "experiments/EXP-0036_pyannote-c1-maison-borne-2-6/run.log",
+    "experiments/EXP-0037_nemotron3-maison-seuil/config.yaml"
+  ],
+  "config_sha256": "0843ff4afe8b86a5a059646bd0cc43e6bac47da02949c504faee12fb16eb852f",
+  "device": "mps",
+  "torch_threads": 6,
+  "versions": {
+    "python": "3.11.15",
+    "torch": "2.14.1",
+    "pyannote.audio": "4.0.7",
+    "librosa": "0.11.0",
+    "speechbrain": "1.1.2"
+  },
+  "mode_n_locuteurs": "borne",
+  "detection_oracle": false,
+  "trace": false,
+  "balayage": null,
+  "normalisation_niveau": null,
+  "configuration_effective": {
+    "detection": [
+      {
+        "nom": "segmentation.modele",
+        "valeur": "pyannote/speaker-diarization-community-1/segmentation@3533c8cf8e369892e6b79ff1bf80f7b0286a54ee (PyanNet)",
+        "origine": "modele"
+      },
+      {
+        "nom": "segmentation.powerset",
+        "valeur": true,
+        "origine": "modele"
+      },
+      {
+        "nom": "segmentation.min_duration_off",
+        "valeur": 0.0,
+        "origine": "defaut"
+      }
+    ],
+    "segmentation": [
+      {
+        "nom": "segmentation.duree_fenetre_s",
+        "valeur": 10.0,
+        "origine": "modele"
+      },
+      {
+        "nom": "segmentation_step",
+        "valeur": 0.1,
+        "origine": "defaut"
+      },
+      {
+        "nom": "segmentation.locuteurs_par_fenetre",
+        "valeur": 3,
+        "origine": "modele"
+      },
+      {
+        "nom": "segmentation.locuteurs_simultanes",
+        "valeur": 2,
+        "origine": "modele"
+      },
+      {
+        "nom": "segmentation_batch_size",
+        "valeur": 32,
+        "origine": "defaut"
+      }
+    ],
+    "empreintes": [
+      {
+        "nom": "embedding.modele",
+        "valeur": "pyannote/speaker-diarization-community-1/embedding@3533c8cf8e369892e6b79ff1bf80f7b0286a54ee (WeSpeakerResNet34)",
+        "origine": "modele"
+      },
+      {
+        "nom": "embedding.dimension",
+        "valeur": 256,
+        "origine": "modele"
+      },
+      {
+        "nom": "embedding_exclude_overlap",
+        "valeur": true,
+        "origine": "defaut"
+      },
+      {
+        "nom": "embedding_batch_size",
+        "valeur": 32,
+        "origine": "defaut"
+      }
+    ],
+    "regroupement": [
+      {
+        "nom": "clustering.methode",
+        "valeur": "VBxClustering",
+        "origine": "defaut"
+      },
+      {
+        "nom": "clustering.metric",
+        "valeur": "cosine",
+        "origine": "defaut"
+      },
+      {
+        "nom": "clustering.threshold",
+        "valeur": 0.6,
+        "origine": "defaut"
+      },
+      {
+        "nom": "clustering.Fa",
+        "valeur": 0.07,
+        "origine": "defaut"
+      },
+      {
+        "nom": "clustering.Fb",
+        "valeur": 0.8,
+        "origine": "defaut"
+      },
+      {
+        "nom": "clustering.constrained_assignment",
+        "valeur": true,
+        "origine": "defaut"
+      },
+      {
+        "nom": "plda.modele",
+        "valeur": "pyannote/speaker-diarization-community-1/plda@3533c8cf8e369892e6b79ff1bf80f7b0286a54ee",
+        "origine": "modele"
+      },
+      {
+        "nom": "plda.lda_dimension",
+        "valeur": 128,
+        "origine": "modele"
+      },
+      {
+        "nom": "n_locuteurs",
+        "valeur": "borne [2, 6]",
+        "origine": "experience"
+      }
+    ],
+    "sortie": [
+      {
+        "nom": "sortie.exclusive",
+        "valeur": false,
+        "origine": "experience"
+      }
+    ]
+  },
+  "chargement_modeles_s": 1.929,
+  "prechauffage": {
+    "uri": "maison__M01",
+    "duree_s": 60.0
+  },
+  "duree_audio_s": 552.021,
+  "calcul_s": 30.613,
+  "rtf": 0.0555,
+  "alimentation": {
+    "commande": "pmset -g batt",
+    "commande_charge": "os.getloadavg() (sysctl vm.loadavg)",
+    "intervalle_s": 60.0,
+    "coeurs_performance": 6,
+    "releves": [
+      {
+        "date": "2026-11-05T15:20:30+01:00",
+        "moment": "debut",
+        "source": "secteur",
+        "brut": "Now drawing from 'AC Power'",
+        "horodatage": 1793888430.848626,
+        "charge_1min": 5.07,
+        "charge_5min": 4.72,
+        "charge_15min": 5.03
+      },
+      {
+        "date": "2026-11-05T15:21:08+01:00",
+        "moment": "fin",
+        "source": "secteur",
+        "brut": "Now drawing from 'AC Power'",
+        "horodatage": 1793888468.065311,
+        "charge_1min": 6.04,
+        "charge_5min": 5.1,
+        "charge_15min": 5.16
+      }
+    ],
+    "conforme": true,
+    "charge_concurrente": true
+  },
+  "fichiers": [
+    {
+      "uri": "maison__M01",
+      "corpus": "maison",
+      "partition": "test",
+      "duree_audio_s": 552.021,
+      "calcul_s": 30.613,
+      "rtf": 0.0555,
+      "n_locuteurs_hypothese": 2,
+      "n_locuteurs_impose": null,
+      "etapes_s": {
+        "segmentation": 2.383,
+        "detection": 0.011,
+        "empreintes": 27.956,
+        "regroupement": 0.094,
+        "sortie": 0.077
+      },
+      "n_locuteurs_vbx": 2,
+      "kmeans": false,
+      "n_locuteurs_kmeans": null
+    }
+  ]
+}

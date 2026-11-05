@@ -1,0 +1,131 @@
+{
+  "exp_id": "EXP-0037",
+  "mode": "complet",
+  "sous_ensemble": null,
+  "date_fin": "2026-11-05T15:21:22+01:00",
+  "git_commit": "bf460b887c4adbed1c1b928ef9fb7bd94fc1ead4",
+  "arbre_propre": true,
+  "fichiers_non_commites": [
+    "analyses/A-0005_maison-m01/config.yaml",
+    "experiments/EXP-0036_pyannote-c1-maison-borne-2-6/config.yaml",
+    "experiments/EXP-0036_pyannote-c1-maison-borne-2-6/execution_mps.json",
+    "experiments/EXP-0036_pyannote-c1-maison-borne-2-6/run.log",
+    "experiments/EXP-0037_nemotron3-maison-seuil/config.yaml",
+    "experiments/EXP-0037_nemotron3-maison-seuil/run.log"
+  ],
+  "config_sha256": "856e098620d8edd80c0b9b6c6ddee918a11789b1f76cbb822fe16666aed86615",
+  "device": "cpu",
+  "torch_threads": 6,
+  "versions": {
+    "python": "3.11.15",
+    "torch": "2.14.1",
+    "pyannote.audio": "4.0.7",
+    "librosa": "0.11.0",
+    "speechbrain": "1.1.2"
+  },
+  "mode_n_locuteurs": "estime",
+  "detection_oracle": false,
+  "trace": false,
+  "balayage": null,
+  "normalisation_niveau": null,
+  "configuration_effective": {
+    "detection": [
+      {
+        "nom": "nemotron.modele",
+        "valeur": "nvidia/Nemotron-3-Diarization@f667ed73aee5",
+        "origine": "experience"
+      },
+      {
+        "nom": "nemotron.seuil",
+        "valeur": 0.35,
+        "origine": "experience"
+      },
+      {
+        "nom": "nemotron.trame_s",
+        "valeur": 0.01,
+        "origine": "modele"
+      }
+    ],
+    "regroupement": [
+      {
+        "nom": "nemotron.locuteurs_max",
+        "valeur": 8,
+        "origine": "modele"
+      },
+      {
+        "nom": "nemotron.n_locuteurs",
+        "valeur": "estimé (ni imposé ni borné)",
+        "origine": "code"
+      }
+    ],
+    "sortie": [
+      {
+        "nom": "nemotron.mode",
+        "valeur": "hors ligne (is_streaming=False)",
+        "origine": "code"
+      },
+      {
+        "nom": "nemotron.environnement",
+        "valeur": "envs/nemotron (python 3.12.13, torch 2.15.0, transformers 5.22.1), cpu",
+        "origine": "code"
+      }
+    ]
+  },
+  "chargement_modeles_s": 3.885,
+  "prechauffage": {
+    "uri": "maison__M01",
+    "duree_s": 60.0
+  },
+  "duree_audio_s": 552.021,
+  "calcul_s": 5.962,
+  "rtf": 0.0108,
+  "alimentation": {
+    "commande": "pmset -g batt",
+    "commande_charge": "os.getloadavg() (sysctl vm.loadavg)",
+    "intervalle_s": 60.0,
+    "coeurs_performance": 6,
+    "releves": [
+      {
+        "date": "2026-11-05T15:21:11+01:00",
+        "moment": "debut",
+        "source": "secteur",
+        "brut": "Now drawing from 'AC Power'",
+        "horodatage": 1793888471.214331,
+        "charge_1min": 6.04,
+        "charge_5min": 5.1,
+        "charge_15min": 5.16
+      },
+      {
+        "date": "2026-11-05T15:21:22+01:00",
+        "moment": "fin",
+        "source": "secteur",
+        "brut": "Now drawing from 'AC Power'",
+        "horodatage": 1793888482.559605,
+        "charge_1min": 5.96,
+        "charge_5min": 5.12,
+        "charge_15min": 5.17
+      }
+    ],
+    "conforme": true,
+    "charge_concurrente": true
+  },
+  "fichiers": [
+    {
+      "uri": "maison__M01",
+      "corpus": "maison",
+      "partition": "test",
+      "duree_audio_s": 552.021,
+      "calcul_s": 5.962,
+      "rtf": 0.0108,
+      "n_locuteurs_hypothese": 3,
+      "n_locuteurs_impose": null,
+      "etapes_s": {
+        "analyse": 0.237,
+        "detection": 5.655,
+        "sous_processus": 5.897
+      },
+      "n_trames": 55203,
+      "chargement_s": 3.833
+    }
+  ]
+}
