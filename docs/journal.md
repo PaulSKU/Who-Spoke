@@ -1498,3 +1498,7 @@ Suite : interprétation par le cockpit (D29, condition 3) ; M02 et M03 à leur c
 ## 2026-11-05 — Cockpit : interprétation d'A9 (M01)
 
 Interprétations rédigées pour EXP-0036, EXP-0037 et A-0005 ; constat C22 ; amendement du 05/11 de D29 (état des quatre conditions, point de lecture de la condition 2 à trancher avant les enregistrements suivants) ; synthèse mise à jour. Décisions sur les questions d'A9 : le niveau de détail des fichiers de résultats (durée exacte, secondes par composante, sans horaire ni sortie par segment) est accepté pour le corpus maison, la règle du 01/11 visant les horaires et les sorties par segment ; champs reference et variable_modifiee à null acceptés ; numéro A-0005 entériné. Point ouvert : la catégorie « décalage de frontière » de pyannote dépasse de 7 points l'erreur retirée par le collar sur M01.
+
+## 2026-11-06 — Cockpit : lecture de la condition 2 de D29
+
+La candidate tranche avant tout autre enregistrement : le critère de la condition 2 est l'écart de DER (règle du 03/11) ; la parole manquée devient un indicateur rapporté par enregistrement, non éliminatoire. Amendement du 05/11 de D29 mis à jour. Reste ouvert : la règle à appliquer si aucun enregistrement en salle n'est disponible au 9/11.
